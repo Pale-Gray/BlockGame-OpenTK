@@ -35,5 +35,3 @@ Aspects of the game will be similar to a list of mods for Minecraft that I have 
 - Shadow Mapping
 - All forms of lighting that will be necessary (point and directional)
 - Reflections / Psuedo Reflections using Frame Buffer Objects (FBO)
-
-**This is all I have envisioned for this game right now. It will take a very, very long time and immense dedication to complete or even submit a playable build, so please be patient.**
