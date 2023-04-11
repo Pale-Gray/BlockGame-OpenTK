@@ -1,5 +1,3 @@
-# BlockGame-OpenTK
-
 *copied over from Block-Game-Remaster*
 
 # BlockGame-OpenTK
