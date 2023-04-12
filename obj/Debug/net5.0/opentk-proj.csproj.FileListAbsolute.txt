@@ -1,0 +1,16 @@
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.exe
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.deps.json
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.runtimeconfig.json
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.runtimeconfig.dev.json
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.dll
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\opentk-proj.pdb
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.csproj.AssemblyReference.cache
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.GeneratedMSBuildEditorConfig.editorconfig
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.AssemblyInfoInputs.cache
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.AssemblyInfo.cs
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.csproj.CoreCompileInputs.cache
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.dll
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\refint\opentk-proj.dll
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.pdb
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.genruntimeconfig.cache
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\ref\opentk-proj.dll
