@@ -6,7 +6,15 @@ namespace opentk_proj
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
+            using (Game game = new Game(640, 480, "Game"))
+            {
+
+                game.Run();
+
+            }
+
         }
+
     }
 }
