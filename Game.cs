@@ -7,22 +7,21 @@ namespace opentk_proj
 {
     internal class Game : GameWindow
     {
+        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title}) {}
 
-        float[] verts = 
-        { 
-        
+        float[] verts =
+        {
+
             -0.5f, -0.5f, 0.0f,
             0.5f, -0.5f, 0.0f,
             0.0f, 0.5f, 0.0f
 
         };
 
+        Shader shader;
+
         int vbo;
         int vao;
-
-        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title}) {}
-
-        Shader shader;
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
@@ -50,19 +49,12 @@ namespace opentk_proj
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            // this portion is not required
-            // GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            // GL.DeleteBuffer(vbo);
 
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
 
-            // defining attributes
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.DeleteBuffer(vbo);
 
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
@@ -89,6 +81,10 @@ namespace opentk_proj
         {
 
             base.OnUnload();
+
+            // this portion is not required
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.DeleteBuffer(vbo);
 
             shader.Dispose();
 
