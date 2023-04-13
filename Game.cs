@@ -13,12 +13,12 @@ namespace opentk_proj
         float[] verts =
         {
 
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.0f, 1.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f
+             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
 
         };
 
@@ -57,8 +57,8 @@ namespace opentk_proj
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
             // GL.ActiveTexture(TextureUnit.Texture0);
-            texture = new Texture("../../../res/textures/grass.png");
-            GL.BindTexture(TextureTarget.Texture2D, texture.getID());
+            texture = new Texture("../../../res/textures/bowser_smirk.jpg");
+            // GL.BindTexture(TextureTarget.Texture2D, texture.getID());
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -69,7 +69,7 @@ namespace opentk_proj
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3);
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
 
         }
