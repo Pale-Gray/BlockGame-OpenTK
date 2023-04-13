@@ -8,7 +8,8 @@
     ".NETCoreApp,Version=v5.0": {
       "opentk-proj/1.0.0": {
         "dependencies": {
-          "OpenTK": "4.7.7"
+          "OpenTK": "4.7.7",
+          "StbImageSharp": "2.27.13"
         },
         "runtime": {
           "opentk-proj.dll": {}
@@ -153,6 +154,14 @@
           }
         }
       },
+      "StbImageSharp/2.27.13": {
+        "runtime": {
+          "lib/netstandard2.0/StbImageSharp.dll": {
+            "assemblyVersion": "2.27.13.0",
+            "fileVersion": "2.27.13.0"
+          }
+        }
+      },
       "System.Runtime.CompilerServices.Unsafe/5.0.0": {}
     }
   },
@@ -238,6 +247,13 @@
       "sha512": "sha512-TZXZOcnfyPU7zosW+ZPtfemqp4oSBYmQlRQRR7qtEezOBrzotO5ZmlWl0hNti3qjFmJThSxhBn+o/bF7aoBLrA==",
       "path": "opentk.windowing.graphicslibraryframework/4.7.7",
       "hashPath": "opentk.windowing.graphicslibraryframework.4.7.7.nupkg.sha512"
+    },
+    "StbImageSharp/2.27.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tHnP2RHgFzWbOS96UqvRO/LYU1WmpMT1bKiig45we+rpaXacBr11Fq2IBF+MqlgyLyNXxRz18E66qr4R9YlSbg==",
+      "path": "stbimagesharp/2.27.13",
+      "hashPath": "stbimagesharp.2.27.13.nupkg.sha512"
     },
     "System.Runtime.CompilerServices.Unsafe/5.0.0": {
       "type": "package",

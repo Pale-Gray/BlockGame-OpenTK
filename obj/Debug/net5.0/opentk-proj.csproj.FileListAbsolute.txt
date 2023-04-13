@@ -29,3 +29,4 @@ D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\runtimes\osx-x64\n
 D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\runtimes\win-x64\native\glfw3.dll
 D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\runtimes\win-x86\native\glfw3.dll
 D:\Users\Gavin\source\repos\BlockGame-OpenTK\obj\Debug\net5.0\opentk-proj.csproj.CopyComplete
+D:\Users\Gavin\source\repos\BlockGame-OpenTK\bin\Debug\net5.0\StbImageSharp.dll

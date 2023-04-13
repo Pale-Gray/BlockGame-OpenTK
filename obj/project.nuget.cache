@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "i+k85YLMiLlN/sUhX/WFeAtonOioU0f6wOVphd13EqHIrZR4JPbRj+xmzdn1rL/G3K7ktUPpflwE1a3WVO023A==",
+  "dgSpecHash": "sR8ZPR7qkqGRwUUQgB5SWmnPRW3JWkSovzOEeKWd0W0l/0kMqjwnrBdhxiBaWSNN3n/nJL4ea7Y/WRproPiCeQ==",
   "success": true,
   "projectFilePath": "D:\\Users\\Gavin\\source\\repos\\BlockGame-OpenTK\\opentk-proj.csproj",
   "expectedPackageFiles": [
@@ -15,6 +15,7 @@
     "C:\\Users\\Gavin\\.nuget\\packages\\opentk.windowing.common\\4.7.7\\opentk.windowing.common.4.7.7.nupkg.sha512",
     "C:\\Users\\Gavin\\.nuget\\packages\\opentk.windowing.desktop\\4.7.7\\opentk.windowing.desktop.4.7.7.nupkg.sha512",
     "C:\\Users\\Gavin\\.nuget\\packages\\opentk.windowing.graphicslibraryframework\\4.7.7\\opentk.windowing.graphicslibraryframework.4.7.7.nupkg.sha512",
+    "C:\\Users\\Gavin\\.nuget\\packages\\stbimagesharp\\2.27.13\\stbimagesharp.2.27.13.nupkg.sha512",
     "C:\\Users\\Gavin\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\5.0.0\\system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512"
   ],
   "logs": []

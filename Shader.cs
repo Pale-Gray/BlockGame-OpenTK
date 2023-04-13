@@ -11,7 +11,7 @@ namespace opentk_proj
     internal class Shader
     {
 
-        int id;
+        public int id;
 
         public Shader(string pathtovert, string pathtofrag)
         {
@@ -72,6 +72,14 @@ namespace opentk_proj
             GL.UseProgram(id);
 
         }
+
+        public int getID()
+        {
+
+            return id;
+
+        }
+
 
         // fancy stuff for disposing shader
         private bool disposev = false;
