@@ -1,7 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Linq;
 
 namespace opentk_proj
@@ -57,7 +59,7 @@ namespace opentk_proj
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
             // GL.ActiveTexture(TextureUnit.Texture0);
-            texture = new Texture("../../../res/textures/bowser_smirk.jpg");
+            texture = new Texture("../../../res/textures/grass.png");
             // GL.BindTexture(TextureTarget.Texture2D, texture.getID());
 
             vbo = GL.GenBuffer();
@@ -81,9 +83,14 @@ namespace opentk_proj
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            Matrix4 rot = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(45.0f * (float)GLFW.GetTime()));
+            Matrix4 transformation = rot; // translation, rotation, then scale
+
+
             // etc
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             shader.Use();
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "transformation"), true, ref transformation);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
             GL.BindTexture(TextureTarget.Texture2D, 0);
@@ -110,6 +117,8 @@ namespace opentk_proj
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
+            Constants.WIDTH = e.Width;
+            Constants.HEIGHT = e.Height;
 
         }
 
