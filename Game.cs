@@ -91,6 +91,8 @@ namespace opentk_proj
 
         float sens = 0.8f;
 
+        double time = 0;
+
         Vector2 lmpos = new Vector2(0.0f, 0.0f);
 
         bool firstmove = true;
@@ -99,6 +101,8 @@ namespace opentk_proj
         {
 
             base.OnUpdateFrame(args);
+
+            time = GLFW.GetTime();
 
             MouseState mouse = MouseState;
 
@@ -176,8 +180,8 @@ namespace opentk_proj
 
             Chunk c = new Chunk();
             c.initialize();
-            // verts = c.getvertdata();
             Console.WriteLine(verts.Length);
+            verts = c.getvertdata();
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
 
@@ -190,7 +194,8 @@ namespace opentk_proj
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
             // GL.ActiveTexture(TextureUnit.Texture0);
-            texture = new Texture("../../../res/textures/bowser_propose.jpg");
+            // texture = new Texture("../../../res/textures/bowser_propose.jpg");
+            texture = new Texture("../../../res/textures/atlas.png");
             // GL.BindTexture(TextureTarget.Texture2D, texture.getID());
 
             vbo = GL.GenBuffer();
@@ -200,10 +205,12 @@ namespace opentk_proj
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
+            GL.EnableVertexAttribArray(2);
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -243,6 +250,7 @@ namespace opentk_proj
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
+            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float) time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, verts.Length);
             GL.BindTexture(TextureTarget.Texture2D, 0);
