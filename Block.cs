@@ -117,7 +117,7 @@ namespace opentk_proj
 
         }
 
-        public int GetBlockType()
+        public int GetID()
         {
 
             return blocktype;

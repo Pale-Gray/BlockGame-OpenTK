@@ -12,23 +12,20 @@ namespace opentk_proj
         public static Block Air = new Block();
         public static GrassBlock Grass = new GrassBlock();
 
+        public static Dictionary<int, Block> BlockIDs = new Dictionary<int, Block>();
+
+        public static void RegisterIDs()
+        {
+
+            BlockIDs[Air.GetID()] = Air;
+            BlockIDs[Grass.GetID()] = Grass;
+
+        }
+
         public static Block GetBlockByID(int id)
         {
 
-            switch(id)
-            {
-
-                case 0:
-                    return Air;
-                    break;
-                case 1:
-                    return Grass;
-                    break;
-                default:
-                    return Air;
-                    break;
-
-            }
+            return BlockIDs[id];
 
         } 
 

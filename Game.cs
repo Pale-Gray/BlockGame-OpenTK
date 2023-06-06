@@ -178,6 +178,8 @@ namespace opentk_proj
 
             base.OnLoad();
 
+            Blocks.RegisterIDs();
+
             Chunk c = new Chunk();
             c.initialize();
             // Console.WriteLine(verts.Length);

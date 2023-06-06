@@ -12,7 +12,7 @@ namespace opentk_proj
     internal class Chunk
     {
 
-        static int size = 16;
+        static int size = 32;
 
         int[,,] blockdata = new int[size,size,size];
         float[] blockvertdata = new float[180 * (size*size)];
@@ -96,19 +96,12 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        blockdata[x, y, z] = RandomNumberGenerator.GetInt32(0, 50) > 25 ? 1 : 0;
+                        blockdata[x, y, z] = 1;
                         // blockdata[x, y > z ? z : y, z] = 1;
 
                     }
 
                 }
-
-            }
-
-            for (int i = 0; i < Blocks.Grass.reffront.Length; i++)
-            {
-
-                Console.WriteLine(Blocks.Grass.reffront[i]);
 
             }
 
@@ -160,7 +153,6 @@ namespace opentk_proj
             }
 
             blockvertdata = (float[]) blockvertdataarray.ToArray(typeof(float));
-            Console.WriteLine(blockvertdata.Length);
 
         }
 
