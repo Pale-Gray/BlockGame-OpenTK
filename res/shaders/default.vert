@@ -1,9 +1,11 @@
 #version 330 core
-layout (location=0) in vec3 position;
-layout (location=1) in vec2 texcoord;
-layout (location=2) in float blocktype;
+layout (location=0) in float blocktype;
+layout (location=1) in vec3 position;
+layout (location=2) in vec3 normal;
+layout (location=3) in vec2 texcoord;
 
 out vec3 v_position;
+out vec3 v_normal;
 out vec2 v_texcoord;
 
 uniform mat4 model;
@@ -16,22 +18,9 @@ void main()
 {
 
 	v_position = position;
+	v_normal = normal;
 	v_texcoord = texcoord;
 
-	if (blocktype == 1) {
-
-		gl_Position = vec4(position.x,
-	position.y + (sin(position.x+time)/5),
-	position.z + (sin(position.x+time)/5),
-	1.0) * model * view * projection;
-
-	} else {
-
-	gl_Position = vec4(position.x,
-	position.y,
-	position.z,
-	1.0) * model * view * projection;
-
-	}
+	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
 
 }

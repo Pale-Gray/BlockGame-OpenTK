@@ -180,23 +180,23 @@ namespace opentk_proj
 
             Chunk c = new Chunk();
             c.initialize();
-            Console.WriteLine(verts.Length);
+            // Console.WriteLine(verts.Length);
             verts = c.getvertdata();
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.ActiveTexture(TextureUnit.Texture0);
+            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+            // GL.LineWidth(10);
 
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
-            // GL.ActiveTexture(TextureUnit.Texture0);
-            // texture = new Texture("../../../res/textures/bowser_propose.jpg");
+
             texture = new Texture("../../../res/textures/atlas.png");
-            // GL.BindTexture(TextureTarget.Texture2D, texture.getID());
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -205,12 +205,15 @@ namespace opentk_proj
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+            // how it will be
+            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
             GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 1, VertexAttribPointerType.Float, false, 6 * sizeof(float), 5 * sizeof(float));
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
             GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
+            GL.EnableVertexAttribArray(3);
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -220,21 +223,13 @@ namespace opentk_proj
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            // Matrix4 rot = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(45.0f * (float)GLFW.GetTime()));
             Matrix4 transformation = Matrix4.CreateScale(1.0f);// rot; // translation, rotation, then scale
 
-            // Matrix4 model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-55.0f));
+           
             Matrix4 model = Matrix4.CreateScale(1.0f);// Matrix4.CreateRotationX(MathHelper.DegreesToRadians(90.0f * (float)GLFW.GetTime())) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(90.0f * (float)GLFW.GetTime()));
             // Matrix4 view = Matrix4.CreateTranslation(0.0f, 0.0f, -3.0f);
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float) Constants.WIDTH / (float) Constants.HEIGHT, 0.1f, 100.0f);
 
-            // Vector3 position = new Vector3(0.0f, 0.0f, 0.0f);
-            // Vector3 camTarget = Vector3.Zero;
-            // Vector3 camDirection = Vector3.Normalize(position - camTarget);
-
-            // Vector3 up = Vector3.UnitY;
-            // Vector3 right = Vector3.Normalize(Vector3.Cross(up, camDirection));
-            // Vector3 camup = Vector3.Cross(camDirection, right);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
             cfront.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
