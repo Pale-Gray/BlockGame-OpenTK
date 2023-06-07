@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace opentk_proj
+namespace opentk_proj.blocks
 {
     internal class GrassBlock : Block
     {
@@ -48,7 +48,7 @@ namespace opentk_proj
 
             };
 
-            SetBlockType(1);
+            SetID(1);
             SetTexCoordinates(reffront, texside);
             SetTexCoordinates(refright, texside);
             SetTexCoordinates(refback, texside);
@@ -56,8 +56,6 @@ namespace opentk_proj
             SetTexCoordinates(refbottom, texbottom);
             SetTexCoordinates(reftop, textop);
 
-
         }
-
     }
 }

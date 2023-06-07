@@ -9,7 +9,7 @@ namespace opentk_proj
 {
     internal class Block
     {
-        public static int blocktype = 0;
+        public int ID = 0;
 
         public float[] reffront = {
 
@@ -76,10 +76,10 @@ namespace opentk_proj
 
         };
 
-        public void SetBlockType(int bt)
+        public void SetID(int bt)
         {
 
-            blocktype = bt;
+            ID = bt;
             for (int i = 0; i < reffront.Length; i += 9)
             {
 
@@ -120,7 +120,7 @@ namespace opentk_proj
         public int GetID()
         {
 
-            return blocktype;
+            return ID;
 
         }
 

@@ -87,6 +87,8 @@ namespace opentk_proj
         public void initialize()
         {
 
+            // Console.WriteLine(Blocks.GetIDByBlock(Blocks.Dirt));
+
             for (int x = 0; x < size; x++)
             {
 
@@ -96,7 +98,7 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        blockdata[x, y, z] = 1;
+                        blockdata[x, y, z] = y < size - 1 ? Blocks.Dirt.GetID() : Blocks.Grass.GetID();
                         // blockdata[x, y > z ? z : y, z] = 1;
 
                     }
@@ -121,10 +123,10 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        if (blockdata[x,y,z] == 1)
+                        if (blockdata[x,y,z] != Blocks.Air.GetID())
                         {
 
-                            // operators are flipped on z because z forward is negative (z back is positive)
+                            // operators are flipped on z because z forward is negative (z back is positive
 
                             if (blockdata[x,y,z-1 < 0 ? z : z-1] == 0) { backface(x, y, z); }
                             if (blockdata[x,y,z] != 0 && z == 0) { backface(x, y, z); } // edge detect

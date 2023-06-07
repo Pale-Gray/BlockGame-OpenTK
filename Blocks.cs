@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using opentk_proj.blocks;
 
 namespace opentk_proj
 {
@@ -11,6 +12,7 @@ namespace opentk_proj
 
         public static Block Air = new Block();
         public static GrassBlock Grass = new GrassBlock();
+        public static DirtBlock Dirt = new DirtBlock();
 
         public static Dictionary<int, Block> BlockIDs = new Dictionary<int, Block>();
 
@@ -19,6 +21,9 @@ namespace opentk_proj
 
             BlockIDs[Air.GetID()] = Air;
             BlockIDs[Grass.GetID()] = Grass;
+            BlockIDs[Dirt.GetID()] = Dirt;
+
+            // BlockIDs[Dirt.GetID()] = Dirt;
 
         }
 
@@ -28,6 +33,13 @@ namespace opentk_proj
             return BlockIDs[id];
 
         } 
+
+        public static int GetIDByBlock(Block block)
+        {
+
+            return block.GetID();
+
+        }
 
     }
 }
