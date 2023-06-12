@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using opentk_proj.blocks;
 
 namespace opentk_proj
 {
@@ -15,6 +14,8 @@ namespace opentk_proj
         public static Block Dirt = new Block().SetID(2).SetFront(0, 0).SetRight(0, 0).SetBack(0, 0).SetLeft(0, 0).SetTop(0, 0).SetBottom(0, 0);
         public static Block Stone = new Block().SetID(3).SetFront(3, 0).SetRight(3, 0).SetBack(3, 0).SetLeft(3, 0).SetTop(3, 0).SetBottom(3, 0);
 
+        public static Block PRIDERAHHHH = new Block().SetID(99).SetFront(3, 2).SetRight(3, 2).SetBack(3, 2).SetLeft(3, 2).SetTop(3, 2).SetBottom(3, 2);
+
         public static Dictionary<int, Block> BlockIDs = new Dictionary<int, Block>();
 
         public static void RegisterIDs()
@@ -24,6 +25,8 @@ namespace opentk_proj
             BlockIDs[Grass.GetID()] = Grass;
             BlockIDs[Dirt.GetID()] = Dirt;
             BlockIDs[Stone.GetID()] = Stone;
+
+            BlockIDs[PRIDERAHHHH.GetID()] = PRIDERAHHHH;
 
             // BlockIDs[Dirt.GetID()] = Dirt;
 

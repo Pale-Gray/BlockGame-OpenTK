@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -90,6 +91,8 @@ namespace opentk_proj
         public Matrix4 model;
         public Matrix4 projection;
 
+        ArrayList blockvertdataarray = new ArrayList();
+
         public int cx;
         public int cy;
         public int cz;
@@ -110,7 +113,7 @@ namespace opentk_proj
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicCopy);
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
             GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
@@ -121,6 +124,8 @@ namespace opentk_proj
             GL.EnableVertexAttribArray(2);
             GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
             GL.EnableVertexAttribArray(3);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
 
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
             projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
@@ -136,10 +141,45 @@ namespace opentk_proj
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
+            GL.BindVertexArray(0);
 
         }
 
-        ArrayList blockvertdataarray = new ArrayList();
+        public void allzeros()
+        {
+            blockdata = new int[size, size, size];
+            blockvertdataarray.Clear();
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        blockdata[x, x, x] = 1;
+
+                    }
+
+                }
+
+            }
+            
+            meshgen();
+            Rewrite();
+           
+        }
+
+        public void Rewrite()
+        {
+            
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicCopy);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        }
 
         public void initialize()
         {
@@ -173,7 +213,7 @@ namespace opentk_proj
                         if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 1)
                         {
 
-                            blockdata[x, y, z] = Blocks.Stone.ID;
+                            blockdata[x, y, z] = Blocks.PRIDERAHHHH.ID;
 
                         }
                         // blockdata[x, y, z] = Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) <= 15 ? Blocks.Grass.ID : Blocks.Air.ID;

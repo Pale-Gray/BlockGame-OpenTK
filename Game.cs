@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
+// using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
@@ -248,7 +249,15 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             shader.Use();
 
-            c1.Draw(shader, view, (float) time);
+            MouseState mouse = MouseState;
+
+            if (mouse.IsButtonPressed(MouseButton.Left))
+            {
+                Console.WriteLine("pressed");
+                c1.allzeros();
+
+            }
+            c1.Draw(shader, view, (float)time);
             // c2.Draw(shader, view, (float)time);
 
             /* GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);

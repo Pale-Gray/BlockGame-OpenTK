@@ -102,12 +102,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(reffront, tx);
@@ -120,12 +120,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(refleft, tx);
@@ -138,12 +138,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(refback, tx);
@@ -156,12 +156,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(refright, tx);
@@ -174,12 +174,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(reftop, tx);
@@ -192,12 +192,12 @@ namespace opentk_proj
             float[] tx =
             {
 
-                0+(xindex*txi), (1-txi) + (yindex*txi),
-                txi+(xindex*txi), (1-txi)+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                txi+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), 1+ (yindex*txi),
-                0+(xindex*txi), (1-txi)+ (yindex*txi)
+                0+(xindex*txi), (1-txi) - (yindex*txi),
+                txi+(xindex*txi), (1-txi)- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                txi+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), 1- (yindex*txi),
+                0+(xindex*txi), (1 - txi) -(yindex * txi)
 
             };
             SetTexCoordinates(refbottom, tx);
