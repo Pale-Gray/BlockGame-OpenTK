@@ -98,8 +98,8 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        blockdata[x, y, z] = y < size - 1 ? Blocks.Dirt.GetID() : Blocks.Grass.GetID();
-                        // blockdata[x, y > z ? z : y, z] = 1;
+                        blockdata[x, y, z] = y < size-1 ? Blocks.Dirt.ID : Blocks.Grass.ID;
+                        blockdata[x,y,z] = RandomNumberGenerator.GetInt32(0, 50) > (10+(8*(y-22))) ? Blocks.Stone.ID : blockdata[x,y,z];
 
                     }
 

@@ -76,9 +76,10 @@ namespace opentk_proj
 
         };
 
-        public void SetID(int bt)
-        {
+        float txi = (32f / 256f);
 
+        public Block SetID(int bt)
+        {
             ID = bt;
             for (int i = 0; i < reffront.Length; i += 9)
             {
@@ -91,10 +92,120 @@ namespace opentk_proj
                 refbottom[i] = bt;
 
             }
+            return this;
 
         }
 
-        public void SetTexCoordinates(float[] vertexdata, float[] texcoords)
+        public Block SetFront(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(reffront, tx);
+            return this;
+
+        }
+        public Block SetLeft(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(refleft, tx);
+            return this;
+
+        }
+        public Block SetBack(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(refback, tx);
+            return this;
+
+        }
+        public Block SetRight(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(refright, tx);
+            return this;
+
+        }
+        public Block SetTop(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(reftop, tx);
+            return this;
+
+        }
+        public Block SetBottom(float xindex, float yindex)
+        {
+
+            float[] tx =
+            {
+
+                0+(xindex*txi), (1-txi) + (yindex*txi),
+                txi+(xindex*txi), (1-txi)+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                txi+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), 1+ (yindex*txi),
+                0+(xindex*txi), (1-txi)+ (yindex*txi)
+
+            };
+            SetTexCoordinates(refbottom, tx);
+            return this;
+
+        }
+
+        public Block SetTexCoordinates(float[] vertexdata, float[] texcoords)
         {
 
             vertexdata[7] = texcoords[0];
@@ -114,7 +225,7 @@ namespace opentk_proj
 
             vertexdata[52] = texcoords[10];
             vertexdata[53] = texcoords[11];
-
+            return this;
         }
 
         public int GetID()

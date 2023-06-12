@@ -7,6 +7,9 @@ layout (location=3) in vec2 texcoord;
 out vec3 v_position;
 out vec3 v_normal;
 out vec2 v_texcoord;
+out float v_blocktype;
+
+out float v_time;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -20,7 +23,9 @@ void main()
 	v_position = position;
 	v_normal = normal;
 	v_texcoord = texcoord;
+	v_blocktype = blocktype;
+	v_time = time;
 
-	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
+	gl_Position = vec4(position.x, position.y, position.z, 1.0) * model * view * projection;
 
 }
