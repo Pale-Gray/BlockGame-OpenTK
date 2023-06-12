@@ -97,6 +97,9 @@ namespace opentk_proj
 
         bool firstmove = true;
 
+        Chunk c1;
+        Chunk c2;
+
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
 
@@ -180,10 +183,7 @@ namespace opentk_proj
 
             Blocks.RegisterIDs();
 
-            Chunk c = new Chunk();
-            c.initialize();
-            // Console.WriteLine(verts.Length);
-            verts = c.getvertdata();
+            // verts = c.getvertdata();
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
 
@@ -200,7 +200,10 @@ namespace opentk_proj
 
             texture = new Texture("../../../res/textures/atlas.png");
 
-            vbo = GL.GenBuffer();
+            c1 = new Chunk(0, 0, 0);
+            c2 = new Chunk(1, 0, 0);
+
+            /* vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
 
@@ -215,7 +218,7 @@ namespace opentk_proj
             GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
             GL.EnableVertexAttribArray(2);
             GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
-            GL.EnableVertexAttribArray(3);
+            GL.EnableVertexAttribArray(3); */
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -244,12 +247,17 @@ namespace opentk_proj
             // etc
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             shader.Use();
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
+
+            c1.Draw(shader, view, (float) time);
+            // c2.Draw(shader, view, (float)time);
+
+            /* GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float) time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, verts.Length);
+            GL.BindTexture(TextureTarget.Texture2D, 0); */
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             SwapBuffers();

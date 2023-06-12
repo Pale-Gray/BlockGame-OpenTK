@@ -1,8 +1,10 @@
 ﻿using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,8 +16,8 @@ namespace opentk_proj
 
         static int size = 32;
 
-        int[,,] blockdata = new int[size,size,size];
-        float[] blockvertdata = new float[180 * (size*size)];
+        int[,,] blockdata = new int[size, size, size];
+        float[] blockvertdata = new float[180 * (size * size)];
         float[] reffront =
         {
 
@@ -82,6 +84,61 @@ namespace opentk_proj
 
         };
 
+        public int vbo;
+        public int vao;
+
+        public Matrix4 model;
+        public Matrix4 projection;
+
+        public int cx;
+        public int cy;
+        public int cz;
+
+        Vector3 cpos;
+        // public Matrix4 view; doesnt need its always updated
+
+        public Chunk(int x, int y, int z)
+        {
+
+            cx = x;
+            cy = y;
+            cz = z;
+
+            cpos = new Vector3(x, y, z);
+
+            initialize();
+
+            vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.StaticDraw);
+            vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
+            GL.EnableVertexAttribArray(3);
+
+            model = Matrix4.CreateTranslation(x * size, y * size, z * size);
+            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
+
+        }
+        public void Draw(Shader shader, Matrix4 view, float time)
+        {
+
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
+            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref cpos);
+            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
+            GL.BindVertexArray(vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
+
+        }
+
         ArrayList blockvertdataarray = new ArrayList();
 
         public void initialize()
@@ -98,8 +155,28 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        blockdata[x, y, z] = y < size-1 ? Blocks.Dirt.ID : Blocks.Grass.ID;
-                        blockdata[x,y,z] = RandomNumberGenerator.GetInt32(0, 50) > (10+(8*(y-22))) ? Blocks.Stone.ID : blockdata[x,y,z];
+                        // blockdata[x, y, z] = y < size-1 ? Blocks.Dirt.ID : Blocks.Grass.ID;
+                        // blockdata[x,y,z] = RandomNumberGenerator.GetInt32(0, 50) > (10+(8*(y-22))) ? Blocks.Stone.ID : blockdata[x,y,z];
+
+                        if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 15)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Grass.ID;
+
+                        }
+                        if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 14)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Dirt.ID;
+
+                        }
+                        if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 1)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Stone.ID;
+
+                        }
+                        // blockdata[x, y, z] = Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) <= 15 ? Blocks.Grass.ID : Blocks.Air.ID;
 
                     }
 

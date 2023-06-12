@@ -8,12 +8,15 @@ out vec3 v_position;
 out vec3 v_normal;
 out vec2 v_texcoord;
 out float v_blocktype;
-
+out vec3 c_position;
 out float v_time;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 cpos;
+
+float PI = 3.141459265359;
 
 uniform float time;
 
@@ -26,6 +29,8 @@ void main()
 	v_blocktype = blocktype;
 	v_time = time;
 
-	gl_Position = vec4(position.x, position.y, position.z, 1.0) * model * view * projection;
+	c_position = cpos;
+
+	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
 
 }
