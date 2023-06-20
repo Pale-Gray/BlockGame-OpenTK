@@ -9,13 +9,14 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Transactions;
 
 namespace opentk_proj
 {
     internal class Game : GameWindow
     {
-        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title}) {}
+        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug}) {}
 
         float[] verts = {
 
@@ -98,9 +99,34 @@ namespace opentk_proj
 
         bool firstmove = true;
 
-        Chunk c1;
-        Chunk c2;
+        Chunk chunk;
+        private static void OnDebugMessage(
+            DebugSource source,     // Source of the debugging message.
+            DebugType type,         // Type of the debugging message.
+            int id,                 // ID associated with the message.
+            DebugSeverity severity, // Severity of the message.
+            int length,             // Length of the string in pMessage.
+            IntPtr pMessage,        // Pointer to message string.
+            IntPtr pUserParam)      // The pointer you gave to OpenGL, explained later.
+        {
+            // In order to access the string pointed to by pMessage, you can use Marshal
+            // class to copy its contents to a C# string without unsafe code. You can
+            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+            string message = Marshal.PtrToStringAnsi(pMessage, length);
 
+            // The rest of the function is up to you to implement, however a debug output
+            // is always useful.
+            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+            // Potentially, you may want to throw from the function for certain severity
+            // messages.
+            /* if (type == DebugType.DebugTypeError)
+            {
+                throw new Exception(message);
+            } */
+        }
+
+        private static DebugProc DebugMessageDelegate = OnDebugMessage;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
 
@@ -184,42 +210,24 @@ namespace opentk_proj
 
             Blocks.RegisterIDs();
 
-            // verts = c.getvertdata();
+            chunk = new Chunk(0,0,0);
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
+
+            GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
+            GL.Enable(EnableCap.DebugOutput);
+            GL.Enable(EnableCap.DebugOutputSynchronous);
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.ActiveTexture(TextureUnit.Texture0);
-            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            // GL.LineWidth(10);
 
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
 
             texture = new Texture("../../../res/textures/atlas.png");
-
-            c1 = new Chunk(0, 0, 0);
-            c2 = new Chunk(1, 0, 0);
-
-            /* vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-
-            vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-
-            // how it will be
-            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
-            GL.EnableVertexAttribArray(3); */
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -254,10 +262,12 @@ namespace opentk_proj
             if (mouse.IsButtonPressed(MouseButton.Left))
             {
                 Console.WriteLine("pressed");
-                c1.allzeros();
+                chunk.allzeros();
 
             }
-            c1.Draw(shader, view, (float)time);
+            chunk.Draw(shader, view, (float)time);
+            
+            // c1.Draw(shader, view, (float)time);
             // c2.Draw(shader, view, (float)time);
 
             /* GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);

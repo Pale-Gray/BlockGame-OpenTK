@@ -24,8 +24,8 @@ void main()
 
 	float ambient = 0.5;
 
-	vec3 lightdirection = vec3(sin(v_time), cos(v_time), 0.0);
-	float brightness = max(ambient, dot(lightdirection, v_normal));
+	vec3 lightnormal = vec3(0.8, 1, 0.6);
+	float brightness = max(ambient, dot(lightnormal, v_normal));
 
 	FragColor = tex.rgba * brightness;
 

@@ -10,7 +10,6 @@ namespace opentk_proj
 
             using (Game game = new Game((int)Constants.WIDTH, (int)Constants.HEIGHT, "Game"))
             {
-
                 game.Run();
 
             }

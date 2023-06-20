@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,73 +18,10 @@ namespace opentk_proj
 
         static int size = 32;
 
-        int[,,] blockdata = new int[size, size, size];
-        float[] blockvertdata = new float[180 * (size * size)];
-        float[] reffront =
-        {
-
-            0, -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // front
-            0, 0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-            0, 0.5f,  0.5f, 0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-            0, 0.5f,  0.5f, 0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-            0, -0.5f,  0.5f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-            0, -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f
-
-        };
-        float[] refright = {
-
-            0, 0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // right
-            0, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0, 0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0, 0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0, 0.5f,  0.5f, 0.5f, 1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-            0, 0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f
-
-        };
-        float[] refback =
-        {
-
-            0, 0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // back 
-            0, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-            0, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-            0, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-            0, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-            0, 0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
-
-        };
-        float[] refleft =
-        {
-
-            0, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // left
-            0, -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0, -0.5f,  0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0, -0.5f,  0.5f, 0.5f, -1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-            0, -0.5f,  0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            0, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f
-
-        };
-        float[] reftop =
-        {
-
-            0, -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // top
-            0, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-            0, 0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-            0, 0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-            0, -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            0, -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-
-        };
-        float[] refbottom =
-        {
-
-            0, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom
-            0, -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-            0, -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-            0, -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-            0, 0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-            0, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f
-
-        };
+        public int[,,] blockdata = new int[size, size, size];
+        public float[] blockvertdata;
+        public ArrayList blockvertdataarray = new ArrayList();
+        public float[] reffront = new float[9 * 6];
 
         public int vbo;
         public int vao;
@@ -91,14 +29,13 @@ namespace opentk_proj
         public Matrix4 model;
         public Matrix4 projection;
 
-        ArrayList blockvertdataarray = new ArrayList();
+        public int amt = 0;
 
         public int cx;
         public int cy;
         public int cz;
 
         Vector3 cpos;
-        // public Matrix4 view; doesnt need its always updated
 
         public Chunk(int x, int y, int z)
         {
@@ -147,9 +84,8 @@ namespace opentk_proj
 
         public void allzeros()
         {
-            blockdata = new int[size, size, size];
-            blockvertdataarray.Clear();
 
+            blockdata = new int[size, size, size];
             for (int x = 0; x < size; x++)
             {
 
@@ -158,15 +94,13 @@ namespace opentk_proj
 
                     for (int z = 0; z < size; z++)
                     {
-
-                        blockdata[x, x, x] = 1;
+                        blockdata[x,x,z] = Blocks.Stone.ID;
 
                     }
 
                 }
 
             }
-            
             meshgen();
             Rewrite();
            
@@ -174,17 +108,32 @@ namespace opentk_proj
 
         public void Rewrite()
         {
-            
+
+            GL.DeleteBuffer(vbo);
+            vbo = GL.GenBuffer();
+
+            // Console.WriteLine("intended data: {0}, actual data: {1}", (((32 * 9 * 6)*4)+((9*6)*2))*32, blockvertdataarray.ToArray(typeof(float)).Length);
+
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicCopy);
+
+            GL.BindVertexArray(vao);
+            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
+            GL.EnableVertexAttribArray(3);
+
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
 
         }
 
         public void initialize()
         {
-
-            // Console.WriteLine(Blocks.GetIDByBlock(Blocks.Dirt));
 
             for (int x = 0; x < size; x++)
             {
@@ -195,10 +144,7 @@ namespace opentk_proj
                     for (int z = 0; z < size; z++)
                     {
 
-                        // blockdata[x, y, z] = y < size-1 ? Blocks.Dirt.ID : Blocks.Grass.ID;
-                        // blockdata[x,y,z] = RandomNumberGenerator.GetInt32(0, 50) > (10+(8*(y-22))) ? Blocks.Stone.ID : blockdata[x,y,z];
-
-                        if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 15)
+                        /* if (Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) == 15)
                         {
 
                             blockdata[x, y, z] = Blocks.Grass.ID;
@@ -215,7 +161,10 @@ namespace opentk_proj
 
                             blockdata[x, y, z] = Blocks.PRIDERAHHHH.ID;
 
-                        }
+                        } */
+
+                        blockdata[x, z, z] = Blocks.Grass.ID;
+
                         // blockdata[x, y, z] = Math.Floor(Maths.Dist3D(x, y, z, 16, 16, 16)) <= 15 ? Blocks.Grass.ID : Blocks.Air.ID;
 
                     }
@@ -230,6 +179,8 @@ namespace opentk_proj
 
         public void meshgen()
         {
+
+            blockvertdataarray.Clear();
 
             for (int x = 0; x < size; x++)
             {
@@ -390,14 +341,6 @@ namespace opentk_proj
             }
 
         }
-        public float[] getvertdata()
-        {
-
-            return blockvertdata;
-
-        }
-
-        
 
     }
 }
