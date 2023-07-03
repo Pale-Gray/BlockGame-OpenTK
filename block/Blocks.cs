@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace opentk_proj
+namespace opentk_proj.block
 {
     internal class Blocks : Block
     {
@@ -37,7 +37,7 @@ namespace opentk_proj
 
             return BlockIDs[id];
 
-        } 
+        }
 
         public static int GetIDByBlock(Block block)
         {

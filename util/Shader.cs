@@ -72,6 +72,12 @@ namespace opentk_proj
             GL.UseProgram(id);
 
         }
+        public void UnUse()
+        {
+
+            GL.UseProgram(0);
+
+        }
 
         public int getID()
         {

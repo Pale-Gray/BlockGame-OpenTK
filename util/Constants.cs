@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace opentk_proj
+namespace opentk_proj.util
 {
     internal class Constants
     {

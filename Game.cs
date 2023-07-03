@@ -12,11 +12,15 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Transactions;
 
+using opentk_proj.chunk;
+using opentk_proj.block;
+using opentk_proj.util;
+
 namespace opentk_proj
 {
     internal class Game : GameWindow
     {
-        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug}) {}
+        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug }) { }
 
         float[] verts = {
 
@@ -99,7 +103,14 @@ namespace opentk_proj
 
         bool firstmove = true;
 
+        double delay = 0;
+
+        Model rmodel;
         Chunk chunk;
+        Camera camera;
+
+        double ft = 0;
+        double fs = 0;
         private static void OnDebugMessage(
             DebugSource source,     // Source of the debugging message.
             DebugType type,         // Type of the debugging message.
@@ -134,6 +145,20 @@ namespace opentk_proj
 
             time = GLFW.GetTime();
 
+            delay += args.Time;
+            ft += 1d / args.Time;
+            fs++;
+
+            if (delay > 1d)
+            {
+
+                Title = "fps [" + fs + "]";
+                ft = 0;
+                fs = 0;
+                delay = 0;
+
+            }
+
             MouseState mouse = MouseState;
 
             if (firstmove)
@@ -142,7 +167,8 @@ namespace opentk_proj
                 lmpos = new Vector2(mouse.X, mouse.Y);
                 firstmove = false;
 
-            } else
+            }
+            else
             {
 
                 CursorState = CursorState.Grabbed;
@@ -210,7 +236,9 @@ namespace opentk_proj
 
             Blocks.RegisterIDs();
 
-            chunk = new Chunk(0,0,0);
+            chunk = new Chunk(0, 0, 0);
+            camera = new Camera(cposition, cfront, cup, Camera.Perspective, 45.0f);
+            rmodel = new Model(verts, "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
 
@@ -218,9 +246,15 @@ namespace opentk_proj
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
 
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            // GL.LineWidth(25f);
+            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Ccw);
+            // GL.Enable(EnableCap.CullFace);
+            // GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.ActiveTexture(TextureUnit.Texture0);
 
@@ -228,6 +262,7 @@ namespace opentk_proj
             shader.Use();
 
             texture = new Texture("../../../res/textures/atlas.png");
+            shader.UnUse();
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -237,22 +272,18 @@ namespace opentk_proj
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 transformation = Matrix4.CreateScale(1.0f);// rot; // translation, rotation, then scale
-
-           
-            Matrix4 model = Matrix4.CreateScale(1.0f);// Matrix4.CreateRotationX(MathHelper.DegreesToRadians(90.0f * (float)GLFW.GetTime())) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(90.0f * (float)GLFW.GetTime()));
-            // Matrix4 view = Matrix4.CreateTranslation(0.0f, 0.0f, -3.0f);
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float) Constants.WIDTH / (float) Constants.HEIGHT, 0.1f, 100.0f);
-
+            Matrix4 transformation = Matrix4.CreateScale(1.0f);
+            Matrix4 model = Matrix4.CreateScale(1.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
             cfront.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
             cfront.Z = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
             cfront = Vector3.Normalize(cfront);
 
-            // Matrix4 view = Matrix4.LookAt(new Vector3(0.0f, 0.0f, 3.0f), new Vector3(0.0f, 0.0f, 0.0f), Vector3.UnitY); ;
             Matrix4 view = Matrix4.LookAt(cposition, cposition + cfront, cup);
 
+            camera.Update(cposition, cfront, cup, yaw, pitch, roll);
             // etc
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             shader.Use();
@@ -265,19 +296,12 @@ namespace opentk_proj
                 chunk.allzeros();
 
             }
-            chunk.Draw(shader, view, (float)time);
-            
-            // c1.Draw(shader, view, (float)time);
-            // c2.Draw(shader, view, (float)time);
+            chunk.Draw(shader, camera.projection, camera.view, (float)time);
 
-            /* GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
-            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float) time);
-            GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, verts.Length);
-            GL.BindTexture(TextureTarget.Texture2D, 0); */
             GL.BindTexture(TextureTarget.Texture2D, 0);
+            shader.UnUse();
+
+            rmodel.Draw(cposition + (cfront * 5), projection, view, (float)time);
 
             SwapBuffers();
 
