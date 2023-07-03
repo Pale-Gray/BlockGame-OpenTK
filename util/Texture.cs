@@ -23,6 +23,12 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, id);
 
             StbImage.stbi_set_flip_vertically_on_load(1);
+            if (pathtoimage == null)
+            {
+
+                pathtoimage = "../../../res/textures/missing.png";
+
+            }
             ImageResult img = ImageResult.FromStream(File.OpenRead(pathtoimage), ColorComponents.RedGreenBlueAlpha);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);

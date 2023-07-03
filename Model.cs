@@ -30,17 +30,7 @@ namespace opentk_proj
             this.vertices = vertices;
 
             shader = new Shader(vertexshader, fragmentshader);
-            if (texture == null)
-            {
-
-                this.texture = new Texture("../../../res/textures/debug.png");
-
-            } else
-            {
-
-                this.texture = new Texture(texture);
-
-            }
+            this.texture = new Texture(texture);
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);

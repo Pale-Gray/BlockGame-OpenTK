@@ -311,11 +311,11 @@ namespace opentk_proj
             rmodel.SetRotation(0, 45, 0);
             rmodel.SetScale(0.5f, 1f, 0.5f);
 
-            Skybox = new Model(skybox, "../../../res/textures/skybox_debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            Skybox = new Model(skybox, "../../../res/textures/skybox.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
 
             xyz_display.SetScale(0.25f, 0.25f, 0.25f);
 
-            GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
             GL.Enable(EnableCap.DebugOutput);
@@ -342,8 +342,6 @@ namespace opentk_proj
 
             base.OnRenderFrame(args);
 
-            Console.WriteLine("{0}, {1}", Constants.WIDTH, Constants.HEIGHT);
-
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Matrix4 transformation = Matrix4.CreateScale(1.0f);
@@ -360,7 +358,8 @@ namespace opentk_proj
             camera.Update(cposition, cfront, cup, yaw, pitch, roll);
             // etc
             GL.Disable(EnableCap.DepthTest);
-            Skybox.Draw(cposition, projection, view, (float)time);
+            // Skybox.SetRotation((float)time*5, 0, 0);
+            Skybox.Draw(cposition, camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
@@ -379,13 +378,13 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
 
-            rmodel.Draw(new Vector3(-5, 0, 0), projection, view, (float)time);
+            rmodel.Draw(new Vector3(-5, 0, 0), camera.projection, camera.view, (float)time);
 
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
             // GL.LineWidth(5f);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            xyz_display.Draw(cposition + (cfront * 5), projection, view, (float)time);
+            xyz_display.Draw(cposition + (cfront * 5), camera.projection, camera.view, (float)time);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
