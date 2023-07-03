@@ -18,15 +18,29 @@ namespace opentk_proj
 
         Matrix4 model;
 
+        Matrix4 mscale;
+        Matrix4 mrotation;
+        Matrix4 mposition;
+
         int vbo;
         int vao;
-        public Model(float[] vertices, string vertexshader, string fragmentshader)
+        public Model(float[] vertices, string texture, string vertexshader, string fragmentshader)
         {
 
             this.vertices = vertices;
 
             shader = new Shader(vertexshader, fragmentshader);
-            texture = new Texture("../../../res/textures/debug.png");
+            if (texture == null)
+            {
+
+                this.texture = new Texture("../../../res/textures/debug.png");
+
+            } else
+            {
+
+                this.texture = new Texture(texture);
+
+            }
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -40,12 +54,17 @@ namespace opentk_proj
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
 
+            SetScale(1,1,1);
+            SetRotation(0,0,0);
+            SetPosition(0,0,0);
+
         }
 
         public void Draw(Vector3 position, Matrix4 projection, Matrix4 view, float time)
         {
 
-            model = Matrix4.CreateTranslation(position);
+            SetPosition(position.X, position.Y, position.Z);
+            model = mrotation * mscale * mposition;
 
             shader.Use();
 
@@ -62,6 +81,29 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             shader.UnUse();
+
+        }
+
+        public void SetScale(float x, float y, float z)
+        {
+
+            mscale = Matrix4.CreateScale(x, y, z);
+
+        }
+
+        public void SetRotation(float pitch, float yaw, float roll)
+        {
+
+            mrotation = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(pitch));
+            mrotation *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(yaw));
+            mrotation *= Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(roll));
+
+        }
+
+        public void SetPosition(float x, float y, float z)
+        {
+
+            mposition = Matrix4.CreateTranslation(x, y, z);
 
         }
 

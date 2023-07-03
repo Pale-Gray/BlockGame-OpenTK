@@ -68,6 +68,23 @@ namespace opentk_proj
 
         };
 
+        float[] xyz_verts =
+        {
+
+            0, 0, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+
+            0, 0, 0, 0, 0,
+            0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0,
+
+            0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 0, 0, 0
+
+        };
+
         float[] v =
         {
 
@@ -77,6 +94,53 @@ namespace opentk_proj
              0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
              0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
              -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+
+        };
+
+        float[] skybox =
+        {
+
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // front
+             0.5f, -0.5f, -0.5f,  32f/192f, 0.0f,
+             0.5f,  0.5f, -0.5f,  32f/192f, 1.0f,
+             0.5f,  0.5f, -0.5f,  32f/192f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            0.5f, -0.5f, -0.5f,  (32f / 192f), 0.0f, // right
+            0.5f, -0.5f, 0.5f,  (32f / 192f)*2f, 0.0f,
+            0.5f,  0.5f, 0.5f,  (32f / 192f)*2f, 1.0f,
+            0.5f,  0.5f, 0.5f,  (32f / 192f)*2f, 1.0f,
+            0.5f,  0.5f, -0.5f,  (32f / 192f), 1.0f,
+            0.5f, -0.5f, -0.5f,  (32f / 192f), 0.0f,
+
+            0.5f, -0.5f, 0.5f, (32f / 192f)*2f, 0.0f, // back 
+            -0.5f, -0.5f, 0.5f, (32f / 192f)*3f, 0.0f,
+            -0.5f, 0.5f, 0.5f, (32f / 192f)*3f, 1.0f,
+            -0.5f, 0.5f, 0.5f, (32f / 192f)*3f, 1.0f,
+            0.5f, 0.5f, 0.5f, (32f / 192f)*2f, 1.0f,
+            0.5f, -0.5f, 0.5f, (32f / 192f)*2f, 0.0f,
+
+            -0.5f, -0.5f, 0.5f,  (32f / 192f)*3f, 0.0f, // left
+            -0.5f, -0.5f, -0.5f,  (32f / 192f)*4f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  (32f / 192f)*4f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  (32f / 192f)*4f, 1.0f,
+            -0.5f,  0.5f, 0.5f,  (32f / 192f)*3f, 1.0f,
+            -0.5f, -0.5f, 0.5f,  (32f / 192f)*3f, 0.0f,
+
+            -0.5f, 0.5f, -0.5f, (32f / 192f)*4f, 0.0f, // top
+            0.5f, 0.5f, -0.5f, (32f / 192f)*5f, 0.0f,
+            0.5f, 0.5f, 0.5f, (32f / 192f)*5f, 1.0f,
+            0.5f, 0.5f, 0.5f, (32f / 192f)*5f, 1.0f,
+            -0.5f, 0.5f, 0.5f, (32f / 192f)*4f, 1.0f,
+            -0.5f, 0.5f, -0.5f, (32f / 192f)*4f, 0.0f,
+
+            0.5f, -0.5f, -0.5f, (32f / 192f)*5f, 0.0f, // bottom
+            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, (32f / 192f)*5f, 1.0f,
+            0.5f, -0.5f, -0.5f, (32f / 192f)*5f, 0.0f
 
         };
 
@@ -108,6 +172,9 @@ namespace opentk_proj
         Model rmodel;
         Chunk chunk;
         Camera camera;
+
+        Model xyz_display;
+        Model Skybox;
 
         double ft = 0;
         double fs = 0;
@@ -238,7 +305,15 @@ namespace opentk_proj
 
             chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, Camera.Perspective, 45.0f);
-            rmodel = new Model(verts, "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            rmodel = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            xyz_display = new Model(xyz_verts, null, "../../../res/shaders/debug.vert", "../../../res/shaders/debug.frag");
+
+            rmodel.SetRotation(0, 45, 0);
+            rmodel.SetScale(0.5f, 1f, 0.5f);
+
+            Skybox = new Model(skybox, "../../../res/textures/skybox_debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+
+            xyz_display.SetScale(0.25f, 0.25f, 0.25f);
 
             GL.ClearColor(0.0f, 0.2f, 0.6f, 1.0f);
 
@@ -249,12 +324,9 @@ namespace opentk_proj
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            // GL.LineWidth(25f);
-            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-
             GL.Enable(EnableCap.DepthTest);
-            // GL.Enable(EnableCap.CullFace);
-            // GL.FrontFace(FrontFaceDirection.Ccw);
+            GL.Enable(EnableCap.CullFace);
+            GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.ActiveTexture(TextureUnit.Texture0);
 
@@ -270,11 +342,13 @@ namespace opentk_proj
 
             base.OnRenderFrame(args);
 
+            Console.WriteLine("{0}, {1}", Constants.WIDTH, Constants.HEIGHT);
+
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Matrix4 transformation = Matrix4.CreateScale(1.0f);
             Matrix4 model = Matrix4.CreateScale(1.0f);
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
             cfront.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
@@ -285,6 +359,10 @@ namespace opentk_proj
 
             camera.Update(cposition, cfront, cup, yaw, pitch, roll);
             // etc
+            GL.Disable(EnableCap.DepthTest);
+            Skybox.Draw(cposition, projection, view, (float)time);
+            GL.Enable(EnableCap.DepthTest);
+
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             shader.Use();
 
@@ -301,7 +379,16 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
 
-            rmodel.Draw(cposition + (cfront * 5), projection, view, (float)time);
+            rmodel.Draw(new Vector3(-5, 0, 0), projection, view, (float)time);
+
+            GL.Disable(EnableCap.CullFace);
+            GL.Disable(EnableCap.DepthTest);
+            // GL.LineWidth(5f);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+            xyz_display.Draw(cposition + (cfront * 5), projection, view, (float)time);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.DepthTest);
 
             SwapBuffers();
 
@@ -326,6 +413,8 @@ namespace opentk_proj
             GL.Viewport(0, 0, e.Width, e.Height);
             Constants.WIDTH = e.Width;
             Constants.HEIGHT = e.Height;
+
+            camera.UpdateProjectionMatrix();
 
         }
 

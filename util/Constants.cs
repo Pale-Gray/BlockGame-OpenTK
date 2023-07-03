@@ -9,8 +9,8 @@ namespace opentk_proj.util
     internal class Constants
     {
 
-        public static int WIDTH = 640;
-        public static int HEIGHT = 480;
+        public static float WIDTH = 640f;
+        public static float HEIGHT = 480f;
 
     }
 }

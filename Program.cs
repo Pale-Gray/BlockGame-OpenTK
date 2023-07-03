@@ -10,7 +10,7 @@ namespace opentk_proj
         static void Main(string[] args)
         {
 
-            using (Game game = new Game(Constants.WIDTH, Constants.HEIGHT, "Game"))
+            using (Game game = new Game((int)Constants.WIDTH, (int)Constants.HEIGHT, "Game"))
             {
                 game.Run();
 
