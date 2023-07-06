@@ -13,6 +13,7 @@ namespace opentk_proj.block
         public static Block Grass = new Block().SetID(1).SetFront(1, 0).SetRight(1, 0).SetBack(1, 0).SetLeft(1, 0).SetTop(2, 0).SetBottom(0, 0);
         public static Block Dirt = new Block().SetID(2).SetFront(0, 0).SetRight(0, 0).SetBack(0, 0).SetLeft(0, 0).SetTop(0, 0).SetBottom(0, 0);
         public static Block Stone = new Block().SetID(3).SetFront(3, 0).SetRight(3, 0).SetBack(3, 0).SetLeft(3, 0).SetTop(3, 0).SetBottom(3, 0);
+        public static Block Maple_Log = new Block().SetID(4).SetFront(4, 0).SetRight(4, 0).SetBack(4, 0).SetLeft(4, 0).SetTop(4, 1).SetBottom(4, 1);
 
         public static Block PRIDERAHHHH = new Block().SetID(99).SetFront(3, 2).SetRight(3, 2).SetBack(3, 2).SetLeft(3, 2).SetTop(3, 2).SetBottom(3, 2);
 
@@ -25,6 +26,7 @@ namespace opentk_proj.block
             BlockIDs[Grass.GetID()] = Grass;
             BlockIDs[Dirt.GetID()] = Dirt;
             BlockIDs[Stone.GetID()] = Stone;
+            BlockIDs[Maple_Log.GetID()] = Maple_Log;
 
             BlockIDs[PRIDERAHHHH.GetID()] = PRIDERAHHHH;
 

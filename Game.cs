@@ -174,7 +174,12 @@ namespace opentk_proj
         Camera camera;
 
         Model xyz_display;
+        Model hitdisplay;
         Model Skybox;
+
+        Ray ray = new Ray(0, 0, 0, 0, 0, 0);
+
+        bool debug = false;
 
         double ft = 0;
         double fs = 0;
@@ -251,6 +256,23 @@ namespace opentk_proj
 
             KeyboardState k = KeyboardState;
 
+            if (k.IsKeyPressed(Keys.F1))
+            {
+
+                switch(debug)
+                {
+
+                    case true:
+                        debug = false;
+                        break;
+                    case false:
+                        debug = true;
+                        break;
+
+                }
+
+            }
+
             if (k.IsKeyDown(Keys.W))
             {
 
@@ -306,10 +328,13 @@ namespace opentk_proj
             chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, Camera.Perspective, 45.0f);
             rmodel = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            hitdisplay = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
             xyz_display = new Model(xyz_verts, null, "../../../res/shaders/debug.vert", "../../../res/shaders/debug.frag");
 
             rmodel.SetRotation(0, 45, 0);
             rmodel.SetScale(0.5f, 1f, 0.5f);
+
+            // hitdisplay.SetScale(0.25f, 0.25f, 0.25f);
 
             Skybox = new Model(skybox, "../../../res/textures/skybox.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
 
@@ -378,16 +403,34 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
 
-            rmodel.Draw(new Vector3(-5, 0, 0), camera.projection, camera.view, (float)time);
+            // ray stuff
+            ray.Update(cposition, cfront);
+            bool hit = ray.Hit_Imperformant(chunk.blockdata, 5f, 0.1f);
+            Console.WriteLine("RayX : {0}, RayY : {1}, RayZ : {2}, Hit : {3}",
+                ray.Ray_Direction.X,
+                ray.Ray_Direction.Y,
+                ray.Ray_Direction.Z,
+                hit);
 
-            GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            // GL.LineWidth(5f);
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            xyz_display.Draw(cposition + (cfront * 5), camera.projection, camera.view, (float)time);
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-            GL.Enable(EnableCap.CullFace);
+            hitdisplay.Draw(new Vector3((float) Math.Floor(ray.rpos.X), (float) Math.Floor(ray.rpos.Y), (float) Math.Floor(ray.rpos.Z)), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
+
+            if (debug)
+            {
+
+                rmodel.Draw(new Vector3(-5, 0, 0), camera.projection, camera.view, (float)time);
+
+                GL.Disable(EnableCap.CullFace);
+                GL.Disable(EnableCap.DepthTest);
+                // GL.LineWidth(5f);
+                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+                xyz_display.Draw(cposition + (cfront * 5), camera.projection, camera.view, (float)time);
+                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+                GL.Enable(EnableCap.CullFace);
+                GL.Enable(EnableCap.DepthTest);
+
+            }
 
             SwapBuffers();
 

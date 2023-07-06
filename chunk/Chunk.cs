@@ -147,9 +147,9 @@ namespace opentk_proj.chunk
                         int ccx = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
                         int ccz = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
 
-                        blockdata[x, y, z] = Blocks.Dirt.ID;
-                        blockdata[x, 31, z] = Blocks.Grass.ID;
-                        blockdata[x, 31, z] = new Random().NextDouble() > 0.75d ? Blocks.Stone.ID : Blocks.Grass.ID;
+                        blockdata[x, 3, z] = Blocks.Dirt.ID;
+                        blockdata[x, y > 2 ? 0 : y, z] = Blocks.Grass.ID;
+                        blockdata[x, 3, z] = new Random().NextDouble() > 0.75d ? Blocks.Maple_Log.ID : Blocks.Grass.ID;
 
                     }
 
@@ -206,8 +206,10 @@ namespace opentk_proj.chunk
 
             }
 
-            blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
+            Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
 
+            blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
+            
         }
 
         // note that z-forward is negative 
