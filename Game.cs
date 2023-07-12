@@ -404,16 +404,16 @@ namespace opentk_proj
             shader.UnUse();
 
             // ray stuff
-            ray.Update(cposition, cfront);
-            bool hit = ray.Hit_Imperformant(chunk.blockdata, 5f, 0.1f);
-            Console.WriteLine("RayX : {0}, RayY : {1}, RayZ : {2}, Hit : {3}",
-                ray.Ray_Direction.X,
-                ray.Ray_Direction.Y,
-                ray.Ray_Direction.Z,
-                hit);
+            // ray.Update(cposition, cfront);
+            // bool hit = ray.Hit_Imperformant(chunk.blockdata, 5f, 0.025f);
+            // Console.WriteLine("RayX : {0}, RayY : {1}, RayZ : {2}, Hit : {3}",
+                // ray.Ray_Direction.X,
+                // ray.Ray_Direction.Y,
+                // ray.Ray_Direction.Z,
+                // hit);
 
             GL.Disable(EnableCap.DepthTest);
-            hitdisplay.Draw(new Vector3((float) Math.Floor(ray.rpos.X), (float) Math.Floor(ray.rpos.Y), (float) Math.Floor(ray.rpos.Z)), camera.projection, camera.view, (float)time);
+            // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
             if (debug)

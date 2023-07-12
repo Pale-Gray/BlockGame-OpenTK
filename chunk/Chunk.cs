@@ -147,9 +147,35 @@ namespace opentk_proj.chunk
                         int ccx = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
                         int ccz = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
 
-                        blockdata[x, 3, z] = Blocks.Dirt.ID;
-                        blockdata[x, y > 2 ? 0 : y, z] = Blocks.Grass.ID;
-                        blockdata[x, 3, z] = new Random().NextDouble() > 0.75d ? Blocks.Maple_Log.ID : Blocks.Grass.ID;
+                        blockdata[x, y > 2 ? 0 : y, z] = Blocks.Dirt.ID;
+                        blockdata[x, 3, z] = Blocks.Grass.ID;
+
+                        blockdata[x < 5 ? 5 : x > 25 ? 25 : x, 3, z < 5 ? 5 : z > 25 ? 25 : z] = new Random().NextDouble() > 0.95d ? Blocks.Temp_Water.ID : Blocks.Grass.ID;
+
+                    }
+
+                }
+
+            }
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        if (blockdata[x,3,z] == Blocks.Temp_Water.ID)
+                        {
+
+                            blockdata[x - 1, 3, z] = Blocks.Pebble_Block.ID;
+                            blockdata[x + 1, 3, z] = Blocks.Pebble_Block.ID;
+                            blockdata[x, 3, z-1] = Blocks.Pebble_Block.ID;
+                            blockdata[x, 3, z+1] = Blocks.Pebble_Block.ID;
+
+                        }
 
                     }
 
