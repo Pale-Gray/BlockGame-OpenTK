@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using StbImageWriteSharp;
 using opentk_proj.gui;
+using opentk_proj.animator;
 
 namespace opentk_proj
 {
@@ -188,6 +189,7 @@ namespace opentk_proj
         BoundingBox boundingbox = new BoundingBox(new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0.5f, 0.5f, 0.5f));
         NakedModel boundmodel;
         GUIElement TestElement;
+        Keyframe GUIKeyframe = new Keyframe(0, 100, 5);
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
@@ -199,6 +201,8 @@ namespace opentk_proj
         {
 
             base.OnUpdateFrame(args);
+
+            Constants.Time = DeltaTime.Get();
 
             time = GLFW.GetTime();
 
@@ -261,7 +265,8 @@ namespace opentk_proj
             if (k.IsKeyDown(Keys.W))
             {
 
-                cposition += cfront * speed * (float)args.Time;
+                // cposition += cfront * speed * (float)args.Time;
+                cposition += cfront * speed * (float)Constants.Time;
 
             }
             if (k.IsKeyDown(Keys.S))
@@ -352,7 +357,8 @@ namespace opentk_proj
             Texture t = new Texture("../../../res/textures/cubemap/cubemap_test.png");
             cmtex = new CMTexture(t, 64);
 
-            TestElement = new GUIElement(50, 50, 50, 50, OriginType.Center);
+            TestElement = new GUIElement(0, 0, 50, 50, OriginType.BottomLeft);
+            // DeltaTime.Get();
 
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
@@ -501,6 +507,11 @@ namespace opentk_proj
 
             GL.Disable(EnableCap.DepthTest);
             TestElement.Draw();
+            GUIKeyframe.Play();
+            Console.WriteLine(GUIKeyframe.GetResult());
+            TestElement.SetRelativePosition((GUIKeyframe.GetResult(), 0));
+            // Console.WriteLine(DeltaTime.Get());
+            // TestElement.SetRelativePosition(mouse.Delta);
             // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
 

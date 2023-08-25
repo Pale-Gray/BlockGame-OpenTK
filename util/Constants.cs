@@ -11,6 +11,7 @@ namespace opentk_proj.util
 
         public static float WIDTH = 640f;
         public static float HEIGHT = 480f;
+        public static double Time = 0;
 
     }
 }

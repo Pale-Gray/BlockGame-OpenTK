@@ -5,6 +5,7 @@ using opentk_proj.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace opentk_proj.gui
 
         Vector2 Position;
         Vector2 OriginOffset;
+
+        private Vector2 CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
 
         // NOTE
         // This instance is temporary, move to a global variables class
@@ -73,7 +76,8 @@ namespace opentk_proj.gui
             RelativePosition = (x, y);
             Dimensions = (w, h);
 
-            Position = ((x / 100f) * Constants.WIDTH - (Constants.WIDTH / 2), (y / 100f) * Constants.HEIGHT - (Constants.HEIGHT / 2));
+            Vector2 PositionNoOffset = AbsolutePositionFromRelative((x, y));
+            Position = PositionNoOffset - CoordinateOffset;
 
             Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
 
@@ -113,12 +117,52 @@ namespace opentk_proj.gui
             GUIShader.UnUse();
 
         }
+
         public void Update()
         {
 
             Camera.UpdateProjectionMatrix();
-            Position = ((RelativePosition.X / 100f) * Constants.WIDTH - (Constants.WIDTH / 2), (RelativePosition.Y / 100f) * Constants.HEIGHT - (Constants.HEIGHT / 2));
+            Position = AbsolutePositionFromRelative(RelativePosition) - CoordinateOffset;
             Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+
+        }
+
+        public void SetRelativePosition(Vector2 relativePositionInPercentage)
+        {
+
+            RelativePosition = relativePositionInPercentage;
+            Update();
+
+        }
+
+        public void SetRelativePositionOffset(Vector2 relativePositionOffsetInPercentage)
+        {
+
+            RelativePosition += relativePositionOffsetInPercentage;
+            Update();
+
+        }
+
+        public void SetAbsolutePosition(Vector2 positionInPixels)
+        {
+
+            Position = positionInPixels;
+            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+
+        }
+
+        public void SetAbsolutePositionOffset(Vector2 positionOffsetInPixels)
+        {
+
+            Position += positionOffsetInPixels;
+            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+
+        }
+
+        public Vector2 AbsolutePositionFromRelative(Vector2 relativePositionAmount)
+        {
+
+            return ((relativePositionAmount / 100) * (Constants.WIDTH, Constants.HEIGHT));
 
         }
 
