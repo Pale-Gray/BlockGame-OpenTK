@@ -190,10 +190,13 @@ namespace opentk_proj
         NakedModel boundmodel;
         GUIElement TestElement;
         Keyframe GUIKeyframe = new Keyframe(0, 100, 5);
+        GUIClickable GUIClick;
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
         bool debug = false;
+
+        bool IsGrabbed = true;
 
         double ft = 0;
         double fs = 0;
@@ -203,6 +206,8 @@ namespace opentk_proj
             base.OnUpdateFrame(args);
 
             Constants.Time = DeltaTime.Get();
+            Constants.Mouse = MouseState;
+            Constants.Keyboard = KeyboardState;
 
             time = GLFW.GetTime();
 
@@ -222,22 +227,27 @@ namespace opentk_proj
 
             MouseState mouse = MouseState;
 
-            if (firstmove)
+            if (IsGrabbed)
             {
 
-                lmpos = new Vector2(mouse.X, mouse.Y);
-                firstmove = false;
+                if (firstmove)
+                {
 
-            }
-            else
-            {
+                    lmpos = new Vector2(mouse.X, mouse.Y);
+                    firstmove = false;
 
-                CursorState = CursorState.Grabbed;
-                float deltaX = mouse.X - lmpos.X;
-                float deltaY = mouse.Y - lmpos.Y;
-                lmpos = new Vector2(mouse.X, mouse.Y);
-                yaw += deltaX * sens;
-                pitch -= deltaY * sens;
+                }
+                else
+                {
+
+                    CursorState = CursorState.Grabbed;
+                    float deltaX = mouse.X - lmpos.X;
+                    float deltaY = mouse.Y - lmpos.Y;
+                    lmpos = new Vector2(mouse.X, mouse.Y);
+                    yaw += deltaX * sens;
+                    pitch -= deltaY * sens;
+
+                }
 
             }
 
@@ -262,41 +272,57 @@ namespace opentk_proj
 
             }
 
-            if (k.IsKeyDown(Keys.W))
+            if (IsGrabbed)
             {
 
-                // cposition += cfront * speed * (float)args.Time;
-                cposition += cfront * speed * (float)Constants.Time;
+                CursorState = CursorState.Grabbed;
+
+            } else
+            {
+
+                CursorState = CursorState.Normal;
 
             }
-            if (k.IsKeyDown(Keys.S))
+
+            if (IsGrabbed)
             {
+                if (k.IsKeyDown(Keys.W))
+                {
 
-                cposition -= cfront * speed * (float)args.Time;
+                    // cposition += cfront * speed * (float)args.Time;
+                    cposition += cfront * speed * (float)Constants.Time;
 
-            }
-            if (k.IsKeyDown(Keys.A))
-            {
+                }
+                if (k.IsKeyDown(Keys.S))
+                {
 
-                cposition -= Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
+                    cposition -= cfront * speed * (float)args.Time;
 
-            }
-            if (k.IsKeyDown(Keys.D))
-            {
+                }
+                if (k.IsKeyDown(Keys.A))
+                {
 
-                cposition += Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
+                    cposition -= Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
 
-            }
-            if (k.IsKeyDown(Keys.E))
-            {
+                }
+                if (k.IsKeyDown(Keys.D))
+                {
 
-                cposition += cup * speed * (float)args.Time;
+                    cposition += Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
 
-            }
-            if (k.IsKeyDown(Keys.Q))
-            {
+                }
+                if (k.IsKeyDown(Keys.E))
+                {
 
-                cposition -= cup * speed * (float)args.Time;
+                    cposition += cup * speed * (float)args.Time;
+
+                }
+                if (k.IsKeyDown(Keys.Q))
+                {
+
+                    cposition -= cup * speed * (float)args.Time;
+
+                }
 
             }
 
@@ -304,6 +330,13 @@ namespace opentk_proj
             {
 
                 Close();
+
+            }
+
+            if (k.IsKeyPressed(Keys.M))
+            {
+
+                IsGrabbed = !IsGrabbed;
 
             }
 
@@ -332,10 +365,7 @@ namespace opentk_proj
 
             boundmodel = new NakedModel(boundingbox.triangles);
 
-            // hitdisplay.SetScale(0.25f, 0.25f, 0.25f);
-
             Skybox = new Model(skybox, "../../../res/textures/cubemap/cubemap_test.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
-
 
             xyz_display.SetScale(0.25f, 0.25f, 0.25f);
 
@@ -345,7 +375,7 @@ namespace opentk_proj
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.CullFace);
+            // GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.Enable(EnableCap.TextureCubeMap);
@@ -357,7 +387,8 @@ namespace opentk_proj
             Texture t = new Texture("../../../res/textures/cubemap/cubemap_test.png");
             cmtex = new CMTexture(t, 64);
 
-            TestElement = new GUIElement(0, 0, 50, 50, OriginType.BottomLeft);
+            TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
+            // GUIClick = new GUIClickable(50, 50, 20, 20, OriginType.Center);
             // DeltaTime.Get();
 
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
@@ -468,25 +499,25 @@ namespace opentk_proj
                 scales.Insert(0, 1);
 
             }
-            GL.Disable(EnableCap.CullFace);
-            // rmodel.Draw(camera.position + (camera.front * scales[0]), camera.projection, camera.view, 0);
-            //GL.Enable(EnableCap.CullFace);
             MouseState mouse = MouseState;
-            if (mouse.IsButtonPressed(MouseButton.Left))
+            if (IsGrabbed)
             {
-                Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f,0.5f,0.5f)) + (camera.front * 0.0001f);
-                Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
-                Console.WriteLine(index);
-                chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Air.ID);
+                if (mouse.IsButtonPressed(MouseButton.Left))
+                {
+                    Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f, 0.5f, 0.5f)) + (camera.front * 0.0001f);
+                    Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
+                    Console.WriteLine(index);
+                    chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Air.ID);
 
-            }
-            if (mouse.IsButtonPressed(MouseButton.Right))
-            {
-                Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f, 0.5f, 0.5f)) - (camera.front * 0.0001f);
-                Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
-                Console.WriteLine(index);
-                chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Pebble_Block.ID);
+                }
+                if (mouse.IsButtonPressed(MouseButton.Right))
+                {
+                    Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f, 0.5f, 0.5f)) - (camera.front * 0.0001f);
+                    Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
+                    Console.WriteLine(index);
+                    chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Pebble_Block.ID);
 
+                }
             }
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "tex"), 0);
@@ -507,9 +538,9 @@ namespace opentk_proj
 
             GL.Disable(EnableCap.DepthTest);
             TestElement.Draw();
-            GUIKeyframe.Play();
-            Console.WriteLine(GUIKeyframe.GetResult());
-            TestElement.SetRelativePosition((GUIKeyframe.GetResult(), 0));
+            //GUIKeyframe.Play();
+            //TestElement.SetRelativePosition((GUIKeyframe.GetResult(), 0));
+            // GUIClick.Draw();
             // Console.WriteLine(DeltaTime.Get());
             // TestElement.SetRelativePosition(mouse.Delta);
             // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
@@ -589,6 +620,7 @@ namespace opentk_proj
 
             camera.UpdateProjectionMatrix();
             TestElement.Update();
+            // GUIClick.Update();
 
         }
 

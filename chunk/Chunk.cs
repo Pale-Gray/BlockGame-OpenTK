@@ -23,44 +23,49 @@ namespace opentk_proj.chunk
     internal class Chunk
     {
 
+        // size of the chunk, keep at 32, but you CAN change it. (dont)
         static int size = 32;
 
+        // original block data, in integers, resulting of the blocktype
+        // to lookup in a certain coordinate of xyz in the array
         public int[,,] blockdata = new int[size, size, size];
+        // vertex data of the chunk from the blockdata.
+        // This is what is written to after blockvertdataarray gets changed to an array.
+        // you technically don't need this, but it's here for now. (change later)
         public float[] blockvertdata;
+        // this is the arraylist of the vertex data of the whole chunk, 
+        // which gets turned into an array declared as blockvertdata.
+        // You technically only need this, but there's the blockvertdata
+        // for now. (change later)
         public ArrayList blockvertdataarray = new ArrayList();
+
+        // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
 
+        // Vertex Buffer Object of the chunk.
         public int vbo;
+        // Vertex Array Object of the chunk.
         public int vao;
 
+        // Model matrix of the chunk
         public Matrix4 model;
-        public Matrix4 projection;
+        // Projection matrix of the chunk (do I really need this? [probably not.])
+        // Spoiler, you don't.
+        // public Matrix4 projection;
 
-        public int amt = 0;
+        public int cx; // chunk x position
+        public int cy; // chunk y position
+        public int cz; // chunk z position
 
-        public int cx;
-        public int cy;
-        public int cz;
-
-        public int i;
-        public byte[] pixels = new byte[(640 * 480) * 4];
-
-        Vector3 cpos;
-        Texture tx;
-
+        Vector3 cpos; // vector of cx, cy, cz
+        // Texture tx;
 
         public Chunk(int x, int y, int z)
         {
 
-            // Texture tex = new Texture("../../../res/textures/testatlas.png");
-
-            // Texture t = new Texture("../../../res/textures/portiontest.png");
-            // tx = Texture.GetPortion(t, 1, 1, 24, 24);
-
             cx = x;
             cy = y;
             cz = z;
-
             cpos = new Vector3(x, y, z);
 
             initialize();
@@ -86,8 +91,7 @@ namespace opentk_proj.chunk
             Vao.Unbind();
 
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
-            // projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
-
+           
         }
         public void Draw(Shader shader, Camera camera, float time)
         {
@@ -109,7 +113,6 @@ namespace opentk_proj.chunk
             // GL.BindTexture(TextureTarget.Texture2D, 0);
 
         }
-
         public void Save(string pathToWrite)
         {
 
@@ -132,6 +135,7 @@ namespace opentk_proj.chunk
                 }
 
             }
+            bwr.Dispose();
             Console.WriteLine("saved.");
 
         }
@@ -141,6 +145,7 @@ namespace opentk_proj.chunk
             Console.WriteLine("loading chunk data from {0}", pathToRead.Split("/")[5]);
             Stream readFrom = File.Open(pathToRead, FileMode.Open);
             BinaryReader br = new BinaryReader(readFrom);
+            Console.WriteLine("filesize of chunk data in bytes: {0}", readFrom.Length);
             for (int x = 0; x < size; x++)
             {
 
@@ -157,6 +162,7 @@ namespace opentk_proj.chunk
                 }
 
             }
+            br.Dispose();
             meshgen();
             Rewrite();
 
@@ -195,6 +201,10 @@ namespace opentk_proj.chunk
         public void initialize()
         {
 
+            // This is really bad. Fix it.
+            // This for loop is to generate the blockdata numbers for mesh generation. 
+            // Pretty important, right?
+            // yes.
             for (int x = 0; x < size; x++)
             {
 
@@ -204,67 +214,7 @@ namespace opentk_proj.chunk
                     for (int z = 0; z < size; z++)
                     {
 
-                        int ccx = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
-                        int ccz = (int)Math.Round(Maths.Lerp(0, 31, (float)new Random().NextDouble()));
-
-                        blockdata[x, y > 2 ? 2 : y, z] = Blocks.Dirt.ID;
-                        blockdata[x, 3, z] = Blocks.Grass.ID;
-
-                        if ((int) Maths.Dist3D(x,3,z,15,3,15) <= 8)
-                        {
-
-                            blockdata[x, 3, z] = Blocks.Temp_Water.ID;
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        if (blockdata[x,3,z] == Blocks.Temp_Water.ID)
-                        {
-
-                            if (blockdata[x-1,3,z] != Blocks.Temp_Water.ID)
-                            {
-
-                                blockdata[x - 1, 3, z] = Blocks.Sand.ID;
-                                blockdata[x - 2, 3, z] = Blocks.Sand.ID;
-
-                            }
-                            if (blockdata[x + 1, 3, z] != Blocks.Temp_Water.ID)
-                            {
-
-                                blockdata[x + 1, 3, z] = Blocks.Sand.ID;
-                                blockdata[x + 2, 3, z] = Blocks.Sand.ID;
-
-                            }
-                            if (blockdata[x, 3, z-1] != Blocks.Temp_Water.ID)
-                            {
-
-                                blockdata[x, 3, z-1] = Blocks.Sand.ID;
-                                blockdata[x, 3, z-2] = Blocks.Sand.ID;
-
-                            }
-                            if (blockdata[x, 3, z+1] != Blocks.Temp_Water.ID)
-                            {
-
-                                blockdata[x, 3, z+1] = Blocks.Sand.ID;
-                                blockdata[x, 3, z+2] = Blocks.Sand.ID;
-
-                            }
-
-                        }
+                        blockdata[x, y, z] = Blocks.Sand.ID;
 
                     }
 
@@ -278,8 +228,13 @@ namespace opentk_proj.chunk
         public void meshgen()
         {
 
+            // makes the mesh of the chunk. VERY LONG NEED TO OPTIMIZE.
+
+            // clear arraylist just in case.
             blockvertdataarray.Clear();
 
+
+            // MASSIVE for loop. makes all the mesh data :)
             for (int x = 0; x < size; x++)
             {
 
@@ -294,23 +249,24 @@ namespace opentk_proj.chunk
 
                             // operators are flipped on z because z forward is negative (z back is positive
 
-                            if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0) { backface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); } // edge detect
+                            // if (blockdata[x, y, z - 1 <= 0 ? z : z - 1] == 0) { backface(x, y, z); }
+                            // if (blockdata[x, y, z] != 0 && z == 0) { blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback); } // edge detect
+                            blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback);
 
-                            if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0) { frontface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); } // edge detect
+                            //if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0) { frontface(x, y, z); }
+                            //if (blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); } // edge detect
 
-                            if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0) { leftface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); } // edge detect
+                            //if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0) { leftface(x, y, z); }
+                            //if (blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); } // edge detect
 
-                            if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0) { rightface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); } // edge detect
+                            //if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0) { rightface(x, y, z); }
+                            //if (blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); } // edge detect
 
-                            if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0) { bottomface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); } // edge detect
+                            //if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0) { bottomface(x, y, z); }
+                            //if (blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); } // edge detect
 
-                            if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0) { topface(x, y, z); }
-                            if (blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); } // edge detect
+                            //if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0) { topface(x, y, z); }
+                            //if (blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); } // edge detect
 
                         }
 
@@ -337,13 +293,6 @@ namespace opentk_proj.chunk
             z = Math.Min(size - 1, z);
 
             return new Vector3(x, y, z);
-
-        }
-        public static int[,,] LoadFromFile()
-        {
-
-            
-            return new int[5,5,5];
 
         }
         public void SetBlockId(int x, int y, int z, int ID)

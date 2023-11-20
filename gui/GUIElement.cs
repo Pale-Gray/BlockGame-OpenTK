@@ -26,26 +26,52 @@ namespace opentk_proj.gui
     internal class GUIElement
     {
 
-        Vector2 RelativePosition; // note that this is in PERCENTAGE (0 to 100)
-        Vector2 Dimensions; // note that this is in PIXELS, not relative screen coordinates (0 to 1, percentages, etc)
+        public Vector2 RelativePosition; // note that this is in PERCENTAGE (0 to 100)
+        public Vector2 Dimensions; // note that this is in PIXELS, not relative screen coordinates (0 to 1, percentages, etc)
 
-        Vector2 Position;
-        Vector2 OriginOffset;
+        public Vector2 Position;
+        public Vector2 PositionNoOffset;
+        public Vector2 OriginOffset;
 
-        private Vector2 CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
+        public Vector2 PositionOffsetInPixels = (0,0);
+        public Vector2 PositionOffsetInPercentage = (0,0);
+
+        public Vector2 CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
+
+        public static Vector4i Null = (-1, -1, -1, -1);
+        public static Texture NullTexture = new Texture("../../../res/textures/missing.png");
 
         // NOTE
         // This instance is temporary, move to a global variables class
         Camera Camera;// = new Camera((0.0f, 0.0f, 0.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
 
         Shader GUIShader = new Shader("../../../res/shaders/gui.vert", "../../../res/shaders/gui.frag");
+        Texture Texture;
 
         Matrix4 Model;
 
         int vbo, vao;
         float[] vertices;
-        public GUIElement(float x, float y, float w, float h, OriginType originType)
+        private float x;
+        private float y;
+        private float w;
+        private float h;
+        private OriginType originType;
+
+        public GUIElement(float x, float y, float w, float h, OriginType originType, Texture texture, Vector4i texturePortion)
         {
+
+            if (texturePortion == Null)
+            {
+
+                Texture = texture;
+
+            } else
+            {
+
+                Texture = Texture.GetPortion(false, texture, texturePortion.X, texturePortion.Y, texturePortion.Z, texturePortion.W);
+
+            }
 
             switch(originType)
             {
@@ -76,26 +102,26 @@ namespace opentk_proj.gui
             RelativePosition = (x, y);
             Dimensions = (w, h);
 
-            Vector2 PositionNoOffset = AbsolutePositionFromRelative((x, y));
+            PositionNoOffset = AbsolutePositionFromRelative((x, y));
             Position = PositionNoOffset - CoordinateOffset;
 
-            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
 
             Vector2 Offset = OriginOffset * Dimensions;
 
             vertices = new float[] {
 
-                0f - Offset.X, 0f - Offset.Y, 0f,
-                Dimensions.X - Offset.X, 0f - Offset.Y, 0f,
-                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f,
-                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f,
-                0f - Offset.X, Dimensions.Y - Offset.Y, 0f,
-                0f - Offset.X, 0f - Offset.Y, 0f
+                0f - Offset.X, 0f - Offset.Y, 0f, 0f, 0f,
+                Dimensions.X - Offset.X, 0f - Offset.Y, 0f, 1f, 0f,
+                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f, 1f, 1f,
+                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f, 1f, 1f,
+                0f - Offset.X, Dimensions.Y - Offset.Y, 0f, 0f, 1f,
+                0f - Offset.X, 0f - Offset.Y, 0f, 0f, 0f
 
             };
 
             vbo = Vbo.Generate(vertices, BufferUsageHint.StaticDraw);
-            vao = Vao.Generate(AttribPointerMode.Vertex);
+            vao = Vao.Generate(AttribPointerMode.VertexTexcoord);
             Vbo.Unbind();
             Vao.Unbind();
 
@@ -106,6 +132,9 @@ namespace opentk_proj.gui
 
             GUIShader.Use();
 
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, Texture.id);
+
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "model"), true, ref Model);
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "view"), true, ref Camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "projection"), true, ref Camera.projection);
@@ -114,16 +143,20 @@ namespace opentk_proj.gui
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);
 
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+
             GUIShader.UnUse();
 
         }
-
         public void Update()
         {
 
+            CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
+
             Camera.UpdateProjectionMatrix();
+            PositionNoOffset = AbsolutePositionFromRelative(RelativePosition);
             Position = AbsolutePositionFromRelative(RelativePosition) - CoordinateOffset;
-            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
 
         }
 
@@ -138,7 +171,7 @@ namespace opentk_proj.gui
         public void SetRelativePositionOffset(Vector2 relativePositionOffsetInPercentage)
         {
 
-            RelativePosition += relativePositionOffsetInPercentage;
+            PositionOffsetInPercentage = AbsolutePositionFromRelative(relativePositionOffsetInPercentage);
             Update();
 
         }
@@ -147,15 +180,15 @@ namespace opentk_proj.gui
         {
 
             Position = positionInPixels;
-            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
 
         }
 
         public void SetAbsolutePositionOffset(Vector2 positionOffsetInPixels)
         {
 
-            Position += positionOffsetInPixels;
-            Model = Matrix4.CreateTranslation(Position.X, Position.Y, 0.0f);
+            PositionOffsetInPixels += positionOffsetInPixels;
+            Update();
 
         }
 
