@@ -37,7 +37,7 @@ namespace opentk_proj.chunk
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public ArrayList blockvertdataarray = new ArrayList();
+        public List<float> blockvertdataarray = new List<float>();
 
         // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
@@ -233,8 +233,8 @@ namespace opentk_proj.chunk
             // clear arraylist just in case.
             blockvertdataarray.Clear();
 
-
             // MASSIVE for loop. makes all the mesh data :)
+            // There's got to be a better way to do this.
             for (int x = 0; x < size; x++)
             {
 
@@ -249,24 +249,16 @@ namespace opentk_proj.chunk
 
                             // operators are flipped on z because z forward is negative (z back is positive
 
-                            // if (blockdata[x, y, z - 1 <= 0 ? z : z - 1] == 0) { backface(x, y, z); }
-                            // if (blockdata[x, y, z] != 0 && z == 0) { blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback); } // edge detect
-                            blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback);
 
-                            //if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0) { frontface(x, y, z); }
-                            //if (blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); } // edge detect
-
-                            //if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0) { leftface(x, y, z); }
-                            //if (blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); } // edge detect
-
-                            //if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0) { rightface(x, y, z); }
-                            //if (blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); } // edge detect
-
-                            //if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0) { bottomface(x, y, z); }
-                            //if (blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); } // edge detect
-
-                            //if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0) { topface(x, y, z); }
-                            //if (blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); } // edge detect
+                            // These conditionals look very ugly, but I'll explain.
+                            // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
+                            // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
+                            if (blockdata[x, y, z - 1 <= 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
+                            if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
+                            if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
+                            if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
+                            if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
+                            if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
 
                         }
 
@@ -278,7 +270,8 @@ namespace opentk_proj.chunk
 
             Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
 
-            blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
+            // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
+            blockvertdata = blockvertdataarray.ToArray();
             
         }
         public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
@@ -307,45 +300,19 @@ namespace opentk_proj.chunk
         public void frontface(int x, int y, int z)
         {
 
-            for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reffront[i + 8]);
-
-            }
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).reffront, x, y, z));
 
         }
         public void rightface(int x, int y, int z)
         {
 
-            for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refright[i + 8]);
-
-            }
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refright, x, y, z));
 
         }
         public void backface(int x, int y, int z)
         {
-
-            for (int i = 0; i < reffront.Length; i += 9)
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refback, x, y, z));
+            /* for (int i = 0; i < reffront.Length; i += 9)
             {
 
                 blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i]);
@@ -358,64 +325,25 @@ namespace opentk_proj.chunk
                 blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 7]);
                 blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 8]);
 
-            }
+            } */
 
         }
         public void leftface(int x, int y, int z)
         {
 
-            for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refleft[i + 8]);
-
-            }
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refleft, x, y, z));
 
         }
         public void topface(int x, int y, int z)
         {
 
-            for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).reftop[i + 8]);
-
-            }
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).reftop, x, y, z));
 
         }
         public void bottomface(int x, int y, int z)
         {
 
-            for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom[i + 8]);
-
-            }
+            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom, x, y, z));
 
         }
 
