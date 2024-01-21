@@ -52,7 +52,7 @@ namespace opentk_proj
 
         }
 
-        public void Draw(Vector3 position, Matrix4 projection, Matrix4 view, float time)
+        public void Draw(Vector3 position, Camera camera, float time)
         {
 
             SetPosition(position.X, position.Y, position.Z);
@@ -64,8 +64,8 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
 
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);

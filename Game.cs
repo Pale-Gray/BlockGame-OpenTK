@@ -422,7 +422,7 @@ namespace opentk_proj
             // etc
             GL.Disable(EnableCap.DepthTest);
             // Skybox.SetRotation((float)time*5, 0, 0);
-            Skybox.Draw(cposition, camera.projection, camera.view, (float)time);
+            Skybox.Draw(cposition, camera, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
             // ray testing
@@ -549,13 +549,13 @@ namespace opentk_proj
             if (debug)
             {
 
-                rmodel.Draw(new Vector3(0, 0, 0), camera.projection, camera.view, (float)time);
+                rmodel.Draw(new Vector3(0, 0, 0), camera, (float)time);
 
                 GL.Disable(EnableCap.CullFace);
                 GL.Disable(EnableCap.DepthTest);
                 // GL.LineWidth(5f);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-                xyz_display.Draw(cposition + (cfront * 5), camera.projection, camera.view, (float)time);
+                xyz_display.Draw(cposition + (cfront * 5), camera, (float)time);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 GL.Enable(EnableCap.CullFace);
                 GL.Enable(EnableCap.DepthTest);

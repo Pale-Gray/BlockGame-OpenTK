@@ -66,7 +66,7 @@ namespace opentk_proj
             SetPosition(0, 0, 0);
 
         }
-        public void Draw(Matrix4 projection, Matrix4 view)
+        public void Draw(Camera camera)
         {
 
             model = mrotation * mscale * mposition;
@@ -77,8 +77,8 @@ namespace opentk_proj
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref view);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);
