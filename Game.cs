@@ -20,6 +20,7 @@ using System.IO;
 using StbImageWriteSharp;
 using opentk_proj.gui;
 using opentk_proj.animator;
+using opentk_proj.framebuffer;
 
 namespace opentk_proj
 {
@@ -193,6 +194,9 @@ namespace opentk_proj
         GUIClickable GUIClick;
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
+
+        Framebuffer frameBuffer;
+        FramebufferQuad framebufferQuad;
 
         bool debug = false;
 
@@ -399,12 +403,17 @@ namespace opentk_proj
             // Texture.GetPortion(t, 0, 0, 32, 32);
             shader.UnUse();
 
+            frameBuffer = new Framebuffer();
+            framebufferQuad = new FramebufferQuad();
+
         }
         protected override void OnRenderFrame(FrameEventArgs args)
         {
 
             base.OnRenderFrame(args);
 
+            frameBuffer.Bind();
+            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Matrix4 transformation = Matrix4.CreateScale(1.0f);
@@ -545,6 +554,13 @@ namespace opentk_proj
             // TestElement.SetRelativePosition(mouse.Delta);
             // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
+
+            frameBuffer.Unbind();
+
+            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            framebufferQuad.Draw(frameBuffer, (float) time);
 
             if (debug)
             {
