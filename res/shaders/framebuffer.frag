@@ -10,9 +10,9 @@ uniform sampler2D framebufferDepthStencilTexture;
 
 void main()
 {
+	float res = 640 * sin(v_time/5);
+	vec4 tex = texture(framebufferColorTexture, floor(v_texcoord * res) / res).rgba; // * (intensity + 0.25);
 
-	vec4 tex = texture(framebufferColorTexture, v_texcoord).rgba; // * (intensity + 0.25);
-
-	FragColor = tex;
+	FragColor = tex.rgba;
 
 }

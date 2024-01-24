@@ -636,6 +636,7 @@ namespace opentk_proj
 
             camera.UpdateProjectionMatrix();
             TestElement.Update();
+            frameBuffer.UpdateAspect();
             // GUIClick.Update();
 
         }
