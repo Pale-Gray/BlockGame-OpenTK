@@ -422,10 +422,10 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(0, 0, 0));
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
-            ChunkLoader.GenerateChunksWithinRadius(4);
+            ChunkLoader.GenerateChunksWithinRadius(8);
 
-            Size = (1920, 1080);
-            Location = (0, 0);
+            // Size = (1920, 1080);
+            // Location = (0, 0);
 
             // Console.WriteLine(ChunkLoader.GetChunkAtPosition(1, 0, 0).cx);
 
@@ -565,7 +565,8 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
             // chunk.Draw(shader, camera, (float)time);
-            ChunkLoader.DrawChunks(shader, camera, (float)time);
+            // ChunkLoader.DrawChunks(shader, camera, (float)time);
+            ChunkLoader.DrawChunksLimited(4, shader, camera, (float) time);
 
             //GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();

@@ -40,10 +40,37 @@ namespace opentk_proj.chunk
             }
 
         }
-        public static void DrawChunksLimited()
+
+        public static Chunk GetChunkFromPosition(Camera camera)
         {
 
+            int x = (int) Math.Floor(camera.position.X / 32);
+            int y = (int)Math.Floor(camera.position.Y / 32);
+            int z = (int)Math.Floor(camera.position.Z / 32);
 
+            return GetChunkAtPosition(x, y, z);
+
+        }
+        public static void DrawChunksLimited(float radius, Shader shader, Camera camera, float time)
+        {
+
+            Chunk[] allChunks = Chunks.Values.ToArray();
+
+            float x = (float)Math.Floor(camera.position.X / 32);
+            float y = (float)Math.Floor(camera.position.Y / 32);
+            float z = (float)Math.Floor(camera.position.Z / 32);
+
+            for (int i = 0; i < Chunks.Count; i++)
+            {
+
+                if (Maths.Dist3D((float) allChunks[i].cx, (float) allChunks[i].cy, (float) allChunks[i].cz, x, y, z) <= radius)
+                {
+
+                    allChunks[i].Draw(shader, camera, time);
+
+                }
+
+            }
 
         }
         public static void DrawChunks(Shader shader, Camera camera, float time)
