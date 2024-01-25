@@ -291,15 +291,26 @@ namespace opentk_proj
             if (IsGrabbed)
             {
 
-                if (k.IsKeyDown(Keys.LeftShift))
+                if (k.IsKeyDown(Keys.LeftControl))
                 {
 
-                    speed = 30.0f;
+                    speed = 1.0f;
 
                 } else
                 {
 
-                    speed = 15.0f;
+                    if (k.IsKeyDown(Keys.LeftShift))
+                    {
+
+                        speed = 120.0f;
+
+                    }
+                    else
+                    {
+
+                        speed = 60.0f;
+
+                    }
 
                 }
 
@@ -422,7 +433,7 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(0, 0, 0));
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
-            ChunkLoader.GenerateChunksWithinRadius(8);
+            ChunkLoader.GenerateChunksWithinRadius(2);
 
             // Size = (1920, 1080);
             // Location = (0, 0);
@@ -461,7 +472,7 @@ namespace opentk_proj
             // ray testing
 
 
-            ray.Update(camera.position, camera.front);
+            // ray.Update(camera.position, camera.front);
             List<float> scales = new List<float>();
             Vector3 chunkplayerpos = chunk.getPlayerPositionRelativeToChunk(camera.position);
             // Console.WriteLine(chunkplayerpos);
@@ -566,7 +577,22 @@ namespace opentk_proj
 
             // chunk.Draw(shader, camera, (float)time);
             // ChunkLoader.DrawChunks(shader, camera, (float)time);
-            ChunkLoader.DrawChunksLimited(4, shader, camera, (float) time);
+            ChunkLoader.DrawChunksLimited(5, shader, camera, (float) time);
+
+            ray.Update(camera.position, camera.front);
+            ray.HitChunkData(ChunkLoader.GetChunkFromPosition(camera));
+
+            hitdisplay.SetScale(0.1f, 0.1f, 0.1f);
+
+            hitdisplay.Draw(camera.position + ray.HitPositionXY, camera, (float)time);
+            hitdisplay.Draw(camera.position + ray.HitPositionXZ, camera, (float)time);
+
+            hitdisplay.Draw(camera.position + ray.HitPositionZY, camera, (float)time);
+            hitdisplay.Draw(camera.position + ray.HitPositionZX, camera, (float)time);
+
+            hitdisplay.Draw(camera.position + ray.HitPositionYX, camera, (float)time);
+            hitdisplay.Draw(camera.position + ray.HitPositionYZ, camera, (float)time);
+
 
             //GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
@@ -581,16 +607,11 @@ namespace opentk_proj
             // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
-            frameBuffer.Unbind();
-
-            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            framebufferQuad.Draw(frameBuffer, (float) time);
-
             if (debug)
             {
 
+                rmodel.SetScale(1.0f, 1.0f, 1.0f);
+                rmodel.SetRotation(0.0f, 0.0f, 0.0f);
                 rmodel.Draw(new Vector3(0, 0, 0), camera, (float)time);
 
                 GL.Disable(EnableCap.CullFace);
@@ -603,7 +624,12 @@ namespace opentk_proj
                 GL.Enable(EnableCap.DepthTest);
 
             }
+            frameBuffer.Unbind();
 
+            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            framebufferQuad.Draw(frameBuffer, (float)time);
             KeyboardState ks = KeyboardState;
             if (ks.IsKeyPressed(Keys.F1))
             {

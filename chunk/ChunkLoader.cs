@@ -10,7 +10,7 @@ namespace opentk_proj.chunk
     internal class ChunkLoader
     {
 
-        static Dictionary<int, Chunk> Chunks = new Dictionary<int, Chunk>();
+        static Dictionary<String, Chunk> Chunks = new Dictionary<String, Chunk>();
 
         public static void Append(Chunk chunk)
         {
@@ -91,10 +91,13 @@ namespace opentk_proj.chunk
             
             return Chunks.GetValueOrDefault(ReturnChunkPositionCombined(cx, cy, cz), null);
         }
-        private static int ReturnChunkPositionCombined(int cx, int cy, int cz)
+        private static String ReturnChunkPositionCombined(int cx, int cy, int cz)
         {
 
-            return Convert.ToInt32("" + cx + cy + cz);
+            // Console.WriteLine(cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString());
+
+
+            return cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString();
 
         }
 

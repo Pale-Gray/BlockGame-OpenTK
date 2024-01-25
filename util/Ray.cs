@@ -4,6 +4,7 @@
 
 using OpenTK.Mathematics;
 using opentk_proj.block;
+using opentk_proj.chunk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,17 @@ namespace opentk_proj.util
         public Vector3 Ray_Direction = new Vector3(0, 0, 0);
 
         public Vector3 rpos;
+
+        public bool hit;
+        public Vector3 hit_position;
+
+        public Vector3 HitPositionXY;
+        public Vector3 HitPositionYX;
+        public Vector3 HitPositionXZ;
+        public Vector3 HitPositionZY;
+        public Vector3 HitPositionYZ;
+        public Vector3 HitPositionZX;
+
         public Ray(Vector3 position, Vector3 direction) {
 
             Ray_Position = position;
@@ -52,6 +64,70 @@ namespace opentk_proj.util
 
 
         public float scalefactor = -1;
+
+        // uses chunk data instead of meshes etc... more performant but can only trace cubes and not different meshes
+        // only checks if no air, so meshes on the block data grid that are not exactly cubes still work, but the bounds will be CUBES
+
+        // travels along the slope of a line.
+        public void HitChunkData(Chunk chunk)
+        {
+            int[,,] chunkData;
+            if (chunk == null)
+            {
+
+                chunkData = new int[32, 32, 32];
+
+            } else
+            {
+
+                chunkData = chunk.blockdata;
+
+            }
+            // Ray_Position; Ray_Direction;
+            // Vector3 RayPositionModOne = (Ray_Position.X % 1, Ray_Position.Y % 1, Ray_Position.Z % 1);
+
+            // due to cubes being from -0.5f to 0.5f, need to offset.
+            Vector3 RayPositionOffsetted = Ray_Position - (0.5f,0.5f,0.5f);
+            // direction doesnt need to be offset.
+            Vector3 RayDirectionOffsetted = Ray_Direction;
+
+            Vector3 PointB = RayPositionOffsetted + RayDirectionOffsetted;
+
+            float XYSlope = (PointB.Y - RayPositionOffsetted.Y) / (PointB.X - RayPositionOffsetted.X);
+            float XZSlope = (PointB.Z - RayPositionOffsetted.Z) / (PointB.X - RayPositionOffsetted.X);
+
+            float ZXSlope = (PointB.X - RayPositionOffsetted.X) / (PointB.Z - RayPositionOffsetted.Z);
+            float ZYSlope = (PointB.Y - RayPositionOffsetted.Y) / (PointB.Z - RayPositionOffsetted.Z);
+
+            float YXSlope = (PointB.X - RayPositionOffsetted.X) / (PointB.Y - RayPositionOffsetted.Y);
+            float YZSlope = (PointB.Z - RayPositionOffsetted.Z) / (PointB.Y - RayPositionOffsetted.Y);
+
+            // float ZYSlope = (PointB.Y - RayPositionOffsetted.Y) / (PointB.Z - RayPositionOffsetted.Z);
+
+            Vector3 DistToRay = ((float)Math.Ceiling(RayPositionOffsetted.X), (float)Math.Ceiling(RayPositionOffsetted.Y), (float)Math.Ceiling(RayPositionOffsetted.Z))
+                - RayPositionOffsetted;// - RayPositionOffsetted;
+
+
+            Console.WriteLine("{0}, {1}", Ray_Position, DistToRay.X);
+
+            Vector3 XYIntersect = (DistToRay.X, DistToRay.X * XYSlope, 0.0f);
+            Vector3 XZIntersect = (DistToRay.X, 0.0f, DistToRay.X * XZSlope);
+
+            Vector3 ZYIntersect = (0.0f, DistToRay.Z * ZYSlope, DistToRay.Z);
+            Vector3 ZXIntersect = (DistToRay.Z * ZXSlope, 0.0f, DistToRay.Z);
+
+            Vector3 YXIntersect = (DistToRay.Y * YXSlope, DistToRay.Y, 0.0f);
+            Vector3 YZIntersect = (0.0f, DistToRay.Y, DistToRay.Y * YZSlope);
+
+
+            HitPositionXY = XYIntersect;
+            HitPositionXZ = XZIntersect;
+            HitPositionZY = ZYIntersect;
+            HitPositionZX = ZXIntersect;
+            HitPositionYX = YXIntersect;
+            HitPositionYZ = YZIntersect;
+
+        }
         public bool Hit_Triangle(float[] vertices, int offset, NakedModel model, BoundingBox boundingBox)
         {
 
