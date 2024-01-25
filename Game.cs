@@ -290,6 +290,19 @@ namespace opentk_proj
 
             if (IsGrabbed)
             {
+
+                if (k.IsKeyDown(Keys.LeftShift))
+                {
+
+                    speed = 30.0f;
+
+                } else
+                {
+
+                    speed = 15.0f;
+
+                }
+
                 if (k.IsKeyDown(Keys.W))
                 {
 
@@ -405,6 +418,17 @@ namespace opentk_proj
 
             frameBuffer = new Framebuffer();
             framebufferQuad = new FramebufferQuad();
+
+            // ChunkLoader.Append(new Chunk(0, 0, 0));
+            // ChunkLoader.Append(new Chunk(1, 0, 0));
+
+            ChunkLoader.GenerateChunksWithinRadius(4);
+
+            Size = (1920, 1080);
+            Location = (0, 0);
+
+            // Console.WriteLine(ChunkLoader.GetChunkAtPosition(1, 0, 0).cx);
+
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -540,7 +564,8 @@ namespace opentk_proj
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
-            chunk.Draw(shader, camera, (float)time);
+            // chunk.Draw(shader, camera, (float)time);
+            ChunkLoader.DrawChunks(shader, camera, (float)time);
 
             //GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
