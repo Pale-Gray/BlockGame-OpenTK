@@ -33,6 +33,21 @@ namespace opentk_proj.util
         public Vector3 HitPositionYZ;
         public Vector3 HitPositionZX;
 
+        public Vector3 HitPositionXYZ;
+        public Vector3 HitPositionZYX;
+        public Vector3 HitPositionYXZ;
+
+        public Vector3 RHitPositionXY;
+        public Vector3 RHitPositionYX;
+        public Vector3 RHitPositionXZ;
+        public Vector3 RHitPositionZY;
+        public Vector3 RHitPositionYZ;
+        public Vector3 RHitPositionZX;
+
+        public Vector3 RHitPositionXYZ;
+        public Vector3 RHitPositionZYX;
+        public Vector3 RHitPositionYXZ;
+
         public Ray(Vector3 position, Vector3 direction) {
 
             Ray_Position = position;
@@ -107,18 +122,37 @@ namespace opentk_proj.util
             Vector3 DistToRay = ((float)Math.Ceiling(RayPositionOffsetted.X), (float)Math.Ceiling(RayPositionOffsetted.Y), (float)Math.Ceiling(RayPositionOffsetted.Z))
                 - RayPositionOffsetted;// - RayPositionOffsetted;
 
+            Vector3 RDistToRay = ((float)Math.Floor(RayPositionOffsetted.X), (float)Math.Floor(RayPositionOffsetted.Y), (float)Math.Floor(RayPositionOffsetted.Z))
+                - RayPositionOffsetted;
 
             Console.WriteLine("{0}, {1}", Ray_Position, DistToRay.X);
 
             Vector3 XYIntersect = (DistToRay.X, DistToRay.X * XYSlope, 0.0f);
             Vector3 XZIntersect = (DistToRay.X, 0.0f, DistToRay.X * XZSlope);
 
+            Vector3 RXYIntersect = (RDistToRay.X, RDistToRay.X * XYSlope, 0.0f);
+            Vector3 RXZIntersect = (RDistToRay.X, 0.0f, RDistToRay.X * XZSlope);
+
+            Vector3 XYZIntersect = (DistToRay.X, DistToRay.X * XYSlope, DistToRay.X * XZSlope);
+            Vector3 RXYZIntersect = (RDistToRay.X, RDistToRay.X * XYSlope, RDistToRay.X * XZSlope);
+
             Vector3 ZYIntersect = (0.0f, DistToRay.Z * ZYSlope, DistToRay.Z);
             Vector3 ZXIntersect = (DistToRay.Z * ZXSlope, 0.0f, DistToRay.Z);
+
+            Vector3 RZYIntersect = (0.0f, RDistToRay.Z * ZYSlope, RDistToRay.Z);
+            Vector3 RZXIntersect = (RDistToRay.Z * ZXSlope, 0.0f, RDistToRay.Z);
+
+            Vector3 ZYXIntersect = (DistToRay.Z * ZXSlope, DistToRay.Z * ZYSlope, DistToRay.Z);
+            Vector3 RZYXIntersect = (RDistToRay.Z * ZXSlope, RDistToRay.Z * ZYSlope, RDistToRay.Z);
 
             Vector3 YXIntersect = (DistToRay.Y * YXSlope, DistToRay.Y, 0.0f);
             Vector3 YZIntersect = (0.0f, DistToRay.Y, DistToRay.Y * YZSlope);
 
+            Vector3 RYXIntersect = (RDistToRay.Y * YXSlope, RDistToRay.Y, 0.0f);
+            Vector3 RYZIntersect = (0.0f, RDistToRay.Y, RDistToRay.Y * YZSlope);
+
+            Vector3 YXZIntersect = (DistToRay.Y * YXSlope, DistToRay.Y, DistToRay.Y * YZSlope);
+            Vector3 RYXZIntersect = (RDistToRay.Y * YXSlope, RDistToRay.Y, RDistToRay.Y * YZSlope);
 
             HitPositionXY = XYIntersect;
             HitPositionXZ = XZIntersect;
@@ -126,6 +160,24 @@ namespace opentk_proj.util
             HitPositionZX = ZXIntersect;
             HitPositionYX = YXIntersect;
             HitPositionYZ = YZIntersect;
+
+            HitPositionXYZ = XYZIntersect;
+            HitPositionZYX = ZYXIntersect;
+            HitPositionYXZ = YXZIntersect;
+
+            RHitPositionXY = RXYIntersect;
+            RHitPositionXZ = RXZIntersect;
+            RHitPositionZY = RZYIntersect;
+            RHitPositionZX = RZXIntersect;
+            RHitPositionYX = RYXIntersect;
+            RHitPositionYZ = RYZIntersect;
+
+            RHitPositionXYZ = RXYZIntersect;
+            RHitPositionZYX = RZYXIntersect;
+            RHitPositionYXZ = RYXZIntersect;
+
+
+
 
         }
         public bool Hit_Triangle(float[] vertices, int offset, NakedModel model, BoundingBox boundingBox)

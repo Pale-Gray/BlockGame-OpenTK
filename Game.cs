@@ -584,15 +584,75 @@ namespace opentk_proj
 
             hitdisplay.SetScale(0.1f, 0.1f, 0.1f);
 
-            hitdisplay.Draw(camera.position + ray.HitPositionXY, camera, (float)time);
-            hitdisplay.Draw(camera.position + ray.HitPositionXZ, camera, (float)time);
+            // ray for +x 
+            //hitdisplay.Draw(camera.position + ray.HitPositionXY, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.HitPositionXZ, camera, (float)time);
+            // ray for -x
+            //hitdisplay.Draw(camera.position + ray.RHitPositionXY, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.RHitPositionXZ, camera, (float)time);
 
-            hitdisplay.Draw(camera.position + ray.HitPositionZY, camera, (float)time);
-            hitdisplay.Draw(camera.position + ray.HitPositionZX, camera, (float)time);
+            Console.WriteLine(camera.front);
 
-            hitdisplay.Draw(camera.position + ray.HitPositionYX, camera, (float)time);
-            hitdisplay.Draw(camera.position + ray.HitPositionYZ, camera, (float)time);
+            if (camera.front.X < 0)
+            {
+                hitdisplay.Draw(camera.position + ray.RHitPositionXYZ, camera, (float)time);
+            } else
+            {
+                hitdisplay.Draw(camera.position + ray.HitPositionXYZ, camera, (float)time);
+            }
+            /* hitdisplay.Draw(camera.position + ray.RHitPositionXYZ, camera, (float)time);
 
+            // ray for +z
+
+
+               // hitdisplay.Draw(camera.position + ray.RHitPositionZY, camera, (float)time);
+
+    
+
+                // hitdisplay.Draw(camera.position + ray.RHitPositionZX, camera, (float)time);
+
+            //hitdisplay.Draw(camera.position + ray.HitPositionZY, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.HitPositionZX, camera, (float)time);
+            // ray for -z
+            //hitdisplay.Draw(camera.position + ray.RHitPositionZY, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.RHitPositionZX, camera, (float)time); */
+
+            if (camera.front.Z < 0)
+            {
+
+                hitdisplay.Draw(camera.position + ray.RHitPositionZYX, camera, (float)time);
+
+            } else
+            {
+
+                hitdisplay.Draw(camera.position + ray.HitPositionZYX, camera, (float)time);
+
+            }
+
+            /*hitdisplay.Draw(camera.position + ray.HitPositionZYX, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.RHitPositionZYX, camera, (float)time);
+
+            // ray for +y
+            //hitdisplay.Draw(camera.position + ray.HitPositionYX, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.HitPositionYZ, camera, (float)time);
+            // ray for -y
+            //hitdisplay.Draw(camera.position + ray.RHitPositionYX, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.RHitPositionYZ, camera, (float)time); */
+
+            if (camera.front.Y < 0)
+            {
+
+                hitdisplay.Draw(camera.position + ray.RHitPositionYXZ, camera, (float)time);
+
+            } else
+            {
+
+                hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
+
+            }
+
+            //hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
+            //hitdisplay.Draw(camera.position + ray.RHitPositionYXZ, camera, (float)time);
 
             //GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
