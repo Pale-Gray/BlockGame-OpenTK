@@ -6,15 +6,56 @@ using OpenTK.Mathematics;
 using opentk_proj.block;
 using opentk_proj.chunk;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace opentk_proj.util
 {
     internal class Ray
     {
+        static float[] verts = {
+
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // front
+             0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // right
+            0.5f, -0.5f, 0.5f,  1.0f, 0.0f,
+            0.5f,  0.5f, 0.5f,  1.0f, 1.0f,
+            0.5f,  0.5f, 0.5f,  1.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // back 
+            -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, // left
+            -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, 0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
+
+            -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // top
+            0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
+
+            0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // bottom
+            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 0.0f
+
+        };
 
         private const double epsilon = 0.0000001;
 
@@ -48,6 +89,11 @@ namespace opentk_proj.util
         public Vector3 RHitPositionZYX;
         public Vector3 RHitPositionYXZ;
 
+        public Vector3 XIntersect;
+        public Vector3 YIntersect;
+        public Vector3 ZIntersect;
+        public Vector3 Intersect;
+
         public Ray(Vector3 position, Vector3 direction) {
 
             Ray_Position = position;
@@ -77,6 +123,7 @@ namespace opentk_proj.util
 
         }
 
+        // Model hitdisplay;
 
         public float scalefactor = -1;
 
@@ -84,7 +131,48 @@ namespace opentk_proj.util
         // only checks if no air, so meshes on the block data grid that are not exactly cubes still work, but the bounds will be CUBES
 
         // travels along the slope of a line.
-        public void HitChunkData(Chunk chunk)
+        public void StepChunkData(Chunk chunk, Camera camera)
+        {
+            // hitdisplay = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            int[,,] chunkData;
+            if (chunk == null)
+            {
+
+                chunkData = new int[32, 32, 32];
+
+            }
+            else
+            {
+
+                chunkData = chunk.blockdata;
+
+            }
+            HitChunkData(chunk, camera);
+            int steps = 8;
+            float em = 0.0001f;
+            for (int i = 0; i < steps; i++)
+            {
+
+                Vector3 SamplePosition = ChunkUtils.getPlayerPositionRelativeToChunk(Ray_Position);
+
+
+                if (chunkData[(int)SamplePosition.X, (int)SamplePosition.Y, (int)SamplePosition.Z] == 0)
+                {
+
+                    Ray_Position += Intersect + (Ray_Direction*em);
+
+                }
+                // Ray_Position += Intersect + (Ray_Direction*em);
+                HitChunkData(chunk, camera);
+                // hitdisplay.SetScale(0.1f,0.1f,0.1f);
+                // hitdisplay.Draw(Ray_Position + Intersect, camera, 0);
+
+            }
+            // hitdisplay.Draw(Ray_Position, camera, 0);
+            Console.WriteLine(Ray_Position + Intersect);
+
+        }
+        public void HitChunkData(Chunk chunk, Camera camera)
         {
             int[,,] chunkData;
             if (chunk == null)
@@ -125,7 +213,7 @@ namespace opentk_proj.util
             Vector3 RDistToRay = ((float)Math.Floor(RayPositionOffsetted.X), (float)Math.Floor(RayPositionOffsetted.Y), (float)Math.Floor(RayPositionOffsetted.Z))
                 - RayPositionOffsetted;
 
-            Console.WriteLine("{0}, {1}", Ray_Position, DistToRay.X);
+            // Console.WriteLine("{0}, {1}", Ray_Position, DistToRay.X);
 
             Vector3 XYIntersect = (DistToRay.X, DistToRay.X * XYSlope, 0.0f);
             Vector3 XZIntersect = (DistToRay.X, 0.0f, DistToRay.X * XZSlope);
@@ -176,8 +264,13 @@ namespace opentk_proj.util
             RHitPositionZYX = RZYXIntersect;
             RHitPositionYXZ = RYXZIntersect;
 
+            XIntersect = camera.front.X < 0 ? RHitPositionXYZ : HitPositionXYZ;
+            YIntersect = camera.front.Y < 0 ? RHitPositionYXZ : HitPositionYXZ;
+            ZIntersect = camera.front.Z < 0 ? RHitPositionZYX : HitPositionZYX;
 
-
+            // Vector3.min
+            // Intersect = Vector3.ComponentMin(Vector3.ComponentMin(XIntersect, YIntersect), ZIntersect);
+            Intersect = Vector3.MagnitudeMin(Vector3.MagnitudeMin(YIntersect, XIntersect), ZIntersect);
 
         }
         public bool Hit_Triangle(float[] vertices, int offset, NakedModel model, BoundingBox boundingBox)

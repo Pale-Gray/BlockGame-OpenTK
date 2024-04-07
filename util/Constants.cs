@@ -12,6 +12,7 @@ namespace opentk_proj.util
 
         public static float WIDTH = 640f;
         public static float HEIGHT = 480f;
+        public static int ChunkSize = 32;
         public static double Time = 0;
         public static MouseState Mouse = null;
         public static KeyboardState Keyboard = null;

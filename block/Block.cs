@@ -13,6 +13,7 @@ namespace opentk_proj.block
     internal class Block
     {
         public int ID = 0;
+        public string Name = "Placeholder";
 
         public const int FF = 0;
         public const int RF = 1;
@@ -117,6 +118,15 @@ namespace opentk_proj.block
         {
 
             d[ID] = this;
+
+            return this;
+
+        }
+
+        public Block SetName(string name)
+        {
+
+            Name = name;
 
             return this;
 

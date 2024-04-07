@@ -1,22 +1,11 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
 using opentk_proj.block;
-using StbImageSharp;
 using System.IO;
-using OpenTK.Graphics;
-using StbImageWriteSharp;
 using opentk_proj.util;
+using System.Linq.Expressions;
 
 namespace opentk_proj.chunk
 {
@@ -24,11 +13,12 @@ namespace opentk_proj.chunk
     {
 
         // size of the chunk, keep at 32, but you CAN change it. (dont)
-        static int size = 32;
+        static int size = Constants.ChunkSize;
 
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
         public int[,,] blockdata = new int[size, size, size];
+        // public int[,,] Empty = new int[size, size, size];   
         // vertex data of the chunk from the blockdata.
         // This is what is written to after blockvertdataarray gets changed to an array.
         // you technically don't need this, but it's here for now. (change later)
@@ -214,7 +204,37 @@ namespace opentk_proj.chunk
                     for (int z = 0; z < size; z++)
                     {
 
-                        blockdata[x, y, z] = Blocks.Sand.ID;
+                        float xpos = (float)(x + cx * size);
+                        float ypos = (float)(y + cy * size);
+                        float zpos = (float)(z + cz * size);
+
+                        float datazero = 0;
+                        float dataupone = 0;
+                        float datadownone = 0;
+                        float dataleftone = 0;
+                        float datarightone = 0;
+                        float dataforwardone = 0;
+                        float databackone = 0;
+                        for (int i = 1; i < 8; i++)
+                        {
+
+                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i+i);
+                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, (ypos+1f) / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //datadownone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos-1 / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //dataleftone += OpenSimplex2.Noise3_Fallback(1234567890, xpos-1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //datarightone += OpenSimplex2.Noise3_Fallback(1234567890, xpos+1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //dataforwardone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos+1 / 64 * (float)i) / (float)(i + i);
+                            //databackone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos-1 / 64 * (float)i) / (float)(i + i);
+
+                        }
+
+                        blockdata[x, y, z] = datazero > 0.3f ? Blocks.Dirt.ID : Blocks.Air.ID;
+                        if (datazero > 0.3f && dataupone <= 0.3f)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Grass.ID;
+
+                        }
 
                     }
 

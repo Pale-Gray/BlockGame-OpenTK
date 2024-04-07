@@ -178,7 +178,7 @@ namespace opentk_proj
         double delay = 0;
 
         Model rmodel;
-        Chunk chunk;
+        // Chunk chunk;
         Camera camera;
 
         Model xyz_display;
@@ -380,7 +380,7 @@ namespace opentk_proj
 
             Blocks.RegisterIDs();
 
-            chunk = new Chunk(0, 0, 0);
+            // chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
             rmodel = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
             hitdisplay = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
@@ -403,7 +403,7 @@ namespace opentk_proj
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.DepthTest);
-            // GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.Enable(EnableCap.TextureCubeMap);
@@ -433,7 +433,7 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(0, 0, 0));
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
-            ChunkLoader.GenerateChunksWithinRadius(2);
+            ChunkLoader.GenerateChunksWithinRadius(8);
 
             // Size = (1920, 1080);
             // Location = (0, 0);
@@ -471,7 +471,7 @@ namespace opentk_proj
 
             // ray testing
 
-
+            /*
             // ray.Update(camera.position, camera.front);
             List<float> scales = new List<float>();
             Vector3 chunkplayerpos = chunk.getPlayerPositionRelativeToChunk(camera.position);
@@ -507,7 +507,7 @@ namespace opentk_proj
                             for (int i = 0; i < block.boundingBox.triangles.Length / 9; i++)
                             {
 
-                                ray.Hit_Triangle(block.boundingBox.triangles, i * 9, block.boundingModel, block.boundingBox);
+                                // ray.Hit_Triangle(block.boundingBox.triangles, i * 9, block.boundingModel, block.boundingBox);
                                 scales.Add(ray.scalefactor);
 
                             }
@@ -523,13 +523,14 @@ namespace opentk_proj
                 }
 
             }
+            */
             /*for (int i = 0; i < boundingbox.triangles.Length / 9; i++)
             {
 
                 ray.Hit_Triangle(boundingbox.triangles, i * 9, boundmodel, boundingbox);
                 scales.Add(ray.scalefactor);
 
-            }*/
+            }
             scales.Sort();
             while (scales.Contains(-1))
             {
@@ -563,6 +564,8 @@ namespace opentk_proj
 
                 }
             }
+            */
+            MouseState mouse = MouseState;
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "tex"), 0);
             GL.Uniform1(GL.GetUniformLocation(shader.id, "emission"), 1);
@@ -577,12 +580,17 @@ namespace opentk_proj
 
             // chunk.Draw(shader, camera, (float)time);
             // ChunkLoader.DrawChunks(shader, camera, (float)time);
-            ChunkLoader.DrawChunksLimited(5, shader, camera, (float) time);
+            // ChunkLoader.DrawChunksLimited(8, shader, camera, (float) time);
+            // ChunkLoader.DrawChunks(shader, camera, (float)time);
+            ChunkLoader.DrawChunksSmart(8, shader, camera, (float)time);
 
-            ray.Update(camera.position, camera.front);
-            ray.HitChunkData(ChunkLoader.GetChunkFromPosition(camera));
+            // ray.Update(camera.position, camera.front);
+            // ray.HitChunkData(ChunkLoader.GetChunkFromPosition(camera), camera);
+            // ray.StepChunkData(ChunkLoader.GetChunkFromPosition(camera), camera);
+            // Vector3 raypos = ChunkUtils.getPlayerPositionRelativeToChunk(ray.Ray_Position);
+            // hitdisplay.Draw(camera.position + ray.Intersect, camera, (float)time);
 
-            hitdisplay.SetScale(0.1f, 0.1f, 0.1f);
+            // hitdisplay.SetScale(0.1f, 0.1f, 0.1f);
 
             // ray for +x 
             //hitdisplay.Draw(camera.position + ray.HitPositionXY, camera, (float)time);
@@ -591,31 +599,16 @@ namespace opentk_proj
             //hitdisplay.Draw(camera.position + ray.RHitPositionXY, camera, (float)time);
             //hitdisplay.Draw(camera.position + ray.RHitPositionXZ, camera, (float)time);
 
-            Console.WriteLine(camera.front);
+            // Console.WriteLine(camera.front);
 
-            if (camera.front.X < 0)
+            /*if (camera.front.X < 0)
             {
                 hitdisplay.Draw(camera.position + ray.RHitPositionXYZ, camera, (float)time);
-            } else
+            }
+            else
             {
                 hitdisplay.Draw(camera.position + ray.HitPositionXYZ, camera, (float)time);
             }
-            /* hitdisplay.Draw(camera.position + ray.RHitPositionXYZ, camera, (float)time);
-
-            // ray for +z
-
-
-               // hitdisplay.Draw(camera.position + ray.RHitPositionZY, camera, (float)time);
-
-    
-
-                // hitdisplay.Draw(camera.position + ray.RHitPositionZX, camera, (float)time);
-
-            //hitdisplay.Draw(camera.position + ray.HitPositionZY, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.HitPositionZX, camera, (float)time);
-            // ray for -z
-            //hitdisplay.Draw(camera.position + ray.RHitPositionZY, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.RHitPositionZX, camera, (float)time); */
 
             if (camera.front.Z < 0)
             {
@@ -629,16 +622,6 @@ namespace opentk_proj
 
             }
 
-            /*hitdisplay.Draw(camera.position + ray.HitPositionZYX, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.RHitPositionZYX, camera, (float)time);
-
-            // ray for +y
-            //hitdisplay.Draw(camera.position + ray.HitPositionYX, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.HitPositionYZ, camera, (float)time);
-            // ray for -y
-            //hitdisplay.Draw(camera.position + ray.RHitPositionYX, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.RHitPositionYZ, camera, (float)time); */
-
             if (camera.front.Y < 0)
             {
 
@@ -649,8 +632,11 @@ namespace opentk_proj
 
                 hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
 
-            }
+            } */
 
+            // hitdisplay.Draw(camera.position + ray.ZIntersect, camera, (float)time);
+            // hitdisplay.Draw(camera.position + ray.YIntersect, camera, (float)time);
+            // hitdisplay.Draw(camera.position + ray.XIntersect, camera, (float)time);
             //hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
             //hitdisplay.Draw(camera.position + ray.RHitPositionYXZ, camera, (float)time);
 
@@ -706,19 +692,46 @@ namespace opentk_proj
             if (ks.IsKeyPressed(Keys.F5))
             {
 
-                chunk.Save("../../../res/cdat/chunk.cdat");
+                // chunk.Save("../../../res/cdat/chunk.cdat");
+                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
+                {
+                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+
+                    ChunkLoader.GetAllChunks()[key].Save("../../../res/cdat/"+key+".cdat");
+
+
+                }
 
             }
             if (ks.IsKeyPressed(Keys.F6))
             {
 
-                chunk.Load("../../../res/cdat/chunk.cdat");
+                // chunk.Load("../../../res/cdat/chunk.cdat");
+
+                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
+                {
+                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+
+                    ChunkLoader.GetAllChunks()[key].Load("../../../res/cdat/" + key + ".cdat");
+
+
+                }
 
             }
             if (ks.IsKeyPressed(Keys.F7))
             {
 
-                chunk.Rewrite();
+                // chunk.Rewrite();
+
+                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
+                {
+                    
+                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+
+                    ChunkLoader.GetAllChunks()[key].Rewrite();
+
+
+                }
 
             }
 
