@@ -6,12 +6,15 @@ using opentk_proj.block;
 using System.IO;
 using opentk_proj.util;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace opentk_proj.chunk
 {
     internal class Chunk
     {
 
+        private static object lockerWrite = new Object();
+        private static object lockerRead = new Object();
         // size of the chunk, keep at 32, but you CAN change it. (dont)
         static int size = Constants.ChunkSize;
 
@@ -58,7 +61,9 @@ namespace opentk_proj.chunk
             cz = z;
             cpos = new Vector3(x, y, z);
 
-            initialize();
+            Thread t = new Thread(() => initialize());
+            // initialize();
+            t.Start();
 
             /* vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -83,6 +88,49 @@ namespace opentk_proj.chunk
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
            
         }
+
+        public Chunk(string pathtosave)
+        {
+
+            int[] cposfromfile = ChunkLoader.GetChunkPositionFromFile(pathtosave);
+
+            cx = cposfromfile[0];
+            cy = cposfromfile[1];
+            cz = cposfromfile[2];
+            cpos = new Vector3(cx, cy, cz);
+
+            if (pathtosave == null)
+            {
+
+                initialize();
+                
+
+            }
+            Load(pathtosave);
+
+            /* vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicDraw);
+            vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
+            GL.EnableVertexAttribArray(3);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0); */
+            vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
+            vao = Vao.Generate(AttribPointerMode.Chunk);
+            Vbo.Unbind();
+            Vao.Unbind();
+
+            model = Matrix4.CreateTranslation(cx * size, cy * size, cz * size);
+
+        }
         public void Draw(Shader shader, Camera camera, float time)
         {
 
@@ -106,55 +154,66 @@ namespace opentk_proj.chunk
         public void Save(string pathToWrite)
         {
 
-            Console.WriteLine("saving chunk data to {0}", pathToWrite.Split("/")[5]);
-            Stream writeTo = File.Open(pathToWrite, FileMode.Create);
-            BinaryWriter bwr = new BinaryWriter(writeTo);
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
+                using (FileStream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write))
                 {
 
-                    for (int z = 0; z < size; z++)
+                    Console.WriteLine("saving chunk data to {0}", pathToWrite.Split("/")[5]);
+                    // Stream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write);
+                    BinaryWriter bwr = new BinaryWriter(writeTo);
+                    for (int x = 0; x < size; x++)
                     {
 
-                        bwr.Write((UInt16)blockdata[x, y, z]);
+                        for (int y = 0; y < size; y++)
+                        {
+
+                            for (int z = 0; z < size; z++)
+                            {
+
+                                bwr.Write((UInt16)blockdata[x, y, z]);
+
+                            }
+
+                        }
 
                     }
+                    bwr.Dispose();
+                    Console.WriteLine("saved.");
 
                 }
 
-            }
-            bwr.Dispose();
-            Console.WriteLine("saved.");
 
         }
         public void Load(string pathToRead)
         {
-            
-            Console.WriteLine("loading chunk data from {0}", pathToRead.Split("/")[5]);
-            Stream readFrom = File.Open(pathToRead, FileMode.Open);
-            BinaryReader br = new BinaryReader(readFrom);
-            Console.WriteLine("filesize of chunk data in bytes: {0}", readFrom.Length);
-            for (int x = 0; x < size; x++)
-            {
 
-                for (int y = 0; y < size; y++)
+       
+                using (FileStream readFrom = File.Open(pathToRead, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
 
-                    for (int z = 0; z < size; z++)
+                    Console.WriteLine("loading chunk data from {0}", pathToRead.Split("/")[5]);
+                    BinaryReader br = new BinaryReader(readFrom);
+                    Console.WriteLine("filesize of chunk data in bytes: {0}", readFrom.Length);
+                    for (int x = 0; x < size; x++)
                     {
 
-                        blockdata[x,y,z] = br.ReadUInt16();
+                        for (int y = 0; y < size; y++)
+                        {
+
+                            for (int z = 0; z < size; z++)
+                            {
+
+                                blockdata[x, y, z] = br.ReadUInt16();
+
+                            }
+
+                        }
 
                     }
+                    br.Dispose();
 
-                }
 
             }
-            br.Dispose();
             meshgen();
-            Rewrite();
 
             // (zindex * size * size + (yindex * size + xindex))
 
@@ -215,11 +274,11 @@ namespace opentk_proj.chunk
                         float datarightone = 0;
                         float dataforwardone = 0;
                         float databackone = 0;
-                        for (int i = 1; i < 8; i++)
+                        for (int i = 1; i < 4; i++)
                         {
 
-                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i+i);
-                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, (ypos+1f) / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), ypos / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i/2f);
+                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), (ypos+1f) / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i/2f);
                             //datadownone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos-1 / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
                             //dataleftone += OpenSimplex2.Noise3_Fallback(1234567890, xpos-1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
                             //datarightone += OpenSimplex2.Noise3_Fallback(1234567890, xpos+1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);

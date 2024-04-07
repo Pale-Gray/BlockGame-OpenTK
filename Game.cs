@@ -21,6 +21,7 @@ using StbImageWriteSharp;
 using opentk_proj.gui;
 using opentk_proj.animator;
 using opentk_proj.framebuffer;
+using System.Threading;
 
 namespace opentk_proj
 {
@@ -433,7 +434,7 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(0, 0, 0));
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
-            ChunkLoader.GenerateChunksWithinRadius(8);
+            ChunkLoader.GenerateChunksWithinRadius(4);
 
             // Size = (1920, 1080);
             // Location = (0, 0);
@@ -578,69 +579,10 @@ namespace opentk_proj
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
-            // chunk.Draw(shader, camera, (float)time);
-            // ChunkLoader.DrawChunks(shader, camera, (float)time);
-            // ChunkLoader.DrawChunksLimited(8, shader, camera, (float) time);
-            // ChunkLoader.DrawChunks(shader, camera, (float)time);
-            ChunkLoader.DrawChunksSmart(8, shader, camera, (float)time);
+            ChunkLoader.DrawChunks(shader, camera, (float)time);
+            ChunkLoader.DrawChunksSmarter(8, 8, shader, camera, (float)time, (float)args.Time);
+            
 
-            // ray.Update(camera.position, camera.front);
-            // ray.HitChunkData(ChunkLoader.GetChunkFromPosition(camera), camera);
-            // ray.StepChunkData(ChunkLoader.GetChunkFromPosition(camera), camera);
-            // Vector3 raypos = ChunkUtils.getPlayerPositionRelativeToChunk(ray.Ray_Position);
-            // hitdisplay.Draw(camera.position + ray.Intersect, camera, (float)time);
-
-            // hitdisplay.SetScale(0.1f, 0.1f, 0.1f);
-
-            // ray for +x 
-            //hitdisplay.Draw(camera.position + ray.HitPositionXY, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.HitPositionXZ, camera, (float)time);
-            // ray for -x
-            //hitdisplay.Draw(camera.position + ray.RHitPositionXY, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.RHitPositionXZ, camera, (float)time);
-
-            // Console.WriteLine(camera.front);
-
-            /*if (camera.front.X < 0)
-            {
-                hitdisplay.Draw(camera.position + ray.RHitPositionXYZ, camera, (float)time);
-            }
-            else
-            {
-                hitdisplay.Draw(camera.position + ray.HitPositionXYZ, camera, (float)time);
-            }
-
-            if (camera.front.Z < 0)
-            {
-
-                hitdisplay.Draw(camera.position + ray.RHitPositionZYX, camera, (float)time);
-
-            } else
-            {
-
-                hitdisplay.Draw(camera.position + ray.HitPositionZYX, camera, (float)time);
-
-            }
-
-            if (camera.front.Y < 0)
-            {
-
-                hitdisplay.Draw(camera.position + ray.RHitPositionYXZ, camera, (float)time);
-
-            } else
-            {
-
-                hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
-
-            } */
-
-            // hitdisplay.Draw(camera.position + ray.ZIntersect, camera, (float)time);
-            // hitdisplay.Draw(camera.position + ray.YIntersect, camera, (float)time);
-            // hitdisplay.Draw(camera.position + ray.XIntersect, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.HitPositionYXZ, camera, (float)time);
-            //hitdisplay.Draw(camera.position + ray.RHitPositionYXZ, camera, (float)time);
-
-            //GL.BindTexture(TextureTarget.Texture2D, 0);
             shader.UnUse();
 
             GL.Disable(EnableCap.DepthTest);

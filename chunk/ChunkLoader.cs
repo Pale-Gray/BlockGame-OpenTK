@@ -6,6 +6,9 @@ using OpenTK.Mathematics;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Diagnostics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Threading;
 
 namespace opentk_proj.chunk
 {
@@ -13,7 +16,7 @@ namespace opentk_proj.chunk
     {
 
         static Dictionary<String, Chunk> Chunks = new Dictionary<String, Chunk>();
-
+        static float elapsedTime = 0;
         public static Dictionary<String, Chunk> GetAllChunks()
         {
 
@@ -24,7 +27,14 @@ namespace opentk_proj.chunk
         {
 
             // chunks.Add(new int[] {chunk.cx, chunk.cy, chunk.cz }, chunk);
-            Chunks.Add(ReturnChunkPositionCombined(chunk.cx, chunk.cy, chunk.cz), chunk);
+            // Chunks.Add(ReturnChunkPositionCombined(chunk.cx, chunk.cy, chunk.cz), chunk);
+            Chunks.TryAdd(ReturnChunkPositionCombined(chunk.cx, chunk.cy, chunk.cz), chunk);
+
+        }
+        public static void RemoveChunk(string key)
+        {
+
+            Chunks.Remove(key);
 
         }
 
@@ -47,6 +57,8 @@ namespace opentk_proj.chunk
         public static void GenerateChunksWithinRadius(int radius)
         {
 
+            Stopwatch elapsed = Stopwatch.StartNew();
+
             for (int x = 0; x < radius; x++)
             {
 
@@ -63,6 +75,10 @@ namespace opentk_proj.chunk
                 }
 
             }
+
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Finished generating " + radius * radius * radius + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
 
         }
         public static Chunk GetChunkFromPosition(Vector3 position)
@@ -94,7 +110,7 @@ namespace opentk_proj.chunk
             float y = (float)Math.Floor(camera.position.Y / 32);
             float z = (float)Math.Floor(camera.position.Z / 32);
 
-            for (int i = 0; i < Chunks.Count; i++)
+            /* for (int i = 0; i < Chunks.Count; i++)
             {
 
                 if (Maths.Dist3D((float) allChunks[i].cx, (float) allChunks[i].cy, (float) allChunks[i].cz, x, y, z) <= radius)
@@ -104,12 +120,95 @@ namespace opentk_proj.chunk
 
                 }
 
+            } */
+
+            for (int cx = 0; cx < radius; cx++) {
+
+                for (int cy = 0; cy < radius; cy++)
+                {
+
+                    for (int cz = 0; cz < radius; cz++)
+                    {
+
+                        Vector3 cameraposition = ChunkUtils.getPlayerPositionRelativeToChunk(camera.position);
+
+                        int px = (int) (cameraposition.X - radius/2);
+                        int py = (int) (cameraposition.Y - radius/2);
+                        int pz = (int) (cameraposition.Z - radius/2);
+
+                        try
+                        {
+                            Chunks[ReturnChunkPositionCombined(px + cx, py + cy, pz + cz)].Draw(shader, camera, time);
+                        }
+                        catch { }
+                    }
+
+                }
+
             }
+
 
         }
 
+        public static void DrawChunksSmarter(int timeoutseconds, float radius, Shader shader, Camera camera, float time, float deltaTime)
+        {
+
+            elapsedTime += deltaTime;
+
+            
+            if (elapsedTime > timeoutseconds)
+            {
+
+                for (int i = 0; i < Chunks.Count; i++)
+                {
+
+                    string key = Chunks.Keys.ToArray()[i];
+
+                    Chunks[key].Save("../../../res/cdat/" + key + ".cdat");
+
+                }
+
+                Chunks.Clear();
+                for (int cx = 0; cx < radius; cx++)
+                {
+
+                    for (int cy = 0; cy < radius; cy++)
+                    {
+
+                        for (int cz = 0; cz < radius; cz++)
+                        {
+
+                            int startX = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).X - radius/2);
+                            int startY = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).Y - radius/2);
+                            int startZ = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).Z - radius/2);
+
+                            if (!File.Exists("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"))
+                            {
+
+                                Append(new Chunk(startX + cx, startY + cy, startZ + cz));
+
+                            } else
+                            {
+
+
+                                Append(new Chunk("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"));
+
+                            }
+
+                        }
+
+                    }
+
+                }
+                elapsedTime = 0;
+
+            }
+
+        }
         public static void DrawChunksSmart(float radius, Shader shader, Camera camera, float time)
         {
+
+
 
             Chunk[] allChunks = Chunks.Values.ToArray();
 
@@ -117,19 +216,17 @@ namespace opentk_proj.chunk
             float y = (float)Math.Floor(camera.position.Y / 32);
             float z = (float)Math.Floor(camera.position.Z / 32);
 
-            for (int ccx = 0; ccx < 8; ccx++)
+            for (int ccx = 0; ccx < radius; ccx++)
             {
 
-                for (int ccy = 0; ccy < 8; ccy++)
+                for (int ccy = 0; ccy < radius; ccy++)
                 {
 
-                    for (int ccz = 0;  ccz < 8; ccz++)
+                    for (int ccz = 0;  ccz < radius; ccz++)
                     {
 
                         if (Maths.Dist3D(Chunks[ReturnChunkPositionCombined(ccx, ccy, ccz)].cx, Chunks[ReturnChunkPositionCombined(ccx, ccy, ccz)].cy, Chunks[ReturnChunkPositionCombined(ccx, ccy, ccz)].cz, x, y, z) <= radius)
                         {
-
-                            
 
                             Chunks[ReturnChunkPositionCombined(ccx, ccy, ccz)].Draw(shader, camera, time);
 
@@ -158,8 +255,13 @@ namespace opentk_proj.chunk
         }
         public static Chunk GetChunkAtPosition(int cx, int cy, int cz)
         {
-            
-            return Chunks.GetValueOrDefault(ReturnChunkPositionCombined(cx, cy, cz), null);
+
+            try
+            {
+                return Chunks.GetValueOrDefault(ReturnChunkPositionCombined(cx, cy, cz), null);
+            }
+            catch { return null; }
+
         }
 
 
@@ -170,6 +272,24 @@ namespace opentk_proj.chunk
 
 
             return cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString();
+
+        }
+
+        public static int[] GetChunkPositionFromFile(string pathtofile)
+        {
+
+            string[] splitunderscore = pathtofile.Split("/").Last().Split("_");
+            string[] numbers = { splitunderscore[0], splitunderscore[1], splitunderscore[2].Split(".")[0] };
+
+            for (int i = 0; i < numbers.Length; i++)
+            {
+
+                Console.WriteLine(numbers[i]);
+
+            }
+
+
+            return new int[] { Int32.Parse(numbers[0]), Int32.Parse(numbers[1]), Int32.Parse(numbers[2]) };
 
         }
 

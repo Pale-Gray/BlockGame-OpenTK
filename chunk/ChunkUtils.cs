@@ -26,5 +26,16 @@ namespace opentk_proj.chunk
 
         }
 
+        public static Vector3 GetPositionRelativeToChunkPosition(Camera camera)
+        {
+
+            int x = (int)Math.Floor(camera.position.X / 32);
+            int y = (int)Math.Floor(camera.position.Y / 32);
+            int z = (int)Math.Floor(camera.position.Z / 32);
+
+            return (x, y, z);
+
+        }
+
     }
 }
