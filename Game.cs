@@ -580,7 +580,7 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
             ChunkLoader.DrawChunks(shader, camera, (float)time);
-            ChunkLoader.DrawChunksSmarter(8, 8, shader, camera, (float)time, (float)args.Time);
+            ChunkLoader.DrawChunksSmarter(3, 8, shader, camera, (float)time, (float)args.Time);
             
 
             shader.UnUse();

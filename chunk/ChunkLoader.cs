@@ -17,7 +17,8 @@ namespace opentk_proj.chunk
 
         static Dictionary<String, Chunk> Chunks = new Dictionary<String, Chunk>();
         static float elapsedTime = 0;
-        public static Dictionary<String, Chunk> GetAllChunks()
+        static 
+        public Dictionary<String, Chunk> GetAllChunks()
         {
 
             return Chunks;
@@ -159,16 +160,15 @@ namespace opentk_proj.chunk
             if (elapsedTime > timeoutseconds)
             {
 
-                for (int i = 0; i < Chunks.Count; i++)
+                /* for (int i = 0; i < Chunks.Count; i++)
                 {
 
                     string key = Chunks.Keys.ToArray()[i];
 
                     Chunks[key].Save("../../../res/cdat/" + key + ".cdat");
 
-                }
+                } */
 
-                Chunks.Clear();
                 for (int cx = 0; cx < radius; cx++)
                 {
 
@@ -181,8 +181,21 @@ namespace opentk_proj.chunk
                             int startX = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).X - radius/2);
                             int startY = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).Y - radius/2);
                             int startZ = (int)(ChunkUtils.GetPositionRelativeToChunkPosition(camera).Z - radius/2);
+                            
+                            if (Chunks.ContainsKey(ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz)))
+                            {
 
-                            if (!File.Exists("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"))
+                                break;
+
+                            } else
+                            {
+
+                                Append(new Chunk("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"));
+
+                            }
+
+
+                            /* if (!File.Exists("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"))
                             {
 
                                 Append(new Chunk(startX + cx, startY + cy, startZ + cz));
@@ -193,7 +206,7 @@ namespace opentk_proj.chunk
 
                                 Append(new Chunk("../../../res/cdat/" + ReturnChunkPositionCombined(startX + cx, startY + cy, startZ + cz) + ".cdat"));
 
-                            }
+                            } */
 
                         }
 

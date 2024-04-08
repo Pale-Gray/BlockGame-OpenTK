@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
+using System.Collections.Concurrent;
 
 namespace opentk_proj.chunk
 {
@@ -33,7 +35,7 @@ namespace opentk_proj.chunk
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public List<float> blockvertdataarray = new List<float>();
+        public List<float> blockvertdataarray = new List<float>(2);
 
         // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
@@ -52,6 +54,8 @@ namespace opentk_proj.chunk
         public int cx; // chunk x position
         public int cy; // chunk y position
         public int cz; // chunk z position
+
+        private bool generating = false;
 
         Vector3 cpos; // vector of cx, cy, cz
         // Texture tx;
@@ -102,15 +106,21 @@ namespace opentk_proj.chunk
             cz = cposfromfile[2];
             cpos = new Vector3(cx, cy, cz);
 
-            if (pathtosave == null)
+            if (!File.Exists(pathtosave))
             {
 
                 initialize();
                 
 
+            } else
+            {
+
+                Load(pathtosave);
+
             }
-            Load(pathtosave);
+            // meshgen();
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
+            //  = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
             Vao.Unbind();
@@ -170,7 +180,7 @@ namespace opentk_proj.chunk
             Console.WriteLine("Saved in " + elapsedtime.TotalSeconds + " seconds.");
 
         }
-        public void Load(string pathToRead)
+        public async void Load(string pathToRead)
         {
             
             Console.WriteLine("loading data...");
@@ -200,10 +210,11 @@ namespace opentk_proj.chunk
             TimeSpan elapsedtime = elapsed.Elapsed;
             Console.WriteLine("Loaded in " + elapsedtime.TotalSeconds + " seconds.");
             Console.WriteLine("meshing...");
+
+            // Thread t = new Thread(() => meshgen());
             meshgen();
-
-            // (zindex * size * size + (yindex * size + xindex))
-
+            // t.Start();
+            // Console.WriteLine(t.ThreadState);
         }
         public void Rewrite()
         {
@@ -239,8 +250,11 @@ namespace opentk_proj.chunk
             // This for loop is to generate the blockdata numbers for mesh generation. 
             // Pretty important, right?
             // yes.
+            Console.WriteLine("initializing...");
+            Stopwatch elapsed = Stopwatch.StartNew();
+            blockvertdataarray.Clear();
 
-            Parallel.For(0, size, x =>
+            for (int x = 0; x < size; x++)
             {
 
                 for (int y = 0; y < size; y++)
@@ -261,7 +275,7 @@ namespace opentk_proj.chunk
                         float dataforwardone = 0;
                         float databackone = 0;
 
-                        for (int i = 1; i < 4; i++)
+                        /* for (int i = 1; i < 4; i++)
                         {
 
                             datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), ypos / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i / 2f);
@@ -274,19 +288,21 @@ namespace opentk_proj.chunk
 
                         }
 
+
                         blockdata[x, y, z] = datazero > 0.3f ? Blocks.Dirt.ID : Blocks.Air.ID;
                         if (datazero > 0.3f && dataupone <= 0.3f)
                         {
 
                             blockdata[x, y, z] = Blocks.Grass.ID;
 
-                        }
+                        } */
+                        blockdata[x, y, z] = 1;
 
                     }
 
                 }
 
-            });
+            }
             /* for (int x = 0; x < size; x++)
             {
 
@@ -333,7 +349,9 @@ namespace opentk_proj.chunk
                 }
 
             }*/
-
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Finished intializing in " + elapsedtime.TotalSeconds + " seconds.");
             meshgen();
 
         }
@@ -341,7 +359,7 @@ namespace opentk_proj.chunk
         {
 
             // makes the mesh of the chunk. VERY LONG NEED TO OPTIMIZE.
-
+            // generating = true;
             // clear arraylist just in case.
             Console.WriteLine("meshing...");
             Stopwatch elapsed = Stopwatch.StartNew();
@@ -390,6 +408,8 @@ namespace opentk_proj.chunk
 
             // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
             blockvertdata = blockvertdataarray.ToArray();
+
+            generating = false;
             
         }
         public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
