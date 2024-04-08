@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections;
+using System.Diagnostics;
 
 namespace opentk_proj.chunk
 {
@@ -139,7 +140,8 @@ namespace opentk_proj.chunk
         }
         public void Save(string pathToWrite)
         {
-
+            Console.WriteLine("saving...");
+            Stopwatch elapsed = Stopwatch.StartNew();
             using (BinaryWriter bwr = new BinaryWriter(File.OpenWrite(pathToWrite)))
             {
 
@@ -163,13 +165,16 @@ namespace opentk_proj.chunk
                 }
 
             }
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Saved in " + elapsedtime.TotalSeconds + " seconds.");
 
         }
         public void Load(string pathToRead)
         {
             
             Console.WriteLine("loading data...");
-
+            Stopwatch elapsed = Stopwatch.StartNew();
             using (BinaryReader br = new BinaryReader(File.OpenRead(pathToRead)))
             {
 
@@ -191,7 +196,10 @@ namespace opentk_proj.chunk
                 }
 
             }
-            Console.WriteLine("loaded data. meshing...");
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Loaded in " + elapsedtime.TotalSeconds + " seconds.");
+            Console.WriteLine("meshing...");
             meshgen();
 
             // (zindex * size * size + (yindex * size + xindex))
@@ -335,13 +343,15 @@ namespace opentk_proj.chunk
             // makes the mesh of the chunk. VERY LONG NEED TO OPTIMIZE.
 
             // clear arraylist just in case.
+            Console.WriteLine("meshing...");
+            Stopwatch elapsed = Stopwatch.StartNew();
             blockvertdataarray.Clear();
 
             // MASSIVE for loop. makes all the mesh data :)
             // There's got to be a better way to do this.
 
             for (int x = 0; x < size; x++)
-            { 
+            {
 
                 for (int y = 0; y < size; y++)
                 {
@@ -374,6 +384,9 @@ namespace opentk_proj.chunk
             }
 
             Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
 
             // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
             blockvertdata = blockvertdataarray.ToArray();
