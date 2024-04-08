@@ -368,7 +368,7 @@ namespace opentk_proj.chunk
                             // These conditionals look very ugly, but I'll explain.
                             // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
                             // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
-                            if (blockdata[x, y, z - 1 <= 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
+                            if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
                             if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
                             if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
                             if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
