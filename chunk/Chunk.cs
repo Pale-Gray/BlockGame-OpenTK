@@ -140,44 +140,51 @@ namespace opentk_proj.chunk
         public void Save(string pathToWrite)
         {
 
-            List<string> newlist = new List<string>();
-            for (int x = 0; x < size; x++)
+            using (BinaryWriter bwr = new BinaryWriter(File.OpenWrite(pathToWrite)))
             {
 
-                for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
                 {
 
-                    for (int z = 0; z < size; z++)
+                    for (int y = 0; y < size; y++)
                     {
 
-                        // bwr.Write(blockdata[x, y, z]);
-                        // File.write
-                        newlist.Add(blockdata[x, y, z].ToString());
+                        for (int z = 0; z < size; z++)
+                        {
+
+                            // bwr.Write(blockdata[x, y, z]);
+                            // File.write
+                            // newlist.Add(blockdata[x, y, z].ToString());
+                            bwr.Write((UInt16)blockdata[x,y,z]);
+                        }
+
                     }
 
                 }
 
             }
-            File.WriteAllLines(pathToWrite, newlist.ToArray());
-
 
         }
         public void Load(string pathToRead)
         {
-
+            
             Console.WriteLine("loading data...");
-            string[] lines = File.ReadAllLines(pathToRead);
 
-            for (int x = 0; x < size; x++)
+            using (BinaryReader br = new BinaryReader(File.OpenRead(pathToRead)))
             {
 
-                for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
                 {
 
-                    for (int z = 0; z < size; z++)
+                    for (int y = 0; y < size; y++)
                     {
 
-                        blockdata[x, y, z] = Int32.Parse(lines[z + (y * size) + (x * size * size)]);
+                        for (int z = 0; z < size; z++)
+                        {
+
+                            blockdata[x, y, z] = br.ReadUInt16();
+
+                        }
 
                     }
 
