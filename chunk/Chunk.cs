@@ -109,22 +109,6 @@ namespace opentk_proj.chunk
 
             }
             Load(pathtosave);
-
-            /* vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicDraw);
-            vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
-            GL.EnableVertexAttribArray(3);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0); */
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
@@ -155,33 +139,6 @@ namespace opentk_proj.chunk
         }
         public void Save(string pathToWrite)
         {
-
-               /* using (FileStream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write))
-                {
-
-                    Console.WriteLine("saving chunk data to {0}", pathToWrite.Split("/")[5]);
-                    // Stream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write);
-                    BinaryWriter bwr = new BinaryWriter(writeTo);
-                    for (int x = 0; x < size; x++)
-                    {
-
-                        for (int y = 0; y < size; y++)
-                        {
-
-                            for (int z = 0; z < size; z++)
-                            {
-
-                                // bwr.Write(blockdata[x, y, z]);
-                                // File.write
-                            }
-
-                        }
-
-                    }
-                    bwr.Dispose();
-                    Console.WriteLine("saved.");
-
-                }*/
 
             List<string> newlist = new List<string>();
             for (int x = 0; x < size; x++)
@@ -228,35 +185,6 @@ namespace opentk_proj.chunk
 
             }
             Console.WriteLine("loaded data. meshing...");
-            /*    using (FileStream readFrom = File.Open(pathToRead, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-
-                    Console.WriteLine("loading chunk data from {0}", pathToRead.Split("/")[5]);
-                    BinaryReader br = new BinaryReader(readFrom);
-                    Console.WriteLine("filesize of chunk data in bytes: {0}", readFrom.Length);
-                Console.WriteLine(File.ReadLines(pathToRead));
-                // string[] data = File.ReadAllLines(pathToRead);
-                    for (int x = 0; x < size; x++)
-                    {
-
-                        for (int y = 0; y < size; y++)
-                        {
-
-                            for (int z = 0; z < size; z++)
-                            {
-
-                                // blockdata[x, y, z] = // Int32.Parse(data[(z * size * size) + (y * size) + x]);
-                                // ConsoleFile.ReadLines
-
-                            }
-
-                        }
-
-                    }
-                    br.Dispose();
-
-
-            }*/
             meshgen();
 
             // (zindex * size * size + (yindex * size + xindex))
