@@ -434,7 +434,7 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(0, 0, 0));
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
-            ChunkLoader.GenerateChunksWithinRadius(4);
+            ChunkLoader.GenerateChunksWithinRadius(8);
 
             // Size = (1920, 1080);
             // Location = (0, 0);

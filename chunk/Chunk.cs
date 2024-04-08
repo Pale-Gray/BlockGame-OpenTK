@@ -7,6 +7,8 @@ using System.IO;
 using opentk_proj.util;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Collections;
 
 namespace opentk_proj.chunk
 {
@@ -61,9 +63,9 @@ namespace opentk_proj.chunk
             cz = z;
             cpos = new Vector3(x, y, z);
 
-            Thread t = new Thread(() => initialize());
-            // initialize();
-            t.Start();
+            // Thread t = new Thread(() => initialize());
+            initialize();
+            // t.Start();
 
             /* vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -154,7 +156,7 @@ namespace opentk_proj.chunk
         public void Save(string pathToWrite)
         {
 
-                using (FileStream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write))
+               /* using (FileStream writeTo = File.Open(pathToWrite, FileMode.Create, FileAccess.Write, FileShare.Write))
                 {
 
                     Console.WriteLine("saving chunk data to {0}", pathToWrite.Split("/")[5]);
@@ -169,8 +171,8 @@ namespace opentk_proj.chunk
                             for (int z = 0; z < size; z++)
                             {
 
-                                bwr.Write((UInt16)blockdata[x, y, z]);
-
+                                // bwr.Write(blockdata[x, y, z]);
+                                // File.write
                             }
 
                         }
@@ -179,20 +181,61 @@ namespace opentk_proj.chunk
                     bwr.Dispose();
                     Console.WriteLine("saved.");
 
+                }*/
+
+            List<string> newlist = new List<string>();
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        // bwr.Write(blockdata[x, y, z]);
+                        // File.write
+                        newlist.Add(blockdata[x, y, z].ToString());
+                    }
+
                 }
+
+            }
+            File.WriteAllLines(pathToWrite, newlist.ToArray());
 
 
         }
         public void Load(string pathToRead)
         {
 
-       
-                using (FileStream readFrom = File.Open(pathToRead, FileMode.Open, FileAccess.Read, FileShare.Read))
+            Console.WriteLine("loading data...");
+            string[] lines = File.ReadAllLines(pathToRead);
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        blockdata[x, y, z] = Int32.Parse(lines[z + (y * size) + (x * size * size)]);
+
+                    }
+
+                }
+
+            }
+            Console.WriteLine("loaded data. meshing...");
+            /*    using (FileStream readFrom = File.Open(pathToRead, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
 
                     Console.WriteLine("loading chunk data from {0}", pathToRead.Split("/")[5]);
                     BinaryReader br = new BinaryReader(readFrom);
                     Console.WriteLine("filesize of chunk data in bytes: {0}", readFrom.Length);
+                Console.WriteLine(File.ReadLines(pathToRead));
+                // string[] data = File.ReadAllLines(pathToRead);
                     for (int x = 0; x < size; x++)
                     {
 
@@ -202,7 +245,8 @@ namespace opentk_proj.chunk
                             for (int z = 0; z < size; z++)
                             {
 
-                                blockdata[x, y, z] = br.ReadUInt16();
+                                // blockdata[x, y, z] = // Int32.Parse(data[(z * size * size) + (y * size) + x]);
+                                // ConsoleFile.ReadLines
 
                             }
 
@@ -212,12 +256,10 @@ namespace opentk_proj.chunk
                     br.Dispose();
 
 
-            }
+            }*/
             meshgen();
 
             // (zindex * size * size + (yindex * size + xindex))
-
-            Console.WriteLine("loaded data.");
 
         }
         public void Rewrite()
@@ -254,7 +296,55 @@ namespace opentk_proj.chunk
             // This for loop is to generate the blockdata numbers for mesh generation. 
             // Pretty important, right?
             // yes.
-            for (int x = 0; x < size; x++)
+
+            Parallel.For(0, size, x =>
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        float xpos = (float)(x + cx * size);
+                        float ypos = (float)(y + cy * size);
+                        float zpos = (float)(z + cz * size);
+
+                        float datazero = 0;
+                        float dataupone = 0;
+                        float datadownone = 0;
+                        float dataleftone = 0;
+                        float datarightone = 0;
+                        float dataforwardone = 0;
+                        float databackone = 0;
+
+                        for (int i = 1; i < 4; i++)
+                        {
+
+                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), ypos / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i / 2f);
+                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), (ypos + 1f) / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i / 2f);
+                            //datadownone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos-1 / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //dataleftone += OpenSimplex2.Noise3_Fallback(1234567890, xpos-1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //datarightone += OpenSimplex2.Noise3_Fallback(1234567890, xpos+1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
+                            //dataforwardone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos+1 / 64 * (float)i) / (float)(i + i);
+                            //databackone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos-1 / 64 * (float)i) / (float)(i + i);
+
+                        }
+
+                        blockdata[x, y, z] = datazero > 0.3f ? Blocks.Dirt.ID : Blocks.Air.ID;
+                        if (datazero > 0.3f && dataupone <= 0.3f)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Grass.ID;
+
+                        }
+
+                    }
+
+                }
+
+            });
+            /* for (int x = 0; x < size; x++)
             {
 
                 for (int y = 0; y < size; y++)
@@ -299,7 +389,7 @@ namespace opentk_proj.chunk
 
                 }
 
-            }
+            }*/
 
             meshgen();
 
@@ -314,8 +404,9 @@ namespace opentk_proj.chunk
 
             // MASSIVE for loop. makes all the mesh data :)
             // There's got to be a better way to do this.
+
             for (int x = 0; x < size; x++)
-            {
+            { 
 
                 for (int y = 0; y < size; y++)
                 {
