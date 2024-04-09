@@ -59,7 +59,7 @@ namespace opentk_proj.chunk
         {
 
             Stopwatch elapsed = Stopwatch.StartNew();
-
+            int i = 0;
             for (int x = 0; x < radius; x++)
             {
 
@@ -70,19 +70,21 @@ namespace opentk_proj.chunk
                     {
 
                         Append(new Chunk(x,y,z));
+                        
 
                     }
 
                 }
 
             }
+            Console.WriteLine(i);
 
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
-            Console.WriteLine("Finished generating " + radius * radius * radius + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
+            Console.WriteLine("Finished generating " + Chunks.Count + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
 
         }
-        public static Chunk GetChunkFromPosition(Vector3 position)
+        public static Chunk GetChunkFromWorldPosition(Vector3 position)
         {
 
             int x = (int)Math.Floor(position.X / 32);
@@ -92,7 +94,7 @@ namespace opentk_proj.chunk
             return GetChunkAtPosition(x, y, z);
 
         }
-        public static Chunk GetChunkFromPosition(Camera camera)
+        public static Chunk GetChunkFromWorldPosition(Camera camera)
         {
 
             int x = (int) Math.Floor(camera.position.X / 32);

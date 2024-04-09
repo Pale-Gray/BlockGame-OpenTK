@@ -205,6 +205,8 @@ namespace opentk_proj
 
         double ft = 0;
         double fs = 0;
+
+        Chunk c;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
 
@@ -435,7 +437,7 @@ namespace opentk_proj
             // ChunkLoader.Append(new Chunk(1, 0, 0));
 
             ChunkLoader.GenerateChunksWithinRadius(8);
-
+            // c = new Chunk(0,0,0);
             // Size = (1920, 1080);
             // Location = (0, 0);
 
@@ -470,102 +472,6 @@ namespace opentk_proj
             Skybox.Draw(cposition, camera, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
-            // ray testing
-
-            /*
-            // ray.Update(camera.position, camera.front);
-            List<float> scales = new List<float>();
-            Vector3 chunkplayerpos = chunk.getPlayerPositionRelativeToChunk(camera.position);
-            // Console.WriteLine(chunkplayerpos);
-            int radius = 4;
-
-            for (int x = (int)chunkplayerpos.X - radius; x <= (int)chunkplayerpos.X + radius; x++)
-            {
-
-                for (int y = (int)chunkplayerpos.Y - radius; y <= (int)chunkplayerpos.Y + radius; y++)
-                {
-
-                    for (int z = (int)chunkplayerpos.Z - radius; z <= (int)chunkplayerpos.Z + radius; z++)
-                    {
-
-                        int xindex = Math.Max(x, 0);
-                        int yindex = Math.Max(y, 0);
-                        int zindex = Math.Max(z, 0);
-
-                        xindex = Math.Min(xindex, 31);
-                        yindex = Math.Min(yindex, 31);
-                        zindex = Math.Min(zindex, 31);
-
-                        if (chunk.blockdata[xindex,yindex,zindex] != Blocks.Air.ID)
-                        {
-
-                            Block block = Blocks.GetBlockByID(chunk.blockdata[xindex, yindex, zindex]);
-
-                            block.boundingBox.SetOffset(xindex,yindex,zindex);
-                            block.boundingModel.SetPosition(block.boundingBox.offset.X, block.boundingBox.offset.Y, block.boundingBox.offset.Z);
-                            //block.boundingModel.Draw(camera.projection, camera.view);
-
-                            for (int i = 0; i < block.boundingBox.triangles.Length / 9; i++)
-                            {
-
-                                // ray.Hit_Triangle(block.boundingBox.triangles, i * 9, block.boundingModel, block.boundingBox);
-                                scales.Add(ray.scalefactor);
-
-                            }
-
-
-                            //boundmodel.SetPosition(xindex, yindex, zindex);
-                            //boundmodel.Draw(camera.projection, camera.view);
-
-                        }
-
-                    }
-
-                }
-
-            }
-            */
-            /*for (int i = 0; i < boundingbox.triangles.Length / 9; i++)
-            {
-
-                ray.Hit_Triangle(boundingbox.triangles, i * 9, boundmodel, boundingbox);
-                scales.Add(ray.scalefactor);
-
-            }
-            scales.Sort();
-            while (scales.Contains(-1))
-            {
-
-                scales.Remove(-1);
-
-            }
-            if (scales.Count == 0)
-            {
-
-                scales.Insert(0, 1);
-
-            }
-            MouseState mouse = MouseState;
-            if (IsGrabbed)
-            {
-                if (mouse.IsButtonPressed(MouseButton.Left))
-                {
-                    Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f, 0.5f, 0.5f)) + (camera.front * 0.0001f);
-                    Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
-                    Console.WriteLine(index);
-                    chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Air.ID);
-
-                }
-                if (mouse.IsButtonPressed(MouseButton.Right))
-                {
-                    Vector3 i = ((camera.position + (camera.front * (scales[0]))) + new Vector3(0.5f, 0.5f, 0.5f)) - (camera.front * 0.0001f);
-                    Vector3 index = new Vector3((float)Math.Floor(i.X), (float)Math.Floor(i.Y), (float)Math.Floor(i.Z));
-                    Console.WriteLine(index);
-                    chunk.SetBlockId((int)index.X, (int)index.Y, (int)index.Z, Blocks.Pebble_Block.ID);
-
-                }
-            }
-            */
             MouseState mouse = MouseState;
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "tex"), 0);
@@ -580,19 +486,13 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
             ChunkLoader.DrawChunks(shader, camera, (float)time);
-            ChunkLoader.DrawChunksSmarter(3, 8, shader, camera, (float)time, (float)args.Time);
-            
+            // c.Draw(shader, camera, (float)time);
+            // ChunkLoader.DrawChunksSmarter(3, 8, shader, camera, (float)time, (float)args.Time);
 
             shader.UnUse();
 
             GL.Disable(EnableCap.DepthTest);
             TestElement.Draw();
-            //GUIKeyframe.Play();
-            //TestElement.SetRelativePosition((GUIKeyframe.GetResult(), 0));
-            // GUIClick.Draw();
-            // Console.WriteLine(DeltaTime.Get());
-            // TestElement.SetRelativePosition(mouse.Delta);
-            // hitdisplay.Draw(new Vector3((float) ray.rpos.X, (float) ray.rpos.Y, (float) ray.rpos.Z), camera.projection, camera.view, (float)time);
             GL.Enable(EnableCap.DepthTest);
 
             if (debug)

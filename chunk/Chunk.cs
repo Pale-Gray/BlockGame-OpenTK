@@ -12,6 +12,8 @@ using System.Collections;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace opentk_proj.chunk
 {
@@ -22,6 +24,10 @@ namespace opentk_proj.chunk
         private static object lockerRead = new Object();
         // size of the chunk, keep at 32, but you CAN change it. (dont)
         static int size = Constants.ChunkSize;
+
+        object lockObject = new object();
+
+        public float[,,] noiseValues = new float[size,size,size];
 
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
@@ -35,7 +41,7 @@ namespace opentk_proj.chunk
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public List<float> blockvertdataarray = new List<float>(2);
+        public List<float> blockvertdataarray = new List<float>();
 
         // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
@@ -62,13 +68,16 @@ namespace opentk_proj.chunk
 
         public Chunk(int x, int y, int z)
         {
-
+            Stopwatch elapsed = Stopwatch.StartNew();
             cx = x;
             cy = y;
             cz = z;
             cpos = new Vector3(x, y, z);
 
             // Thread t = new Thread(() => initialize());
+
+            GenerateNoiseValues(12345);
+
             initialize();
             // t.Start();
 
@@ -93,7 +102,9 @@ namespace opentk_proj.chunk
             Vao.Unbind();
 
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
-           
+            elapsed.Stop();
+            TimeSpan elapsedtime = elapsed.Elapsed;
+            Console.WriteLine("Made a chunk in " + elapsedtime.TotalSeconds + " seconds.");
         }
 
         public Chunk(string pathtosave)
@@ -126,6 +137,29 @@ namespace opentk_proj.chunk
             Vao.Unbind();
 
             model = Matrix4.CreateTranslation(cx * size, cy * size, cz * size);
+
+        }
+
+        public void GenerateNoiseValues(int seed)
+        {
+            // FastNoise simplex = new FastNoise("Simplex");
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        noiseValues[x, y, z] = OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / 32f, (y + (cy * size)) / 32f, (z + (cz * size)) / 32f);
+                        // noiseValues[x, y, z] = 4;
+
+                    }
+
+                }
+
+            }
 
         }
         public void Draw(Shader shader, Camera camera, float time)
@@ -211,32 +245,13 @@ namespace opentk_proj.chunk
             Console.WriteLine("Loaded in " + elapsedtime.TotalSeconds + " seconds.");
             Console.WriteLine("meshing...");
 
-            // Thread t = new Thread(() => meshgen());
             meshgen();
-            // t.Start();
-            // Console.WriteLine(t.ThreadState);
+          
         }
         public void Rewrite()
         {
 
             GL.DeleteBuffer(vbo);
-            /*vbo = GL.GenBuffer();
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicDraw);
-
-            GL.BindVertexArray(vao);
-            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
-            GL.EnableVertexAttribArray(3);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0); */
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
@@ -267,92 +282,26 @@ namespace opentk_proj.chunk
                         float ypos = (float)(y + cy * size);
                         float zpos = (float)(z + cz * size);
 
-                        float datazero = 0;
-                        float dataupone = 0;
-                        float datadownone = 0;
-                        float dataleftone = 0;
-                        float datarightone = 0;
-                        float dataforwardone = 0;
-                        float databackone = 0;
-
-                        /* for (int i = 1; i < 4; i++)
-                        {
-
-                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), ypos / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i / 2f);
-                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), (ypos + 1f) / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i / 2f);
-                            //datadownone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos-1 / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //dataleftone += OpenSimplex2.Noise3_Fallback(1234567890, xpos-1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //datarightone += OpenSimplex2.Noise3_Fallback(1234567890, xpos+1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //dataforwardone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos+1 / 64 * (float)i) / (float)(i + i);
-                            //databackone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos-1 / 64 * (float)i) / (float)(i + i);
-
-                        }
-
-
-                        blockdata[x, y, z] = datazero > 0.3f ? Blocks.Dirt.ID : Blocks.Air.ID;
-                        if (datazero > 0.3f && dataupone <= 0.3f)
-                        {
-
-                            blockdata[x, y, z] = Blocks.Grass.ID;
-
-                        } */
-                        blockdata[x, y, z] = 1;
-
+                        blockdata[x, y, z] = 1;// noiseValues[x, y, z] < 0.3f ? Blocks.Air.ID : Blocks.Grass.ID;
+                        blockdata[0, 0, 0] = 0;
+                        blockdata[size-1,0,0] = 0;
+                        blockdata[0, size - 1, 0] = 0;
+                        blockdata[0,0, size - 1] = 0;
+                        blockdata[size - 1, size - 1, 0] = 0;
+                        blockdata[size - 1, 0, size - 1] = 0;
+                        blockdata[0, size - 1, size - 1] = 0;
+                        blockdata[size - 1, size - 1, size - 1] = 0;
                     }
 
                 }
 
             }
-            /* for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        float xpos = (float)(x + cx * size);
-                        float ypos = (float)(y + cy * size);
-                        float zpos = (float)(z + cz * size);
-
-                        float datazero = 0;
-                        float dataupone = 0;
-                        float datadownone = 0;
-                        float dataleftone = 0;
-                        float datarightone = 0;
-                        float dataforwardone = 0;
-                        float databackone = 0;
-                        for (int i = 1; i < 4; i++)
-                        {
-
-                            datazero += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), ypos / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i/2f);
-                            dataupone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / (64 / (float)i), (ypos+1f) / (64 / (float)i), zpos / (64 / (float)i)) / (float)(i + i/2f);
-                            //datadownone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos-1 / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //dataleftone += OpenSimplex2.Noise3_Fallback(1234567890, xpos-1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //datarightone += OpenSimplex2.Noise3_Fallback(1234567890, xpos+1 / 64 * (float)i, ypos / 64 * (float)i, zpos / 64 * (float)i) / (float)(i + i);
-                            //dataforwardone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos+1 / 64 * (float)i) / (float)(i + i);
-                            //databackone += OpenSimplex2.Noise3_Fallback(1234567890, xpos / 64 * (float)i, ypos / 64 * (float)i, zpos-1 / 64 * (float)i) / (float)(i + i);
-
-                        }
-
-                        blockdata[x, y, z] = datazero > 0.3f ? Blocks.Dirt.ID : Blocks.Air.ID;
-                        if (datazero > 0.3f && dataupone <= 0.3f)
-                        {
-
-                            blockdata[x, y, z] = Blocks.Grass.ID;
-
-                        }
-
-                    }
-
-                }
-
-            }*/
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
             Console.WriteLine("Finished intializing in " + elapsedtime.TotalSeconds + " seconds.");
-            meshgen();
+            //meshgen();
+            Thread thread = new Thread(meshgen);
+            thread.Start();
 
         }
         public void meshgen()
@@ -363,35 +312,43 @@ namespace opentk_proj.chunk
             // clear arraylist just in case.
             Console.WriteLine("meshing...");
             Stopwatch elapsed = Stopwatch.StartNew();
-            blockvertdataarray.Clear();
 
-            // MASSIVE for loop. makes all the mesh data :)
-            // There's got to be a better way to do this.
-
-            for (int x = 0; x < size; x++)
+            lock (lockObject)
             {
 
-                for (int y = 0; y < size; y++)
+                blockvertdataarray.Clear();
+
+                // MASSIVE for loop. makes all the mesh data :)
+                // There's got to be a better way to do this.
+
+                for (int x = 0; x < size; x++)
                 {
 
-                    for (int z = 0; z < size; z++)
+                    for (int y = 0; y < size; y++)
                     {
 
-                        if (blockdata[x, y, z] != Blocks.Air.GetID())
+                        for (int z = 0; z < size; z++)
                         {
 
-                            // operators are flipped on z because z forward is negative (z back is positive
+                            if (blockdata[x, y, z] != Blocks.Air.GetID())
+                            {
+
+                                // operators are flipped on z because z forward is negative (z back is positive
 
 
-                            // These conditionals look very ugly, but I'll explain.
-                            // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
-                            // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
-                            if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
-                            if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
-                            if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
-                            if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
-                            if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
-                            if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
+                                // These conditionals look very ugly, but I'll explain.
+                                // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
+                                // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
+                                if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
+                                if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
+                                if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
+                                if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
+                                if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
+                                if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
+
+
+
+                            }
 
                         }
 
@@ -401,13 +358,20 @@ namespace opentk_proj.chunk
 
             }
 
-            Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
+            // Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
+            Console.WriteLine("Chunks Mesh float count: {0}", blockvertdataarray.Count);
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
             Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
 
             // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
-            blockvertdata = blockvertdataarray.ToArray();
+            // blockvertdata = blockvertdataarray.ToArray();
+            // blockvertdata = MemoryMarshal.AsBytes();
+            // blockvertdata = blockvertdataarray;
+            blockvertdata = blockvertdataarray.ToArray();// CollectionsMarshal.AsSpan(blockvertdataarray);
+            // MemoryMarshal.Cast<List<float>, float[]>(CollectionsMarshal.AsSpan(blockvertdataarray));
+            // blockvertdata = MemoryMarshal.
+            // MemoryMarshal.TryGetArray(blockvertdataarray, blockvertdata);
 
             generating = false;
             
@@ -437,7 +401,7 @@ namespace opentk_proj.chunk
         // note that z-forward is negative 
         public void frontface(int x, int y, int z)
         {
-
+            
             blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).reffront, x, y, z));
 
         }
