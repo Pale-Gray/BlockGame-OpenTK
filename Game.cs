@@ -21,7 +21,6 @@ using StbImageWriteSharp;
 using opentk_proj.gui;
 using opentk_proj.animator;
 using opentk_proj.framebuffer;
-using System.Threading;
 
 namespace opentk_proj
 {

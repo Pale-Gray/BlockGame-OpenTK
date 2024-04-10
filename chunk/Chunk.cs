@@ -27,21 +27,21 @@ namespace opentk_proj.chunk
 
         object lockObject = new object();
 
-        public float[,,] noiseValues = new float[size,size,size];
+        public volatile float[,,] noiseValues = new float[size,size,size];
 
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
-        public int[,,] blockdata = new int[size, size, size];
+        public volatile int[,,] blockdata = new int[size, size, size];
         // public int[,,] Empty = new int[size, size, size];   
         // vertex data of the chunk from the blockdata.
         // This is what is written to after blockvertdataarray gets changed to an array.
         // you technically don't need this, but it's here for now. (change later)
-        public float[] blockvertdata;
+        public volatile float[] blockvertdata;
         // this is the arraylist of the vertex data of the whole chunk, 
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public List<float> blockvertdataarray = new List<float>();
+        public volatile List<float> blockvertdataarray = new List<float>();
 
         // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
@@ -50,6 +50,8 @@ namespace opentk_proj.chunk
         public int vbo;
         // Vertex Array Object of the chunk.
         public int vao;
+
+        public volatile bool IsReady = false;
 
         // Model matrix of the chunk
         public Matrix4 model;
@@ -61,8 +63,6 @@ namespace opentk_proj.chunk
         public int cy; // chunk y position
         public int cz; // chunk z position
 
-        private bool generating = false;
-
         Vector3 cpos; // vector of cx, cy, cz
         // Texture tx;
 
@@ -72,30 +72,21 @@ namespace opentk_proj.chunk
             cx = x;
             cy = y;
             cz = z;
-            cpos = new Vector3(x, y, z);
 
             // Thread t = new Thread(() => initialize());
 
-            GenerateNoiseValues(12345);
+            //  GenerateBlockData();
+            Thread thread = new Thread(() => {
 
-            initialize();
-            // t.Start();
+                IsReady = false;
+                GenerateNoiseValues(12345);
+                GenerateBlockData();
+                GenerateChunkMesh();
+                IsReady = true;
 
-            /* vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, blockvertdata.Length * sizeof(float), blockvertdata, BufferUsageHint.DynamicDraw);
-            vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-            GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0 * sizeof(float)); // this is the blocktype data
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 1 * sizeof(float)); // this is the vertices
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 4 * sizeof(float)); // this is the normals
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 7 * sizeof(float)); // UVs 
-            GL.EnableVertexAttribArray(3);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0); */
+            });
+            thread.Start();
+
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
@@ -120,7 +111,7 @@ namespace opentk_proj.chunk
             if (!File.Exists(pathtosave))
             {
 
-                initialize();
+                GenerateBlockData();
                 
 
             } else
@@ -139,7 +130,6 @@ namespace opentk_proj.chunk
             model = Matrix4.CreateTranslation(cx * size, cy * size, cz * size);
 
         }
-
         public void GenerateNoiseValues(int seed)
         {
             // FastNoise simplex = new FastNoise("Simplex");
@@ -168,7 +158,7 @@ namespace opentk_proj.chunk
             // GL.ActiveTexture(TextureUnit.Texture0);
             // GL.BindTexture(TextureTarget.Texture2D, tx.id);
             // shader.Use();
-
+            
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
@@ -177,7 +167,7 @@ namespace opentk_proj.chunk
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
             GL.BindVertexArray(0);
-
+            
             // shader.UnUse();
             // GL.BindTexture(TextureTarget.Texture2D, 0);
 
@@ -245,7 +235,7 @@ namespace opentk_proj.chunk
             Console.WriteLine("Loaded in " + elapsedtime.TotalSeconds + " seconds.");
             Console.WriteLine("meshing...");
 
-            meshgen();
+            GenerateChunkMesh();
           
         }
         public void Rewrite()
@@ -258,15 +248,15 @@ namespace opentk_proj.chunk
             Vao.Unbind();
 
         }
-        public void initialize()
+        public void GenerateBlockData()
         {
 
             // This is really bad. Fix it.
             // This for loop is to generate the blockdata numbers for mesh generation. 
             // Pretty important, right?
             // yes.
-            Console.WriteLine("initializing...");
-            Stopwatch elapsed = Stopwatch.StartNew();
+            // Console.WriteLine("initializing...");
+            // Stopwatch elapsed = Stopwatch.StartNew();
             blockvertdataarray.Clear();
 
             for (int x = 0; x < size; x++)
@@ -296,59 +286,51 @@ namespace opentk_proj.chunk
                 }
 
             }
-            elapsed.Stop();
-            TimeSpan elapsedtime = elapsed.Elapsed;
-            Console.WriteLine("Finished intializing in " + elapsedtime.TotalSeconds + " seconds.");
-            //meshgen();
-            Thread thread = new Thread(meshgen);
-            thread.Start();
+            // elapsed.Stop();
+            // TimeSpan elapsedtime = elapsed.Elapsed;
+            // Console.WriteLine("Finished intializing in " + elapsedtime.TotalSeconds + " seconds.");
 
         }
-        public void meshgen()
+        public void GenerateChunkMesh()
         {
 
             // makes the mesh of the chunk. VERY LONG NEED TO OPTIMIZE.
             // generating = true;
             // clear arraylist just in case.
-            Console.WriteLine("meshing...");
-            Stopwatch elapsed = Stopwatch.StartNew();
+            // Console.WriteLine("meshing...");
+            // Stopwatch elapsed = Stopwatch.StartNew();
 
-            lock (lockObject)
+            blockvertdataarray.Clear();
+
+            // MASSIVE for loop. makes all the mesh data :)
+            // There's got to be a better way to do this.
+
+            for (int x = 0; x < size; x++)
             {
 
-                blockvertdataarray.Clear();
-
-                // MASSIVE for loop. makes all the mesh data :)
-                // There's got to be a better way to do this.
-
-                for (int x = 0; x < size; x++)
+                for (int y = 0; y < size; y++)
                 {
 
-                    for (int y = 0; y < size; y++)
+                    for (int z = 0; z < size; z++)
                     {
 
-                        for (int z = 0; z < size; z++)
+                        if (blockdata[x, y, z] != Blocks.Air.GetID())
                         {
 
-                            if (blockdata[x, y, z] != Blocks.Air.GetID())
-                            {
-
-                                // operators are flipped on z because z forward is negative (z back is positive
+                            // operators are flipped on z because z forward is negative (z back is positive
 
 
-                                // These conditionals look very ugly, but I'll explain.
-                                // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
-                                // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
-                                if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
-                                if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
-                                if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
-                                if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
-                                if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
-                                if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
+                            // These conditionals look very ugly, but I'll explain.
+                            // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
+                            // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
+                            if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
+                            if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
+                            if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
+                            if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
+                            if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
+                            if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
 
 
-
-                            }
 
                         }
 
@@ -359,10 +341,10 @@ namespace opentk_proj.chunk
             }
 
             // Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
-            Console.WriteLine("Chunks Mesh float count: {0}", blockvertdataarray.Count);
-            elapsed.Stop();
-            TimeSpan elapsedtime = elapsed.Elapsed;
-            Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
+            // Console.WriteLine("Chunks Mesh float count: {0}", blockvertdataarray.Count);
+            // elapsed.Stop();
+            // TimeSpan elapsedtime = elapsed.Elapsed;
+            // Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
 
             // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
             // blockvertdata = blockvertdataarray.ToArray();
@@ -372,8 +354,6 @@ namespace opentk_proj.chunk
             // MemoryMarshal.Cast<List<float>, float[]>(CollectionsMarshal.AsSpan(blockvertdataarray));
             // blockvertdata = MemoryMarshal.
             // MemoryMarshal.TryGetArray(blockvertdataarray, blockvertdata);
-
-            generating = false;
             
         }
         public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
@@ -394,7 +374,7 @@ namespace opentk_proj.chunk
         {
 
             blockdata[x, y, z] = ID;
-            meshgen();
+            GenerateChunkMesh();
             Rewrite();
 
         }

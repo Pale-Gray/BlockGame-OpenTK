@@ -12,10 +12,21 @@ namespace opentk_proj.util
 
         public static int Generate(float[] meshData, BufferUsageHint hint)
         {
-
             int vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, meshData.Length * sizeof(float), meshData, hint);
+            if (meshData == null)
+            {
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+                GL.BufferData(BufferTarget.ArrayBuffer, 1 * sizeof(float), new float[1], hint);
+
+            } else
+            {
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+                GL.BufferData(BufferTarget.ArrayBuffer, meshData.Length * sizeof(float), meshData, hint);
+
+            }
+
             // GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
             return vbo;

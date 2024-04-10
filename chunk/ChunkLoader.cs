@@ -262,8 +262,12 @@ namespace opentk_proj.chunk
 
             for (int i = 0; i < Chunks.Count; i++)
             {
+                if (allChunks[i].IsReady)
+                {
 
-                allChunks[i].Draw(shader, camera, time);
+                    allChunks[i].Draw(shader, camera, time);
+
+                }
 
             }
 
