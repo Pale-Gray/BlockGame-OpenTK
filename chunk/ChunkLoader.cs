@@ -9,6 +9,7 @@ using System.IO;
 using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Threading;
+using opentk_proj.util;
 
 namespace opentk_proj.chunk
 {
@@ -193,14 +194,22 @@ namespace opentk_proj.chunk
 
             Chunk[] allChunks = Chunks.Values.ToArray();
 
-            for (int i = 0; i < Chunks.Count; i++)
+            elapsedTime += (float) Constants.Time; 
+            if (elapsedTime > 2)
             {
-                if (allChunks[i].IsReady)
+
+                for (int i = 0; i < Chunks.Count; i++)
                 {
 
-                    allChunks[i].Draw(shader, camera, time);
+                    allChunks[i].CheckMeshUpdate();
 
                 }
+
+            }
+
+            for (int i = 0; i < Chunks.Count; i++)
+            {
+                allChunks[i].Draw(shader, camera, time);
 
             }
 

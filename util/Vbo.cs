@@ -10,18 +10,19 @@ namespace opentk_proj.util
     internal class Vbo
     {
 
+        static int vbo;// = GL.GenBuffer();
         public static int Generate(float[] meshData, BufferUsageHint hint)
         {
-            int vbo = GL.GenBuffer();
             if (meshData == null)
             {
 
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-                GL.BufferData(BufferTarget.ArrayBuffer, 1 * sizeof(float), new float[1], hint);
+                GL.BufferData(BufferTarget.ArrayBuffer, 1 * sizeof(float), new float[0], hint);
 
             } else
             {
 
+                vbo = GL.GenBuffer();
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
                 GL.BufferData(BufferTarget.ArrayBuffer, meshData.Length * sizeof(float), meshData, hint);
 

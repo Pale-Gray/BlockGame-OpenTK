@@ -66,14 +66,17 @@ namespace opentk_proj.chunk
         Vector3 cpos; // vector of cx, cy, cz
         // Texture tx;
 
+        Thread GenerationThread;
+
         public Chunk(int x, int y, int z)
         {
+
             Stopwatch elapsed = Stopwatch.StartNew();
             cx = x;
             cy = y;
             cz = z;
 
-            Thread thread = new Thread(() => {
+            GenerationThread = new Thread(() => {
 
                 Console.WriteLine(Thread.CurrentThread.Name);
                 IsReady = false;
@@ -83,15 +86,23 @@ namespace opentk_proj.chunk
                 IsReady = true;
 
             });
-            thread.Name = "hi";
-            thread.Start();
+
+            GenerationThread.Name = "hi";
+            GenerationThread.Priority = ThreadPriority.Highest;
+            GenerationThread.Start();
+            // thread.SetPriority();
             Console.WriteLine(Thread.CurrentThread.Name);
 
-            vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-            vao = Vao.Generate(AttribPointerMode.Chunk);
-            Vbo.Unbind();
-            Vao.Unbind();
+            if (IsReady)
+            {
 
+                vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
+                vao = Vao.Generate(AttribPointerMode.Chunk);
+                Vbo.Unbind();
+                Vao.Unbind();
+
+            }
+            
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
@@ -120,12 +131,28 @@ namespace opentk_proj.chunk
             }
 
         }
-        public void Draw(Shader shader, Camera camera, float time)
+
+        public void CheckMeshUpdate()
         {
 
-            // GL.ActiveTexture(TextureUnit.Texture0);
-            // GL.BindTexture(TextureTarget.Texture2D, tx.id);
-            // shader.Use();
+            if (IsReady)
+            {
+
+                IsReady = false;
+
+                GL.DeleteBuffer(vbo);
+                GL.DeleteBuffer(vao);
+
+                vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
+                vao = Vao.Generate(AttribPointerMode.Chunk);
+                Vbo.Unbind();
+                Vao.Unbind();
+
+            }
+
+        }
+        public void Draw(Shader shader, Camera camera, float time)
+        {
             
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
@@ -135,9 +162,7 @@ namespace opentk_proj.chunk
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
             GL.BindVertexArray(0);
-            
-            // shader.UnUse();
-            // GL.BindTexture(TextureTarget.Texture2D, 0);
+
 
         }
         public void Save(string pathToWrite)
@@ -314,14 +339,7 @@ namespace opentk_proj.chunk
             // TimeSpan elapsedtime = elapsed.Elapsed;
             // Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
 
-            // blockvertdata = (float[])blockvertdataarray.ToArray(typeof(float));
-            // blockvertdata = blockvertdataarray.ToArray();
-            // blockvertdata = MemoryMarshal.AsBytes();
-            // blockvertdata = blockvertdataarray;
-            blockvertdata = blockvertdataarray.ToArray();// CollectionsMarshal.AsSpan(blockvertdataarray);
-            // MemoryMarshal.Cast<List<float>, float[]>(CollectionsMarshal.AsSpan(blockvertdataarray));
-            // blockvertdata = MemoryMarshal.
-            // MemoryMarshal.TryGetArray(blockvertdataarray, blockvertdata);
+            blockvertdata = blockvertdataarray.ToArray();
             
         }
         public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
