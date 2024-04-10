@@ -73,11 +73,9 @@ namespace opentk_proj.chunk
             cy = y;
             cz = z;
 
-            // Thread t = new Thread(() => initialize());
-
-            //  GenerateBlockData();
             Thread thread = new Thread(() => {
 
+                Console.WriteLine(Thread.CurrentThread.Name);
                 IsReady = false;
                 GenerateNoiseValues(12345);
                 GenerateBlockData();
@@ -85,7 +83,9 @@ namespace opentk_proj.chunk
                 IsReady = true;
 
             });
+            thread.Name = "hi";
             thread.Start();
+            Console.WriteLine(Thread.CurrentThread.Name);
 
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
@@ -96,38 +96,6 @@ namespace opentk_proj.chunk
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
             Console.WriteLine("Made a chunk in " + elapsedtime.TotalSeconds + " seconds.");
-        }
-
-        public Chunk(string pathtosave)
-        {
-
-            int[] cposfromfile = ChunkLoader.GetChunkPositionFromFile(pathtosave);
-
-            cx = cposfromfile[0];
-            cy = cposfromfile[1];
-            cz = cposfromfile[2];
-            cpos = new Vector3(cx, cy, cz);
-
-            if (!File.Exists(pathtosave))
-            {
-
-                GenerateBlockData();
-                
-
-            } else
-            {
-
-                Load(pathtosave);
-
-            }
-            // meshgen();
-            vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-            //  = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-            vao = Vao.Generate(AttribPointerMode.Chunk);
-            Vbo.Unbind();
-            Vao.Unbind();
-
-            model = Matrix4.CreateTranslation(cx * size, cy * size, cz * size);
 
         }
         public void GenerateNoiseValues(int seed)

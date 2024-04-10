@@ -21,6 +21,7 @@ using StbImageWriteSharp;
 using opentk_proj.gui;
 using opentk_proj.animator;
 using opentk_proj.framebuffer;
+using System.Threading;
 
 namespace opentk_proj
 {
@@ -375,6 +376,8 @@ namespace opentk_proj
         {
 
             base.OnLoad();
+
+            Thread.CurrentThread.Name = "MAIN";
 
             BinaryWriter bw = new BinaryWriter(File.Open("../../../res/cdat/1.cdat", FileMode.OpenOrCreate));
 
