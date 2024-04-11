@@ -116,12 +116,7 @@ namespace opentk_proj.chunk
                     for (int z = 0; z < size; z++)
                     {
 
-                        for (float o = 1; o < 4; o+=1f)
-                        {
-
-                            noiseValues[x, y, z] += OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / (64f*o), (y + (cy * size)) / (64f*o), (z + (cz * size)) / (64f*o));
-
-                        }
+                        noiseValues[x, y, z] += OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / (64f), (y + (cy * size)) / (64f), (z + (cz * size)) / (64f));
 
                         //noiseValues[x, y, z] = OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / 32f, (y + (cy * size)) / 32f, (z + (cz * size)) / 32f);
                         // noiseValues[x, y, z] = 4;
@@ -273,6 +268,28 @@ namespace opentk_proj.chunk
             for (int x = 0; x < size; x++)
             {
 
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        if (blockdata[x,y-1 < 0 ? y : y-1,z] == Blocks.Dirt.ID && blockdata[x,y+1 > size-1 ? y : y+1,z] == Blocks.Air.ID)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Grass.ID;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            for (int x = 0; x < size; x++)
+            {
+
                 for (int y = 0; y < size;y++)
                 {
 
@@ -285,32 +302,54 @@ namespace opentk_proj.chunk
                             try
                             {
 
-                                int height = (int) Maths.Lerp(2, 6, (float)new Random().NextDouble());
+                                int height = (int)Maths.Lerp(4, 6, (float)new Random().NextDouble());
                                 for (int l = 0; l < height; l++)
                                 {
 
-                                    if (l < height-1)
-                                    {
+                                    blockdata[x, y + l, z] = Blocks.Maple_Log.ID;
+                                    blockdata[x, y + height, z] = Blocks.Leaves.ID;
 
-                                        blockdata[x, y + l, z] = Blocks.Maple_Log.ID;
+                                    blockdata[x - 1, y + height, z] = Blocks.Leaves.ID;
+                                    blockdata[x - 2, y + height, z] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height, z] = Blocks.Leaves.ID;
+                                    blockdata[x + 2, y + height, z] = Blocks.Leaves.ID;
 
-                                    }
-                                    else
-                                    {
+                                    blockdata[x, y + height, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height, z + 2] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height, z - 2] = Blocks.Leaves.ID;
 
-                                        blockdata[x, y + l, z] = Blocks.Sand.ID;
+                                    blockdata[x + 1, y + height, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height, z + 1] = Blocks.Leaves.ID;
 
-                                    }
+                                    blockdata[x - 1, y + height + 1, z] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 1, z] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 1, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 1, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 1, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 1, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height + 1, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height + 1, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 1, z] = Blocks.Leaves.ID;
 
+                                    blockdata[x - 1, y + height + 2, z] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 2, z] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 2, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 2, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 2, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x + 1, y + height + 2, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height + 2, z - 1] = Blocks.Leaves.ID;
+                                    blockdata[x - 1, y + height + 2, z + 1] = Blocks.Leaves.ID;
+                                    blockdata[x, y + height + 2, z] = Blocks.Leaves.ID;
+
+                                    blockdata[x, y + height + 3, z] = Blocks.Leaves.ID;
 
                                 }
 
-                            } catch
-                            {
-
-
-
                             }
+                            catch { }
 
                         }
 

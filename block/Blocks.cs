@@ -16,10 +16,11 @@ namespace opentk_proj.block
         public static Block Stone = new Block().SetID(3).SetFront(3, 0).SetRight(3, 0).SetBack(3, 0).SetLeft(3, 0).SetTop(3, 0).SetBottom(3, 0);
         public static Block Maple_Log = new Block().SetID(4).SetFront(4, 0).SetRight(4, 0).SetBack(4, 0).SetLeft(4, 0).SetTop(4, 1).SetBottom(4, 1);
         public static Block Pebble_Block = new Block().SetID(5).SetFront(5, 0).SetRight(5, 0).SetLeft(5, 0).SetBack(5, 0).SetTop(5, 0).SetBottom(5, 0);
+        public static Block Leaves = new Block().SetID(6).SetFaces(6, 0, Block.ALL);
 
         public static Block Sand = new Block().SetID(7).SetFaces(5, 1, Block.ALL);
 
-        public static Block Temp_Water = new Block().SetID(6).SetFront(4, 2).SetRight(4, 2).SetLeft(4, 2).SetBack(4, 2).SetTop(4, 2).SetBottom(4, 2);
+        // public static Block Temp_Water = new Block().SetID(6).SetFront(4, 2).SetRight(4, 2).SetLeft(4, 2).SetBack(4, 2).SetTop(4, 2).SetBottom(4, 2);
 
         // TODO: replace with List<>
         public static Dictionary<int, Block> BlockIDs = new Dictionary<int, Block>();
@@ -35,8 +36,9 @@ namespace opentk_proj.block
             BlockIDs[Maple_Log.GetID()] = Maple_Log;
             BlockIDs[Pebble_Block.GetID()] = Pebble_Block;
             BlockIDs[Sand.GetID()] = Sand;
+            BlockIDs[Leaves.GetID()] = Leaves;
 
-            BlockIDs[Temp_Water.GetID()] = Temp_Water;
+            // BlockIDs[Temp_Water.GetID()] = Temp_Water;
 
             // BlockIDs[Dirt.GetID()] = Dirt;
 
