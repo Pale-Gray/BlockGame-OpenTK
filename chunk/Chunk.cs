@@ -28,7 +28,7 @@ namespace opentk_proj.chunk
         object lockObject = new object();
 
         public float[,,] noiseValues = new float[size,size,size];
-
+        public float[,,] noiseValues2 = new float[size, size, size];
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
         public int[,,] blockdata = new int[size, size, size];
@@ -116,7 +116,14 @@ namespace opentk_proj.chunk
                     for (int z = 0; z < size; z++)
                     {
 
-                        noiseValues[x, y, z] = OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / 32f, (y + (cy * size)) / 32f, (z + (cz * size)) / 32f);
+                        for (float o = 1; o < 4; o+=1f)
+                        {
+
+                            noiseValues[x, y, z] += OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / (64f*o), (y + (cy * size)) / (64f*o), (z + (cz * size)) / (64f*o));
+
+                        }
+
+                        //noiseValues[x, y, z] = OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / 32f, (y + (cy * size)) / 32f, (z + (cz * size)) / 32f);
                         // noiseValues[x, y, z] = 4;
 
                     }
@@ -256,28 +263,6 @@ namespace opentk_proj.chunk
                         float zpos = (float)(z + cz * size);
 
                         blockdata[x, y, z] =  noiseValues[x, y, z] < 0.3f ? Blocks.Air.ID : Blocks.Dirt.ID;
-
-                    }
-
-                }
-
-            }
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        if (blockdata[x, y-1 < 0 ? y : y-1, z] == Blocks.Dirt.ID && blockdata[x,y+1>size-1?y:y+1,z] == Blocks.Air.ID)
-                        {
-
-                            blockdata[x, y, z] = Blocks.Grass.ID;
-
-                        }
 
                     }
 
