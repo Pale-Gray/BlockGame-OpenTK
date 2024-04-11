@@ -85,6 +85,72 @@ namespace opentk_proj.chunk
             Console.WriteLine("Finished generating " + Chunks.Count + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
 
         }
+
+        static int ChunksPerTick = 4; // amount of chunks you want to generate per tick
+        static float TickLength = 0.1f; // length of tick in seconds
+        static float Ticking = 0;
+        static int[] ChunkPositions;
+
+        public static void PregenerateChunkPositionsFromRadius(int radius)
+        {
+
+            List<int> chunkPositions = new List<int>();
+            // Console.WriteLine(ChunkPositions.Length);
+
+            for (int x = 0; x < radius; x++)
+            {
+
+                for (int y = 0; y < radius; y++)
+                {
+
+                    for (int z = 0; z < radius; z++)
+                    {
+
+                        chunkPositions.Add(x);
+                        chunkPositions.Add(y);
+                        chunkPositions.Add(z);
+
+                    }
+
+                }
+
+            }
+            ChunkPositions = chunkPositions.ToArray();
+            Console.WriteLine(ChunkPositions.Length / 3);
+
+        }
+        public static void GenerateChunksWithinRadiusStaggered(int radius, float deltaTime)
+        {
+
+            Ticking += deltaTime;
+            int MaxChunks = radius * radius * radius;
+
+            if (Ticking > TickLength)
+            {
+
+                Console.WriteLine("Ticking.");
+                Console.WriteLine(ChunkPositions.Length);
+                // Console.WriteLine("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
+                if ((MaxChunks - Chunks.Count) < ChunksPerTick)
+                {
+
+                    ChunksPerTick = MaxChunks - Chunks.Count;
+
+                }
+                for (int a = 0; a < ChunksPerTick; a++)
+                {
+                    Console.WriteLine("appending...");
+                    // Console.WriteLine("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
+                    Append(new Chunk(ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]));
+                    ChunkPositions = ChunkPositions.Skip(3).ToArray();
+
+                }
+                // ChunkPositions = ChunkPositions.Skip(3).ToArray();
+                Ticking = 0;
+
+            }
+
+        }
         public static Chunk GetChunkFromWorldPosition(Vector3 position)
         {
 
@@ -191,17 +257,15 @@ namespace opentk_proj.chunk
         }
         public static void DrawChunks(Shader shader, Camera camera, float time)
         {
-
-            Chunk[] allChunks = Chunks.Values.ToArray();
-
             elapsedTime += (float) Constants.Time; 
-            if (elapsedTime > 2)
+            if (elapsedTime > 1)
             {
 
+                Chunk[] allChunks = Chunks.Values.ToArray();
                 for (int i = 0; i < Chunks.Count; i++)
                 {
 
-                    allChunks[i].CheckMeshUpdate();
+                   allChunks[i].CheckMeshUpdate(); // something's wrong with this.
 
                 }
 
@@ -209,7 +273,13 @@ namespace opentk_proj.chunk
 
             for (int i = 0; i < Chunks.Count; i++)
             {
-                allChunks[i].Draw(shader, camera, time);
+                Chunk[] allChunks = Chunks.Values.ToArray();
+                if (allChunks[i].IsReady)
+                {
+
+                    allChunks[i].Draw(shader, camera, time);
+
+                }
 
             }
 

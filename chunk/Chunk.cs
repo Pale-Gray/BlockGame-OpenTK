@@ -27,21 +27,21 @@ namespace opentk_proj.chunk
 
         object lockObject = new object();
 
-        public volatile float[,,] noiseValues = new float[size,size,size];
+        public float[,,] noiseValues = new float[size,size,size];
 
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
-        public volatile int[,,] blockdata = new int[size, size, size];
+        public int[,,] blockdata = new int[size, size, size];
         // public int[,,] Empty = new int[size, size, size];   
         // vertex data of the chunk from the blockdata.
         // This is what is written to after blockvertdataarray gets changed to an array.
         // you technically don't need this, but it's here for now. (change later)
-        public volatile float[] blockvertdata;
+        public float[] blockvertdata;
         // this is the arraylist of the vertex data of the whole chunk, 
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public volatile List<float> blockvertdataarray = new List<float>();
+        public List<float> blockvertdataarray = new List<float>();
 
         // I don't even know what this is used for anymore.
         public float[] reffront = new float[9 * 6];
@@ -52,6 +52,8 @@ namespace opentk_proj.chunk
         public int vao;
 
         public volatile bool IsReady = false;
+        public volatile bool IsMeshFinished = false;
+        public volatile bool MeshQueue = false;
 
         // Model matrix of the chunk
         public Matrix4 model;
@@ -63,50 +65,43 @@ namespace opentk_proj.chunk
         public int cy; // chunk y position
         public int cz; // chunk z position
 
-        Vector3 cpos; // vector of cx, cy, cz
+        public Vector3 ChunkPosition; // vector of cx, cy, cz
         // Texture tx;
 
-        Thread GenerationThread;
+        Thread GenerationThread; 
 
         public Chunk(int x, int y, int z)
         {
 
-            Stopwatch elapsed = Stopwatch.StartNew();
+            // Console.WriteLine("init");
+            // Stopwatch elapsed = Stopwatch.StartNew();
+            // TimeSpan elapsedtime;
             cx = x;
             cy = y;
             cz = z;
+            ChunkPosition = (cx, cy, cz);
 
             GenerationThread = new Thread(() => {
 
-                Console.WriteLine(Thread.CurrentThread.Name);
+                Stopwatch elapsed = Stopwatch.StartNew();
+
                 IsReady = false;
                 GenerateNoiseValues(12345);
                 GenerateBlockData();
                 GenerateChunkMesh();
                 IsReady = true;
+                // Thread.Sleep(5000);
+
+                elapsed.Stop();
+                TimeSpan elapsedtime = elapsed.Elapsed;
+                Console.WriteLine(elapsedtime.TotalMilliseconds);
 
             });
 
-            GenerationThread.Name = "hi";
-            GenerationThread.Priority = ThreadPriority.Highest;
             GenerationThread.Start();
-            // thread.SetPriority();
-            Console.WriteLine(Thread.CurrentThread.Name);
 
-            if (IsReady)
-            {
-
-                vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-                vao = Vao.Generate(AttribPointerMode.Chunk);
-                Vbo.Unbind();
-                Vao.Unbind();
-
-            }
-            
+            CheckMeshUpdate();
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
-            elapsed.Stop();
-            TimeSpan elapsedtime = elapsed.Elapsed;
-            Console.WriteLine("Made a chunk in " + elapsedtime.TotalSeconds + " seconds.");
 
         }
         public void GenerateNoiseValues(int seed)
@@ -131,33 +126,27 @@ namespace opentk_proj.chunk
             }
 
         }
-
         public void CheckMeshUpdate()
         {
 
-            if (IsReady)
+            while (IsMeshFinished == true && MeshQueue == true)
             {
 
-                IsReady = false;
-
-                GL.DeleteBuffer(vbo);
-                GL.DeleteBuffer(vao);
-
-                vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-                vao = Vao.Generate(AttribPointerMode.Chunk);
-                Vbo.Unbind();
-                Vao.Unbind();
+                // IsReady = false;
+                // Console.WriteLine(GenerationThread.IsAlive);
+                Rewrite();
+                MeshQueue = false;
 
             }
 
         }
         public void Draw(Shader shader, Camera camera, float time)
         {
-            
+
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
-            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref cpos);
+            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
@@ -197,7 +186,7 @@ namespace opentk_proj.chunk
             Console.WriteLine("Saved in " + elapsedtime.TotalSeconds + " seconds.");
 
         }
-        public async void Load(string pathToRead)
+        public void Load(string pathToRead)
         {
             
             Console.WriteLine("loading data...");
@@ -235,6 +224,7 @@ namespace opentk_proj.chunk
         {
 
             GL.DeleteBuffer(vbo);
+            GL.DeleteVertexArray(vao);
             vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
             vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
@@ -265,15 +255,80 @@ namespace opentk_proj.chunk
                         float ypos = (float)(y + cy * size);
                         float zpos = (float)(z + cz * size);
 
-                        blockdata[x, y, z] = 1;// noiseValues[x, y, z] < 0.3f ? Blocks.Air.ID : Blocks.Grass.ID;
-                        blockdata[0, 0, 0] = 0;
-                        blockdata[size-1,0,0] = 0;
-                        blockdata[0, size - 1, 0] = 0;
-                        blockdata[0,0, size - 1] = 0;
-                        blockdata[size - 1, size - 1, 0] = 0;
-                        blockdata[size - 1, 0, size - 1] = 0;
-                        blockdata[0, size - 1, size - 1] = 0;
-                        blockdata[size - 1, size - 1, size - 1] = 0;
+                        blockdata[x, y, z] =  noiseValues[x, y, z] < 0.3f ? Blocks.Air.ID : Blocks.Dirt.ID;
+
+                    }
+
+                }
+
+            }
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        if (blockdata[x, y-1 < 0 ? y : y-1, z] == Blocks.Dirt.ID && blockdata[x,y+1>size-1?y:y+1,z] == Blocks.Air.ID)
+                        {
+
+                            blockdata[x, y, z] = Blocks.Grass.ID;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size;y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        if (blockdata[x,y,z] == Blocks.Grass.ID && (new Random().NextDouble() * 100) < 2)
+                        {
+
+                            try
+                            {
+
+                                int height = (int) Maths.Lerp(2, 6, (float)new Random().NextDouble());
+                                for (int l = 0; l < height; l++)
+                                {
+
+                                    if (l < height-1)
+                                    {
+
+                                        blockdata[x, y + l, z] = Blocks.Maple_Log.ID;
+
+                                    }
+                                    else
+                                    {
+
+                                        blockdata[x, y + l, z] = Blocks.Sand.ID;
+
+                                    }
+
+
+                                }
+
+                            } catch
+                            {
+
+
+
+                            }
+
+                        }
+
                     }
 
                 }
@@ -292,7 +347,7 @@ namespace opentk_proj.chunk
             // clear arraylist just in case.
             // Console.WriteLine("meshing...");
             // Stopwatch elapsed = Stopwatch.StartNew();
-
+            IsMeshFinished = false;
             blockvertdataarray.Clear();
 
             // MASSIVE for loop. makes all the mesh data :)
@@ -340,7 +395,9 @@ namespace opentk_proj.chunk
             // Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
 
             blockvertdata = blockvertdataarray.ToArray();
-            
+            IsMeshFinished = true;
+            MeshQueue = true;
+
         }
         public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
         {

@@ -18,6 +18,21 @@ namespace opentk_proj
 
         }
 
+        public static float ToRadians(float degrees)
+        {
+
+            return (degrees * (float)Math.PI) / 180f;
+
+        }
+
+        public static float ToDegrees(float radians)
+        {
+
+            return (radians * 180f) / (float)Math.PI;
+
+
+        }
+
         public static float Lerp(float p1, float p2, float t)
         {
 
