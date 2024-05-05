@@ -1,4 +1,4 @@
-*copied over from Block-Game-Remaster*
+***Join my discord for updates!*** https://discord.gg/MjuakmUza9 
 
 # BlockGame-OpenTK
 A vision and in-progress game that is similar to Hytale or Minecraft with mods.
