@@ -5,6 +5,12 @@ namespace opentk_proj
     internal class Maths
     {
 
+        public static float MapValueToMinMax(float value, float min, float max)
+        {
+
+            return ((value) * (max - min)) + min;
+
+        }
         public static float Dist(float x1, float y1, float x2, float y2)
         {
 

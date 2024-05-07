@@ -36,7 +36,7 @@ namespace opentk_proj.gui
         public Vector2 PositionOffsetInPixels = (0,0);
         public Vector2 PositionOffsetInPercentage = (0,0);
 
-        public Vector2 CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
+        public Vector2 CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
 
         public static Vector4i Null = (-1, -1, -1, -1);
         public static Texture NullTexture = new Texture("../../../res/textures/missing.png");
@@ -151,7 +151,7 @@ namespace opentk_proj.gui
         public void Update()
         {
 
-            CoordinateOffset = (Constants.WIDTH / 2, Constants.HEIGHT / 2);
+            CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
 
             Camera.UpdateProjectionMatrix();
             PositionNoOffset = AbsolutePositionFromRelative(RelativePosition);
@@ -195,7 +195,7 @@ namespace opentk_proj.gui
         public Vector2 AbsolutePositionFromRelative(Vector2 relativePositionAmount)
         {
 
-            return ((relativePositionAmount / 100) * (Constants.WIDTH, Constants.HEIGHT));
+            return ((relativePositionAmount / 100) * (Globals.WIDTH, Globals.HEIGHT));
 
         }
 

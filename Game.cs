@@ -152,6 +152,7 @@ namespace opentk_proj
         };
 
         Shader shader;
+        Shader ChunkShader;
         Texture texture;
         Texture emtexture;
         CMTexture cmtex;
@@ -159,7 +160,7 @@ namespace opentk_proj
         int vbo;
         int vao;
 
-        float speed = 15.0f;
+        float speed = 2.0f;
         Vector3 cposition = new Vector3(0.0f, 0.0f, 0.0f);
         Vector3 cfront = new Vector3(0.0f, 0.0f, -1.0f);
         Vector3 cup = new Vector3(0.0f, 1.0f, 0.0f);
@@ -193,6 +194,7 @@ namespace opentk_proj
         GUIElement TestElement;
         Keyframe GUIKeyframe = new Keyframe(0, 100, 5);
         GUIClickable GUIClick;
+        FontRenderer text;
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
@@ -205,16 +207,15 @@ namespace opentk_proj
 
         double ft = 0;
         double fs = 0;
-
         Chunk c;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
 
             base.OnUpdateFrame(args);
 
-            Constants.Time = DeltaTime.Get();
-            Constants.Mouse = MouseState;
-            Constants.Keyboard = KeyboardState;
+            Globals.Time = DeltaTime.Get();
+            Globals.Mouse = MouseState;
+            Globals.Keyboard = KeyboardState;
 
             time = GLFW.GetTime();
 
@@ -305,13 +306,13 @@ namespace opentk_proj
                     if (k.IsKeyDown(Keys.LeftShift))
                     {
 
-                        speed = 120.0f;
+                        speed = 40.0f;
 
                     }
                     else
                     {
 
-                        speed = 60.0f;
+                        speed = 20.0f;
 
                     }
 
@@ -321,7 +322,7 @@ namespace opentk_proj
                 {
 
                     // cposition += cfront * speed * (float)args.Time;
-                    cposition += cfront * speed * (float)Constants.Time;
+                    cposition += cfront * speed * (float)Globals.Time;
 
                 }
                 if (k.IsKeyDown(Keys.S))
@@ -377,13 +378,16 @@ namespace opentk_proj
 
             base.OnLoad();
 
+            // original: 8. printed: 1
+            Console.WriteLine(Convert.ToInt16(0b1000 >> 3 & 0b1111));
+            // binary shift right three and cmp to full mask
+
             Thread.CurrentThread.Name = "MAIN";
 
             BinaryWriter bw = new BinaryWriter(File.Open("../../../res/cdat/1.cdat", FileMode.OpenOrCreate));
 
             bw.Write((uint)500);
 
-            Blocks.RegisterIDs();
 
             // chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
@@ -421,9 +425,11 @@ namespace opentk_proj
             cmtex = new CMTexture(t, 64);
 
             TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
+            text = new FontRenderer(16, "1234567890!?<>[]{}<>,./()\"' *");
             // GUIClick = new GUIClickable(50, 50, 20, 20, OriginType.Center);
             // DeltaTime.Get();
 
+            ChunkShader = new Shader("../../../res/shaders/chunk.vert", "../../../res/shaders/chunk.frag");
             shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
             shader.Use();
             //Texture t = new Texture("../../../res/textures/cubemap/cubemap_template.png");
@@ -444,8 +450,11 @@ namespace opentk_proj
             // Location = (0, 0);
 
             // Console.WriteLine(ChunkLoader.GetChunkAtPosition(1, 0, 0).cx);
-            ChunkLoader.PregenerateChunkPositionsFromRadius(6);
+            // ChunkLoader.PregenerateChunkPositionsFromRadius(6);
             // ChunkLoader.GenerateChunksWithinRadius(8);
+             // c = new Chunk(0,0,0);
+
+            ChunkLoader.GenerateChunksWithinRadius(8);
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -459,7 +468,7 @@ namespace opentk_proj
 
             Matrix4 transformation = Matrix4.CreateScale(1.0f);
             Matrix4 model = Matrix4.CreateScale(1.0f);
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 100.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)Globals.WIDTH / (float)Globals.HEIGHT, 0.1f, 100.0f);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
             cfront.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
@@ -488,23 +497,33 @@ namespace opentk_proj
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.TextureCubeMap, cmtex.id);
 
-            ChunkLoader.GenerateChunksWithinRadiusStaggered(6, (float)Constants.Time);
-            ChunkLoader.DrawChunks(shader, camera, (float)time);
+            // ChunkLoader.GenerateChunksWithinRadiusStaggered(6, (float)Globals.Time);
+            // ChunkLoader.DrawChunks(shader, camera, (float)time);
             // c.Draw(shader, camera, (float)time);
             // ChunkLoader.DrawChunksSmarter(3, 8, shader, camera, (float)time, (float)args.Time);
 
             shader.UnUse();
 
+            ChunkShader.Use();
+            GL.Uniform1(GL.GetUniformLocation(ChunkShader.id, "atlas"), 0);
+            GL.Uniform3(GL.GetUniformLocation(ChunkShader.id, "cameraPosition"), camera.position);
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, texture.getID());
+            // c.Draw(ChunkShader, camera, (float)time);
+            ChunkLoader.StaggeredGenerate(6, 0.01f, (float) Globals.Time, camera);
+            ChunkLoader.DrawAllChunks(ChunkShader, camera, (float)time);
+            // ChunkLoader.DrawChunks(ChunkShader, camera, (float)time);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            ChunkShader.UnUse();
+
             GL.Disable(EnableCap.DepthTest);
-            TestElement.Draw();
+            // TestElement.Draw();
+            text.Draw();
+            
             GL.Enable(EnableCap.DepthTest);
 
             if (debug)
             {
-
-                rmodel.SetScale(1.0f, 1.0f, 1.0f);
-                rmodel.SetRotation(0.0f, 0.0f, 0.0f);
-                rmodel.Draw(new Vector3(0, 0, 0), camera, (float)time);
 
                 GL.Disable(EnableCap.CullFace);
                 GL.Disable(EnableCap.DepthTest);
@@ -526,13 +545,13 @@ namespace opentk_proj
             if (ks.IsKeyPressed(Keys.F1))
             {
 
-                StbImageWrite.stbi_flip_vertically_on_write(1);
-                Stream str = File.OpenWrite("../../../res/ss/ss1.png");
-                StreamReader sr = new StreamReader(File.OpenRead("../../../res/textures/testatlas.png"));
-                ImageWriter wr = new ImageWriter();
-                byte[] pixels = new byte[(640 * 480) * 4];
-                GL.ReadPixels(0, 0, 640, 480, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-                wr.WritePng(pixels, 640, 480, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, str);
+                // StbImageWrite.stbi_flip_vertically_on_write(1);
+                // /Stream str = File.OpenWrite("../../../res/ss/ss1.png");
+                // StreamReader sr = new StreamReader(File.OpenRead("../../../res/textures/testatlas.png"));
+                // ImageWriter wr = new ImageWriter();
+                // byte[] pixels = new byte[(640 * 480) * 4];
+                // GL.ReadPixels(0, 0, 640, 480, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
+                // wr.WritePng(pixels, 640, 480, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, str);
 
             }
             if (ks.IsKeyPressed(Keys.F5))
@@ -541,9 +560,9 @@ namespace opentk_proj
                 // chunk.Save("../../../res/cdat/chunk.cdat");
                 for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
                 {
-                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
 
-                    ChunkLoader.GetAllChunks()[key].Save("../../../res/cdat/"+key+".cdat");
+                    // ChunkLoader.GetAllChunks()[key].Save("../../../res/cdat/"+key+".cdat");
 
 
                 }
@@ -556,9 +575,9 @@ namespace opentk_proj
 
                 for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
                 {
-                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
 
-                    ChunkLoader.GetAllChunks()[key].Load("../../../res/cdat/" + key + ".cdat");
+                    // ChunkLoader.GetAllChunks()[key].Load("../../../res/cdat/" + key + ".cdat");
 
 
                 }
@@ -572,9 +591,9 @@ namespace opentk_proj
                 for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
                 {
                     
-                    string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
+                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
 
-                    ChunkLoader.GetAllChunks()[key].Rewrite();
+                    // ChunkLoader.GetAllChunks()[key].Rewrite();
 
 
                 }
@@ -602,11 +621,12 @@ namespace opentk_proj
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
-            Constants.WIDTH = e.Width;
-            Constants.HEIGHT = e.Height;
+            Globals.WIDTH = e.Width;
+            Globals.HEIGHT = e.Height;
 
             camera.UpdateProjectionMatrix();
             TestElement.Update();
+            text.Update();
             frameBuffer.UpdateAspect();
             // GUIClick.Update();
 

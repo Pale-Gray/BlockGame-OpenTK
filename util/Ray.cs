@@ -357,7 +357,7 @@ namespace opentk_proj.util
                 int floory = (int) Math.Floor(rpos.Y);
                 int floorz = (int) Math.Floor(rpos.Z);
 
-                if (map[floorx,floory,floorz] == Blocks.Air.ID)
+                if (map[floorx,floory,floorz] == Blocks.GetIDFromBlock(Blocks.Air))
                 {
 
                     Ray_Direction += (Ray_Direction*step_size);

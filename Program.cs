@@ -13,7 +13,7 @@ namespace opentk_proj
         public static void Main(string[] args)
         {
 
-            using (Game game = new Game((int)Constants.WIDTH, (int)Constants.HEIGHT, "BlockGame"))
+            using (Game game = new Game((int)Globals.WIDTH, (int)Globals.HEIGHT, "BlockGame"))
             {
 
                 game.Run();

@@ -11,6 +11,30 @@ namespace opentk_proj.chunk
 {
     internal class ChunkUtils
     {
+
+        public static Vector3 WorldPositionToChunkPosition(Vector3 position)
+        {
+
+            int x = (int) Math.Floor(position.X / Globals.ChunkSize);
+            int y = (int)Math.Floor(position.Y / Globals.ChunkSize);
+            int z = (int)Math.Floor(position.Z / Globals.ChunkSize);
+
+            return (x, y, z);
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
         public static Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
         {
 
@@ -18,9 +42,9 @@ namespace opentk_proj.chunk
             float y = Math.Max(0, (float)Math.Floor(position.Y + 0.5f));
             float z = Math.Max(0, (float)Math.Floor(position.Z + 0.5f));
 
-            x = Math.Min(Constants.ChunkSize - 1, x);
-            y = Math.Min(Constants.ChunkSize - 1, y);
-            z = Math.Min(Constants.ChunkSize - 1, z);
+            x = Math.Min(Globals.ChunkSize - 1, x);
+            y = Math.Min(Globals.ChunkSize - 1, y);
+            z = Math.Min(Globals.ChunkSize - 1, z);
 
             return new Vector3(x, y, z);
 

@@ -49,13 +49,13 @@ namespace opentk_proj
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic((float)Constants.WIDTH, (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Globals.WIDTH / (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic((float)Constants.WIDTH, (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }
@@ -72,13 +72,13 @@ namespace opentk_proj
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic((float)Constants.WIDTH, (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Constants.WIDTH / (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Globals.WIDTH / (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic((float)Constants.WIDTH, (float)Constants.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }

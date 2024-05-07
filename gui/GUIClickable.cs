@@ -34,7 +34,7 @@ namespace opentk_proj.gui
             {
                 
                 Console.WriteLine("hit");
-                if (Constants.Mouse.IsButtonDown(MouseButton.Left))
+                if (Globals.Mouse.IsButtonDown(MouseButton.Left))
                 {
 
                     // MouseDeltaPositionOffset += Constants.Mouse.Delta * 2;
@@ -69,9 +69,9 @@ namespace opentk_proj.gui
         private bool CheckForMouseHover()
         {
 
-            Vector2 MousePosition = Constants.Mouse.Position;
+            Vector2 MousePosition = Globals.Mouse.Position;
 
-            Vector2 FlippedMousePosition = (MousePosition.X, Constants.HEIGHT - MousePosition.Y);
+            Vector2 FlippedMousePosition = (MousePosition.X, Globals.HEIGHT - MousePosition.Y);
             // Console.WriteLine(FlippedMousePosition);
             if (FlippedMousePosition.X >= BoundingBox.Corner.X && FlippedMousePosition.X <= BoundingBox.CornerDimensionOffset.X
                 && FlippedMousePosition.Y >= BoundingBox.Corner.Y && FlippedMousePosition.Y <= BoundingBox.CornerDimensionOffset.Y) 

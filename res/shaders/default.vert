@@ -59,7 +59,7 @@ void main()
 	v_wposition = vec3(vec4(floor(position.xyz*s)/s, 1.0) * model);
 
 	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
-	// gl_Position.xyz = floor(gl_Position.xyz * s)/s;
+	// gl_Position.xyz = floor(gl_Position.xyz * 16)/16;
 
 	vec3 lightpos = vec3(16+cos(time),5,16+sin(time));
 

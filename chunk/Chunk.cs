@@ -14,21 +14,61 @@ using System.Reflection.Metadata.Ecma335;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.ComponentModel;
+using System.Security.Cryptography;
 
 namespace opentk_proj.chunk
 {
+    public struct ChunkVertex
+    {
+
+        public int ID;
+        public float AmbientValue;
+        public Vector3 Position;
+        public Vector3 Normal;
+        public Vector2 TextureCoordinates;
+        public ChunkVertex(ushort id, byte x, byte y, byte z, float u, float v, float nx, float ny, float nz)
+        {
+
+            ID = id;
+            Position = (x, y, z);
+            TextureCoordinates = (u, v);
+            Normal = (nx, ny, nz);
+            AmbientValue = 1.0f;
+
+        }
+
+    }
+
+    public enum GenerationState
+    {
+
+        NotGenerated,
+        PassOne,
+        PassTwo,
+        Generated
+
+    }
+    public enum ChunkState
+    {
+
+        NotReady,
+        Ready
+
+    }
+    public enum MeshState
+    {
+
+        NotMeshed,
+        Meshing,
+        Done
+
+    }
     internal class Chunk
     {
 
-        private static object lockerWrite = new Object();
-        private static object lockerRead = new Object();
         // size of the chunk, keep at 32, but you CAN change it. (dont)
-        static int size = Constants.ChunkSize;
-
-        object lockObject = new object();
-
-        public float[,,] noiseValues = new float[size,size,size];
-        public float[,,] noiseValues2 = new float[size, size, size];
+        static int size = Globals.ChunkSize;
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
         public int[,,] blockdata = new int[size, size, size];
@@ -36,39 +76,34 @@ namespace opentk_proj.chunk
         // vertex data of the chunk from the blockdata.
         // This is what is written to after blockvertdataarray gets changed to an array.
         // you technically don't need this, but it's here for now. (change later)
-        public float[] blockvertdata;
+        public ChunkVertex[] MeshData = new ChunkVertex[0];
         // this is the arraylist of the vertex data of the whole chunk, 
         // which gets turned into an array declared as blockvertdata.
         // You technically only need this, but there's the blockvertdata
         // for now. (change later)
-        public List<float> blockvertdataarray = new List<float>();
-
-        // I don't even know what this is used for anymore.
-        public float[] reffront = new float[9 * 6];
+        public List<ChunkVertex> MeshDataList = new List<ChunkVertex>();
 
         // Vertex Buffer Object of the chunk.
         public int vbo;
         // Vertex Array Object of the chunk.
         public int vao;
 
-        public volatile bool IsReady = false;
-        public volatile bool IsMeshFinished = false;
-        public volatile bool MeshQueue = false;
-
         // Model matrix of the chunk
         public Matrix4 model;
-        // Projection matrix of the chunk (do I really need this? [probably not.])
-        // Spoiler, you don't.
-        // public Matrix4 projection;
 
         public int cx; // chunk x position
         public int cy; // chunk y position
         public int cz; // chunk z position
 
         public Vector3 ChunkPosition; // vector of cx, cy, cz
-        // Texture tx;
 
-        Thread GenerationThread; 
+        Random r = new Random();
+
+        FastNoiseLite noise = new FastNoiseLite();
+
+        ChunkState ChunkState = ChunkState.NotReady;
+        MeshState MeshState = MeshState.NotMeshed;
+        GenerationState GenerationState = GenerationState.NotGenerated;
 
         public Chunk(int x, int y, int z)
         {
@@ -80,33 +115,122 @@ namespace opentk_proj.chunk
             cy = y;
             cz = z;
             ChunkPosition = (cx, cy, cz);
-
-            GenerationThread = new Thread(() => {
-
-                Stopwatch elapsed = Stopwatch.StartNew();
-
-                IsReady = false;
-                GenerateNoiseValues(12345);
-                GenerateBlockData();
-                GenerateChunkMesh();
-                IsReady = true;
-                // Thread.Sleep(5000);
-
-                elapsed.Stop();
-                TimeSpan elapsedtime = elapsed.Elapsed;
-                Console.WriteLine(elapsedtime.TotalMilliseconds);
-
-            });
-
-            GenerationThread.Start();
-
-            CheckMeshUpdate();
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
 
         }
-        public void GenerateNoiseValues(int seed)
+
+        public void Generate()
         {
-            // FastNoise simplex = new FastNoise("Simplex");
+
+            // Console.WriteLine("For Chunk at {3} | ChunkState is {0}, GenerationState is {1}, MeshState is {2}", ChunkState, GenerationState, MeshState, ChunkPosition);
+
+            ChunkState = ChunkState.NotReady;
+            if (GenerationState == GenerationState.Generated)
+            {
+
+                if (IsAllAir())
+                {
+
+
+
+                } else
+                {
+
+                    GenerateMesh();
+                    ProcessToRender();
+
+                }
+                ChunkState = ChunkState.Ready;
+
+            }
+            if (GenerationState == GenerationState.PassTwo)
+            {
+
+                // GeneratePassTwo();
+                // GenerationState = GenerationState.Generated;
+
+            }
+            if (GenerationState == GenerationState.NotGenerated)
+            {
+
+                // GeneratePassOne();
+                // GenerationState = GenerationState.PassTwo;
+
+            }
+            if (GenerationState == GenerationState.NotGenerated)
+            {
+
+                InitializeData();
+                GenerationState = GenerationState.Generated;
+
+            }
+
+            // ChunkState = ChunkState.NotReady;
+            // ChunkThread.Start();
+            // InitializeData();
+            // Console.WriteLine(IsAllAir());
+            // if (IsAllAir())
+            // {
+
+                
+
+            // } else
+            // {
+
+            //     GenerateMesh();
+            //     ProcessToRender();
+
+            // }
+            // ChunkState = ChunkState.Ready;
+
+        }
+
+        private float GetNoise2D(int octaves, int x, int y)
+        {
+
+            // int octaves = 3;
+            float value = 0;
+
+            float xValue = (float)x + (cx * size);
+            float yValue = (float)y + (cz * size);
+
+            for (float i = 1; i <= octaves; i++)
+            {
+
+                float noiseValue = (noise.GetNoise(xValue/(4/(i*4)), yValue/(4/(i*4))))*(((noise.GetNoise(xValue/64,yValue/64)))*2);
+
+                value += (noiseValue/2)+0.5f;
+
+            }
+
+            return value;
+
+        }
+        private float GetNoise3D(int x, int y, int z)
+        {
+
+            int octaves = 1;
+            float value = 1;
+
+            float xValue = (float)x + (cx * size);
+            float yValue = (float)y + (cy * size);
+            float zValue = (float)z + (cz * size);
+
+            for (float i = 0; i <= octaves; i++)
+            {
+
+                value *= noise.GetNoise(xValue * (2 * (1 + i)), yValue * (2 * (1 + i)), zValue * (2 * (1 + i))) / (1 + i);
+
+            }
+            value /= (octaves);
+
+            return (value / 2) + 0.5f;
+
+        }
+        private void InitializeData()
+        {
+
+            GenerationState = GenerationState.PassOne;
             for (int x = 0; x < size; x++)
             {
 
@@ -116,43 +240,348 @@ namespace opentk_proj.chunk
                     for (int z = 0; z < size; z++)
                     {
 
-                        noiseValues[x, y, z] += OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / (64f), (y + (cy * size)) / (64f), (z + (cz * size)) / (64f));
+                        int globalX = x + (cx * size);
+                        int globalZ = z + (cz * size);
+                        int globalY = y + (cy * size);
 
-                        //noiseValues[x, y, z] = OpenSimplex2.Noise3_Fallback(seed, (x + (cx * size)) / 32f, (y + (cy * size)) / 32f, (z + (cz * size)) / 32f);
-                        // noiseValues[x, y, z] = 4;
+                        float value = Maths.MapValueToMinMax(GetNoise2D(2, x, z), 15, 47);
+
+                        // SetBlock(Blocks.Stone, x,y,z);
+
+                        if (globalY <= value-r.Next(4, 10))
+                        {
+
+                            SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
+
+                        } else if (globalY < value-1)
+                        {
+
+                            SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
+
+                        } else if (globalY <= value)
+                        {
+
+                            SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
+
+                        }
+
+                        // SetBlockGlobal(Blocks.Stone, globalX, (int) value, globalZ);
+                        // SetBlockGlobal(Blocks.Dirt, globalX, 0, 0);
+                        // SetBlockGlobal(Blocks.Dirt, 0, 0, globalZ);
+
+                        // SetBlockGlobal(Blocks.Dirt, 0, 15, 0);
+
+                        // SetBlock(Blocks.Dirt, 0, 0, 0);
+
+                        /* if (globalY < offset)
+                        {
+
+                            SetBlock(Blocks.Stone, x, y, z);
+
+                        } else
+                        {
+
+                            if (GetNoise3D(x,y,z) > (globalY) / (maxHeight))
+                            {
+
+                                // SetBlock(Blocks.Stone, x, y, z);
+                                // SetBlock(Blocks.Stone, x, y, z);
+
+                                // SetBlock(Blocks.Stone, x, y, z);
+                                // SetBlockGlobal(Blocks.Stone, x+(cx*size), 36, z+(cz*size));
+                                SetBlock(Blocks.Stone, x, y, z);
+
+                            }
+                            else
+                            {
+
+                                // SetBlock(Blocks.Air, x, y, z);
+
+                            }
+
+                        } */
+                        // SetBlockGlobal(Blocks.Grass, 0, 0, 0);
+                        // SetBlockGlobal(Blocks.Grass, 0, (int)offset, 0);
+                        // SetBlockGlobal(Blocks.Grass, 0, (int)(offset+maxHeight), 0);
+                        
 
                     }
 
                 }
 
             }
+            GenerationState = GenerationState.Generated;
 
         }
-        public void CheckMeshUpdate()
+        private void GenerateMesh()
         {
 
-            while (IsMeshFinished == true && MeshQueue == true)
+            MeshState = MeshState.Meshing;
+            for (int x = 0; x < size; x++)
             {
 
-                // IsReady = false;
-                // Console.WriteLine(GenerationThread.IsAlive);
-                Rewrite();
-                MeshQueue = false;
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        // Console.WriteLine("{0}, {1}, {2}", x, y, z);
+
+                        if (blockdata[x, y, z] != Blocks.GetIDFromBlock(Blocks.Air))
+                        {
+
+                            InsertBlock(Blocks.BlockList[blockdata[x, y, z]], x, y, z);
+
+                        }
+                        // InsertBlock(Blocks.BlockList[blockdata[x,y,z]], x,y,z);
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.FrontFace, x, y, z));
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.RightFace, x, y, z));
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.BackFace, x, y, z));
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.LeftFace, x, y, z));
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.TopFace, x, y, z));
+                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.BottomFace, x, y, z));
+
+                    } 
+
+                }
 
             }
+            MeshState = MeshState.Done;
+
+        }
+
+        private void ProcessToRender()
+        {
+
+            MeshData = MeshDataList.ToArray();
+            vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, MeshData.Length * Marshal.SizeOf<ChunkVertex>(), MeshData, BufferUsageHint.DynamicDraw);
+
+            vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            GL.VertexAttribIPointer(0, 1, VertexAttribIntegerType.Int, Marshal.SizeOf<ChunkVertex>(), (IntPtr)0);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinates)));
+            GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Normal)));
+            GL.EnableVertexAttribArray(3);
+            GL.VertexAttribPointer(4, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.AmbientValue)));
+            GL.EnableVertexAttribArray(4);
+            GL.BindVertexArray(0);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        }
+
+        public ChunkState GetChunkState()
+        {
+
+            return ChunkState;
+
+        }
+
+        public MeshState GetMeshState()
+        {
+
+            return MeshState;
+
+        }
+
+        public GenerationState GetGenerationState()
+        {
+
+            return GenerationState;
+
+        }
+
+        public int GlobalXToLocalX(int x)
+        {
+
+            return x - (cx * size);
+
+        }
+        public int GlobalYToLocalY(int y)
+        {
+
+            return y - (cy * size);
+
+        }
+        public int GlobalZToLocalZ(int z)
+        {
+
+            return z - (cz * size);
+
+        }
+        public bool IsGlobalPositionAtLocalChunk(int x, int y, int z)
+        {
+
+            int minX = (cx * size);
+            int minY = (cy * size);
+            int minZ = (cz * size);
+
+            int maxX = ((1 + cx) * size) - 1;
+            int maxY = ((1 + cy) * size) - 1;
+            int maxZ = ((1 + cz) * size) - 1;
+
+            if (x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ)
+            {
+
+                return true;
+
+            }
+
+            return false;
+
+        }
+        public void SetBlockGlobal(Block block, int x, int y, int z)
+        {
+
+            // x + (cx * size);
+
+            int minX = (cx * size);
+            int minY = (cy * size);
+            int minZ = (cz * size);
+
+            int maxX = ((1+cx) * size)-1;
+            int maxY = ((1+cy) * size)-1;
+            int maxZ = ((1+cz) * size)-1;
+
+            if (x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ)
+            {
+
+                // int xValue = x % (size-1);
+                // int yValue = y % (size-1);
+                // /int zValue = z % (size-1);
+
+                int xValue = x - (cx*size);
+                int yValue = y - (cy * size);
+                int zValue = z - (cz * size);
+
+                SetBlock(block, xValue, yValue, zValue);
+
+            }
+
+        }
+        public Block GetBlockGlobal(int x, int y, int z)
+        {
+
+            int xValue = x - (cx * size);
+            int yValue = y - (cy * size);
+            int zValue = z - (cz * size);
+
+            return Blocks.GetBlockFromID(blockdata[xValue, yValue, zValue]);
+
+        }
+        public Block GetBlock(int x, int y, int z)
+        {
+
+            return Blocks.GetBlockFromID(blockdata[x, y, z]);
+
+        }
+        public void SetBlock(Block block, int x, int y, int z)
+        {
+
+            blockdata[x, y, z] = Blocks.GetIDFromBlock(block);
+
+        }
+        public void InsertBlock(Block block, int x, int y, int z)
+        {
+
+            if (CheckAir(x,y,z+1))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x,y,z));
+
+            }
+            if (CheckAir(x,y, z-1))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.FrontFace, x, y, z));
+
+            }
+
+            if (CheckAir(x+1, y, z))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.LeftFace, x, y, z));
+
+            }
+            if (CheckAir(x-1, y, z))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.RightFace, x, y, z));
+
+            }
+
+            if (CheckAir(x, y+1, z))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.TopFace, x, y, z));
+
+            }
+            if (CheckAir(x, y-1, z))
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z));
+
+            }
+
+
+        }
+        public bool CheckAir(int x, int y, int z)
+        {
+
+            if (x > size - 1 || x < 0 || y > size - 1 || y < 0 || z > size - 1 || z < 0)
+            {
+
+                return true;
+
+            }
+            if (blockdata[x > size-1 ? size-1 : x < 0 ? 0 : x,y > size-1 ? size-1 : y < 0 ? 0 : y,z > size - 1 ? size-1 : z < 0 ? 0 : z] == Blocks.GetIDFromBlock(Blocks.Air))
+            {
+
+                return true;
+
+            }
+
+            return false;
+
+        }
+        public bool IsAllAir()
+        {
+
+            foreach (int id in blockdata)
+            {
+
+                if (id != 0)
+                {
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
 
         }
         public void Draw(Shader shader, Camera camera, float time)
         {
 
+            //shader.Use();
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
-            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
+            // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, blockvertdata.Length);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, MeshData.Length);
             GL.BindVertexArray(0);
+            //shader.UnUse();
 
 
         }
@@ -172,10 +601,16 @@ namespace opentk_proj.chunk
                         for (int z = 0; z < size; z++)
                         {
 
+                            byte[] bytes = new byte[4];
+                            bytes[0] = (byte)blockdata[x, y, z];
+                            byte b = (byte)(0b11100000 | BitConverter.GetBytes(x)[0] & 0b00011111);
+                            bytes[1] =
+                            bytes[2] = 0b00000000;
+                            bytes[3] = 0b00000000;
                             // bwr.Write(blockdata[x, y, z]);
                             // File.write
                             // newlist.Add(blockdata[x, y, z].ToString());
-                            bwr.Write((UInt16)blockdata[x,y,z]);
+                            bwr.Write((UInt16)blockdata[x, y, z]);
                         }
 
                     }
@@ -190,7 +625,7 @@ namespace opentk_proj.chunk
         }
         public void Load(string pathToRead)
         {
-            
+
             Console.WriteLine("loading data...");
             Stopwatch elapsed = Stopwatch.StartNew();
             using (BinaryReader br = new BinaryReader(File.OpenRead(pathToRead)))
@@ -207,6 +642,8 @@ namespace opentk_proj.chunk
 
                             blockdata[x, y, z] = br.ReadUInt16();
 
+
+
                         }
 
                     }
@@ -219,282 +656,20 @@ namespace opentk_proj.chunk
             Console.WriteLine("Loaded in " + elapsedtime.TotalSeconds + " seconds.");
             Console.WriteLine("meshing...");
 
-            GenerateChunkMesh();
-          
+            // GenerateChunkMesh();
+
         }
         public void Rewrite()
         {
+            // ushort e = 10;
 
             GL.DeleteBuffer(vbo);
             GL.DeleteVertexArray(vao);
-            vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
-            vao = Vao.Generate(AttribPointerMode.Chunk);
+            // vbo = Vbo.Generate(blockvertdata, BufferUsageHint.DynamicDraw);
+            // vao = Vao.Generate(AttribPointerMode.Chunk);
             Vbo.Unbind();
             Vao.Unbind();
 
         }
-        public void GenerateBlockData()
-        {
-
-            // This is really bad. Fix it.
-            // This for loop is to generate the blockdata numbers for mesh generation. 
-            // Pretty important, right?
-            // yes.
-            // Console.WriteLine("initializing...");
-            // Stopwatch elapsed = Stopwatch.StartNew();
-            blockvertdataarray.Clear();
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        float xpos = (float)(x + cx * size);
-                        float ypos = (float)(y + cy * size);
-                        float zpos = (float)(z + cz * size);
-
-                        blockdata[x, y, z] =  noiseValues[x, y, z] < 0.3f ? Blocks.Air.ID : Blocks.Dirt.ID;
-
-                    }
-
-                }
-
-            }
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        if (blockdata[x,y-1 < 0 ? y : y-1,z] == Blocks.Dirt.ID && blockdata[x,y+1 > size-1 ? y : y+1,z] == Blocks.Air.ID)
-                        {
-
-                            blockdata[x, y, z] = Blocks.Grass.ID;
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size;y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        if (blockdata[x,y,z] == Blocks.Grass.ID && (new Random().NextDouble() * 100) < 2)
-                        {
-
-                            try
-                            {
-
-                                int height = (int)Maths.Lerp(4, 6, (float)new Random().NextDouble());
-                                for (int l = 0; l < height; l++)
-                                {
-
-                                    blockdata[x, y + l, z] = Blocks.Maple_Log.ID;
-                                    blockdata[x, y + height, z] = Blocks.Leaves.ID;
-
-                                    blockdata[x - 1, y + height, z] = Blocks.Leaves.ID;
-                                    blockdata[x - 2, y + height, z] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height, z] = Blocks.Leaves.ID;
-                                    blockdata[x + 2, y + height, z] = Blocks.Leaves.ID;
-
-                                    blockdata[x, y + height, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height, z + 2] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height, z - 2] = Blocks.Leaves.ID;
-
-                                    blockdata[x + 1, y + height, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height, z + 1] = Blocks.Leaves.ID;
-
-                                    blockdata[x - 1, y + height + 1, z] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 1, z] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 1, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 1, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 1, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 1, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height + 1, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height + 1, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 1, z] = Blocks.Leaves.ID;
-
-                                    blockdata[x - 1, y + height + 2, z] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 2, z] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 2, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 2, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 2, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x + 1, y + height + 2, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height + 2, z - 1] = Blocks.Leaves.ID;
-                                    blockdata[x - 1, y + height + 2, z + 1] = Blocks.Leaves.ID;
-                                    blockdata[x, y + height + 2, z] = Blocks.Leaves.ID;
-
-                                    blockdata[x, y + height + 3, z] = Blocks.Leaves.ID;
-
-                                }
-
-                            }
-                            catch { }
-
-                        }
-
-                    }
-
-                }
-
-            }
-            // elapsed.Stop();
-            // TimeSpan elapsedtime = elapsed.Elapsed;
-            // Console.WriteLine("Finished intializing in " + elapsedtime.TotalSeconds + " seconds.");
-
-        }
-        public void GenerateChunkMesh()
-        {
-
-            // makes the mesh of the chunk. VERY LONG NEED TO OPTIMIZE.
-            // generating = true;
-            // clear arraylist just in case.
-            // Console.WriteLine("meshing...");
-            // Stopwatch elapsed = Stopwatch.StartNew();
-            IsMeshFinished = false;
-            blockvertdataarray.Clear();
-
-            // MASSIVE for loop. makes all the mesh data :)
-            // There's got to be a better way to do this.
-
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        if (blockdata[x, y, z] != Blocks.Air.GetID())
-                        {
-
-                            // operators are flipped on z because z forward is negative (z back is positive
-
-
-                            // These conditionals look very ugly, but I'll explain.
-                            // The left side of the conditional (before the OR operator) checks regularly if the block around it is air.
-                            // The right side of the conditional (after the OR operator) checks the edges of the chunk for air.
-                            if (blockdata[x, y, z - 1 < 0 ? z : z - 1] == 0 || blockdata[x, y, z] != 0 && z == 0) { backface(x, y, z); }
-                            if (blockdata[x, y, z + 1 > size - 1 ? z : z + 1] == 0 || blockdata[x, y, z] != 0 && z == size - 1) { frontface(x, y, z); }
-                            if (blockdata[x - 1 < 0 ? x : x - 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == 0) { leftface(x, y, z); }
-                            if (blockdata[x + 1 > size - 1 ? x : x + 1, y, z] == 0 || blockdata[x, y, z] != 0 && x == size - 1) { rightface(x, y, z); }
-                            if (blockdata[x, y - 1 < 0 ? y : y - 1, z] == 0 || blockdata[x, y, z] != 0 && y == 0) { bottomface(x, y, z); }
-                            if (blockdata[x, y + 1 > size - 1 ? y : y + 1, z] == 0 || blockdata[x, y, z] != 0 && y == size - 1) { topface(x, y, z); }
-
-
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            // Console.WriteLine("Chunk Mesh Vertex Count: {0}", blockvertdataarray.Count / 9);
-            // Console.WriteLine("Chunks Mesh float count: {0}", blockvertdataarray.Count);
-            // elapsed.Stop();
-            // TimeSpan elapsedtime = elapsed.Elapsed;
-            // Console.WriteLine("Finished meshing in " + elapsedtime.TotalSeconds + " seconds.");
-
-            blockvertdata = blockvertdataarray.ToArray();
-            IsMeshFinished = true;
-            MeshQueue = true;
-
-        }
-        public Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
-        {
-
-            float x = Math.Max(0, (float)Math.Floor(position.X+0.5f));
-            float y = Math.Max(0, (float)Math.Floor(position.Y+0.5f));
-            float z = Math.Max(0, (float)Math.Floor(position.Z+0.5f));
-
-            x = Math.Min(size - 1, x);
-            y = Math.Min(size - 1, y);
-            z = Math.Min(size - 1, z);
-
-            return new Vector3(x, y, z);
-
-        }
-        public void SetBlockId(int x, int y, int z, int ID)
-        {
-
-            blockdata[x, y, z] = ID;
-            GenerateChunkMesh();
-            Rewrite();
-
-        }
-        // note that z-forward is negative 
-        public void frontface(int x, int y, int z)
-        {
-            
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).reffront, x, y, z));
-
-        }
-        public void rightface(int x, int y, int z)
-        {
-
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refright, x, y, z));
-
-        }
-        public void backface(int x, int y, int z)
-        {
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refback, x, y, z));
-            /* for (int i = 0; i < reffront.Length; i += 9)
-            {
-
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 1] + 1 * x);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 2] + 1 * y);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 3] + 1 * z);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 4]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 5]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 6]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 7]);
-                blockvertdataarray.Add(Blocks.GetBlockByID(blockdata[x, y, z]).refback[i + 8]);
-
-            } */
-
-        }
-        public void leftface(int x, int y, int z)
-        {
-
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refleft, x, y, z));
-
-        }
-        public void topface(int x, int y, int z)
-        {
-
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).reftop, x, y, z));
-
-        }
-        public void bottomface(int x, int y, int z)
-        {
-
-            blockvertdataarray.AddRange(ArrayUtils.BlockFaceShift(Blocks.GetBlockByID(blockdata[x, y, z]).refbottom, x, y, z));
-
-        }
-
     }
 }

@@ -39,7 +39,7 @@ namespace opentk_proj.animator
             {
 
                 Result = Maths.Lerp(From, To, Time/DurationInSeconds);
-                Time += (float) Constants.Time;
+                Time += (float) Globals.Time;
 
             }
 
