@@ -1,11 +1,11 @@
-*copied over from Block-Game-Remaster*
+***Join my discord for updates!*** https://discord.gg/MjuakmUza9 
 
 # BlockGame-OpenTK
 A vision and in-progress game that is similar to Hytale or Minecraft with mods.
 
 ## About
 
-BlockGame, or just nothing titled at all, is going to be a game similar to the popular game **Minecraft**, with a twist.
+My game is going to be similar to Minecraft, but with added features and implementations that strive away from Minecraft itself
 
 ## My Vision
 
@@ -15,7 +15,7 @@ BlockGame will have its main core at being a voxel game. Here is what I envision
 
 [Minecraft](https://minecraft.net) with a mixture of [Hytale](https://hytale.com/).
 
-Aspects of the game will be similar to a list of mods for Minecraft that I have played and love:
+Aspects of the game will be similar to mods that I have played with and love:
 
 - [Dynamic Trees](https://www.curseforge.com/minecraft/mc-mods/dynamictrees)
 - [Dynamic Surroundings](https://www.curseforge.com/minecraft/mc-mods/dynamic-surroundings)
