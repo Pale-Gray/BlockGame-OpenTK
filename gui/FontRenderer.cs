@@ -53,6 +53,13 @@ namespace opentk_proj.gui
             GenerateMesh(text);
             model = Matrix4.CreateTranslation(-300, 200, 0);
 
+            ProcessToRender();
+
+        }
+
+        public void ProcessToRender()
+        {
+
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, Vertices.Length * Marshal.SizeOf<GUIVertex>(), Vertices, BufferUsageHint.StaticDraw);
@@ -63,6 +70,14 @@ namespace opentk_proj.gui
             GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.TextureCoordinates)));
             GL.EnableVertexAttribArray(1);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        }
+
+        public void UpdateText(String newText)
+        {
+
+            GenerateMesh(newText);
+            ProcessToRender();
 
         }
 

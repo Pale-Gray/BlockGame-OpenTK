@@ -86,7 +86,7 @@ namespace opentk_proj.block
             return this;
 
         }
-        public static ChunkVertex[] GetFaceShifted(ChunkVertex[] face, int x, int y, int z)
+        public static ChunkVertex[] GetFaceShifted(ChunkVertex[] face, int x, int y, int z, float ambientValue)
         {
 
             ChunkVertex[] tmp = new ChunkVertex[6];
@@ -97,6 +97,13 @@ namespace opentk_proj.block
             tmp[3].Position += (x, y, z);
             tmp[4].Position += (x, y, z);
             tmp[5].Position += (x, y, z);
+
+            tmp[0].AmbientValue = ambientValue;
+            tmp[1].AmbientValue = ambientValue;
+            tmp[2].AmbientValue = ambientValue;
+            tmp[3].AmbientValue = ambientValue;
+            tmp[4].AmbientValue = ambientValue;
+            tmp[5].AmbientValue = ambientValue;
             return tmp;
 
         }

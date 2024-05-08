@@ -44,8 +44,9 @@ void main()
 
 	vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
 
+	vec3 coordinates = (vec4(1.0, 1.0, 1.0, 1.0) * model).xyz;
+
 	float fac = 2;
-	vec3 pos = vec3(position.x, position.y - (dist3D(vec3(cameraPosition.x, 0, cameraPosition.z), vec3(worldPosition.x, 0, worldPosition.z))/fac), position.z);
 
 	gl_Position = vec4(position, 1.0) * model * view * projection;
 

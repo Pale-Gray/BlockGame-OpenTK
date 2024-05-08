@@ -72,6 +72,7 @@ namespace opentk_proj.chunk
         // original block data, in integers, resulting of the blocktype
         // to lookup in a certain coordinate of xyz in the array
         public int[,,] blockdata = new int[size, size, size];
+        public int[,,] LightData = new int[size, size, size];
         // public int[,,] Empty = new int[size, size, size];   
         // vertex data of the chunk from the blockdata.
         // This is what is written to after blockvertdataarray gets changed to an array.
@@ -128,7 +129,7 @@ namespace opentk_proj.chunk
             if (GenerationState == GenerationState.Generated)
             {
 
-                if (IsAllAir())
+                if (IsAllAir() || IsFilled())
                 {
 
 
@@ -145,7 +146,7 @@ namespace opentk_proj.chunk
             }
             if (GenerationState == GenerationState.PassTwo)
             {
-
+                
                 // GeneratePassTwo();
                 // GenerationState = GenerationState.Generated;
 
@@ -161,30 +162,12 @@ namespace opentk_proj.chunk
             {
 
                 InitializeData();
+                // PropegateLightValues();
                 GenerationState = GenerationState.Generated;
 
             }
 
-            // ChunkState = ChunkState.NotReady;
-            // ChunkThread.Start();
-            // InitializeData();
-            // Console.WriteLine(IsAllAir());
-            // if (IsAllAir())
-            // {
-
-                
-
-            // } else
-            // {
-
-            //     GenerateMesh();
-            //     ProcessToRender();
-
-            // }
-            // ChunkState = ChunkState.Ready;
-
         }
-
         private float GetNoise2D(int octaves, int x, int y)
         {
 
@@ -244,7 +227,7 @@ namespace opentk_proj.chunk
                         int globalZ = z + (cz * size);
                         int globalY = y + (cy * size);
 
-                        float value = Maths.MapValueToMinMax(GetNoise2D(2, x, z), 15, 47);
+                        float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 105);
 
                         // SetBlock(Blocks.Stone, x,y,z);
 
@@ -351,6 +334,32 @@ namespace opentk_proj.chunk
 
         }
 
+        private void PropegateLightValues()
+        {
+
+            Vector3 lightPosition = (16, 30, 16);
+
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
+                {
+
+                    for (int z = 0; z < size; z++)
+                    {
+
+                        // LightData[x, y, z] = x;
+                        Vector3 positionNormalized = Vector3.Divide((x,y,z), size);
+                        Vector3 lightPositionNormalized = Vector3.Divide(lightPosition, size);
+                        LightData[x, y, z] = (int)(size * (1 - Vector3.Distance(lightPositionNormalized, positionNormalized)));
+
+                    }
+
+                }
+
+            }
+
+        }
         private void ProcessToRender()
         {
 
@@ -476,6 +485,19 @@ namespace opentk_proj.chunk
             return Blocks.GetBlockFromID(blockdata[xValue, yValue, zValue]);
 
         }
+
+        public int GetLightData(int x, int y, int z)
+        {
+
+            if (x < 0 || y < 0 || z < 0 || x >= size || y >= size || z >= size)
+            {
+
+                return 0;
+
+            }
+            return LightData[x, y, z];
+
+        }
         public Block GetBlock(int x, int y, int z)
         {
 
@@ -494,39 +516,39 @@ namespace opentk_proj.chunk
             if (CheckAir(x,y,z+1))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x,y,z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x, y, z, GetLightData(x,y,z+1)));
 
             }
             if (CheckAir(x,y, z-1))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.FrontFace, x, y, z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.FrontFace, x, y, z,GetLightData(x,y,z-1)));
 
             }
 
             if (CheckAir(x+1, y, z))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.LeftFace, x, y, z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.LeftFace, x, y, z,GetLightData(x+1,y,z)));
 
             }
             if (CheckAir(x-1, y, z))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.RightFace, x, y, z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.RightFace, x, y, z,GetLightData(x-1,y,z)));
 
             }
 
             if (CheckAir(x, y+1, z))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.TopFace, x, y, z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.TopFace, x, y, z,GetLightData(x,y+1,z)));
 
             }
             if (CheckAir(x, y-1, z))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z,GetLightData(x,y-1,z)));
 
             }
 
@@ -557,7 +579,26 @@ namespace opentk_proj.chunk
             foreach (int id in blockdata)
             {
 
-                if (id != 0)
+                if (id != Blocks.GetIDFromBlock(Blocks.Air))
+                {
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
+
+        }
+
+        public bool IsFilled()
+        {
+
+            foreach (int id in blockdata)
+            {
+
+                if (id == Blocks.GetIDFromBlock(Blocks.Air))
                 {
 
                     return false;
@@ -581,8 +622,6 @@ namespace opentk_proj.chunk
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, MeshData.Length);
             GL.BindVertexArray(0);
-            //shader.UnUse();
-
 
         }
         public void Save(string pathToWrite)

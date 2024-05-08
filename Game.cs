@@ -227,6 +227,7 @@ namespace opentk_proj
             {
 
                 Title = "fps [" + fs + "]";
+                text.UpdateText("FPS: " + fs);
                 ft = 0;
                 fs = 0;
                 delay = 0;
@@ -298,7 +299,7 @@ namespace opentk_proj
                 if (k.IsKeyDown(Keys.LeftControl))
                 {
 
-                    speed = 1.0f;
+                    speed = 5f;
 
                 } else
                 {
@@ -425,7 +426,7 @@ namespace opentk_proj
             cmtex = new CMTexture(t, 64);
 
             TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
-            text = new FontRenderer(16, "1234567890!?<>[]{}<>,./()\"' *");
+            text = new FontRenderer(16, "FPS: ");
             // GUIClick = new GUIClickable(50, 50, 20, 20, OriginType.Center);
             // DeltaTime.Get();
 
@@ -454,7 +455,7 @@ namespace opentk_proj
             // ChunkLoader.GenerateChunksWithinRadius(8);
              // c = new Chunk(0,0,0);
 
-            ChunkLoader.GenerateChunksWithinRadius(8);
+            // ChunkLoader.GenerateChunksWithinRadius(16);
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -510,7 +511,7 @@ namespace opentk_proj
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             // c.Draw(ChunkShader, camera, (float)time);
-            ChunkLoader.StaggeredGenerate(6, 0.01f, (float) Globals.Time, camera);
+            ChunkLoader.StaggeredGenerate(10, 0.005f, (float) Globals.Time, camera);
             ChunkLoader.DrawAllChunks(ChunkShader, camera, (float)time);
             // ChunkLoader.DrawChunks(ChunkShader, camera, (float)time);
             GL.BindTexture(TextureTarget.Texture2D, 0);
@@ -518,6 +519,7 @@ namespace opentk_proj
 
             GL.Disable(EnableCap.DepthTest);
             // TestElement.Draw();
+            // text.UpdateText(camera.position.X.ToString());
             text.Draw();
             
             GL.Enable(EnableCap.DepthTest);
