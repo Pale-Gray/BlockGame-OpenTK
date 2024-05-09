@@ -16,6 +16,7 @@ namespace opentk_proj
             using (Game game = new Game((int)Globals.WIDTH, (int)Globals.HEIGHT, "BlockGame"))
             {
 
+                game.UpdateFrequency = 120.0;
                 game.Run();
 
             }

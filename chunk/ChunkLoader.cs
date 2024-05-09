@@ -172,10 +172,12 @@ namespace opentk_proj.chunk
 
                 Vector3 cameraChunkPosition = ChunkUtils.WorldPositionToChunkPosition(camera.position);
 
+                // Console.WriteLine("Current Radius of rendering: {0}", ChunkRadius);
+
                 if (ChunkRadius > MaxRadius)
                 {
 
-                    ChunkRadius = MaxRadius;
+                    ChunkRadius = 1;
 
                 }
 
@@ -224,7 +226,7 @@ namespace opentk_proj.chunk
                 }
 
 
-                Jump:
+            Jump:
 
                 foreach (Chunk c in ChunkDictionary.Values)
                 {
@@ -252,6 +254,52 @@ namespace opentk_proj.chunk
             }
 
         }
+
+        static int ChunksUpdated = 0;
+        public static void StaggeredGenerateThreaded(int amountOfChunksToUpdate, float updateDelayInSeconds, float delta)
+        {
+
+            InternalTime += delta;
+            if (InternalTime >= updateDelayInSeconds)
+            {
+
+                foreach (Chunk c in ChunkDictionary.Values)
+                {
+
+                    if (ChunksUpdated >= amountOfChunksToUpdate)
+                    {
+
+                        ChunksUpdated = 0;
+                        goto End;
+
+                    }
+
+                    // if (c.GetChunkState() == ChunkState.NotReady)
+                    // {
+
+                    //     ThreadPool.QueueUserWorkItem(new WaitCallback(c.GenerateThreaded));
+                    //     goto End;
+
+                    // }
+
+                    if (c.IsSent == false)
+                    {
+
+                        c.UpdateChunk();
+                        ChunksUpdated++;
+
+                    }
+
+                }
+
+                End:
+
+                InternalTime = 0;
+
+            }
+
+        } 
+
         public static void DrawAllChunks(Shader shader, Camera camera, float time)
         {
 

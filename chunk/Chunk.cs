@@ -106,6 +106,8 @@ namespace opentk_proj.chunk
         MeshState MeshState = MeshState.NotMeshed;
         GenerationState GenerationState = GenerationState.NotGenerated;
 
+        public bool IsSent = false;
+
         public Chunk(int x, int y, int z)
         {
 
@@ -116,7 +118,32 @@ namespace opentk_proj.chunk
             cy = y;
             cz = z;
             ChunkPosition = (cx, cy, cz);
+            // ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateThreaded));
+
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
+
+        }
+
+        public void UpdateChunk()
+        {
+
+            if (ChunkState == ChunkState.Ready && !IsSent)
+            {
+
+                ProcessToRender();
+                IsSent = true;
+
+            }
+
+        }
+
+        public void GenerateThreaded(object obj)
+        {
+
+            ChunkState = ChunkState.NotReady;
+            InitializeData();
+            GenerateMesh();
+            ChunkState = ChunkState.Ready;
 
         }
 
@@ -177,12 +204,13 @@ namespace opentk_proj.chunk
             float xValue = (float)x + (cx * size);
             float yValue = (float)y + (cz * size);
 
+            // for (float i = 1; i <= octaves; i++)
             for (float i = 1; i <= octaves; i++)
             {
 
-                float noiseValue = (noise.GetNoise(xValue/(4/(i*4)), yValue/(4/(i*4))))*(((noise.GetNoise(xValue/64,yValue/64)))*2);
+                float noiseValue = (noise.GetNoise(xValue / (4 / (i * 4)) + noise.GetNoise(xValue / 8, yValue / 8), yValue / (4 / (i * 4))) - noise.GetNoise(xValue / 3, yValue / 7)) * (((noise.GetNoise(xValue / 64, yValue / 64))) * 2);
 
-                value += (noiseValue/2)+0.5f;
+                value += (noiseValue / 2) + 0.5f;
 
             }
 
@@ -214,85 +242,90 @@ namespace opentk_proj.chunk
         {
 
             GenerationState = GenerationState.PassOne;
-            for (int x = 0; x < size; x++)
-            {
-
-                for (int y = 0; y < size; y++)
+            // for (int x = 0; x < size; x++)
+                Parallel.For(0, size, x =>
                 {
 
-                    for (int z = 0; z < size; z++)
+                    for (int y = 0; y < size; y++)
                     {
 
-                        int globalX = x + (cx * size);
-                        int globalZ = z + (cz * size);
-                        int globalY = y + (cy * size);
-
-                        float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 105);
-
-                        // SetBlock(Blocks.Stone, x,y,z);
-
-                        if (globalY <= value-r.Next(4, 10))
+                        for (int z = 0; z < size; z++)
                         {
 
-                            SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
+                            int globalX = x + (cx * size);
+                            int globalZ = z + (cz * size);
+                            int globalY = y + (cy * size);
 
-                        } else if (globalY < value-1)
-                        {
+                            float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 105);
 
-                            SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
+                            // SetBlock(Blocks.Stone, x,y,z);
 
-                        } else if (globalY <= value)
-                        {
+                            if (globalY <= value - r.Next(4, 10))
+                            {
 
-                            SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
+                                SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
+
+                            }
+                            else if (globalY < value - 1)
+                            {
+
+                                SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
+
+                            }
+                            else if (globalY <= value)
+                            {
+
+                                SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
+
+                            }
+
+                            // SetBlockGlobal(Blocks.Grass, globalX, globalX, globalZ);
+
+                            // SetBlockGlobal(Blocks.Stone, globalX, (int) value, globalZ);
+                            // SetBlockGlobal(Blocks.Dirt, globalX, 0, 0);
+                            // SetBlockGlobal(Blocks.Dirt, 0, 0, globalZ);
+
+                            // SetBlockGlobal(Blocks.Dirt, 0, 15, 0);
+
+                            // SetBlock(Blocks.Dirt, 0, 0, 0);
+
+                            /* if (globalY < offset)
+                            {
+
+                                SetBlock(Blocks.Stone, x, y, z);
+
+                            } else
+                            {
+
+                                if (GetNoise3D(x,y,z) > (globalY) / (maxHeight))
+                                {
+
+                                    // SetBlock(Blocks.Stone, x, y, z);
+                                    // SetBlock(Blocks.Stone, x, y, z);
+
+                                    // SetBlock(Blocks.Stone, x, y, z);
+                                    // SetBlockGlobal(Blocks.Stone, x+(cx*size), 36, z+(cz*size));
+                                    SetBlock(Blocks.Stone, x, y, z);
+
+                                }
+                                else
+                                {
+
+                                    // SetBlock(Blocks.Air, x, y, z);
+
+                                }
+
+                            } */
+                            // SetBlockGlobal(Blocks.Grass, 0, 0, 0);
+                            // SetBlockGlobal(Blocks.Grass, 0, (int)offset, 0);
+                            // SetBlockGlobal(Blocks.Grass, 0, (int)(offset+maxHeight), 0);
+
 
                         }
 
-                        // SetBlockGlobal(Blocks.Stone, globalX, (int) value, globalZ);
-                        // SetBlockGlobal(Blocks.Dirt, globalX, 0, 0);
-                        // SetBlockGlobal(Blocks.Dirt, 0, 0, globalZ);
-
-                        // SetBlockGlobal(Blocks.Dirt, 0, 15, 0);
-
-                        // SetBlock(Blocks.Dirt, 0, 0, 0);
-
-                        /* if (globalY < offset)
-                        {
-
-                            SetBlock(Blocks.Stone, x, y, z);
-
-                        } else
-                        {
-
-                            if (GetNoise3D(x,y,z) > (globalY) / (maxHeight))
-                            {
-
-                                // SetBlock(Blocks.Stone, x, y, z);
-                                // SetBlock(Blocks.Stone, x, y, z);
-
-                                // SetBlock(Blocks.Stone, x, y, z);
-                                // SetBlockGlobal(Blocks.Stone, x+(cx*size), 36, z+(cz*size));
-                                SetBlock(Blocks.Stone, x, y, z);
-
-                            }
-                            else
-                            {
-
-                                // SetBlock(Blocks.Air, x, y, z);
-
-                            }
-
-                        } */
-                        // SetBlockGlobal(Blocks.Grass, 0, 0, 0);
-                        // SetBlockGlobal(Blocks.Grass, 0, (int)offset, 0);
-                        // SetBlockGlobal(Blocks.Grass, 0, (int)(offset+maxHeight), 0);
-                        
-
                     }
 
-                }
-
-            }
+                });
             GenerationState = GenerationState.Generated;
 
         }
@@ -325,7 +358,7 @@ namespace opentk_proj.chunk
                         // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.TopFace, x, y, z));
                         // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.BottomFace, x, y, z));
 
-                    } 
+                    }
 
                 }
 

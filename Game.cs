@@ -512,6 +512,7 @@ namespace opentk_proj
             GL.BindTexture(TextureTarget.Texture2D, texture.getID());
             // c.Draw(ChunkShader, camera, (float)time);
             ChunkLoader.StaggeredGenerate(10, 0.005f, (float) Globals.Time, camera);
+            // ChunkLoader.StaggeredGenerateThreaded(3, 0.001f, (float) Globals.Time);
             ChunkLoader.DrawAllChunks(ChunkShader, camera, (float)time);
             // ChunkLoader.DrawChunks(ChunkShader, camera, (float)time);
             GL.BindTexture(TextureTarget.Texture2D, 0);
