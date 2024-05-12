@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Mathematics;
+using System;
 
 namespace opentk_proj
 {
@@ -21,6 +22,13 @@ namespace opentk_proj
         {
 
             return (float)(Math.Sqrt(Math.Pow((x2 - x1), 2) + Math.Pow((y2 - y1), 2) + Math.Pow((z2-z1),2)));
+
+        }
+
+        public static float Dist3D(Vector3 pos1, Vector3 pos2)
+        {
+
+            return (float)(Math.Sqrt(Math.Pow((pos2.X - pos1.X), 2) + Math.Pow((pos2.Y - pos1.Y), 2) + Math.Pow((pos2.Z - pos1.Z), 2)));
 
         }
 

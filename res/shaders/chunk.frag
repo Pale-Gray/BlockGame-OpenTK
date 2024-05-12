@@ -10,14 +10,15 @@ in float vtime;
 in vec3 vnormal;
 in float vambientValue;
 
+in vec3 directionalLight;
+
 void main()
 {
 	// textureSize(tex,0);
-	vec3 directionalLight = vec3(0.3, -0.7, 0.5);
 
 	// FragColor = textureCube(cubemap, R);
 	float ambient = 0.2;
-	float value = ambient + max(0, dot(directionalLight, -vnormal));
+	float value = ambient + max(0, dot(directionalLight, vnormal));
 
 	// FragColor = vec4(texture(atlas, vtexcoord).rgb * value, 1.0);
 	vec4 tex = texture(atlas, vtexcoord);

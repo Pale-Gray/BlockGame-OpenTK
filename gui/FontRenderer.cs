@@ -91,6 +91,8 @@ namespace opentk_proj.gui
         public void Draw()
         {
 
+            GL.Disable(EnableCap.DepthTest);
+
             FontShader.Use();
 
             GL.Uniform1(GL.GetUniformLocation(FontShader.getID(), "fatlas"), 0);
@@ -106,6 +108,8 @@ namespace opentk_proj.gui
             GL.BindVertexArray(0);
             GL.BindTexture(TextureTarget.Texture2D, 0);
             FontShader.UnUse();
+
+            GL.Enable(EnableCap.DepthTest);
 
         }
 

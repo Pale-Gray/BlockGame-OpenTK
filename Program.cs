@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Graphics.OpenGL4;
 
 namespace opentk_proj
 {
@@ -17,6 +18,7 @@ namespace opentk_proj
             {
 
                 game.UpdateFrequency = 120.0;
+                Console.WriteLine(GL.GetString(StringName.Renderer));
                 game.Run();
 
             }

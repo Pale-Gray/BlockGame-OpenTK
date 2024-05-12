@@ -106,6 +106,8 @@ namespace opentk_proj.chunk
         MeshState MeshState = MeshState.NotMeshed;
         GenerationState GenerationState = GenerationState.NotGenerated;
 
+        public bool Processed = false;
+
         public bool IsSent = false;
 
         public Chunk(int x, int y, int z)
@@ -118,7 +120,7 @@ namespace opentk_proj.chunk
             cy = y;
             cz = z;
             ChunkPosition = (cx, cy, cz);
-            // ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateThreaded));
+            ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateThreaded));
 
             model = Matrix4.CreateTranslation(x * size, y * size, z * size);
 
@@ -143,6 +145,7 @@ namespace opentk_proj.chunk
             ChunkState = ChunkState.NotReady;
             InitializeData();
             GenerateMesh();
+            // ProcessToRender();
             ChunkState = ChunkState.Ready;
 
         }
@@ -152,22 +155,12 @@ namespace opentk_proj.chunk
 
             // Console.WriteLine("For Chunk at {3} | ChunkState is {0}, GenerationState is {1}, MeshState is {2}", ChunkState, GenerationState, MeshState, ChunkPosition);
 
-            ChunkState = ChunkState.NotReady;
+            // ChunkState = ChunkState.NotReady;
             if (GenerationState == GenerationState.Generated)
             {
 
-                if (IsAllAir() || IsFilled())
-                {
-
-
-
-                } else
-                {
-
-                    GenerateMesh();
-                    ProcessToRender();
-
-                }
+                GenerateMesh();
+                ProcessToRender();
                 ChunkState = ChunkState.Ready;
 
             }
@@ -201,18 +194,15 @@ namespace opentk_proj.chunk
             // int octaves = 3;
             float value = 0;
 
+            
+
             float xValue = (float)x + (cx * size);
             float yValue = (float)y + (cz * size);
 
             // for (float i = 1; i <= octaves; i++)
-            for (float i = 1; i <= octaves; i++)
-            {
-
-                float noiseValue = (noise.GetNoise(xValue / (4 / (i * 4)) + noise.GetNoise(xValue / 8, yValue / 8), yValue / (4 / (i * 4))) - noise.GetNoise(xValue / 3, yValue / 7)) * (((noise.GetNoise(xValue / 64, yValue / 64))) * 2);
-
-                value += (noiseValue / 2) + 0.5f;
-
-            }
+            float noisevalue = noise.GetNoise(xValue/4, yValue/4);
+            noisevalue += noise.GetNoise(xValue*2, yValue*2)/2;
+            value = (noisevalue / 2) + 0.5f;
 
             return value;
 
@@ -256,7 +246,7 @@ namespace opentk_proj.chunk
                             int globalZ = z + (cz * size);
                             int globalY = y + (cy * size);
 
-                            float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 105);
+                            float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
 
                             // SetBlock(Blocks.Stone, x,y,z);
 
@@ -393,9 +383,10 @@ namespace opentk_proj.chunk
             }
 
         }
-        private void ProcessToRender()
+        public void ProcessToRender()
         {
 
+            Processed = true;
             MeshData = MeshDataList.ToArray();
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -646,7 +637,11 @@ namespace opentk_proj.chunk
         public void Draw(Shader shader, Camera camera, float time)
         {
 
-            //shader.Use();
+            shader.Use();
+            GL.Uniform1(GL.GetUniformLocation(shader.id, "atlas"), 0);
+            GL.Uniform3(GL.GetUniformLocation(shader.id, "cameraPosition"), camera.position);
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, Globals.AtlasTexture.getID());
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
@@ -655,6 +650,7 @@ namespace opentk_proj.chunk
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, MeshData.Length);
             GL.BindVertexArray(0);
+            shader.UnUse();
 
         }
         public void Save(string pathToWrite)

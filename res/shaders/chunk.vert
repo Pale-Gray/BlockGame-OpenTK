@@ -15,12 +15,16 @@ uniform mat4 projection;
 uniform float time;
 uniform vec3 cameraPosition;
 
+uniform mat4 rot;
+
 out vec3 vposition;
 out vec2 vtexcoord;
 out int vblocktype;
 out vec3 vnormal;
 out float vtime;
 out float vambientValue;
+
+out vec3 directionalLight;
 
 float dist3D(vec3 pos1, vec3 pos2) 
 {
@@ -41,6 +45,8 @@ void main()
 	vtime = time;
 	vnormal = normal;
 	vambientValue = ambientValue;
+
+	directionalLight = normalize((vec4(0,1,0,1) * rot)).xyz;
 
 	vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
 
