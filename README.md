@@ -9,8 +9,6 @@ My game is going to be similar to Minecraft, but with added features and impleme
 
 ## Planned Features
 
-[Minecraft](https://minecraft.net) with a mixture of [Hytale](https://hytale.com/).
-
 Aspects of the game will be similar to mods that I have played with and love:
 
 - [Dynamic Trees](https://www.curseforge.com/minecraft/mc-mods/dynamictrees)
