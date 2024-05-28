@@ -1,12 +1,6 @@
 ﻿using OpenTK.Mathematics;
-using opentk_proj.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.gui
+namespace Blockgame_OpenTK.Gui
 {
     internal class GUIBoundingBox
     {

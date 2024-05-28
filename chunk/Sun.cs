@@ -1,16 +1,10 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using opentk_proj.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static FastNoise;
 
-namespace opentk_proj.chunk
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.ChunkUtil
 {
     public struct ModelVertex
     {
@@ -55,13 +49,13 @@ namespace opentk_proj.chunk
 
         };
 
-        public Sun(string texture, float radiusFromCamera)
+        public Sun(string textureFile, float radiusFromCamera)
         {
 
             RadiusFromCamera = radiusFromCamera;
             // Matrix4.CreateScale((1,RadiusFromCamera,1), out ScaleMatrix);
             ScaleMatrix = Matrix4.CreateScale(1, RadiusFromCamera, 1);
-            SunTexture = new Texture(Globals.TexutrePath + texture);
+            SunTexture = new Texture(textureFile);
 
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);

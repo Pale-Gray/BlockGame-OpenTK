@@ -1,12 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL4;
-using opentk_proj.util;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.framebuffer
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.FramebufferUtil
 {
     internal class Framebuffer
     {

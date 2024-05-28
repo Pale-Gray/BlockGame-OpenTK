@@ -1,12 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK
 {
     internal class NakedModel
     {
@@ -49,7 +46,7 @@ namespace opentk_proj
 
             }
 
-            shader = new Shader("../../../res/shaders/nakedmodel.vert", "../../../res/shaders/nakedmodel.frag");
+            shader = new Shader("nakedmodel.vert", "nakedmodel.frag");
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);

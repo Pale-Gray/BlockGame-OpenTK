@@ -1,12 +1,8 @@
-﻿using opentk_proj.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using OpenTK.Graphics.OpenGL4;
+using Blockgame_OpenTK.Util;
 
-namespace opentk_proj
+namespace Blockgame_OpenTK
 {
     internal class Program
     {

@@ -54,6 +54,6 @@ void main()
 
 	float fac = 2;
 
-	gl_Position = vec4(position, 1.0) * model * view * projection;
+	gl_Position = vec4(position.x, position.y, position.z, 1.0) * model * view * projection;
 
 }

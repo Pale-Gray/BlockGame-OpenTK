@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-// using System.Numerics;
-using System.Runtime.CompilerServices;
-using OpenTK.Mathematics;
-using System.Text;
-using System.Threading.Tasks;
-using opentk_proj.registry;
-using opentk_proj.chunk;
-using opentk_proj.util;
 
-namespace opentk_proj.block
+using Blockgame_OpenTK.ChunkUtil;
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.BlockUtil
 {
     internal class Block
     {
@@ -110,13 +103,13 @@ namespace opentk_proj.block
         private void SetTextureCoordinates(ChunkVertex[] face, int x, int y)
         {
 
-            face[0].TextureCoordinates = (Globals.Ratio * x, 1 - Globals.Ratio * y);
-            face[1].TextureCoordinates = (Globals.Ratio * x, 1 - Globals.Ratio - (Globals.Ratio * y));
-            face[2].TextureCoordinates = (Globals.Ratio + Globals.Ratio * x, 1 - Globals.Ratio - (Globals.Ratio * y));
+            face[0].TextureCoordinates = (Globals.AtlasTexture.RatioX * x, 1 - Globals.AtlasTexture.RatioY * y);
+            face[1].TextureCoordinates = (Globals.AtlasTexture.RatioX * x, 1 - Globals.AtlasTexture.RatioY - (Globals.AtlasTexture.RatioY * y));
+            face[2].TextureCoordinates = (Globals.AtlasTexture.RatioX + Globals.AtlasTexture.RatioY * x, 1 - Globals.AtlasTexture.RatioY - (Globals.AtlasTexture.RatioY * y));
 
-            face[3].TextureCoordinates = (Globals.Ratio + Globals.Ratio * x, 1 - Globals.Ratio - (Globals.Ratio * y));
-            face[4].TextureCoordinates = (Globals.Ratio + Globals.Ratio * x, 1 - Globals.Ratio * y);
-            face[5].TextureCoordinates = (Globals.Ratio * x, 1 - Globals.Ratio * y);
+            face[3].TextureCoordinates = (Globals.AtlasTexture.RatioX + Globals.AtlasTexture.RatioY * x, 1 - Globals.AtlasTexture.RatioY - (Globals.AtlasTexture.RatioY * y));
+            face[4].TextureCoordinates = (Globals.AtlasTexture.RatioX + Globals.AtlasTexture.RatioY * x, 1 - Globals.AtlasTexture.RatioY * y);
+            face[5].TextureCoordinates = (Globals.AtlasTexture.RatioX * x, 1 - Globals.AtlasTexture.RatioY * y);
 
             // face[0].U = Globals.Ratio * x; face[0].V = 1 - Globals.Ratio * y;
             // face[1].U = Globals.Ratio * x; face[1].V = 1 - Globals.Ratio - (Globals.Ratio * y);

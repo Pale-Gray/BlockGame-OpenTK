@@ -1,98 +1,95 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using StbImageSharp;
-using StbImageWriteSharp;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj
+namespace Blockgame_OpenTK.Util
 {
     internal class Texture
     {
 
-        public int id;
-        public ImageResult img;
-        public string path;
+        int Id;
+        ImageResult Image;
+        public string Path;
+        public string FileName;
 
-        public byte[] data;
+        public byte[] Data;
 
-        public int width, height;
+        public int Width, Height;
 
-        public Texture(string pathtoimage)
+        public Texture(string imageFile)
         {
 
-            id = GL.GenTexture();
+            Id = GL.GenTexture();
 
-            path = pathtoimage;
+            FileName = imageFile;
+            Path = Globals.TexturePath + imageFile;
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, id);
+            GL.BindTexture(TextureTarget.Texture2D, Id);
 
             StbImage.stbi_set_flip_vertically_on_load(1);
-            if (pathtoimage == null)
+            if (imageFile == null)
             {
 
-                pathtoimage = "../../../res/textures/missing.png";
+                Path = Globals.MissingTexture;
 
             }
-            img = ImageResult.FromStream(File.OpenRead(pathtoimage), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+            Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, img.Width, img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, img.Data);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
 
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
-            width = img.Width;
-            height = img.Height;
+            Width = Image.Width;
+            Height = Image.Height;
 
         }
 
-        public Texture(string pathtoimage, int flip)
+        public Texture(string imageFile, int flip)
         {
 
-            id = GL.GenTexture();
+            Id = GL.GenTexture();
 
-            path = pathtoimage;
+            Path = Globals.TexturePath + imageFile;
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, id);
+            GL.BindTexture(TextureTarget.Texture2D, Id);
 
             StbImage.stbi_set_flip_vertically_on_load(flip);
-            if (pathtoimage == null)
+            if (Path == null)
             {
 
-                pathtoimage = "../../../res/textures/missing.png";
+                Path = Globals.MissingTexture;
 
             }
-            img = ImageResult.FromStream(File.OpenRead(pathtoimage), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+            Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, img.Width, img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, img.Data);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
 
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
-            width = img.Width;
-            height = img.Height;
+            Width = Image.Width;
+            Height = Image.Height;
 
         }
         public Texture(byte[] pixeldata, int width, int height)
         {
 
-            id = GL.GenTexture();
+            Id = GL.GenTexture();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, id);
+            GL.BindTexture(TextureTarget.Texture2D, Id);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
@@ -103,18 +100,18 @@ namespace opentk_proj
 
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
-            this.data = pixeldata;
-            this.width = width;
-            this.height = height;
+            this.Data = pixeldata;
+            this.Width = width;
+            this.Height = height;
 
         }
         // GetPortion takes in six inputs, but the inputs for the dimensions of the texture go from bottom left to top right, not top left to bottom right.
         public static Texture GetPortion(bool flip, Texture t, int xo, int yo, int width, int height)
         {
 
-            byte[] tdata = t.img.Data;
-            int twidth = t.img.Width;
-            int theight = t.img.Height;
+            byte[] tdata = t.Image.Data;
+            int twidth = t.Image.Width;
+            int theight = t.Image.Height;
 
             int c = 0;
 
@@ -175,12 +172,12 @@ namespace opentk_proj
         public int getID()
         {
 
-            return id; 
+            return Id; 
 
         }
         public ImageResult getImage()
         {
-            return img;
+            return Image;
         }
 
 

@@ -1,16 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using opentk_proj.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.gui
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.Gui
 {
 
     public enum OriginType
@@ -39,13 +32,13 @@ namespace opentk_proj.gui
         public Vector2 CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
 
         public static Vector4i Null = (-1, -1, -1, -1);
-        public static Texture NullTexture = new Texture("../../../res/textures/missing.png");
+        public static Texture NullTexture = new Texture("missing.png");
 
         // NOTE
         // This instance is temporary, move to a global variables class
         Camera Camera;// = new Camera((0.0f, 0.0f, 0.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
 
-        Shader GUIShader = new Shader("../../../res/shaders/gui.vert", "../../../res/shaders/gui.frag");
+        Shader GUIShader = new Shader("gui.vert", "gui.frag");
         Texture Texture;
 
         Matrix4 Model;
@@ -133,7 +126,7 @@ namespace opentk_proj.gui
             GUIShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Texture.id);
+            GL.BindTexture(TextureTarget.Texture2D, Texture.getID());
 
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "model"), true, ref Model);
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "view"), true, ref Camera.view);

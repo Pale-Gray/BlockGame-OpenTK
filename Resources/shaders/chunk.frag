@@ -12,6 +12,8 @@ in float vambientValue;
 
 in vec3 directionalLight;
 
+vec2[] texcoord = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
+
 void main()
 {
 	// textureSize(tex,0);
@@ -23,6 +25,8 @@ void main()
 	// FragColor = vec4(texture(atlas, vtexcoord).rgb * value, 1.0);
 	vec4 tex = texture(atlas, vtexcoord);
 	FragColor = vec4(tex.rgb * value, 1.0);
+	// FragColor = vec4(1,1,1, 1.0);
+
 	// FragColor = vec4(v_normal, 1);
 
 }

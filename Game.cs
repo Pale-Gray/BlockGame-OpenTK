@@ -1,30 +1,20 @@
 ﻿using OpenTK.Graphics.OpenGL;
-// using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Collections;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Transactions;
-
-using opentk_proj.chunk;
-using opentk_proj.block;
-using opentk_proj.util;
-using System.Collections.Generic;
 using System.IO;
-using StbImageWriteSharp;
-using opentk_proj.gui;
-using opentk_proj.framebuffer;
-using System.Threading;
-using OpenTK.Audio.OpenAL;
 using System.Diagnostics;
 
-namespace opentk_proj
+using Blockgame_OpenTK.Util;
+using Blockgame_OpenTK.ChunkUtil;
+using Blockgame_OpenTK.PlayerUtil;
+using Blockgame_OpenTK.Gui;
+using Blockgame_OpenTK.FramebufferUtil;
+
+namespace Blockgame_OpenTK
 {
     internal class Game : GameWindow
     {
@@ -206,22 +196,50 @@ namespace opentk_proj
 
         bool IsGrabbed = true;
 
+        Player player = new Player();
+
         double ft = 0;
         double fs = 0;
         Chunk c;
         Sun Sun;
+
+        private static void OnDebugMessage(
+    DebugSource source,     // Source of the debugging message.
+    DebugType type,         // Type of the debugging message.
+    int id,                 // ID associated with the message.
+    DebugSeverity severity, // Severity of the message.
+    int length,             // Length of the string in pMessage.
+    IntPtr pMessage,        // Pointer to message string.
+    IntPtr pUserParam)      // The pointer you gave to OpenGL, explained later.
+        {
+            // In order to access the string pointed to by pMessage, you can use Marshal
+            // class to copy its contents to a C# string without unsafe code. You can
+            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+            string message = Marshal.PtrToStringAnsi(pMessage, length);
+
+            // The rest of the function is up to you to implement, however a debug output
+            // is always useful.
+            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+            // Potentially, you may want to throw from the function for certain severity
+            // messages.
+            
+        }
+
+        private static DebugProc DebugMessageDelegate = OnDebugMessage;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
 
             base.OnUpdateFrame(args);
 
-            Globals.Time = DeltaTime.Get();
+            Globals.DeltaTime = DeltaTime.Get();
+            Globals.Time += Globals.DeltaTime;
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
 
             time = GLFW.GetTime();
 
-            delay += args.Time;
+            delay += Globals.DeltaTime;
             ft += 1d / args.Time;
             fs++;
 
@@ -229,12 +247,13 @@ namespace opentk_proj
             {
 
                 Title = "fps [" + fs + "]";
-                text.UpdateText("FPS: " + fs);
+                text.UpdateText(Globals.FrameInformation);
                 ft = 0;
                 fs = 0;
                 delay = 0;
 
             }
+
 
             MouseState mouse = MouseState;
 
@@ -309,7 +328,7 @@ namespace opentk_proj
                     if (k.IsKeyDown(Keys.LeftShift))
                     {
 
-                        speed = 40.0f;
+                        speed = 100.0f;
 
                     }
                     else
@@ -325,7 +344,7 @@ namespace opentk_proj
                 {
 
                     // cposition += cfront * speed * (float)args.Time;
-                    cposition += cfront * speed * (float)Globals.Time;
+                    cposition += cfront * speed * (float)Globals.DeltaTime;
 
                 }
                 if (k.IsKeyDown(Keys.S))
@@ -384,31 +403,31 @@ namespace opentk_proj
             // original: 8. printed: 1
             // Console.WriteLine(Convert.ToInt16(0b1000 >> 3 & 0b1111));
             // binary shift right three and cmp to full mask
-            Globals.AtlasTexture = new Texture("../../../res/textures/atlas.png");
-            Globals.ChunkShader = new Shader("../../../res/shaders/chunk.vert", "../../../res/shaders/chunk.frag");
-            Globals.DefaultShader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
+            Globals.AtlasTexture = new TextureAtlas("atlas.png", 32);
+            Globals.ChunkShader = new Shader("chunk.vert", "chunk.frag");
+            Globals.DefaultShader = new Shader("default.vert", "default.frag");
 
             // Thread.CurrentThread.Name = "MAIN";
 
-            BinaryWriter bw = new BinaryWriter(File.Open("../../../res/cdat/1.cdat", FileMode.OpenOrCreate));
+            BinaryWriter bw = new BinaryWriter(File.Open("../../../Resources/cdat/1.cdat", FileMode.OpenOrCreate));
 
             bw.Write((uint)500);
 
 
             // chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
-            rmodel = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
-            hitdisplay = new Model(verts, "../../../res/textures/debug.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
-            xyz_display = new Model(xyz_verts, null, "../../../res/shaders/debug.vert", "../../../res/shaders/debug.frag");
+            rmodel = new Model(verts, "debug.png", "model.vert", "model.frag");
+            hitdisplay = new Model(verts, "debug.png", "model.vert", "model.frag");
+            xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
 
             nakedmodel = new NakedModel(NakedModel.Tri);
 
-            rmodel.SetRotation(0, 45, 0);
-            rmodel.SetScale(0.1f, 0.1f, 0.1f);
+            // rmodel.SetRotation(0, 45, 0);
+            // rmodel.SetScale(0.5f, 0.5f, 0.5f);
 
             boundmodel = new NakedModel(boundingbox.triangles);
 
-            Skybox = new Model(skybox, "../../../res/textures/cubemap/cubemap_test.png", "../../../res/shaders/model.vert", "../../../res/shaders/model.frag");
+            Skybox = new Model(skybox, "cubemap/cubemap_test.png", "model.vert", "model.frag");
 
             xyz_display.SetScale(0.25f, 0.25f, 0.25f);
 
@@ -425,18 +444,22 @@ namespace opentk_proj
             GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.ActiveTexture(TextureUnit.Texture0);
 
-            texture = new Texture("../../../res/textures/atlas.png");
-            emtexture = new Texture("../../../res/textures/atlas_em.png");
-            Texture t = new Texture("../../../res/textures/cubemap/cubemap_test.png");
+            // GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
+            // GL.Enable(EnableCap.DebugOutput);
+
+            texture = new Texture("atlas.png");
+            emtexture = new Texture("atlas_em.png");
+            Texture t = new Texture("cubemap/cubemap_test.png");
             cmtex = new CMTexture(t, 64);
 
             TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
             text = new FontRenderer(16, "FPS: ");
+            text.SetFontColor((0,0,0));
             // GUIClick = new GUIClickable(50, 50, 20, 20, OriginType.Center);
             // DeltaTime.Get();
 
-            ChunkShader = new Shader("../../../res/shaders/chunk.vert", "../../../res/shaders/chunk.frag");
-            shader = new Shader("../../../res/shaders/default.vert", "../../../res/shaders/default.frag");
+            ChunkShader = new Shader("chunk.vert", "chunk.frag");
+            shader = new Shader("default.vert", "default.frag");
             shader.Use();
             //Texture t = new Texture("../../../res/textures/cubemap/cubemap_template.png");
             //cmtex = new CMTexture(t, 64);
@@ -449,7 +472,7 @@ namespace opentk_proj
 
             Sun = new Sun("sun.png", 10);
 
-            ChunkLoader.GenerateChunksWithinRadius(18);
+            // ChunkLoader.GenerateChunksWithinRadius(18);
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -460,7 +483,7 @@ namespace opentk_proj
             Stopwatch sw = Stopwatch.StartNew();
 
             frameBuffer.Bind();
-            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            GL.ClearColor(1.0f, 0.0f, 0.0f, 1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
@@ -483,9 +506,7 @@ namespace opentk_proj
 
             Vector3 rotationPosition = (0.0f, (float)Math.Cos(angle) * Sun.RadiusFromCamera, (float)Math.Sin(angle) * Sun.RadiusFromCamera);
 
-            // Sun.SetPosition(camera.position + rotationPosition);
-
-            Sun.SetRotation((angle,0,angle2));
+            Sun.SetRotation((Maths.ToRadians(-45),0,Maths.ToRadians(-35)));
             // Sun.SetPosition((0, (float)(4*Math.Sin(time)), 0));
             Sun.Draw(camera);
             Globals.ChunkShader.Use();
@@ -496,11 +517,26 @@ namespace opentk_proj
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
+            // ChunkLoader.GenerateThreadedFilledColumns(16, camera.position);
+            ChunkLoader.GenerateThreaded(25, camera.position);
+            ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, camera, (float)time);
+            // DDA.Trace(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(camera.position)), camera.position, camera.front.Normalized(), 15);
+            // Console.WriteLine(DDA.HitPoint);
+            
+            // rmodel.Draw(DDA.HitPoint - (0.5f,0.5f,0.5f), camera, (float)time);
+            // Console.WriteLine(DDA.HitPoint);
+            //  Console.WriteLine(camera.front);
 
-            // ChunkLoader.StaggeredGenerateAroundPlayer(2, 0f, (float)Globals.Time, camera);
-            ChunkLoader.StaggeredGenerateThreaded(5, 0, (float)Globals.Time);
-            ChunkLoader.DrawAllChunks(Globals.ChunkShader, camera, (float)time);
+            // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
+            // Console.WriteLine(DDA.HitPoint);
+            Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.position);
+            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocalToChunk(camera.position);
+            Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.position);
+            // Console.WriteLine("The camera resides at chunk {0} with local block at {1} and global block at {2}", CameraAtChunk, CameraAtBlockLocal, CameraAtBlockGlobal);
 
+            // rmodel.Draw((CameraAtChunk * Globals.ChunkSize), camera, (float)time);
+            // rmodel.Draw(CameraAtBlockLocal + (0.5f, 0.5f, 0.5f), camera, (float)time);
+            // rmodel.Draw(CameraAtBlockGlobal + (0.5f, 0.5f, 0.5f), camera, (float)time);
             text.Draw();
 
             if (debug)
@@ -582,7 +618,8 @@ namespace opentk_proj
             }
 
             sw.Stop();
-            Console.WriteLine("Finished frame in " + sw.ElapsedMilliseconds + " ms.");
+            // Console.WriteLine("Finished frame in " + sw.ElapsedMilliseconds + " ms. FPS: " + (1000f/sw.ElapsedMilliseconds));
+            Globals.FrameInformation = "Ft: " + sw.ElapsedMilliseconds + "ms. Fps: " + (1000f / sw.ElapsedMilliseconds);
 
             SwapBuffers();
 

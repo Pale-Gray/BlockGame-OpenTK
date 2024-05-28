@@ -1,14 +1,10 @@
 ﻿using OpenTK.Mathematics;
-using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using opentk_proj.util;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.gui
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.Gui
 {
     internal class GUIClickable : GUIElement
     {

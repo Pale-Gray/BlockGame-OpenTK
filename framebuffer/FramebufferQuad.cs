@@ -1,12 +1,8 @@
 ﻿using OpenTK.Graphics.OpenGL4;
-using opentk_proj.util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.framebuffer
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.FramebufferUtil
 {
     internal class FramebufferQuad
     {
@@ -29,7 +25,7 @@ namespace opentk_proj.framebuffer
         public FramebufferQuad()
         {
 
-            shader = new Shader("../../../res/shaders/framebuffer.vert", "../../../res/shaders/framebuffer.frag");
+            shader = new Shader("framebuffer.vert", "framebuffer.frag");
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);

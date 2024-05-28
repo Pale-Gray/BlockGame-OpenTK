@@ -1,15 +1,6 @@
 ﻿using OpenTK.Mathematics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-using opentk_proj.util;
-using System.Security.Cryptography;
-
-namespace opentk_proj
+namespace Blockgame_OpenTK.Util
 {
     public enum CameraType
     {
@@ -37,7 +28,8 @@ namespace opentk_proj
         public const int Perspective = 1;
         public CameraType type;
 
-        public Camera(Vector3 position, Vector3 front, Vector3 up, CameraType type, float fov) {
+        public Camera(Vector3 position, Vector3 front, Vector3 up, CameraType type, float fov)
+        {
 
             this.position = position;
             this.front = front;
@@ -45,17 +37,17 @@ namespace opentk_proj
             this.type = type;
             this.fov = fov;
 
-            switch(type)
+            switch (type)
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Globals.WIDTH / (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }
@@ -72,13 +64,13 @@ namespace opentk_proj
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), (float)Globals.WIDTH / (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic((float)Globals.WIDTH, (float)Globals.HEIGHT, 0.1f, 1000f);
+                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }

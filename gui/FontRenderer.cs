@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
-using opentk_proj.util;
 using System.Runtime.InteropServices;
 
-namespace opentk_proj.gui
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.Gui
 {
 
     struct GUIVertex 
@@ -26,10 +25,11 @@ namespace opentk_proj.gui
     
     }
 
+    
     internal class FontRenderer
     {
 
-        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"' ".ToArray();
+        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"': ".ToArray();
         Vector2 CharDimension = (8, 8);
         Vector2 CharRenderDimension;
         Vector2 RelativePosition;
@@ -39,6 +39,7 @@ namespace opentk_proj.gui
         Shader FontShader;
         // NOTE can be in Globals class
         Camera Camera = new Camera((0.0f, 0.0f, 1.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
+        Vector3 FontColor = (1, 1, 1);
         Vector2 CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
 
         Matrix4 model;
@@ -47,8 +48,8 @@ namespace opentk_proj.gui
 
             CharRenderDimension = (characterDimension, characterDimension);
 
-            FontTexture = new Texture("../../../res/textures/fatlas.png");
-            FontShader = new Shader("../../../res/shaders/font.vert", "../../../res/shaders/font.frag");
+            FontTexture = new Texture("fatlas.png");
+            FontShader = new Shader("font.vert", "font.frag");
 
             GenerateMesh(text);
             model = Matrix4.CreateTranslation(-300, 200, 0);
@@ -60,11 +61,11 @@ namespace opentk_proj.gui
         public void ProcessToRender()
         {
 
+            Vao = GL.GenVertexArray();
+            GL.BindVertexArray(Vao);
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, Vertices.Length * Marshal.SizeOf<GUIVertex>(), Vertices, BufferUsageHint.StaticDraw);
-            Vao = GL.GenVertexArray();
-            GL.BindVertexArray(Vao);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.Position)));
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.TextureCoordinates)));
@@ -88,6 +89,13 @@ namespace opentk_proj.gui
 
         }
 
+        public void SetFontColor(Vector3 color)
+        {
+
+            FontColor = color;
+
+        }
+
         public void Draw()
         {
 
@@ -102,6 +110,8 @@ namespace opentk_proj.gui
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "view"), true, ref Camera.view);
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "projection"), true, ref Camera.projection);
+            GL.Uniform1(GL.GetUniformLocation(FontShader.getID(), "time"), (float)Globals.Time);
+            GL.Uniform3(GL.GetUniformLocation(FontShader.getID(), "fontColor"), ref FontColor);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, Vertices.Length);

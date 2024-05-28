@@ -1,26 +1,24 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.Util
 {
     internal class Shader
     {
 
         public int id;
 
-        public Shader(string pathtovert, string pathtofrag)
+        public Shader(string vertexFile, string fragmentFile)
         {
 
             int vertshader;
             int fragshader;
 
-            string vert = File.ReadAllText(pathtovert);
-            string frag = File.ReadAllText(pathtofrag);
+            string vert = File.ReadAllText(Globals.ShaderPath + vertexFile);
+            string frag = File.ReadAllText(Globals.ShaderPath + fragmentFile);
 
             // creating shader and source
             vertshader = GL.CreateShader(ShaderType.VertexShader);

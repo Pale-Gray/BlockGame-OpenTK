@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
 
-namespace opentk_proj.chunk
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.ChunkUtil
 {
     internal class Noise
     {

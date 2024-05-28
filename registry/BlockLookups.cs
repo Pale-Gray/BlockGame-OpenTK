@@ -1,11 +1,8 @@
-﻿using opentk_proj.block;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace opentk_proj.registry
+using Blockgame_OpenTK.BlockUtil;
+
+namespace Blockgame_OpenTK.Registry
 {
 
     public enum LookupType

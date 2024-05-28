@@ -1,12 +1,6 @@
-﻿using opentk_proj.util;
-using opentk_proj.chunk;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Blockgame_OpenTK.ChunkUtil;
 
-namespace opentk_proj.block
+namespace Blockgame_OpenTK.BlockUtil
 {
     internal class Faces
     {

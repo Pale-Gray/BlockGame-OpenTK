@@ -3,11 +3,13 @@
 //
 
 using OpenTK.Mathematics;
-using opentk_proj.block;
-using opentk_proj.chunk;
 using System;
 
-namespace opentk_proj.util
+using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.ChunkUtil;
+using Blockgame_OpenTK.Util;
+
+namespace Blockgame_OpenTK.Util
 {
     internal class Ray
     {

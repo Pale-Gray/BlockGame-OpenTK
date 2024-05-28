@@ -1,35 +1,36 @@
-﻿using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.util
-{ 
+namespace Blockgame_OpenTK.Util
+{
     internal class Globals
     {
 
         public static float WIDTH = 640f;
         public static float HEIGHT = 480f;
-        public static int ChunkSize = 32;
+        public const int ChunkSize = 32;
+        public static double DeltaTime = 0;
         public static double Time = 0;
         public static MouseState Mouse = null;
         public static KeyboardState Keyboard = null;
 
-        public static float AtlasResolution = 8;
-        public static float Ratio = 1 / AtlasResolution;
+        public const float AtlasResolution = 8;
+        public const float Ratio = 1 / AtlasResolution;
 
-        // public static long seed = new Random().Next(int.MaxValue);
-        public static long seed = 1245919872491;
-        public static Texture AtlasTexture;
+        public static int seed = new Random().Next();
+        // public static long seed = 1245919872491;
+        public static TextureAtlas AtlasTexture;
         public static Shader ChunkShader;
         public static Shader SkyboxShader;
         public static Shader DefaultShader;
 
-        public static String TexutrePath = "../../../res/textures/";
+        public static String FrameInformation = "";
+
+        public static String TexturePath = "../../../Resources/Textures/";
+        public static String ShaderPath = "../../../Resources/Shaders/";
+        public static String MissingTexture = "../../../Resources/Textures/missing.png";
+
+        public static FastNoiseLite noise = new FastNoiseLite();
 
     }
 }

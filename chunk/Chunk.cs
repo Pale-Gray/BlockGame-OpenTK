@@ -2,22 +2,15 @@
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using opentk_proj.block;
 using System.IO;
-using opentk_proj.util;
-using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Collections;
 using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using System.Linq;
-using System.ComponentModel;
-using System.Security.Cryptography;
 
-namespace opentk_proj.chunk
+using Blockgame_OpenTK.Util;
+using Blockgame_OpenTK.BlockUtil;
+
+namespace Blockgame_OpenTK.ChunkUtil
 {
     public struct ChunkVertex
     {
@@ -39,11 +32,11 @@ namespace opentk_proj.chunk
         }
 
     }
-
     public enum GenerationState
     {
 
         NotGenerated,
+        Generating,
         PassOne,
         PassTwo,
         Generated
@@ -67,27 +60,18 @@ namespace opentk_proj.chunk
     internal class Chunk
     {
 
-        // size of the chunk, keep at 32, but you CAN change it. (dont)
         static int size = Globals.ChunkSize;
-        // original block data, in integers, resulting of the blocktype
-        // to lookup in a certain coordinate of xyz in the array
-        public int[,,] blockdata = new int[size, size, size];
-        public int[,,] LightData = new int[size, size, size];
-        // public int[,,] Empty = new int[size, size, size];   
-        // vertex data of the chunk from the blockdata.
-        // This is what is written to after blockvertdataarray gets changed to an array.
-        // you technically don't need this, but it's here for now. (change later)
+        public int[,,] blockdata = new int[size,size,size];
+        public byte[,,] DirectionData = new byte[size,size,size];
+        
         public ChunkVertex[] MeshData = new ChunkVertex[0];
-        // this is the arraylist of the vertex data of the whole chunk, 
-        // which gets turned into an array declared as blockvertdata.
-        // You technically only need this, but there's the blockvertdata
-        // for now. (change later)
-        public List<ChunkVertex> MeshDataList = new List<ChunkVertex>();
 
         // Vertex Buffer Object of the chunk.
         public int vbo;
         // Vertex Array Object of the chunk.
         public int vao;
+
+        public int PreviousNeighbors = 0;
 
         // Model matrix of the chunk
         public Matrix4 model;
@@ -98,94 +82,313 @@ namespace opentk_proj.chunk
 
         public Vector3 ChunkPosition; // vector of cx, cy, cz
 
+        bool hasMesh = true;
+
         Random r = new Random();
 
-        FastNoiseLite noise = new FastNoiseLite();
+        ChunkState chunkState = ChunkState.NotReady;
+        MeshState meshState = MeshState.NotMeshed;
+        GenerationState generationState = GenerationState.NotGenerated;
 
-        ChunkState ChunkState = ChunkState.NotReady;
-        MeshState MeshState = MeshState.NotMeshed;
-        GenerationState GenerationState = GenerationState.NotGenerated;
-
-        public bool Processed = false;
-
-        public bool IsSent = false;
+        public readonly object ChunkLock = new();
 
         public Chunk(int x, int y, int z)
+        {
+
+            cx = x;
+            cy = y;
+            cz = z;
+            ChunkPosition = (cx, cy, cz);
+            Globals.noise.SetSeed(Globals.seed);
+            model = Matrix4.CreateTranslation(x * size, y * size, z * size);
+
+        }
+
+        public Chunk(Vector3 chunkPosition)
         {
 
             // Console.WriteLine("init");
             // Stopwatch elapsed = Stopwatch.StartNew();
             // TimeSpan elapsedtime;
-            cx = x;
-            cy = y;
-            cz = z;
-            ChunkPosition = (cx, cy, cz);
-            ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateThreaded));
+            cx = (int) chunkPosition.X;
+            cy = (int) chunkPosition.Y;
+            cz = (int) chunkPosition.Z;
+            ChunkPosition = chunkPosition;
+            // ThreadPool.QueueUserWorkItem(new WaitCallback(Generate));
 
-            model = Matrix4.CreateTranslation(x * size, y * size, z * size);
+            model = Matrix4.CreateTranslation(cx * size, cy * size, cz * size);
 
         }
 
         public void UpdateChunk()
         {
 
-            if (ChunkState == ChunkState.Ready && !IsSent)
+            //if (generationState == GenerationState.Generated && meshState == MeshState.Done && chunkState == ChunkState.Ready && IsSent == false)
+            //{
+
+                // Console.WriteLine("yes");
+             //   ProcessToRender();
+
+            //}
+
+        }
+
+        public void GenerateTerrainThreaded()
+        {
+
+            generationState = GenerationState.Generating;
+            Task.Run(() => InitializeData());
+
+        }
+
+        public void GenerateMeshThreaded()
+        {
+
+            chunkState = ChunkState.NotReady;
+            meshState = MeshState.Meshing;
+            Task.Run(() => GenerateMesh());
+
+        }
+
+        public bool ContainsMesh()
+        {
+
+            if (hasMesh)
             {
 
-                ProcessToRender();
-                IsSent = true;
+                return true;
 
             }
 
-        }
-
-        public void GenerateThreaded(object obj)
-        {
-
-            ChunkState = ChunkState.NotReady;
-            InitializeData();
-            GenerateMesh();
-            // ProcessToRender();
-            ChunkState = ChunkState.Ready;
+            return false;
 
         }
-
         public void Generate()
         {
 
-            // Console.WriteLine("For Chunk at {3} | ChunkState is {0}, GenerationState is {1}, MeshState is {2}", ChunkState, GenerationState, MeshState, ChunkPosition);
-
-            // ChunkState = ChunkState.NotReady;
-            if (GenerationState == GenerationState.Generated)
+            if (chunkState == ChunkState.NotReady && meshState == MeshState.Done)
             {
-
-                GenerateMesh();
                 ProcessToRender();
-                ChunkState = ChunkState.Ready;
+                chunkState = ChunkState.Ready;
 
             }
-            if (GenerationState == GenerationState.PassTwo)
-            {
-                
-                // GeneratePassTwo();
-                // GenerationState = GenerationState.Generated;
 
-            }
-            if (GenerationState == GenerationState.NotGenerated)
+            // Console.WriteLine("Position: {0}, GenerationState: {1}, MeshState: {2}, ChunkState: {3}", ChunkPosition, GenerationState, MeshState, ChunkState);
+
+            if (generationState == GenerationState.Generated && meshState == MeshState.NotMeshed)
             {
 
-                // GeneratePassOne();
-                // GenerationState = GenerationState.PassTwo;
+                // NeighborsGenerated();
+                // Console.WriteLine("Yes");
+                // Console.WriteLine(NeighborsGenerated().Count());
+                Task.Run(() => GenerateMesh());
+                // Task.Run(() => GenerateMesh(ChunkLock));
 
             }
-            if (GenerationState == GenerationState.NotGenerated)
+
+            if (generationState == GenerationState.NotGenerated)
             {
 
-                InitializeData();
-                // PropegateLightValues();
-                GenerationState = GenerationState.Generated;
+                Task.Run(() => InitializeData());
 
             }
+
+        }
+
+        public int GetAmountNeighborsGenerated()
+        {
+
+            int num = 0;
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (1,0,0)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (1,0,0)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (0, 1, 0)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (0, 1, 0)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (0, 0, 1)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (0, 0, 1)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (-1, 0, 0)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (-1, 0, 0)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (0, -1, 0)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (0, -1, 0)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+            if (ChunkLoader.ChunkDictionary.ContainsKey(ChunkPosition + (0, 0, -1)))
+            {
+
+                if (ChunkLoader.GetChunk(ChunkPosition + (0, 0, -1)).GetGenerationState() == GenerationState.Generated)
+                {
+
+                    num++;
+
+                }
+
+            }
+
+            return num;
+
+        }
+        public Block GetBlockOverrided(int x, int y, int z)
+        {
+
+            int positionOverrideX = (int) Math.Floor(x/(float)size);
+            int positionOverrideY = (int)Math.Floor(y / (float)size);
+            int positionOverrideZ = (int)Math.Floor(z / (float)size);
+            Vector3 overridePosition = (positionOverrideX, positionOverrideY, positionOverrideZ);
+            // int localZ = z;
+            // Console.WriteLine(localZ);
+
+            if (positionOverrideX > 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(0, y, z);
+
+                    }
+
+                }
+
+            }
+
+            if (positionOverrideX < 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(size-1, y, z);
+
+                    }
+
+                }
+
+            }
+
+            if (positionOverrideY > 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, 0, z);
+
+                    }
+
+                }
+
+            }
+
+            if (positionOverrideY < 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, size-1, z);
+
+                    }
+
+                }
+
+            }
+
+            if (positionOverrideZ > 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, y, 0);
+
+                    }
+
+                }
+
+            }
+
+            if (positionOverrideZ < 0)
+            {
+
+                if (ChunkLoader.ContainsChunk(ChunkPosition + overridePosition))
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
+                    {
+
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, y, size-1);
+
+                    }
+
+                }
+
+            }
+
+            return GetBlock(x, y, z);
+
+            // Console.WriteLine("X: {0} Y: {1} Z: {2}", positionOverrideX, positionOverrideY, positionOverrideZ);
+            // Vector3 overridePosition = (positionOverrideX, positionOverrideY, positionOverrideZ);
+
+            // Console.WriteLine("X: {0} Y: {1} Z: {2}", positionOverrideX, positionOverrideY, positionOverrideZ);
+
+            // return ChunkLoader.GetChunk(ChunkPosition).GetBlock(x, y, z);
 
         }
         private float GetNoise2D(int octaves, int x, int y)
@@ -200,8 +403,9 @@ namespace opentk_proj.chunk
             float yValue = (float)y + (cz * size);
 
             // for (float i = 1; i <= octaves; i++)
-            float noisevalue = noise.GetNoise(xValue/4, yValue/4);
-            noisevalue += noise.GetNoise(xValue*2, yValue*2)/2;
+            float noisevalue = Globals.noise.GetNoise(xValue/4, yValue/4);
+            noisevalue += Globals.noise.GetNoise(xValue*2, yValue*2)/4;
+            noisevalue += Globals.noise.GetNoise(xValue / 8, yValue / 8) * 4;
             value = (noisevalue / 2) + 0.5f;
 
             return value;
@@ -217,13 +421,7 @@ namespace opentk_proj.chunk
             float yValue = (float)y + (cy * size);
             float zValue = (float)z + (cz * size);
 
-            for (float i = 0; i <= octaves; i++)
-            {
-
-                value *= noise.GetNoise(xValue * (2 * (1 + i)), yValue * (2 * (1 + i)), zValue * (2 * (1 + i))) / (1 + i);
-
-            }
-            value /= (octaves);
+            value = Globals.noise.GetNoise(xValue, yValue, zValue);
 
             return (value / 2) + 0.5f;
 
@@ -231,98 +429,63 @@ namespace opentk_proj.chunk
         private void InitializeData()
         {
 
-            GenerationState = GenerationState.PassOne;
-            // for (int x = 0; x < size; x++)
-                Parallel.For(0, size, x =>
+            // generationState = GenerationState.Generating;
+            for (int x = 0; x < size; x++)
+            {
+
+                for (int y = 0; y < size; y++)
                 {
 
-                    for (int y = 0; y < size; y++)
+                    for (int z = 0; z < size; z++)
                     {
 
-                        for (int z = 0; z < size; z++)
+                        int globalX = x + (cx * size);
+                        int globalZ = z + (cz * size);
+                        int globalY = y + (cy * size);
+
+                        float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
+
+                        if (globalY <= value - r.Next(4, 10))
                         {
 
-                            int globalX = x + (cx * size);
-                            int globalZ = z + (cz * size);
-                            int globalY = y + (cy * size);
+                            SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
 
-                            float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
+                        }
+                        else if (globalY < value - 1)
+                        {
 
-                            // SetBlock(Blocks.Stone, x,y,z);
+                            SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
 
-                            if (globalY <= value - r.Next(4, 10))
+                        }
+                        else if (globalY <= value)
+                        {
+
+                            SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
+                            double frequency = 1;
+                            float scale = 200;
+                            float target = 0.5f;
+                            if (frequency*Globals.noise.GetNoise(globalX*scale,globalZ*scale) >= target)
                             {
 
                                 SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
 
                             }
-                            else if (globalY < value - 1)
-                            {
-
-                                SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
-
-                            }
-                            else if (globalY <= value)
-                            {
-
-                                SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
-
-                            }
-
-                            // SetBlockGlobal(Blocks.Grass, globalX, globalX, globalZ);
-
-                            // SetBlockGlobal(Blocks.Stone, globalX, (int) value, globalZ);
-                            // SetBlockGlobal(Blocks.Dirt, globalX, 0, 0);
-                            // SetBlockGlobal(Blocks.Dirt, 0, 0, globalZ);
-
-                            // SetBlockGlobal(Blocks.Dirt, 0, 15, 0);
-
-                            // SetBlock(Blocks.Dirt, 0, 0, 0);
-
-                            /* if (globalY < offset)
-                            {
-
-                                SetBlock(Blocks.Stone, x, y, z);
-
-                            } else
-                            {
-
-                                if (GetNoise3D(x,y,z) > (globalY) / (maxHeight))
-                                {
-
-                                    // SetBlock(Blocks.Stone, x, y, z);
-                                    // SetBlock(Blocks.Stone, x, y, z);
-
-                                    // SetBlock(Blocks.Stone, x, y, z);
-                                    // SetBlockGlobal(Blocks.Stone, x+(cx*size), 36, z+(cz*size));
-                                    SetBlock(Blocks.Stone, x, y, z);
-
-                                }
-                                else
-                                {
-
-                                    // SetBlock(Blocks.Air, x, y, z);
-
-                                }
-
-                            } */
-                            // SetBlockGlobal(Blocks.Grass, 0, 0, 0);
-                            // SetBlockGlobal(Blocks.Grass, 0, (int)offset, 0);
-                            // SetBlockGlobal(Blocks.Grass, 0, (int)(offset+maxHeight), 0);
-
 
                         }
 
                     }
 
-                });
-            GenerationState = GenerationState.Generated;
+                }
+
+            }
+            generationState = GenerationState.Generated;
 
         }
         private void GenerateMesh()
         {
 
-            MeshState = MeshState.Meshing;
+            List<ChunkVertex> MeshDataList = new List<ChunkVertex>();
+
             for (int x = 0; x < size; x++)
             {
 
@@ -331,103 +494,107 @@ namespace opentk_proj.chunk
 
                     for (int z = 0; z < size; z++)
                     {
-
-                        // Console.WriteLine("{0}, {1}, {2}", x, y, z);
 
                         if (blockdata[x, y, z] != Blocks.GetIDFromBlock(Blocks.Air))
                         {
 
-                            InsertBlock(Blocks.BlockList[blockdata[x, y, z]], x, y, z);
+                            InsertBlock(MeshDataList, Blocks.GetBlockFromID(blockdata[x, y, z]), x, y, z);
 
                         }
-                        // InsertBlock(Blocks.BlockList[blockdata[x,y,z]], x,y,z);
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.FrontFace, x, y, z));
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.RightFace, x, y, z));
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.BackFace, x, y, z));
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.LeftFace, x, y, z));
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.TopFace, x, y, z));
-                        // MeshDataList.AddRange(Block.GetFaceShifted(Blocks.Dirt.BottomFace, x, y, z));
 
                     }
 
                 }
 
             }
-            MeshState = MeshState.Done;
-
-        }
-
-        private void PropegateLightValues()
-        {
-
-            Vector3 lightPosition = (16, 30, 16);
-
-            for (int x = 0; x < size; x++)
+            lock (ChunkLock)
             {
 
-                for (int y = 0; y < size; y++)
-                {
-
-                    for (int z = 0; z < size; z++)
-                    {
-
-                        // LightData[x, y, z] = x;
-                        Vector3 positionNormalized = Vector3.Divide((x,y,z), size);
-                        Vector3 lightPositionNormalized = Vector3.Divide(lightPosition, size);
-                        LightData[x, y, z] = (int)(size * (1 - Vector3.Distance(lightPositionNormalized, positionNormalized)));
-
-                    }
-
-                }
+                MeshData = MeshDataList.ToArray();
 
             }
+            meshState = MeshState.Done;
 
         }
         public void ProcessToRender()
         {
 
-            Processed = true;
-            MeshData = MeshDataList.ToArray();
-            vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, MeshData.Length * Marshal.SizeOf<ChunkVertex>(), MeshData, BufferUsageHint.DynamicDraw);
+            if (MeshData.Length > 0)
+            {
 
-            vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-            GL.VertexAttribIPointer(0, 1, VertexAttribIntegerType.Int, Marshal.SizeOf<ChunkVertex>(), (IntPtr)0);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinates)));
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Normal)));
-            GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(4, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.AmbientValue)));
-            GL.EnableVertexAttribArray(4);
-            GL.BindVertexArray(0);
+                hasMesh = true;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            } else
+            {
+
+                hasMesh = false;
+
+            }
+
+            if (hasMesh)
+            {
+
+                vao = GL.GenVertexArray();
+                GL.BindVertexArray(vao);
+                vbo = GL.GenBuffer();
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+                GL.BufferData(BufferTarget.ArrayBuffer, MeshData.Length * Marshal.SizeOf<ChunkVertex>(), MeshData, BufferUsageHint.DynamicDraw);
+
+                GL.VertexAttribIPointer(0, 1, VertexAttribIntegerType.Int, Marshal.SizeOf<ChunkVertex>(), (IntPtr)0);
+                GL.EnableVertexAttribArray(0);
+                GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
+                GL.EnableVertexAttribArray(1);
+                GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinates)));
+                GL.EnableVertexAttribArray(2);
+                GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Normal)));
+                GL.EnableVertexAttribArray(3);
+                GL.VertexAttribPointer(4, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.AmbientValue)));
+                GL.EnableVertexAttribArray(4);
+                GL.BindVertexArray(0);
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+            }
+
+            chunkState = ChunkState.Ready;
 
         }
 
         public ChunkState GetChunkState()
         {
-
-            return ChunkState;
+            return chunkState;
 
         }
 
+        public void OverrideGenerationState(GenerationState generationState)
+        {
+
+            generationState = generationState;
+
+        }
+        public void OverrideChunkState(ChunkState chunkState)
+        {
+
+            chunkState = chunkState;
+
+        }
+        public void OverrideMeshState(MeshState meshState)
+        {
+
+            meshState = meshState;
+
+        }
         public MeshState GetMeshState()
         {
 
-            return MeshState;
+            return meshState;
 
         }
 
         public GenerationState GetGenerationState()
         {
 
-            return GenerationState;
+            return generationState;
 
         }
 
@@ -509,73 +676,64 @@ namespace opentk_proj.chunk
             return Blocks.GetBlockFromID(blockdata[xValue, yValue, zValue]);
 
         }
-
-        public int GetLightData(int x, int y, int z)
-        {
-
-            if (x < 0 || y < 0 || z < 0 || x >= size || y >= size || z >= size)
-            {
-
-                return 0;
-
-            }
-            return LightData[x, y, z];
-
-        }
         public Block GetBlock(int x, int y, int z)
         {
 
-            return Blocks.GetBlockFromID(blockdata[x, y, z]);
+            return Blocks.GetBlockFromID(blockdata[x > size - 1 ? size - 1 : x < 0 ? 0 : x, y > size - 1 ? size - 1 : y < 0 ? 0 : y, z > size - 1 ? size - 1 : z < 0 ? 0 : z]);
 
         }
         public void SetBlock(Block block, int x, int y, int z)
         {
 
-            blockdata[x, y, z] = Blocks.GetIDFromBlock(block);
+            lock (ChunkLock)
+            {
+
+                blockdata[x, y, z] = Blocks.GetIDFromBlock(block);
+
+            }
 
         }
-        public void InsertBlock(Block block, int x, int y, int z)
+        public void InsertBlock(List<ChunkVertex> MeshDataList, Block block, int x, int y, int z)
         {
 
-            if (CheckAir(x,y,z+1))
+            if (GetBlockOverrided(x,y,z+1) == Blocks.Air)// CheckAir(x, y, z + 1))// CheckAir(x, y, z + 1))
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x, y, z, GetLightData(x,y,z+1)));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x, y, z, 1));
 
             }
-            if (CheckAir(x,y, z-1))
+            if (GetBlockOverrided(x, y, z - 1) == Blocks.Air)
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.FrontFace, x, y, z,GetLightData(x,y,z-1)));
-
-            }
-
-            if (CheckAir(x+1, y, z))
-            {
-
-                MeshDataList.AddRange(Block.GetFaceShifted(block.LeftFace, x, y, z,GetLightData(x+1,y,z)));
-
-            }
-            if (CheckAir(x-1, y, z))
-            {
-
-                MeshDataList.AddRange(Block.GetFaceShifted(block.RightFace, x, y, z,GetLightData(x-1,y,z)));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.FrontFace, x, y, z, 1));
 
             }
 
-            if (CheckAir(x, y+1, z))
+            if (GetBlockOverrided(x + 1, y, z) == Blocks.Air)
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.TopFace, x, y, z,GetLightData(x,y+1,z)));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.LeftFace, x, y, z, 1));
 
             }
-            if (CheckAir(x, y-1, z))
+            if (GetBlockOverrided(x - 1, y, z) == Blocks.Air)
             {
 
-                MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z,GetLightData(x,y-1,z)));
+                MeshDataList.AddRange(Block.GetFaceShifted(block.RightFace, x, y, z, 1));
 
             }
 
+            if (GetBlockOverrided(x, y + 1, z) == Blocks.Air)
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.TopFace, x, y, z, 1));
+
+            }
+            if (GetBlockOverrided(x, y - 1, z) == Blocks.Air)
+            {
+
+                MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z, 1));
+
+            }
 
         }
         public bool CheckAir(int x, int y, int z)
@@ -584,10 +742,10 @@ namespace opentk_proj.chunk
             if (x > size - 1 || x < 0 || y > size - 1 || y < 0 || z > size - 1 || z < 0)
             {
 
-                return true;
+               return true;
 
             }
-            if (blockdata[x > size-1 ? size-1 : x < 0 ? 0 : x,y > size-1 ? size-1 : y < 0 ? 0 : y,z > size - 1 ? size-1 : z < 0 ? 0 : z] == Blocks.GetIDFromBlock(Blocks.Air))
+            if (blockdata[x > size - 1 ? size - 1 : x < 0 ? 0 : x, y > size - 1 ? size - 1 : y < 0 ? 0 : y, z > size - 1 ? size - 1 : z < 0 ? 0 : z] == Blocks.GetIDFromBlock(Blocks.Air))
             {
 
                 return true;
@@ -636,6 +794,8 @@ namespace opentk_proj.chunk
         }
         public void Draw(Shader shader, Camera camera, float time)
         {
+
+            // Console.WriteLine(vao);
 
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "atlas"), 0);

@@ -1,12 +1,6 @@
 ﻿using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace opentk_proj.util
+namespace Blockgame_OpenTK.Util
 {
     internal class DeltaTime
     {

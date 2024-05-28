@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System;
 
-namespace opentk_proj
+namespace Blockgame_OpenTK.Util
 {
     internal class Maths
     {
@@ -10,6 +10,20 @@ namespace opentk_proj
         {
 
             return ((value) * (max - min)) + min;
+
+        }
+
+        public static int ChebyshevDistance3D(Vector3 pointA, Vector3 pointB)
+        {
+
+            return (int)(Math.Max(pointB.X - pointA.X, Math.Max(pointB.Y - pointA.Y, pointB.Z - pointA.Z)));
+
+        }
+
+        public static int ManhattanDistance3D(Vector3 pointA, Vector3 pointB)
+        {
+
+            return (int)Math.Abs(pointA.X - pointB.X) + (int)Math.Abs(pointA.Y - pointB.Y) + (int)Math.Abs(pointA.Z - pointB.Z);
 
         }
         public static float Dist(float x1, float y1, float x2, float y2)
