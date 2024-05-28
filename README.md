@@ -7,13 +7,7 @@ A vision and in-progress game that is similar to Hytale or Minecraft with mods.
 
 My game is going to be similar to Minecraft, but with added features and implementations that strive away from Minecraft itself
 
-## My Vision
-
-BlockGame will have its main core at being a voxel game. Here is what I envision it to be.
-
-## Features
-
-[Minecraft](https://minecraft.net) with a mixture of [Hytale](https://hytale.com/).
+## Planned Features
 
 Aspects of the game will be similar to mods that I have played with and love:
 
@@ -22,8 +16,6 @@ Aspects of the game will be similar to mods that I have played with and love:
 - [Tough As Nails](https://www.curseforge.com/minecraft/mc-mods/tough-as-nails)
 - [Better Foliage](https://www.curseforge.com/minecraft/mc-mods/better-foliage)
 - [Serene Seasons](https://www.curseforge.com/minecraft/mc-mods/serene-seasons)
-
-**All of the code involving the aspect of these mods will be *Written only by me*.**
 
 ## Things I plan on putting in the game (technical features or features that might not be inputted into the game)
 
