@@ -416,14 +416,98 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static Vector3 PositionToChunkBounds(Vector3 position)
         {
 
-            return (position.X % Globals.ChunkSize, position.Y % Globals.ChunkSize, position.Z % Globals.ChunkSize);
+            Vector3 PositionBlock = Vector3.Zero;
+
+            if (position.X >= 0)
+            {
+
+                PositionBlock.X = position.X % Globals.ChunkSize;
+
+            }
+            if (position.Y >= 0)
+            {
+
+                PositionBlock.Y = position.Y % Globals.ChunkSize;
+
+            }
+            if (position.Z >= 0)
+            {
+
+                PositionBlock.Z = position.Z % Globals.ChunkSize;
+
+            }
+
+            if (position.X < 0)
+            {
+
+                PositionBlock.X = (Globals.ChunkSize - 1) - Math.Abs(position.X) % Globals.ChunkSize;
+
+            }
+            if (position.Y < 0)
+            {
+
+                PositionBlock.Y = (Globals.ChunkSize - 1) - Math.Abs(position.Y) % Globals.ChunkSize;
+
+            }
+            if (position.Z < 0)
+            {
+
+                PositionBlock.Z = (Globals.ChunkSize - 1) - Math.Abs(position.Z) % Globals.ChunkSize;
+
+            }
+
+            return PositionBlock;
+
+            // return (position.X % Globals.ChunkSize, position.Y % Globals.ChunkSize, position.Z % Globals.ChunkSize);
 
         }
 
-        public static Vector3 PositionToBlockLocalToChunk(Vector3 position)
+        public static Vector3 PositionToBlockLocal(Vector3 position)
         {
 
-            return ((float)Math.Floor(position.X) % Globals.ChunkSize, (float)Math.Floor(position.Y) % Globals.ChunkSize, (float)Math.Floor(position.Z) % Globals.ChunkSize);
+            Vector3 PositionBlock = Vector3.Zero;
+
+            if (position.X >= 0)
+            {
+
+                PositionBlock.X = (float)Math.Floor(position.X) % Globals.ChunkSize;
+
+            }
+            if (position.Y >= 0)
+            {
+
+                PositionBlock.Y = (float)Math.Floor(position.Y) % Globals.ChunkSize;
+
+            }
+            if (position.Z >= 0)
+            {
+
+                PositionBlock.Z = (float)Math.Floor(position.Z) % Globals.ChunkSize;
+
+            }
+
+            if (position.X < 0)
+            {
+
+                PositionBlock.X = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.X)) % Globals.ChunkSize);
+
+            }
+            if (position.Y < 0)
+            {
+
+                PositionBlock.Y = (Globals.ChunkSize - 1) - ((float)Math.Floor(Math.Abs(position.Y)) % Globals.ChunkSize);
+
+            }
+            if (position.Z < 0)
+            {
+
+                PositionBlock.Z = (Globals.ChunkSize - 1) - ((float)Math.Floor(Math.Abs(position.Z)) % Globals.ChunkSize);
+
+            }
+
+            return PositionBlock;
+
+            // return ((float)Math.Floor(position.X) % Globals.ChunkSize, (float)Math.Floor(position.Y) % Globals.ChunkSize, (float)Math.Floor(position.Z) % Globals.ChunkSize);
 
         }
         

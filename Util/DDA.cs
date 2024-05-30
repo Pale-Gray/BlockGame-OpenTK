@@ -1,8 +1,8 @@
 ﻿using OpenTK.Mathematics;
-using System;
 using System.Collections.Generic;
 
 using Blockgame_OpenTK.ChunkUtil;
+using System;
 using Blockgame_OpenTK.BlockUtil;
 
 namespace Blockgame_OpenTK.Util
@@ -10,120 +10,141 @@ namespace Blockgame_OpenTK.Util
     internal class DDA
     {
 
-        public static Vector3 HitPoint = Vector3.Zero;
-        public static List<Vector3> pos = new List<Vector3>();
+        public static Vector3 FinalPosition = Vector3.Zero;
 
-        public static void Trace(Chunk chunk, Vector3 position, Vector3 direction, float maxSteps)
+        public static Vector3 HitLocal = Vector3.Zero;
+        public static Vector3 HitGlobal = Vector3.Zero;
+        public static Vector3 SmoothHit = Vector3.Zero;
+        public static Vector3 SmoothPosition = Vector3.Zero;
+
+        public static void Trace(Dictionary<Vector3, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
-            // Vector3 LocalPosition = ChunkUtils.PositionToChunkBounds(position);
-            Vector3 PositionInteger = ChunkUtils.PositionToBlockGlobal(position);
-            Vector3 LocalPosition = ChunkUtils.PositionToBlockLocalToChunk(PositionInteger);
-            Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
-            Vector3 Step = Vector3.Zero;
+            Vector3i Step = Vector3i.Zero;
             Vector3 SideDistance = Vector3.Zero;
+            Vector3i BlockPositionGlobal = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
+            Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(position);
+            Vector3i ChunkPosition = (Vector3i)ChunkUtils.PositionToChunk(position);
+            Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
+            Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
+            float Distance = 0;
+
             if (direction.X < 0)
             {
 
                 Step.X = -1;
-                SideDistance.X = (position.X - PositionInteger.X) * DeltaDistance.X;
+                SideDistance.X = (ChunkPositionBounds.X - BlockPositionLocal.X) * DeltaDistance.X;
 
-            } else
+            }
+            if (direction.X >= 0)
             {
 
                 Step.X = 1;
-                SideDistance.X = (PositionInteger.X + 1 - position.X) * DeltaDistance.X;
+                SideDistance.X = (BlockPositionLocal.X + 1f - ChunkPositionBounds.X) * DeltaDistance.X;
 
             }
             if (direction.Y < 0)
             {
 
                 Step.Y = -1;
-                SideDistance.Y = (position.Y - PositionInteger.Y) * DeltaDistance.Y;
+                SideDistance.Y = (ChunkPositionBounds.Y - BlockPositionLocal.Y) * DeltaDistance.Y;
 
             }
-            else
+            if (direction.Y >= 0)
             {
 
                 Step.Y = 1;
-                SideDistance.Y = (PositionInteger.Y + 1 - position.Y) * DeltaDistance.Y;
+                SideDistance.Y = (BlockPositionLocal.Y + 1f - ChunkPositionBounds.Y) * DeltaDistance.Y;
 
             }
             if (direction.Z < 0)
             {
 
                 Step.Z = -1;
-                SideDistance.Z = (position.Z - PositionInteger.Z) * DeltaDistance.Z;
+                SideDistance.Z = (ChunkPositionBounds.Z - BlockPositionLocal.Z) * DeltaDistance.Z;
 
             }
-            else
+            if (direction.Z >= 0)
             {
 
                 Step.Z = 1;
-                SideDistance.Z = (PositionInteger.Z + 1 - position.Z) * DeltaDistance.Z;
+                SideDistance.Z = (BlockPositionLocal.Z + 1f - ChunkPositionBounds.Z) * DeltaDistance.Z;
 
             }
 
-            Console.WriteLine(Step);
+            // Console.WriteLine("Step: {0}, BPG: {1}, BPL: {2}, CHP: {3}, CHPB: {4}", Step, BlockPositionGlobal, BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
 
-            // Console.WriteLine(PositionInteger + ", " + LocalPosition);
+            // Console.WriteLine("BP: {0}, BPL: {1}", BlockPositionLocal, ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
 
-            float d = 0;
+            Console.WriteLine("{0}, {1}", BlockPositionLocal, ChunkPosition);
 
-            List<Vector3> positions = new List<Vector3>();
+            HitLocal = Vector3.Zero;
+            HitGlobal = Vector3.Zero;
+            SmoothHit = Vector3.Zero;
 
             for (int i = 0; i < maxSteps; i++)
             {
 
-                if (chunk.GetBlock((int)LocalPosition.X, (int)LocalPosition.Y, (int)LocalPosition.Z) != Blocks.Air) { continue; }
-
-                if (SideDistance.X < SideDistance.Y)
+                if (ChunkLoader.GetChunk(ChunkPosition).GetBlock(BlockPositionLocal) != Blocks.Air)
                 {
 
-                    if (SideDistance.X < SideDistance.Z)
+                    HitLocal = BlockPositionLocal;
+                    HitGlobal = BlockPositionLocal + (Globals.ChunkSize * ChunkPosition);
+                    SmoothHit = SideDistance;
+                    SmoothPosition = position + direction * Distance;
+
+                } else
+                {
+
+                    if (SideDistance.X < SideDistance.Y)
                     {
 
-                        d = SideDistance.X;
-                        SideDistance.X += DeltaDistance.X;
-                        PositionInteger.X += Step.X;
-                        positions.Add(PositionInteger);
+                        if (SideDistance.X < SideDistance.Z)
+                        {
+
+                            Distance = SideDistance.X;
+                            SideDistance.X += DeltaDistance.X;
+                            BlockPositionLocal.X += Step.X;
+
+                        }
+                        else
+                        {
+
+                            Distance = SideDistance.Z;
+                            SideDistance.Z += DeltaDistance.Z;
+                            BlockPositionLocal.Z += Step.Z;
+
+                        }
 
                     }
                     else
                     {
-                        d = SideDistance.Z;
-                        SideDistance.Z += DeltaDistance.Z;
-                        PositionInteger.Z += Step.Z;
-                        positions.Add(PositionInteger);
-                    }
 
-                }
-                else
-                {
+                        if (SideDistance.Y < SideDistance.Z)
+                        {
 
-                    if (SideDistance.Y < SideDistance.Z)
-                    {
-                        d = SideDistance.Y;
-                        SideDistance.Y += DeltaDistance.Y;
-                        PositionInteger.Y += Step.Y;
-                        positions.Add(PositionInteger);
-                    } else
-                    {
+                            Distance = SideDistance.Y;
+                            SideDistance.Y += DeltaDistance.Y;
+                            BlockPositionLocal.Y += Step.Y;
 
-                        d = SideDistance.Z;
-                        SideDistance.Z += DeltaDistance.Z;
-                        PositionInteger.Z += Step.Z;
-                        positions.Add(PositionInteger);
+                        }
+                        else
+                        {
+
+                            Distance = SideDistance.Z;
+                            SideDistance.Z += DeltaDistance.Z;
+                            BlockPositionLocal.Z += Step.Z;
+
+                        }
+
                     }
 
                 }
 
-                // Console.WriteLine(Blocks.GetIDFromBlock(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(position)).GetBlock((int)LocalPosition.X, (int)LocalPosition.Y, (int)LocalPosition.Z)));
+                // Console.WriteLine(ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
 
             }
 
-            HitPoint = PositionInteger;
-            pos = positions;
         }
 
     }

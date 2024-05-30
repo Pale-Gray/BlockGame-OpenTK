@@ -445,6 +445,8 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                         float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
 
+                        float val = GetNoise3D(x, y, z);
+
                         if (globalY <= value - r.Next(4, 10))
                         {
 
@@ -472,6 +474,15 @@ namespace Blockgame_OpenTK.ChunkUtil
                             }
 
                         }
+
+                        SetBlock(Blocks.Dirt, 0, 0, 0);
+                        SetBlock(Blocks.Dirt, 31, 0, 0);
+                        SetBlock(Blocks.Dirt, 0, 0, 31);
+                        SetBlock(Blocks.Dirt, 31, 0, 31);
+                        SetBlock(Blocks.Dirt, 0, 31, 0);
+                        SetBlock(Blocks.Dirt, 31, 31, 0);
+                        SetBlock(Blocks.Dirt, 0, 31, 31);
+                        SetBlock(Blocks.Dirt, 31, 31, 31);
 
                     }
 
@@ -509,7 +520,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
             lock (ChunkLock)
             {
-
+                
                 MeshData = MeshDataList.ToArray();
 
             }
@@ -674,6 +685,17 @@ namespace Blockgame_OpenTK.ChunkUtil
             int zValue = z - (cz * size);
 
             return Blocks.GetBlockFromID(blockdata[xValue, yValue, zValue]);
+
+        }
+
+        public Block GetBlock(Vector3 position)
+        {
+
+            int x = (int)position.X;
+            int y = (int)position.Y;
+            int z = (int)position.Z;
+
+            return Blocks.GetBlockFromID(blockdata[x > size - 1 ? size - 1 : x < 0 ? 0 : x, y > size - 1 ? size - 1 : y < 0 ? 0 : y, z > size - 1 ? size - 1 : z < 0 ? 0 : z]);
 
         }
         public Block GetBlock(int x, int y, int z)

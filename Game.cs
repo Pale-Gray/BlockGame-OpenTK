@@ -13,6 +13,9 @@ using Blockgame_OpenTK.ChunkUtil;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.FramebufferUtil;
+using System.Linq;
+using Blockgame_OpenTK.BlockUtil;
+using System.Text.Json;
 
 namespace Blockgame_OpenTK
 {
@@ -20,7 +23,7 @@ namespace Blockgame_OpenTK
     {
         public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug }) { }
 
-        float[] verts = {
+        public static float[] verts = {
 
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // front
              0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -152,7 +155,8 @@ namespace Blockgame_OpenTK
         int vao;
 
         float speed = 2.0f;
-        Vector3 cposition = new Vector3(0.0f, 0.0f, 0.0f);
+        // Vector3 cposition = new Vector3(10000000.0f, 0.0f, 10000000.0f);
+        Vector3 cposition = (0, 0, 0);
         Vector3 cfront = new Vector3(0.0f, 0.0f, -1.0f);
         Vector3 cup = new Vector3(0.0f, 1.0f, 0.0f);
 
@@ -416,7 +420,7 @@ namespace Blockgame_OpenTK
 
             // chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
-            rmodel = new Model(verts, "debug.png", "model.vert", "model.frag");
+            rmodel = new Model(verts, "hitbox.png", "hitbox.vert", "hitbox.frag");
             hitdisplay = new Model(verts, "debug.png", "model.vert", "model.frag");
             xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
 
@@ -520,17 +524,21 @@ namespace Blockgame_OpenTK
             // ChunkLoader.GenerateThreadedFilledColumns(16, camera.position);
             ChunkLoader.GenerateThreaded(25, camera.position);
             ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, camera, (float)time);
-            // DDA.Trace(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(camera.position)), camera.position, camera.front.Normalized(), 15);
-            // Console.WriteLine(DDA.HitPoint);
-            
-            // rmodel.Draw(DDA.HitPoint - (0.5f,0.5f,0.5f), camera, (float)time);
-            // Console.WriteLine(DDA.HitPoint);
-            //  Console.WriteLine(camera.front);
+
+            DDA.Trace(ChunkLoader.ChunkDictionary, camera.position, camera.front, 10);
+
+            GL.Disable(EnableCap.DepthTest);
+            rmodel.Draw(DDA.HitGlobal + (0.5f,0.5f,0.5f), camera, (float)time);
+            rmodel.SetScale(0.2f,0.2f,0.2f);
+            rmodel.Draw(DDA.SmoothPosition, camera, (float)time);
+            // hitdisplay.Draw((0,0,0), camera, (float)time);
+            TestElement.Draw();
+            GL.Enable(EnableCap.DepthTest);
 
             // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
             // Console.WriteLine(DDA.HitPoint);
             Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.position);
-            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocalToChunk(camera.position);
+            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.position);
             Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.position);
             // Console.WriteLine("The camera resides at chunk {0} with local block at {1} and global block at {2}", CameraAtChunk, CameraAtBlockLocal, CameraAtBlockGlobal);
 
@@ -619,7 +627,7 @@ namespace Blockgame_OpenTK
 
             sw.Stop();
             // Console.WriteLine("Finished frame in " + sw.ElapsedMilliseconds + " ms. FPS: " + (1000f/sw.ElapsedMilliseconds));
-            Globals.FrameInformation = "Ft: " + sw.ElapsedMilliseconds + "ms. Fps: " + (1000f / sw.ElapsedMilliseconds);
+            Globals.FrameInformation = "Ft: " + sw.ElapsedMilliseconds + "ms. campos: " + (Vector3i) cposition;
 
             SwapBuffers();
 

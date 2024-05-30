@@ -1,10 +1,26 @@
 ﻿using System;
-
+using System.Text.Json;
 using Blockgame_OpenTK.ChunkUtil;
 using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
+
+    public enum BlockFace
+    {
+
+        Up,
+        Down,
+        Left,
+        Right,
+        Front,
+        Back,
+        All,
+        Sides,
+        Tops
+
+    }
+
     internal class Block
     {
 
@@ -15,6 +31,9 @@ namespace Blockgame_OpenTK.BlockUtil
         public ChunkVertex[] LeftFace = new ChunkVertex[6];
         public ChunkVertex[] TopFace = new ChunkVertex[6];
         public ChunkVertex[] BottomFace = new ChunkVertex[6];
+
+        public static string H = "hi";
+        public static string H2 = H == "hi" ? "e" : "a";
         public Block(string name)
         {
 
@@ -27,12 +46,7 @@ namespace Blockgame_OpenTK.BlockUtil
             Array.Copy(Faces.TopFace, TopFace, Faces.TopFace.Length);
             Array.Copy(Faces.BottomFace, BottomFace, Faces.BottomFace.Length);
 
-            // FrontFace = Faces.FrontFace;
-            // RightFace = Faces.RightFace;
-            // BackFace = Faces.BackFace;
-            // LeftFace = Faces.LeftFace;
-            // TopFace = Faces.TopFace;
-            // BottomFace = Faces.BottomFace;
+            // JsonSerializer.Serialize(this, new JsonSerializerOptions() { WriteIndented = true });
 
         }
 
@@ -46,7 +60,6 @@ namespace Blockgame_OpenTK.BlockUtil
         public Block SetFaceTexture(int x, int y, params int[] index)
         {
 
-            
             foreach (int i in index)
             {
 
@@ -110,10 +123,6 @@ namespace Blockgame_OpenTK.BlockUtil
             face[3].TextureCoordinates = (Globals.AtlasTexture.RatioX + Globals.AtlasTexture.RatioY * x, 1 - Globals.AtlasTexture.RatioY - (Globals.AtlasTexture.RatioY * y));
             face[4].TextureCoordinates = (Globals.AtlasTexture.RatioX + Globals.AtlasTexture.RatioY * x, 1 - Globals.AtlasTexture.RatioY * y);
             face[5].TextureCoordinates = (Globals.AtlasTexture.RatioX * x, 1 - Globals.AtlasTexture.RatioY * y);
-
-            // face[0].U = Globals.Ratio * x; face[0].V = 1 - Globals.Ratio * y;
-            // face[1].U = Globals.Ratio * x; face[1].V = 1 - Globals.Ratio - (Globals.Ratio * y);
-            // face[2].U = Globals.Ratio + Globals.Ratio * x; face[2].V = 1 - Globals.Ratio - (Globals.Ratio * y);
 
         }
 

@@ -39,7 +39,7 @@ namespace Blockgame_OpenTK.Gui
         Shader FontShader;
         // NOTE can be in Globals class
         Camera Camera = new Camera((0.0f, 0.0f, 1.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
-        Vector3 FontColor = (1, 1, 1);
+        Vector3 FontColor = (0, 0, 0);
         Vector2 CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
 
         Matrix4 model;
