@@ -440,19 +440,19 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (position.X < 0)
             {
 
-                PositionBlock.X = (Globals.ChunkSize - 1) - Math.Abs(position.X) % Globals.ChunkSize;
+                PositionBlock.X = (Globals.ChunkSize) - Math.Abs(position.X) % Globals.ChunkSize;
 
             }
             if (position.Y < 0)
             {
 
-                PositionBlock.Y = (Globals.ChunkSize - 1) - Math.Abs(position.Y) % Globals.ChunkSize;
+                PositionBlock.Y = (Globals.ChunkSize) - Math.Abs(position.Y) % Globals.ChunkSize;
 
             }
             if (position.Z < 0)
             {
 
-                PositionBlock.Z = (Globals.ChunkSize - 1) - Math.Abs(position.Z) % Globals.ChunkSize;
+                PositionBlock.Z = (Globals.ChunkSize) - Math.Abs(position.Z) % Globals.ChunkSize;
 
             }
 
@@ -495,13 +495,13 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (position.Y < 0)
             {
 
-                PositionBlock.Y = (Globals.ChunkSize - 1) - ((float)Math.Floor(Math.Abs(position.Y)) % Globals.ChunkSize);
+                PositionBlock.Y = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.Y)) % Globals.ChunkSize);
 
             }
             if (position.Z < 0)
             {
 
-                PositionBlock.Z = (Globals.ChunkSize - 1) - ((float)Math.Floor(Math.Abs(position.Z)) % Globals.ChunkSize);
+                PositionBlock.Z = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.Z)) % Globals.ChunkSize);
 
             }
 

@@ -528,6 +528,7 @@ namespace Blockgame_OpenTK
             DDA.Trace(ChunkLoader.ChunkDictionary, camera.position, camera.front, 10);
 
             GL.Disable(EnableCap.DepthTest);
+            rmodel.SetScale(1, 1, 1);
             rmodel.Draw(DDA.HitGlobal + (0.5f,0.5f,0.5f), camera, (float)time);
             rmodel.SetScale(0.2f,0.2f,0.2f);
             rmodel.Draw(DDA.SmoothPosition, camera, (float)time);

@@ -26,6 +26,7 @@ namespace Blockgame_OpenTK.Util
             Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(position);
             Vector3i ChunkPosition = (Vector3i)ChunkUtils.PositionToChunk(position);
             Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
+            // Console.WriteLine(ChunkPositionBounds);
             Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
             float Distance = 0;
 
@@ -72,15 +73,12 @@ namespace Blockgame_OpenTK.Util
 
             }
 
-            // Console.WriteLine("Step: {0}, BPG: {1}, BPL: {2}, CHP: {3}, CHPB: {4}", Step, BlockPositionGlobal, BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
-
-            // Console.WriteLine("BP: {0}, BPL: {1}", BlockPositionLocal, ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
-
-            Console.WriteLine("{0}, {1}", BlockPositionLocal, ChunkPosition);
-
             HitLocal = Vector3.Zero;
             HitGlobal = Vector3.Zero;
             SmoothHit = Vector3.Zero;
+            SmoothPosition = Vector3.Zero;
+
+            Console.WriteLine("{0}, {1}, {2}", BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
 
             for (int i = 0; i < maxSteps; i++)
             {
@@ -89,7 +87,7 @@ namespace Blockgame_OpenTK.Util
                 {
 
                     HitLocal = BlockPositionLocal;
-                    HitGlobal = BlockPositionLocal + (Globals.ChunkSize * ChunkPosition);
+                    HitGlobal = BlockPositionLocal + (ChunkPosition * Globals.ChunkSize);
                     SmoothHit = SideDistance;
                     SmoothPosition = position + direction * Distance;
 
