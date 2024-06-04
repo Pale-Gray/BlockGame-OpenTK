@@ -97,9 +97,9 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static Chunk GetChunkFromWorldPosition(Camera camera)
         {
 
-            int x = (int) Math.Floor(camera.position.X / 32);
-            int y = (int)Math.Floor(camera.position.Y / 32);
-            int z = (int)Math.Floor(camera.position.Z / 32);
+            int x = (int) Math.Floor(camera.Position.X / 32);
+            int y = (int)Math.Floor(camera.Position.Y / 32);
+            int z = (int)Math.Floor(camera.Position.Z / 32);
 
             try
             {
@@ -578,7 +578,22 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static bool ContainsChunk(Vector3 position)
         {
 
+
             return ChunkDictionary.ContainsKey(position);
+
+        }
+
+        public static bool ContainsGeneratedChunk(Vector3 position)
+        {
+
+            if (ContainsChunk(position) && GetChunk(position).GetGenerationState() == GenerationState.Generated)
+            {
+
+                return true;
+
+            }
+
+            return false;
 
         }
         public static Chunk GetChunk(Vector3 position)

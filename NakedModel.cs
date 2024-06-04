@@ -74,8 +74,8 @@ namespace Blockgame_OpenTK
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);

@@ -266,9 +266,9 @@ namespace Blockgame_OpenTK.Util
             RHitPositionZYX = RZYXIntersect;
             RHitPositionYXZ = RYXZIntersect;
 
-            XIntersect = camera.front.X < 0 ? RHitPositionXYZ : HitPositionXYZ;
-            YIntersect = camera.front.Y < 0 ? RHitPositionYXZ : HitPositionYXZ;
-            ZIntersect = camera.front.Z < 0 ? RHitPositionZYX : HitPositionZYX;
+            XIntersect = camera.ForwardVector.X < 0 ? RHitPositionXYZ : HitPositionXYZ;
+            YIntersect = camera.ForwardVector.Y < 0 ? RHitPositionYXZ : HitPositionYXZ;
+            ZIntersect = camera.ForwardVector.Z < 0 ? RHitPositionZYX : HitPositionZYX;
 
             // Vector3.min
             // Intersect = Vector3.ComponentMin(Vector3.ComponentMin(XIntersect, YIntersect), ZIntersect);

@@ -129,8 +129,8 @@ namespace Blockgame_OpenTK.Gui
             GL.BindTexture(TextureTarget.Texture2D, Texture.getID());
 
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "model"), true, ref Model);
-            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "view"), true, ref Camera.view);
-            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "projection"), true, ref Camera.projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "view"), true, ref Camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "projection"), true, ref Camera.ProjectionMatrix);
 
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);

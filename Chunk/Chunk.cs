@@ -475,15 +475,6 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                         }
 
-                        SetBlock(Blocks.Dirt, 0, 0, 0);
-                        SetBlock(Blocks.Dirt, 31, 0, 0);
-                        SetBlock(Blocks.Dirt, 0, 0, 31);
-                        SetBlock(Blocks.Dirt, 31, 0, 31);
-                        SetBlock(Blocks.Dirt, 0, 31, 0);
-                        SetBlock(Blocks.Dirt, 31, 31, 0);
-                        SetBlock(Blocks.Dirt, 0, 31, 31);
-                        SetBlock(Blocks.Dirt, 31, 31, 31);
-
                     }
 
                 }
@@ -571,6 +562,29 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        public void SetBlockRewrite(Block block, Vector3i coordinates)
+        {
+
+            GL.DeleteBuffer(vbo);
+            GL.DeleteVertexArray(vao);
+
+            int x = coordinates.X;
+            int y = coordinates.Y;
+            int z = coordinates.Z;
+
+            // blockdata[x, y, z] = Blocks.GetIDFromBlock(block);
+            SetBlock(block,x,y,z);
+            Remesh();
+
+        }
+
+        public void Remesh()
+        {
+
+            GenerateMesh();
+            ProcessToRender();
+
+        }
         public ChunkState GetChunkState()
         {
             return chunkState;
@@ -821,12 +835,12 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "atlas"), 0);
-            GL.Uniform3(GL.GetUniformLocation(shader.id, "cameraPosition"), camera.position);
+            GL.Uniform3(GL.GetUniformLocation(shader.id, "cameraPosition"), camera.Position);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Globals.AtlasTexture.getID());
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.view);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);

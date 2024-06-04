@@ -29,7 +29,7 @@ namespace Blockgame_OpenTK.Gui
     internal class FontRenderer
     {
 
-        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"': ".ToArray();
+        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"':- ".ToArray();
         Vector2 CharDimension = (8, 8);
         Vector2 CharRenderDimension;
         Vector2 RelativePosition;
@@ -108,8 +108,8 @@ namespace Blockgame_OpenTK.Gui
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, FontTexture.getID());
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "view"), true, ref Camera.view);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "projection"), true, ref Camera.projection);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "view"), true, ref Camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "projection"), true, ref Camera.ProjectionMatrix);
             GL.Uniform1(GL.GetUniformLocation(FontShader.getID(), "time"), (float)Globals.Time);
             GL.Uniform3(GL.GetUniformLocation(FontShader.getID(), "fontColor"), ref FontColor);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);

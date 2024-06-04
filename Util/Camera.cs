@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using System;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -12,90 +13,117 @@ namespace Blockgame_OpenTK.Util
     internal class Camera
     {
 
-        public Vector3 position;
-        public Vector3 up;
-        public Vector3 front;
+        public Vector3 Position;
+        public Vector3 UpVector;
+        public Vector3 ForwardVector;
 
-        public Matrix4 projection;
-        public Matrix4 view;
+        public Matrix4 ProjectionMatrix;
+        public Matrix4 ViewMatrix;
 
-        public float yaw;
-        public float pitch;
-        public float roll;
-        public float fov;
+        public float Fov = 90;
+        public CameraType CameraType;
 
-        public const int Orthographic = 0;
-        public const int Perspective = 1;
-        public CameraType type;
+        public float Yaw = 0;
+        public float Pitch = 0;
+        public float Roll = 0;
 
-        public Camera(Vector3 position, Vector3 front, Vector3 up, CameraType type, float fov)
+        public Camera(Vector3 position, Vector3 forwards, Vector3 up, CameraType type, float fov)
         {
 
-            this.position = position;
-            this.front = front;
-            this.up = up;
-            this.type = type;
-            this.fov = fov;
+            Position = position;
+            ForwardVector = forwards;
+            UpVector = up;
+            CameraType = type;
+            Fov = fov;
 
-            switch (type)
+            switch (CameraType)
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }
 
             // sets in case you dont use Update() but won't update the view matrix of course.
-            view = Matrix4.LookAt(position, position + front, up);
+            ViewMatrix = Matrix4.LookAt(position, position + forwards, up);
 
         }
 
         public void UpdateProjectionMatrix()
         {
 
-            switch (type)
+            switch (CameraType)
             {
 
                 case CameraType.Orthographic:
-                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 default:
-                    projection = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }
 
         }
-        public void Update(Vector3 position, Vector3 front, Vector3 up, float yaw, float pitch, float roll)
+        public void Update(Vector3 position, Vector3 forwards, Vector3 up)
         {
 
-            // front.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
-            // front.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
-            // front.Z = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
-            // front = Vector3.Normalize(front);
 
-            this.front = front;
-            this.position = position;
-            this.up = up;
+            Position = position;
+            ForwardVector = forwards;
+            UpVector = up;
 
-            view = Matrix4.LookAt(position, position + front, up);
+            ViewMatrix = Matrix4.LookAt(position, position + forwards, up);
 
         }
 
-        public Matrix4 GetViewMatrix()
+        public void Update(Vector3 position)
         {
 
-            return view;
+            Vector2 MouseDelta = Globals.Mouse.Delta;
+
+            Yaw += MouseDelta.X;
+            Pitch -= MouseDelta.Y;
+
+            CalculateFrontFromYawPitch(Yaw, Pitch);
+            
+            Position = position;
+
+            ViewMatrix = Matrix4.LookAt(Position, Position + ForwardVector, UpVector);
+
+
+        }
+
+        public void CalculateFrontFromYawPitch(float yaw, float pitch)
+        {
+
+            ForwardVector.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
+            ForwardVector.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
+            ForwardVector.Z = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
+            ForwardVector = Vector3.Normalize(ForwardVector);
+        }
+
+        public void SetPosition(Vector3 position)
+        {
+
+            Position = position;
+
+        }
+
+        public void SetFov(float fov)
+        {
+
+            Fov = fov;
 
         }
 

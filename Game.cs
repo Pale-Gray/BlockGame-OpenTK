@@ -200,12 +200,12 @@ namespace Blockgame_OpenTK
 
         bool IsGrabbed = true;
 
-        Player player = new Player();
-
         double ft = 0;
         double fs = 0;
         Chunk c;
         Sun Sun;
+
+        Player Player;
 
         private static void OnDebugMessage(
     DebugSource source,     // Source of the debugging message.
@@ -236,7 +236,7 @@ namespace Blockgame_OpenTK
 
             base.OnUpdateFrame(args);
 
-            Globals.DeltaTime = DeltaTime.Get();
+            Globals.DeltaTime = args.Time;
             Globals.Time += Globals.DeltaTime;
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
@@ -251,7 +251,7 @@ namespace Blockgame_OpenTK
             {
 
                 Title = "fps [" + fs + "]";
-                text.UpdateText(Globals.FrameInformation);
+                // text.UpdateText(Globals.FrameInformation);
                 ft = 0;
                 fs = 0;
                 delay = 0;
@@ -277,6 +277,8 @@ namespace Blockgame_OpenTK
                     CursorState = CursorState.Grabbed;
                     float deltaX = mouse.X - lmpos.X;
                     float deltaY = mouse.Y - lmpos.Y;
+                    // Console.WriteLine((deltaX, deltaY));
+
                     lmpos = new Vector2(mouse.X, mouse.Y);
                     yaw += deltaX * sens;
                     pitch -= deltaY * sens;
@@ -344,6 +346,8 @@ namespace Blockgame_OpenTK
 
                 }
 
+                // Console.WriteLine(Globals.DeltaTime + ", " + args.Time);
+
                 if (k.IsKeyDown(Keys.W))
                 {
 
@@ -354,31 +358,32 @@ namespace Blockgame_OpenTK
                 if (k.IsKeyDown(Keys.S))
                 {
 
-                    cposition -= cfront * speed * (float)args.Time;
+                    cposition -= cfront * speed * (float)Globals.DeltaTime;
 
                 }
                 if (k.IsKeyDown(Keys.A))
                 {
 
-                    cposition -= Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
+                    cposition -= Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)Globals.DeltaTime);
 
                 }
                 if (k.IsKeyDown(Keys.D))
                 {
 
-                    cposition += Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)args.Time);
+                    cposition += Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)Globals.DeltaTime);
 
                 }
+                // Console.WriteLine("main delta: " + Globals.DeltaTime);
                 if (k.IsKeyDown(Keys.E))
                 {
 
-                    cposition += cup * speed * (float)args.Time;
+                    cposition += cup * speed * (float)Globals.DeltaTime;
 
                 }
                 if (k.IsKeyDown(Keys.Q))
                 {
 
-                    cposition -= cup * speed * (float)args.Time;
+                    cposition -= cup * speed * (float)Globals.DeltaTime;
 
                 }
 
@@ -398,6 +403,8 @@ namespace Blockgame_OpenTK
 
             }
 
+            Player.Update();
+
         }
         protected override void OnLoad()
         {
@@ -410,6 +417,8 @@ namespace Blockgame_OpenTK
             Globals.AtlasTexture = new TextureAtlas("atlas.png", 32);
             Globals.ChunkShader = new Shader("chunk.vert", "chunk.frag");
             Globals.DefaultShader = new Shader("default.vert", "default.frag");
+            Globals.Mouse = MouseState;
+            Globals.Keyboard = KeyboardState;
 
             // Thread.CurrentThread.Name = "MAIN";
 
@@ -476,6 +485,10 @@ namespace Blockgame_OpenTK
 
             Sun = new Sun("sun.png", 10);
 
+            Player = new Player();
+            Player.SetHeight(0);
+            Player.SetPosition((0, 0, 0));
+
             // ChunkLoader.GenerateChunksWithinRadius(18);
 
         }
@@ -497,7 +510,8 @@ namespace Blockgame_OpenTK
 
             Matrix4 view = Matrix4.LookAt(cposition, cposition + cfront, cup);
 
-            camera.Update(cposition, cfront, cup, yaw, pitch, roll);
+            camera.Update(cposition, cfront, cup);
+            // Player.Update();
             // etcW
             GL.Disable(EnableCap.DepthTest);
             GL.Disable(EnableCap.CullFace);
@@ -522,30 +536,37 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.DepthTest);
 
             // ChunkLoader.GenerateThreadedFilledColumns(16, camera.position);
-            ChunkLoader.GenerateThreaded(25, camera.position);
-            ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, camera, (float)time);
 
-            DDA.Trace(ChunkLoader.ChunkDictionary, camera.position, camera.front, 10);
+            ChunkLoader.GenerateThreaded(25, Player.Camera.Position);
+            ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, Player.Camera, (float)time);
+
+            // Player.GetBlockLooking(5);
+            // DDA.Trace(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 10);
+
+            DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 5);
+            //  Console.WriteLine(DDA.PositionAtHit);
+            // Console.WriteLine("cpos: {0}, blpos: {1}, bgpos: {2}, blposfrombgpos: {3}", ChunkUtils.PositionToChunk(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(Player.Camera.Position), ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
+            // Console.WriteLine("prtb: {0}, chnp: {1}, hit: {2}", DDA.RoundedPosition,DDA.ChunkAtHit, DDA.ChunkAtHit);
+            // Console.WriteLine("cam gl pos: {0} chunk pos from glblpos: {1}", ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToChunk(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
 
             GL.Disable(EnableCap.DepthTest);
             rmodel.SetScale(1, 1, 1);
-            rmodel.Draw(DDA.HitGlobal + (0.5f,0.5f,0.5f), camera, (float)time);
+            rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+            //rmodel.SetScale(1, 1, 1);
+            //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             rmodel.SetScale(0.2f,0.2f,0.2f);
-            rmodel.Draw(DDA.SmoothPosition, camera, (float)time);
+            rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
             // hitdisplay.Draw((0,0,0), camera, (float)time);
             TestElement.Draw();
             GL.Enable(EnableCap.DepthTest);
 
             // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
             // Console.WriteLine(DDA.HitPoint);
-            Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.position);
-            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.position);
-            Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.position);
-            // Console.WriteLine("The camera resides at chunk {0} with local block at {1} and global block at {2}", CameraAtChunk, CameraAtBlockLocal, CameraAtBlockGlobal);
+            Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.Position);
+            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.Position);
+            Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.Position);
 
-            // rmodel.Draw((CameraAtChunk * Globals.ChunkSize), camera, (float)time);
-            // rmodel.Draw(CameraAtBlockLocal + (0.5f, 0.5f, 0.5f), camera, (float)time);
-            // rmodel.Draw(CameraAtBlockGlobal + (0.5f, 0.5f, 0.5f), camera, (float)time);
+            // text.UpdateText("Player Position: " + ChunkUtils.PositionToBlockGlobal(Player.Camera.Position));
             text.Draw();
 
             if (debug)
@@ -555,7 +576,7 @@ namespace Blockgame_OpenTK
                 GL.Disable(EnableCap.DepthTest);
                 // GL.LineWidth(5f);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-                xyz_display.Draw(cposition + (cfront * 5), camera, (float)time);
+                xyz_display.Draw(Player.Camera.Position + (Player.Camera.ForwardVector * 5), Player.Camera, (float)time);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 GL.Enable(EnableCap.CullFace);
                 GL.Enable(EnableCap.DepthTest);
@@ -655,6 +676,7 @@ namespace Blockgame_OpenTK
             Globals.HEIGHT = e.Height;
 
             camera.UpdateProjectionMatrix();
+            Player.Camera.UpdateProjectionMatrix();
             TestElement.Update();
             text.Update();
             frameBuffer.UpdateAspect();

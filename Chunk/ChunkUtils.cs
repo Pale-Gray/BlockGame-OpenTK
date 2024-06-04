@@ -404,12 +404,52 @@ namespace Blockgame_OpenTK.ChunkUtil
             return Vectors.ToArray();
 
         }
-
-
         public static Vector3 PositionToChunk(Vector3 position)
         {
 
-            return ((float)Math.Floor(position.X/Globals.ChunkSize), (float)Math.Floor(position.Y/Globals.ChunkSize), (float)Math.Floor(position.Z/Globals.ChunkSize));
+            Vector3 Position = PositionToBlockGlobal(position);
+
+            Vector3 PositionChunk = Vector3.Zero;
+
+            if (position.X >= 0)
+            {
+
+                PositionChunk.X = (float) Math.Floor(Position.X / Globals.ChunkSize);
+
+            }
+            if (position.Y >= 0)
+            {
+
+                PositionChunk.Y = (float)Math.Floor(Position.Y / Globals.ChunkSize);
+
+            }
+            if (position.Z >= 0)
+            {
+
+                PositionChunk.Z = (float)Math.Floor(Position.Z / Globals.ChunkSize);
+
+            }
+            if (position.X < 0)
+            {
+
+                PositionChunk.X = (float) Math.Floor(position.X / Globals.ChunkSize);
+                // PositionChunk.X = (float) Math.Ceiling(Position.X / Globals.ChunkSize);
+
+            }
+            if (position.Y < 0)
+            {
+
+                PositionChunk.Y = (float)Math.Floor(position.Y / Globals.ChunkSize);
+
+            }
+            if (position.Z < 0)
+            {
+
+                PositionChunk.Z = (float)Math.Floor(position.Z / Globals.ChunkSize);
+
+            }
+
+            return PositionChunk;
 
         }
         
@@ -465,43 +505,48 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static Vector3 PositionToBlockLocal(Vector3 position)
         {
 
+
+            Vector3 Position = PositionToBlockGlobal(position);
+
             Vector3 PositionBlock = Vector3.Zero;
 
             if (position.X >= 0)
             {
 
-                PositionBlock.X = (float)Math.Floor(position.X) % Globals.ChunkSize;
+                PositionBlock.X = Position.X % Globals.ChunkSize;
 
             }
             if (position.Y >= 0)
             {
 
-                PositionBlock.Y = (float)Math.Floor(position.Y) % Globals.ChunkSize;
+                PositionBlock.Y = Position.Y % Globals.ChunkSize;
 
             }
             if (position.Z >= 0)
             {
 
-                PositionBlock.Z = (float)Math.Floor(position.Z) % Globals.ChunkSize;
+                PositionBlock.Z = Position.Z % Globals.ChunkSize;
 
             }
 
             if (position.X < 0)
             {
 
-                PositionBlock.X = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.X)) % Globals.ChunkSize);
+                
+                PositionBlock.X = (Globals.ChunkSize-1) + (Position.X+1) % Globals.ChunkSize;
+
 
             }
             if (position.Y < 0)
             {
 
-                PositionBlock.Y = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.Y)) % Globals.ChunkSize);
+                PositionBlock.Y = (Globals.ChunkSize - 1) + (Position.Y + 1) % Globals.ChunkSize;
 
             }
             if (position.Z < 0)
             {
 
-                PositionBlock.Z = (Globals.ChunkSize-1) - ((float)Math.Floor(Math.Abs(position.Z)) % Globals.ChunkSize);
+                PositionBlock.Z = (Globals.ChunkSize - 1) + (Position.Z + 1) % Globals.ChunkSize;
 
             }
 
@@ -517,11 +562,6 @@ namespace Blockgame_OpenTK.ChunkUtil
             return ((float)Math.Floor(position.X), (float)Math.Floor(position.Y), (float)Math.Floor(position.Z));
 
         }
-
-
-
-
-
         public static Vector3 getPlayerPositionRelativeToChunk(Vector3 position)
         {
 
@@ -540,9 +580,9 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static Vector3 GetPositionRelativeToChunkPosition(Camera camera)
         {
 
-            int x = (int)Math.Floor(camera.position.X / 32);
-            int y = (int)Math.Floor(camera.position.Y / 32);
-            int z = (int)Math.Floor(camera.position.Z / 32);
+            int x = (int)Math.Floor(camera.Position.X / 32);
+            int y = (int)Math.Floor(camera.Position.Y / 32);
+            int z = (int)Math.Floor(camera.Position.Z / 32);
 
             return (x, y, z);
 

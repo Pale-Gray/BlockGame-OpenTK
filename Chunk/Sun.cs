@@ -92,7 +92,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void Draw(Camera camera)
         {
 
-            SetPosition(camera.position);
+            SetPosition(camera.Position);
 
             ModelMatrix = ScaleMatrix * RotationMatrix * TranslationMatrix;
             // shader.Use();
@@ -102,9 +102,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.BindTexture(TextureTarget.Texture2D, SunTexture.getID());
             GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "model"), true, ref ModelMatrix);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "rotation"), true, ref r);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "view"), true, ref camera.view);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "projection"), true, ref camera.projection);
-            GL.Uniform3(GL.GetUniformLocation(Globals.DefaultShader.getID(), "cameraPosition"), ref camera.position);
+            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "view"), true, ref camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.Uniform3(GL.GetUniformLocation(Globals.DefaultShader.getID(), "cameraPosition"), ref camera.Position);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             // GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindTexture(TextureTarget.Texture2D, SunTexture.getID());

@@ -6,7 +6,7 @@
   "IsOpaque": true,
   "Textures": {
 
-    "BlockFace.All": [ 1, 0 ],
+    "BlockFace.All": [ 0, 0 ],
     "BlockFace.Top": [ 2, 0 ],
     "BlockFace.Bottom": [ 0, 0 ]
 

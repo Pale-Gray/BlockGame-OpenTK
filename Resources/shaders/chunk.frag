@@ -24,7 +24,10 @@ void main()
 
 	// FragColor = vec4(texture(atlas, vtexcoord).rgb * value, 1.0);
 	vec4 tex = texture(atlas, vtexcoord);
-	FragColor = vec4(tex.rgb * value, 1.0);
+	float edge = 0;
+	if (vposition.x > 0.1 && vposition.x < 31.9 && vposition.z > 0.1 && vposition.z < 31.9) {edge = 1;}
+
+	FragColor = vec4((tex.rgb * value) * edge, 1.0);
 	// FragColor = vec4(1,1,1, 1.0);
 
 	// FragColor = vec4(v_normal, 1);
