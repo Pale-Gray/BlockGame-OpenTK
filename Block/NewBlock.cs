@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.Util
+namespace Blockgame_OpenTK.BlockUtil
 {
-    internal class AxisAlignedBoudingBox
+    internal class NewBlock
     {
 
-        public AxisAlignedBoudingBox(float x, float y, float width, float height)
+
+        public NewBlock()
         {
 
 

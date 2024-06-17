@@ -13,4 +13,8 @@
     <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\Blocks\Models\" />
+  </ItemGroup>
+
 </Project>

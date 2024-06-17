@@ -196,6 +196,8 @@ namespace Blockgame_OpenTK
         Framebuffer frameBuffer;
         FramebufferQuad framebufferQuad;
 
+        TextureArray TextureArray = new TextureArray();
+
         bool debug = false;
 
         bool IsGrabbed = true;
@@ -240,168 +242,21 @@ namespace Blockgame_OpenTK
             Globals.Time += Globals.DeltaTime;
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
+            if (Globals.Keyboard.IsKeyPressed(Keys.Escape))
+            { 
 
-            time = GLFW.GetTime();
-
-            delay += Globals.DeltaTime;
-            ft += 1d / args.Time;
-            fs++;
-
-            if (delay > 1d)
-            {
-
-                Title = "fps [" + fs + "]";
-                // text.UpdateText(Globals.FrameInformation);
-                ft = 0;
-                fs = 0;
-                delay = 0;
-
-            }
-
-
-            MouseState mouse = MouseState;
-
-            if (IsGrabbed)
-            {
-
-                if (firstmove)
+                if (!IsGrabbed)
                 {
 
-                    lmpos = new Vector2(mouse.X, mouse.Y);
-                    firstmove = false;
-
-                }
-                else
-                {
-
+                    IsGrabbed = true;
                     CursorState = CursorState.Grabbed;
-                    float deltaX = mouse.X - lmpos.X;
-                    float deltaY = mouse.Y - lmpos.Y;
-                    // Console.WriteLine((deltaX, deltaY));
-
-                    lmpos = new Vector2(mouse.X, mouse.Y);
-                    yaw += deltaX * sens;
-                    pitch -= deltaY * sens;
-
+                        
                 }
+                else { IsGrabbed = false; CursorState = CursorState.Normal; MousePosition = Globals.Center;  }
+
 
             }
-
-            // Console.WriteLine(verts.Length);
-
-            KeyboardState k = KeyboardState;
-
-            if (k.IsKeyPressed(Keys.F1))
-            {
-
-                switch(debug)
-                {
-
-                    case true:
-                        debug = false;
-                        break;
-                    case false:
-                        debug = true;
-                        break;
-
-                }
-
-            }
-
-            if (IsGrabbed)
-            {
-
-                CursorState = CursorState.Grabbed;
-
-            } else
-            {
-
-                CursorState = CursorState.Normal;
-
-            }
-
-            if (IsGrabbed)
-            {
-
-                if (k.IsKeyDown(Keys.LeftControl))
-                {
-
-                    speed = 5f;
-
-                } else
-                {
-
-                    if (k.IsKeyDown(Keys.LeftShift))
-                    {
-
-                        speed = 100.0f;
-
-                    }
-                    else
-                    {
-
-                        speed = 20.0f;
-
-                    }
-
-                }
-
-                // Console.WriteLine(Globals.DeltaTime + ", " + args.Time);
-
-                if (k.IsKeyDown(Keys.W))
-                {
-
-                    // cposition += cfront * speed * (float)args.Time;
-                    cposition += cfront * speed * (float)Globals.DeltaTime;
-
-                }
-                if (k.IsKeyDown(Keys.S))
-                {
-
-                    cposition -= cfront * speed * (float)Globals.DeltaTime;
-
-                }
-                if (k.IsKeyDown(Keys.A))
-                {
-
-                    cposition -= Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)Globals.DeltaTime);
-
-                }
-                if (k.IsKeyDown(Keys.D))
-                {
-
-                    cposition += Vector3.Normalize(Vector3.Cross(cfront, cup)) * (speed * (float)Globals.DeltaTime);
-
-                }
-                // Console.WriteLine("main delta: " + Globals.DeltaTime);
-                if (k.IsKeyDown(Keys.E))
-                {
-
-                    cposition += cup * speed * (float)Globals.DeltaTime;
-
-                }
-                if (k.IsKeyDown(Keys.Q))
-                {
-
-                    cposition -= cup * speed * (float)Globals.DeltaTime;
-
-                }
-
-            }
-
-            if (k.IsKeyDown(Keys.Escape))
-            {
-
-                Close();
-
-            }
-
-            if (k.IsKeyPressed(Keys.M))
-            {
-
-                IsGrabbed = !IsGrabbed;
-
-            }
+            Globals.CursorState = CursorState;
 
             Player.Update();
 
@@ -411,6 +266,12 @@ namespace Blockgame_OpenTK
 
             base.OnLoad();
 
+            // TextureArray.Load();
+            Globals.ArrayTexture = new TextureArray();
+            Globals.ArrayTexture.Load();
+
+            // Blocks.GetBlockFromName("RandomBlock");
+
             // original: 8. printed: 1
             // Console.WriteLine(Convert.ToInt16(0b1000 >> 3 & 0b1111));
             // binary shift right three and cmp to full mask
@@ -419,24 +280,18 @@ namespace Blockgame_OpenTK
             Globals.DefaultShader = new Shader("default.vert", "default.frag");
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
-
-            // Thread.CurrentThread.Name = "MAIN";
+            CursorState = CursorState.Grabbed;
 
             BinaryWriter bw = new BinaryWriter(File.Open("../../../Resources/cdat/1.cdat", FileMode.OpenOrCreate));
 
             bw.Write((uint)500);
 
-
-            // chunk = new Chunk(0, 0, 0);
             camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
             rmodel = new Model(verts, "hitbox.png", "hitbox.vert", "hitbox.frag");
             hitdisplay = new Model(verts, "debug.png", "model.vert", "model.frag");
             xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
 
             nakedmodel = new NakedModel(NakedModel.Tri);
-
-            // rmodel.SetRotation(0, 45, 0);
-            // rmodel.SetScale(0.5f, 0.5f, 0.5f);
 
             boundmodel = new NakedModel(boundingbox.triangles);
 
@@ -457,28 +312,16 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.ActiveTexture(TextureUnit.Texture0);
 
-            // GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
-            // GL.Enable(EnableCap.DebugOutput);
-
             texture = new Texture("atlas.png");
             emtexture = new Texture("atlas_em.png");
             Texture t = new Texture("cubemap/cubemap_test.png");
             cmtex = new CMTexture(t, 64);
 
             TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
-            text = new FontRenderer(16, "FPS: ");
+            text = new FontRenderer(16, "");
             text.SetFontColor((0,0,0));
-            // GUIClick = new GUIClickable(50, 50, 20, 20, OriginType.Center);
-            // DeltaTime.Get();
 
             ChunkShader = new Shader("chunk.vert", "chunk.frag");
-            shader = new Shader("default.vert", "default.frag");
-            shader.Use();
-            //Texture t = new Texture("../../../res/textures/cubemap/cubemap_template.png");
-            //cmtex = new CMTexture(t, 64);
-            // Texture t = new Texture("../../../res/textures/portiontest.png");
-            // Texture.GetPortion(t, 0, 0, 32, 32);
-            shader.UnUse();
 
             frameBuffer = new Framebuffer();
             framebufferQuad = new FramebufferQuad();
@@ -488,8 +331,7 @@ namespace Blockgame_OpenTK
             Player = new Player();
             Player.SetHeight(0);
             Player.SetPosition((0, 0, 0));
-
-            // ChunkLoader.GenerateChunksWithinRadius(18);
+            Blocks.GetBlockFromName("Air");
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -548,14 +390,16 @@ namespace Blockgame_OpenTK
             // Console.WriteLine("cpos: {0}, blpos: {1}, bgpos: {2}, blposfrombgpos: {3}", ChunkUtils.PositionToChunk(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(Player.Camera.Position), ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
             // Console.WriteLine("prtb: {0}, chnp: {1}, hit: {2}", DDA.RoundedPosition,DDA.ChunkAtHit, DDA.ChunkAtHit);
             // Console.WriteLine("cam gl pos: {0} chunk pos from glblpos: {1}", ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToChunk(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
+            // Console.WriteLine("hitpos: {0}, prevpos: {1}, prevpovloc: {2}", DDA.PositionAtHit, DDA.PreviousPositionAtHit, ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
 
             GL.Disable(EnableCap.DepthTest);
             rmodel.SetScale(1, 1, 1);
-            rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+            //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+            //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
             //rmodel.SetScale(1, 1, 1);
             //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             rmodel.SetScale(0.2f,0.2f,0.2f);
-            rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
+            //rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
             // hitdisplay.Draw((0,0,0), camera, (float)time);
             TestElement.Draw();
             GL.Enable(EnableCap.DepthTest);
@@ -566,7 +410,7 @@ namespace Blockgame_OpenTK
             Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.Position);
             Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.Position);
 
-            // text.UpdateText("Player Position: " + ChunkUtils.PositionToBlockGlobal(Player.Camera.Position));
+            text.UpdateText($"Player Position: {ChunkUtils.PositionToBlockGlobal(Player.Position)}");
             text.Draw();
 
             if (debug)
@@ -663,7 +507,7 @@ namespace Blockgame_OpenTK
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.DeleteBuffer(vbo);
 
-            shader.Dispose();
+            // shader.Dispose();
 
         }
         protected override void OnResize(ResizeEventArgs e)
@@ -674,6 +518,7 @@ namespace Blockgame_OpenTK
             GL.Viewport(0, 0, e.Width, e.Height);
             Globals.WIDTH = e.Width;
             Globals.HEIGHT = e.Height;
+            Globals.Center = (Globals.WIDTH / 2f, Globals.HEIGHT / 2f);
 
             camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();

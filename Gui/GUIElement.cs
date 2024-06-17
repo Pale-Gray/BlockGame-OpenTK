@@ -133,7 +133,7 @@ namespace Blockgame_OpenTK.Gui
             GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "projection"), true, ref Camera.ProjectionMatrix);
 
             GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length/5);
             GL.BindVertexArray(0);
 
             GL.BindTexture(TextureTarget.Texture2D, 0);

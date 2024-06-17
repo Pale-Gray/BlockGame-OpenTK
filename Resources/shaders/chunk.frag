@@ -2,6 +2,7 @@
 out vec4 FragColor;
 
 uniform sampler2D atlas;
+uniform sampler2DArray arrays;
 
 in vec3 vposition;
 in vec2 vtexcoord;
@@ -24,12 +25,11 @@ void main()
 
 	// FragColor = vec4(texture(atlas, vtexcoord).rgb * value, 1.0);
 	vec4 tex = texture(atlas, vtexcoord);
+	vec4 array_texture = texture(arrays, vec3(vtexcoord, 2));
 	float edge = 0;
-	if (vposition.x > 0.1 && vposition.x < 31.9 && vposition.z > 0.1 && vposition.z < 31.9) {edge = 1;}
+	float thickness = 0.1;
+	if (vposition.x > thickness && vposition.x < 32 - thickness && vposition.y > thickness && vposition.y < 32 - thickness && vposition.z > thickness && vposition.z < 32 - thickness) {edge = 1;}
 
-	FragColor = vec4((tex.rgb * value) * edge, 1.0);
-	// FragColor = vec4(1,1,1, 1.0);
-
-	// FragColor = vec4(v_normal, 1);
+	FragColor = vec4((array_texture.rgb * value) * edge, 1.0);
 
 }

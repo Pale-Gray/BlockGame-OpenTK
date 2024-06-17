@@ -13,7 +13,8 @@ out vec2 vtextureCoordinates;
 void main()
 {
 
-	vec3 pos = vec3(position.x, position.y + 2*sin((time*5)+(position.x/2)), position.z);
+	// vec3 pos = vec3(position.x, position.y + 2*sin((time*5)+(position.x/2)), position.z);
+	vec3 pos = position;
 	gl_Position = vec4(pos, 1.0) * model * view * projection;
 
 	vtextureCoordinates = textureCoordinates;

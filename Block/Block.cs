@@ -25,6 +25,7 @@ namespace Blockgame_OpenTK.BlockUtil
     {
 
         public string Name = "Placeholder";
+        public string DataName = "";
         public ChunkVertex[] FrontFace = new ChunkVertex[6];
         public ChunkVertex[] RightFace = new ChunkVertex[6];
         public ChunkVertex[] BackFace = new ChunkVertex[6];
@@ -32,13 +33,10 @@ namespace Blockgame_OpenTK.BlockUtil
         public ChunkVertex[] TopFace = new ChunkVertex[6];
         public ChunkVertex[] BottomFace = new ChunkVertex[6];
 
-        public static string H = "hi";
-        public static string H2 = H == "hi" ? "e" : "a";
         public Block(string name)
         {
 
             Name = name;
-
             Array.Copy(Faces.FrontFace, FrontFace, Faces.FrontFace.Length);
             Array.Copy(Faces.RightFace, RightFace, Faces.RightFace.Length);
             Array.Copy(Faces.BackFace, BackFace, Faces.BackFace.Length);

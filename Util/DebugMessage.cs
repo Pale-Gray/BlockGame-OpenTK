@@ -31,15 +31,15 @@ namespace Blockgame_OpenTK.Util
             { 
             
                 case DebugMessageType.Info:
-                    return "[INFO] ";
+                    return "[Info] ";
                 case DebugMessageType.Warning:
-                    return "[WARN] ";
+                    return "[Warning] ";
                 case DebugMessageType.Error:
-                    return "[ERR] ";
+                    return "[Error] ";
                 case DebugMessageType.Fatal_Error:
-                    return "[FATAL] ";
+                    return "[Fatal] ";
                 default:
-                    return "[INFO] ";
+                    return "[Info] ";
             
             }
 

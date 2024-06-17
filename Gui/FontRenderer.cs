@@ -111,6 +111,7 @@ namespace Blockgame_OpenTK.Gui
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "view"), true, ref Camera.ViewMatrix);
             GL.UniformMatrix4(GL.GetUniformLocation(FontShader.getID(), "projection"), true, ref Camera.ProjectionMatrix);
             GL.Uniform1(GL.GetUniformLocation(FontShader.getID(), "time"), (float)Globals.Time);
+            // Console.WriteLine(FontColor);
             GL.Uniform3(GL.GetUniformLocation(FontShader.getID(), "fontColor"), ref FontColor);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.BindVertexArray(Vao);

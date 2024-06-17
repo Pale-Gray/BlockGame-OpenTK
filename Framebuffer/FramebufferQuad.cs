@@ -57,7 +57,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "framebufferDepthStencilTexture"), 1);
 
             GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length/5);
             GL.BindVertexArray(0);
 
             GL.BindTexture(TextureTarget.Texture2D, 0);

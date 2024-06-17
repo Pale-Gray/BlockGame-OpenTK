@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 using Blockgame_OpenTK.Util;
 using Blockgame_OpenTK.BlockUtil;
+using System.Text.Json.Serialization;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -22,7 +23,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public Vector2 TextureCoordinates;
         public ChunkVertex(ushort id, byte x, byte y, byte z, float u, float v, float nx, float ny, float nz)
         {
-
+            
             ID = id;
             Position = (x, y, z);
             TextureCoordinates = (u, v);
@@ -411,11 +412,50 @@ namespace Blockgame_OpenTK.ChunkUtil
             return value;
 
         }
+
+        private float GetNoiseOctaves3D(int x, int y, int z, int octaves)
+        {
+
+            float value = 1;
+            float X = (float) x;
+            float Y = (float) y;
+            float Z = (float) z;
+
+            float XValue = X + (cx * size);
+            float YValue = Y + (cy * size);
+            float ZValue = Z + (cz * size);
+            float Octaves = (float) octaves;
+
+            for (float i = 1; i <= Octaves; i++)
+            {
+
+                value *= Globals.noise.GetNoise(XValue*i, YValue*i, ZValue*i)/i;
+
+            }
+            // value /= octaves;
+
+            return (value / 2) + 0.5f;
+
+        }
+
+        private float GetNoise3D(float x, float y, float z)
+        {
+
+            float value = 0;
+
+            float xValue = (float)x + (cx * size);
+            float yValue = (float)y + (cy * size);
+            float zValue = (float)z + (cz * size);
+
+            value = Globals.noise.GetNoise(xValue, yValue, zValue);
+
+            return (value / 2) + 0.5f;
+
+        }
         private float GetNoise3D(int x, int y, int z)
         {
 
-            int octaves = 1;
-            float value = 1;
+            float value = 0;
 
             float xValue = (float)x + (cx * size);
             float yValue = (float)y + (cy * size);
@@ -446,8 +486,25 @@ namespace Blockgame_OpenTK.ChunkUtil
                         float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
 
                         float val = GetNoise3D(x, y, z);
+                        // Console.WriteLine(val);
+                        // float val = GetNoiseOctaves3D(x, y, z, 2);
+                        // Console.WriteLine(val);
 
-                        if (globalY <= value - r.Next(4, 10))
+                        float YOffset = 0;
+                        float MaxHeight = 64;
+                        // MaxHeight += YOffset;
+
+                        if (val <= 1 - (globalY/MaxHeight))
+                        {
+
+                            SetBlock(Blocks.Stone, x,y,z);
+
+                        }
+
+                        //SetBlockGlobal(Blocks.Dirt, globalX, (int) YOffset, globalZ);
+                        //SetBlockGlobal(Blocks.Dirt, globalX, (int) MaxHeight, globalZ);
+
+                        /* if (globalY <= value - r.Next(4, 10))
                         {
 
                             SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
@@ -463,17 +520,8 @@ namespace Blockgame_OpenTK.ChunkUtil
                         {
 
                             SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
-                            double frequency = 1;
-                            float scale = 200;
-                            float target = 0.5f;
-                            if (frequency*Globals.noise.GetNoise(globalX*scale,globalZ*scale) >= target)
-                            {
 
-                                SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
-
-                            }
-
-                        }
+                        } */
 
                     }
 
@@ -835,9 +883,12 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             shader.Use();
             GL.Uniform1(GL.GetUniformLocation(shader.id, "atlas"), 0);
+            GL.Uniform1(GL.GetUniformLocation(shader.id, "arrays"), 1);
             GL.Uniform3(GL.GetUniformLocation(shader.id, "cameraPosition"), camera.Position);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Globals.AtlasTexture.getID());
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2DArray, Globals.ArrayTexture.TextureID);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
