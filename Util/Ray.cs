@@ -346,7 +346,7 @@ namespace Blockgame_OpenTK.Util
         public bool Hit_Imperformant(int[,,] map, float length, float step_size)
         {
 
-            for (float i = 0; i < length; i += step_size)
+            /* for (float i = 0; i < length; i += step_size)
             {
 
                 rpos = Ray_Position + Ray_Direction;
@@ -371,7 +371,7 @@ namespace Blockgame_OpenTK.Util
 
                 }
 
-            }
+            } */
             return false;
 
         }

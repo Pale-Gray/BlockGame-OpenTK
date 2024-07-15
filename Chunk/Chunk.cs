@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Util;
 using Blockgame_OpenTK.BlockUtil;
 using System.Text.Json.Serialization;
+using Blockgame_OpenTK.Registry;
+using OpenTK.Audio.OpenAL;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -17,18 +19,19 @@ namespace Blockgame_OpenTK.ChunkUtil
     {
 
         public int ID;
-        public float AmbientValue;
+        public float AmbientValue = 1;
+        public int TextureIndex;
         public Vector3 Position;
         public Vector3 Normal;
         public Vector2 TextureCoordinates;
-        public ChunkVertex(ushort id, byte x, byte y, byte z, float u, float v, float nx, float ny, float nz)
+
+        public ChunkVertex(int textureIndex, Vector3 position, Vector2 textureCoordinate, Vector3 normal)
         {
-            
-            ID = id;
-            Position = (x, y, z);
-            TextureCoordinates = (u, v);
-            Normal = (nx, ny, nz);
-            AmbientValue = 1.0f;
+
+            TextureIndex = textureIndex;
+            Position = position;
+            TextureCoordinates = textureCoordinate;
+            Normal = normal;
 
         }
 
@@ -270,12 +273,12 @@ namespace Blockgame_OpenTK.ChunkUtil
             return num;
 
         }
-        public Block GetBlockOverrided(int x, int y, int z)
+        public Block GetBlockOverrided(Vector3i direction)
         {
 
-            int positionOverrideX = (int) Math.Floor(x/(float)size);
-            int positionOverrideY = (int)Math.Floor(y / (float)size);
-            int positionOverrideZ = (int)Math.Floor(z / (float)size);
+            int positionOverrideX = (int) Math.Floor(direction.X/(float)size);
+            int positionOverrideY = (int)Math.Floor(direction.Y / (float)size);
+            int positionOverrideZ = (int)Math.Floor(direction.Z / (float)size);
             Vector3 overridePosition = (positionOverrideX, positionOverrideY, positionOverrideZ);
             // int localZ = z;
             // Console.WriteLine(localZ);
@@ -289,7 +292,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(0, y, z);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(0, direction.Y, direction.Z);
 
                     }
 
@@ -306,7 +309,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(size-1, y, z);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(size-1, direction.Y, direction.Z);
 
                     }
 
@@ -323,7 +326,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, 0, z);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(direction.X, 0, direction.Z);
 
                     }
 
@@ -340,7 +343,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, size-1, z);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(direction.X, size-1, direction.Z);
 
                     }
 
@@ -357,7 +360,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, y, 0);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(direction.X, direction.Y, 0);
 
                     }
 
@@ -374,7 +377,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetGenerationState() == GenerationState.Generated)
                     {
 
-                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(x, y, size-1);
+                        return ChunkLoader.GetChunk(ChunkPosition + overridePosition).GetBlock(direction.X, direction.Y, size-1);
 
                     }
 
@@ -382,14 +385,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             }
 
-            return GetBlock(x, y, z);
-
-            // Console.WriteLine("X: {0} Y: {1} Z: {2}", positionOverrideX, positionOverrideY, positionOverrideZ);
-            // Vector3 overridePosition = (positionOverrideX, positionOverrideY, positionOverrideZ);
-
-            // Console.WriteLine("X: {0} Y: {1} Z: {2}", positionOverrideX, positionOverrideY, positionOverrideZ);
-
-            // return ChunkLoader.GetChunk(ChunkPosition).GetBlock(x, y, z);
+            return GetBlock(direction.X, direction.Y, direction.Z);
 
         }
         private float GetNoise2D(int octaves, int x, int y)
@@ -466,7 +462,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             return (value / 2) + 0.5f;
 
         }
-        private void InitializeData()
+        public void InitializeData()
         {
 
             // generationState = GenerationState.Generating;
@@ -485,43 +481,22 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                         float value = Maths.MapValueToMinMax(GetNoise2D(3, x, z), 27, 50);
 
-                        float val = GetNoise3D(x, y, z);
+                        float val = GetNoise3D(x,y,z);
                         // Console.WriteLine(val);
                         // float val = GetNoiseOctaves3D(x, y, z, 2);
                         // Console.WriteLine(val);
 
                         float YOffset = 0;
                         float MaxHeight = 64;
-                        // MaxHeight += YOffset;
 
-                        if (val <= 1 - (globalY/MaxHeight))
+                        SetBlockGlobal(Blocks.AirBlock, globalX, globalY, globalZ);
+
+                        if (val >= globalY / 64f + (value/20))
                         {
 
-                            SetBlock(Blocks.Stone, x,y,z);
+                            SetBlockGlobal(Blocks.GrassBlock, globalX, globalY, globalZ);
 
                         }
-
-                        //SetBlockGlobal(Blocks.Dirt, globalX, (int) YOffset, globalZ);
-                        //SetBlockGlobal(Blocks.Dirt, globalX, (int) MaxHeight, globalZ);
-
-                        /* if (globalY <= value - r.Next(4, 10))
-                        {
-
-                            SetBlockGlobal(Blocks.Stone, globalX, globalY, globalZ);
-
-                        }
-                        else if (globalY < value - 1)
-                        {
-
-                            SetBlockGlobal(Blocks.Dirt, globalX, globalY, globalZ);
-
-                        }
-                        else if (globalY <= value)
-                        {
-
-                            SetBlockGlobal(Blocks.Grass, globalX, globalY, globalZ);
-
-                        } */
 
                     }
 
@@ -531,7 +506,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             generationState = GenerationState.Generated;
 
         }
-        private void GenerateMesh()
+        public void GenerateMesh()
         {
 
             List<ChunkVertex> MeshDataList = new List<ChunkVertex>();
@@ -545,11 +520,13 @@ namespace Blockgame_OpenTK.ChunkUtil
                     for (int z = 0; z < size; z++)
                     {
 
-                        if (blockdata[x, y, z] != Blocks.GetIDFromBlock(Blocks.Air))
+                        // Console.WriteLine($"Position: {(x,y,z)}, Name: {GetBlock((x,y,z)).DataName}, ID: {GetBlockID((x,y,z))}");
+
+                        if (GetBlockID((x,y,z)) != Globals.Register.GetIDFromBlock(Blocks.AirBlock))
                         {
-
-                            InsertBlock(MeshDataList, Blocks.GetBlockFromID(blockdata[x, y, z]), x, y, z);
-
+                            
+                            MeshBlock(Globals.Register.GetBlockFromID(GetBlockID((x, y, z))), (x,y,z), MeshDataList);
+                            
                         }
 
                     }
@@ -566,6 +543,76 @@ namespace Blockgame_OpenTK.ChunkUtil
             meshState = MeshState.Done;
 
         }
+
+        public void MeshBlock(Block block, Vector3i position, List<ChunkVertex> chunkMesh)
+        {
+
+            float[] ambientPoints = new float[4];
+
+            if (SampleBlock(position + Vector3i.UnitY))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Up), position));
+
+            }
+            if (SampleBlock(position - Vector3i.UnitY))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Down), position));
+
+            }
+            if (SampleBlock(position + Vector3i.UnitX))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Left), position));
+
+            }
+            if (SampleBlock(position - Vector3i.UnitX))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Right), position));
+
+            }
+            if (SampleBlock(position + Vector3i.UnitZ))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Back), position));
+
+            }
+            if (SampleBlock(position - Vector3i.UnitZ))
+            {
+
+                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Front), position));
+
+            }
+
+            // return blockMesh.ToArray();
+
+        }
+
+        public bool SampleBlock(Vector3i direction)
+        {
+
+            // Console.WriteLine(GetBlock(direction).DataName);
+
+            if (GetBlockOverload(direction) == Blocks.AirBlock)
+            {
+
+                return true;
+
+            }
+
+            return false;
+
+        }
+
+        public int GetBlockID(Vector3i position)
+        {
+
+            return blockdata[position.X, position.Y, position.Z];
+
+        }
+
         public void ProcessToRender()
         {
 
@@ -590,7 +637,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
                 GL.BufferData(BufferTarget.ArrayBuffer, MeshData.Length * Marshal.SizeOf<ChunkVertex>(), MeshData, BufferUsageHint.DynamicDraw);
 
-                GL.VertexAttribIPointer(0, 1, VertexAttribIntegerType.Int, Marshal.SizeOf<ChunkVertex>(), (IntPtr)0);
+                GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureIndex)));
                 GL.EnableVertexAttribArray(0);
                 GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
                 GL.EnableVertexAttribArray(1);
@@ -670,7 +717,6 @@ namespace Blockgame_OpenTK.ChunkUtil
             return generationState;
 
         }
-
         public int GlobalXToLocalX(int x)
         {
 
@@ -757,9 +803,54 @@ namespace Blockgame_OpenTK.ChunkUtil
             int y = (int)position.Y;
             int z = (int)position.Z;
 
-            return Blocks.GetBlockFromID(blockdata[x > size - 1 ? size - 1 : x < 0 ? 0 : x, y > size - 1 ? size - 1 : y < 0 ? 0 : y, z > size - 1 ? size - 1 : z < 0 ? 0 : z]);
+            return Globals.Register.GetBlockFromID(blockdata[x > size - 1 ? size - 1 : x < 0 ? 0 : x, y > size - 1 ? size - 1 : y < 0 ? 0 : y, z > size - 1 ? size - 1 : z < 0 ? 0 : z]);
 
         }
+
+        public Block GetBlockOverload(Vector3 position)
+        {
+
+            if (position.X >= size)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition + (1,0,0)).GetBlock((0, position.Y, position.Z));
+
+            }
+            if (position.X < 0)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition - (1, 0, 0)).GetBlock((size-1, position.Y, position.Z));
+
+            }
+            if (position.Y >= size)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition + (0, 1, 0)).GetBlock((position.X, 0, position.Z));
+
+            }
+            if (position.Y < 0)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition - (0, 1, 0)).GetBlock((position.X, size-1, position.Z));
+
+            }
+            if (position.Z >= size)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition + (0, 0, 1)).GetBlock((position.X, position.Y, 0));
+
+            }
+            if (position.Z < 0)
+            {
+
+                return ChunkLoader.GetChunk(ChunkPosition - (0, 0, 1)).GetBlock((position.X, position.Y, size-1));
+
+            }
+
+            return GetBlock(position);
+
+        }
+
         public Block GetBlock(int x, int y, int z)
         {
 
@@ -772,7 +863,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             lock (ChunkLock)
             {
 
-                blockdata[x, y, z] = Blocks.GetIDFromBlock(block);
+                blockdata[x, y, z] = Globals.Register.GetIDFromBlock(block);
 
             }
 
@@ -780,7 +871,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void InsertBlock(List<ChunkVertex> MeshDataList, Block block, int x, int y, int z)
         {
 
-            if (GetBlockOverrided(x,y,z+1) == Blocks.Air)// CheckAir(x, y, z + 1))// CheckAir(x, y, z + 1))
+            /* if (GetBlockOverrided(x,y,z+1) == Blocks.Air)// CheckAir(x, y, z + 1))// CheckAir(x, y, z + 1))
             {
 
                 MeshDataList.AddRange(Block.GetFaceShifted(block.BackFace, x, y, z, 1));
@@ -817,13 +908,13 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z, 1));
 
-            }
+            } */
 
         }
         public bool CheckAir(int x, int y, int z)
         {
 
-            if (x > size - 1 || x < 0 || y > size - 1 || y < 0 || z > size - 1 || z < 0)
+            /* if (x > size - 1 || x < 0 || y > size - 1 || y < 0 || z > size - 1 || z < 0)
             {
 
                return true;
@@ -834,7 +925,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 return true;
 
-            }
+            } */
 
             return false;
 
@@ -845,12 +936,12 @@ namespace Blockgame_OpenTK.ChunkUtil
             foreach (int id in blockdata)
             {
 
-                if (id != Blocks.GetIDFromBlock(Blocks.Air))
+                /* if (id != Blocks.GetIDFromBlock(Blocks.Air))
                 {
 
                     return false;
 
-                }
+                } */
 
             }
 
@@ -864,12 +955,12 @@ namespace Blockgame_OpenTK.ChunkUtil
             foreach (int id in blockdata)
             {
 
-                if (id == Blocks.GetIDFromBlock(Blocks.Air))
+                /* if (id == Blocks.GetIDFromBlock(Blocks.Air))
                 {
 
                     return false;
 
-                }
+                } */
 
             }
 

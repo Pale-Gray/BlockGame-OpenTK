@@ -196,7 +196,7 @@ namespace Blockgame_OpenTK
         Framebuffer frameBuffer;
         FramebufferQuad framebufferQuad;
 
-        TextureArray TextureArray = new TextureArray();
+        ArrayTexture TextureArray = new ArrayTexture();
 
         bool debug = false;
 
@@ -208,6 +208,8 @@ namespace Blockgame_OpenTK
         Sun Sun;
 
         Player Player;
+
+        // public static Block snowb;
 
         private static void OnDebugMessage(
     DebugSource source,     // Source of the debugging message.
@@ -256,6 +258,19 @@ namespace Blockgame_OpenTK
 
 
             }
+            if (Globals.Keyboard.IsKeyPressed(Keys.F1))
+            {
+
+                if (!debug)
+                {
+
+                    debug = true;
+
+                }
+                else { debug = false; }
+
+
+            }
             Globals.CursorState = CursorState;
 
             Player.Update();
@@ -267,8 +282,11 @@ namespace Blockgame_OpenTK
             base.OnLoad();
 
             // TextureArray.Load();
-            Globals.ArrayTexture = new TextureArray();
+            //BlockModel bm = new BlockModel();
+            // BlockModel bm = BlockModel.Load("GrassBlockNew");
+            // Console.WriteLine(bm.BlockFaces.Count);
             Globals.ArrayTexture.Load();
+            Blocks.Load();
 
             // Blocks.GetBlockFromName("RandomBlock");
 
@@ -331,7 +349,13 @@ namespace Blockgame_OpenTK
             Player = new Player();
             Player.SetHeight(0);
             Player.SetPosition((0, 0, 0));
-            Blocks.GetBlockFromName("Air");
+            // Blocks.GetBlockFromName("Air");
+
+            c = new Chunk(0,0,0);
+
+            // snowb = Block.LoadFromJson("GrassBlockNew");
+
+            // Blocks.Load();
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -377,15 +401,36 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
+            // Blocks.Snow.BlockModel.GetConvertedFace(BlockFaceType.Up);
+
+            //c.Generate();
+            //c.InitializeData();
+            //c.GenerateMesh();
+            //c.ProcessToRender();
+            //Console.WriteLine($"{c.GetGenerationState()},{c.GetMeshState()},{c.GetChunkState()}");
+            //c.Draw(Globals.ChunkShader, Player.Camera, (float) time);
+
             // ChunkLoader.GenerateThreadedFilledColumns(16, camera.position);
+
+            // Console.WriteLine(Blocks.Snow.DataName);
+            if (debug)
+            {
+
+                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+            }
 
             ChunkLoader.GenerateThreaded(25, Player.Camera.Position);
             ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, Player.Camera, (float)time);
 
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+            // Console.WriteLine($"amount of chunks: {ChunkLoader.ChunkDictionary.Count()}");
+
             // Player.GetBlockLooking(5);
             // DDA.Trace(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 10);
 
-            DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 5);
+            DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
             //  Console.WriteLine(DDA.PositionAtHit);
             // Console.WriteLine("cpos: {0}, blpos: {1}, bgpos: {2}, blposfrombgpos: {3}", ChunkUtils.PositionToChunk(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(Player.Camera.Position), ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
             // Console.WriteLine("prtb: {0}, chnp: {1}, hit: {2}", DDA.RoundedPosition,DDA.ChunkAtHit, DDA.ChunkAtHit);
@@ -394,12 +439,12 @@ namespace Blockgame_OpenTK
 
             GL.Disable(EnableCap.DepthTest);
             rmodel.SetScale(1, 1, 1);
-            //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+            rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
             //rmodel.SetScale(1, 1, 1);
             //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             rmodel.SetScale(0.2f,0.2f,0.2f);
-            //rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
+            rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
             // hitdisplay.Draw((0,0,0), camera, (float)time);
             TestElement.Draw();
             GL.Enable(EnableCap.DepthTest);

@@ -105,6 +105,7 @@ namespace Blockgame_OpenTK.Util
             // hitpositions = new List<Vector3i>();
 
             // Console.WriteLine("start");
+            
             for (int i = 0; i <= maxSteps; i++)
             {
 
@@ -118,7 +119,7 @@ namespace Blockgame_OpenTK.Util
 
                     // PreviousPositionAtHit = GlobalBlockPosition;
 
-                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.Air)
+                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
                     {
 
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
@@ -187,7 +188,7 @@ namespace Blockgame_OpenTK.Util
                 }
 
             }
-
+            
             
             // Console.WriteLine("end");
 
@@ -259,7 +260,7 @@ namespace Blockgame_OpenTK.Util
             for (int i = 0; i < maxSteps; i++)
             {
 
-                if (ChunkLoader.GetChunk(ChunkPosition).GetBlock(BlockPositionLocal) != Blocks.Air)
+                /* if (ChunkLoader.GetChunk(ChunkPosition).GetBlock(BlockPositionLocal) != Blocks.Air)
                 {
 
                     HitLocal = BlockPositionLocal;
@@ -313,7 +314,7 @@ namespace Blockgame_OpenTK.Util
 
                     }
 
-                }
+                } */
 
                 // Console.WriteLine(ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
 

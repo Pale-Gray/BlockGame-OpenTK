@@ -1,9 +1,9 @@
 #version 400 core
-layout (location=0) in int blocktype;
+layout (location=0) in int texture_index;
 layout (location=1) in vec3 position;
 layout (location=2) in vec2 texcoord;
 layout (location=3) in vec3 normal;
-layout (location=4) in float ambientValue;
+layout (location=4) in float ambient_value;
 // layout (location=0) in float blocktype;
 // layout (location=1) in vec3 position;
 // layout (location=2) in vec3 normal;
@@ -19,10 +19,11 @@ uniform mat4 rot;
 
 out vec3 vposition;
 out vec2 vtexcoord;
-out int vblocktype;
+flat out int vtexture_index;
 out vec3 vnormal;
 out float vtime;
-out float vambientValue;
+out float vambient_value;
+// out float vambientValue;
 
 out vec3 directionalLight;
 
@@ -41,10 +42,10 @@ void main()
 	
 	vposition = position;
 	vtexcoord = texcoord;
-	vblocktype = blocktype;
+	vtexture_index = texture_index;
 	vtime = time;
 	vnormal = normal;
-	vambientValue = ambientValue;
+	vambient_value = ambient_value;
 
 	directionalLight = normalize((vec4(0,1,0,1) * rot)).xyz;
 

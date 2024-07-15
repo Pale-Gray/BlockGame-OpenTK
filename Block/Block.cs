@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Blockgame_OpenTK.ChunkUtil;
 using Blockgame_OpenTK.Util;
 
@@ -23,28 +25,28 @@ namespace Blockgame_OpenTK.BlockUtil
 
     internal class Block
     {
+        public string DataName { get; set; }
+        public string DisplayName { get; set; }
+        [JsonConverter(typeof(JsonBlockModelConverter))]
+        [JsonPropertyName("Model")]
+        public BlockModel BlockModel { get; set; }
+        [JsonPropertyName("Sounds")]
+        public string SoundPath { get; set; }
+        public int BreakTime { get; set; }
 
-        public string Name = "Placeholder";
-        public string DataName = "";
-        public ChunkVertex[] FrontFace = new ChunkVertex[6];
-        public ChunkVertex[] RightFace = new ChunkVertex[6];
-        public ChunkVertex[] BackFace = new ChunkVertex[6];
-        public ChunkVertex[] LeftFace = new ChunkVertex[6];
-        public ChunkVertex[] TopFace = new ChunkVertex[6];
-        public ChunkVertex[] BottomFace = new ChunkVertex[6];
 
-        public Block(string name)
+        public Block()
         {
 
-            Name = name;
-            Array.Copy(Faces.FrontFace, FrontFace, Faces.FrontFace.Length);
-            Array.Copy(Faces.RightFace, RightFace, Faces.RightFace.Length);
-            Array.Copy(Faces.BackFace, BackFace, Faces.BackFace.Length);
-            Array.Copy(Faces.LeftFace, LeftFace, Faces.LeftFace.Length);
-            Array.Copy(Faces.TopFace, TopFace, Faces.TopFace.Length);
-            Array.Copy(Faces.BottomFace, BottomFace, Faces.BottomFace.Length);
+            // BlockModel = BlockModel.Load(BlockModelPath + ".json");
+            Console.WriteLine("loaded");
 
-            // JsonSerializer.Serialize(this, new JsonSerializerOptions() { WriteIndented = true });
+        }
+        public static Block LoadFromJson(string fileName)
+        {
+
+            Console.WriteLine("loading");
+            return JsonSerializer.Deserialize<Block>(File.ReadAllText(Globals.BlockDataPath + fileName));
 
         }
 
@@ -58,7 +60,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public Block SetFaceTexture(int x, int y, params int[] index)
         {
 
-            foreach (int i in index)
+            /* foreach (int i in index)
             {
 
                 switch (i)
@@ -85,7 +87,8 @@ namespace Blockgame_OpenTK.BlockUtil
 
                 }
 
-            }
+            } 
+            */
 
             return this;
 

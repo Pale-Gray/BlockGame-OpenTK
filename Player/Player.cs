@@ -19,6 +19,8 @@ namespace Blockgame_OpenTK.PlayerUtil
         float RunSpeed = 50.0f;
 
         float PressDelay = 1.0f;
+        float PlaceDelay = 1.0f;
+        float RemoveDelay = 1.0f;
 
         public Player() { }
 
@@ -45,22 +47,19 @@ namespace Blockgame_OpenTK.PlayerUtil
                 if (Globals.Mouse.IsButtonDown(MouseButton.Left))
                 {
 
-                    PressDelay += (float)Globals.DeltaTime;
+                    RemoveDelay += (float)Globals.DeltaTime;
 
-                    if (PressDelay >= 0.5f)
+                    if (RemoveDelay >= 0.25f)
                     {
 
-                        // GetBlockLooking(10);
-                        // Console.WriteLine(DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, 10));
-                        // Console.WriteLine("campos: {0}", Camera.Position);
-                        DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, 5);
+                        DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
                         // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.HitChunkPosition)).SetBlockRewrite(Blocks.Air, (Vector3i) DDA.HitBlockPositionLocalToChunk);
                         Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit);
 
                         if (ChunkLoader.ContainsGeneratedChunk(DDA.ChunkAtHit))
                         {
 
-                            ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlockRewrite(Blocks.Air, HitPositionLocal);
+                            ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlockRewrite(Blocks.AirBlock, HitPositionLocal);
                             if (HitPositionLocal.X == 0) { ChunkLoader.GetChunk(DDA.ChunkAtHit - (1, 0, 0)).Remesh(); }
                             if (HitPositionLocal.X == Globals.ChunkSize - 1) { ChunkLoader.GetChunk(DDA.ChunkAtHit + (1, 0, 0)).Remesh(); }
                             if (HitPositionLocal.Y == 0) { ChunkLoader.GetChunk(DDA.ChunkAtHit - (0, 1, 0)).Remesh(); }
@@ -70,42 +69,22 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                         }
 
-                        PressDelay = 0;
+                        RemoveDelay = 0;
 
                     }
 
-                }
+                } else { RemoveDelay = 1; }
 
                 if (Globals.Mouse.IsButtonDown(MouseButton.Right))
                 {
 
-                    PressDelay += (float)Globals.DeltaTime;
+                    PlaceDelay += (float)Globals.DeltaTime;
 
-                    if (PressDelay >= 0.5f)
+                    if (PlaceDelay >= 0.25f)
                     {
 
-                        // GetBlockLooking(10);
-                        // Console.WriteLine(DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, 10));
-                        // Console.WriteLine("campos: {0}", Camera.Position);
-                        DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, 5);
-                        // DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, 5);
-                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.HitChunkPosition)).SetBlockRewrite(Blocks.Air, (Vector3i) DDA.HitBlockPositionLocalToChunk);
+                        DDA.TraceChunks(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
                         Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit);
-                        // Console.WriteLine(DDA.FaceHit);
-                        // Console.WriteLine(((DDA.SmoothPosition.X+0.5f) % 1 - 0.5f, (DDA.SmoothPosition.Y+0.5f) % 1 - 0.5f, (DDA.SmoothPosition.Z+0.5f) % 1 - 0.5f));
-
-                        /* Vector3 hitvec = 2 * (DDA.SmoothPosition - ((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f)));
-                        // Console.WriteLine(hitvec);
-                        Vector3i BuildOffset = Vector3i.Zero;
-                        if (hitvec.X >= 1 - float.Epsilon) { BuildOffset.X = 1; }
-                        if (hitvec.Y >= 1 - float.Epsilon) { BuildOffset.Y = 1; }
-                        if (hitvec.Z >= 1 - float.Epsilon) { BuildOffset.Z = 1; }
-                        if (hitvec.X <= -1 + float.Epsilon) { BuildOffset.X = -1; }
-                        if (hitvec.Y <= -1 + float.Epsilon) { BuildOffset.Y = -1; }
-                        if (hitvec.Z <= -1 + float.Epsilon) { BuildOffset.Z = -1; } */
-                        // Console.WriteLine(BuildOffset);
-                        // Console.WriteLine("smoothpos: {0}, positionhit: {1}, hitvec: {2}, buildOffset: {3}", DDA.SmoothPosition, (Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), hitvec, BuildOffset);
-                        // Console.WriteLine((Math.Round(hitvec.X), Math.Round(hitvec.Y), Math.Round(hitvec.Z)));
                         Console.WriteLine("hitpos: {0}, prevpos: {1}", DDA.PositionAtHit, DDA.PreviousPositionAtHit);
 
                         //Vector3i BuildCoordinate = HitPositionLocal + BuildOffset;
@@ -113,15 +92,15 @@ namespace Blockgame_OpenTK.PlayerUtil
                         if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
                         {
 
-                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.Grass, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
+                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
 
                         }
 
-                        PressDelay = 0;
+                        PlaceDelay = 0;
 
                     }
 
-                }
+                } else {  PlaceDelay = 1; }
 
                 if (Globals.Keyboard.IsKeyDown(Keys.W))
                 {

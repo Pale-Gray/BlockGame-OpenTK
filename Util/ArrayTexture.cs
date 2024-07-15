@@ -9,14 +9,15 @@ using StbImageSharp;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class TextureArray
+    internal class ArrayTexture
     {
 
         string PathToTextures;
         int Width, Height, Depth;
         public int TextureID = 0;
+        List<string> TextureNames = new List<string>();
 
-        public TextureArray()
+        public ArrayTexture()
         {
             Width = 32;
             Height = 32;
@@ -31,13 +32,12 @@ namespace Blockgame_OpenTK.Util
 
             StbImage.stbi_set_flip_vertically_on_load(1);
             string[] TextureNamesInDirectory = Directory.GetFiles(PathToTextures);
+            
             Depth = TextureNamesInDirectory.Length;
 
             TextureID = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2DArray, TextureID);
-            GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.Rgba16, Width, Height, Depth);
-            ImageResult temp = ImageResult.FromStream(File.OpenRead(TextureNamesInDirectory[0]), ColorComponents.RedGreenBlueAlpha);
-            // List<ImageResult> Images = new List<ImageResult>();
+            GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.Rgba8, Width, Height, Depth);
             List<byte> ImageBytes = new List<byte>();
 
             foreach (string FileName in TextureNamesInDirectory)
@@ -47,8 +47,8 @@ namespace Blockgame_OpenTK.Util
 
                 FileStream file = File.OpenRead(FileName);
                 ImageBytes.AddRange(ImageResult.FromStream(file).Data);
-                // Images.Add(ImageResult.FromStream(file, ColorComponents.RedGreenBlueAlpha));
-                // GL.TexSubImage3D(TextureTarget.Texture2DArray, 0, 0, 0, Array.IndexOf(TextureNamesInDirectory, FileName), Width, Height, Depth, PixelFormat.Rgba, PixelType.UnsignedByte, t.Data);
+                TextureNames.Add(file.Name.Split("\\").Last().Split(".")[0]);
+
             }
 
             GL.TexSubImage3D(TextureTarget.Texture2DArray, 0, 0, 0, 0, Width, Height, Depth, PixelFormat.Rgba, PixelType.UnsignedByte, ImageBytes.ToArray());
@@ -59,6 +59,13 @@ namespace Blockgame_OpenTK.Util
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
             DebugMessage.WriteLine("Finished Loading Textures", DebugMessageType.Info);
+
+        }
+
+        public int GetTextureIndex(string textureName)
+        {
+
+            return TextureNames.IndexOf(textureName);
 
         }
 

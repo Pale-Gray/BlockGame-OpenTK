@@ -118,7 +118,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         static float InternalTime = 0;
         static int AmountOfChunksUpdated = 0;
         static int ChunkRadius = 0;
-        static int MaxRadius = 8;
+        static int MaxRadius = 12;
         static int ChunksUpdated = 0;
         static Vector3i LastCameraPosition = Vector3i.Zero;
         static Vector3i CameraPosition = Vector3i.Zero;
@@ -505,9 +505,12 @@ namespace Blockgame_OpenTK.ChunkUtil
             foreach (Chunk chunk in ChunkDictionary.Values)
             {
 
+                // Console.WriteLine($"{chunk.GetChunkState()}, {chunk.GetMeshState()}, {chunk.GetGenerationState()}");
+
                 if (chunk.ContainsMesh() && chunk.GetChunkState() == ChunkState.Ready)
                 {
 
+                    // Console.WriteLine("Drawing");
                     chunk.Draw(shader, camera, time);
 
                 }

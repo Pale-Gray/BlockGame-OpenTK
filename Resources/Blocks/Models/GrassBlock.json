@@ -1,0 +1,88 @@
+{
+
+  "Filter": "CubeModel.json",
+  "NoCull": false,
+  "Faces": {
+
+    "Up": {
+
+      "Texture": "GrassBlockTop",
+      "Points": [
+
+        [ 1, 1, 1 ],
+        [ 1, 1, 0 ],
+        [ 0, 1, 0 ],
+        [ 0, 1, 1 ]
+
+      ]
+
+    },
+    "Down": {
+
+      "Texture": "DirtBlock",
+      "Points": [
+
+        [ 1, 0, 0 ],
+        [ 1, 0, 1 ],
+        [ 0, 0, 1 ],
+        [ 0, 0, 0 ]
+
+      ]
+
+    },
+    "Left": {
+
+      "Texture": "GrassBlockSide",
+      "Points": [
+
+        [ 1, 1, 1 ],
+        [ 1, 0, 1 ],
+        [ 1, 0, 0 ],
+        [ 1, 1, 0 ]
+
+      ]
+
+    },
+    "Right": {
+
+      "Texture": "GrassBlockSide",
+      "Points": [
+
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+        [ 0, 0, 1 ],
+        [ 0, 1, 1 ]
+
+      ]
+
+    },
+    "Front": {
+
+      "Texture": "GrassBlockSide",
+      "Points": [
+
+        [ 1, 1, 0 ],
+        [ 1, 0, 0 ],
+        [ 0, 0, 0 ],
+        [ 0, 1, 0 ]
+
+      ]
+
+    },
+    "Back": {
+
+      "Texture": "GrassBlockSide",
+      "Points": [
+
+        [ 0, 1, 1 ],
+        [ 0, 0, 1 ],
+        [ 1, 0, 1 ],
+        [ 1, 1, 1 ]
+
+      ]
+
+    }
+
+  }
+
+}

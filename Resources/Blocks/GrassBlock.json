@@ -1,34 +1,9 @@
 {
 
-  "DataName": "GrassBlock", // Name of the internal block variable. Usually what the json file name is as well.
-  "DisplayName": "Grass Block", // What will be displayed in game.
-  "Model": "GrassBlock", // The file name of the model of the block, usually the same name as the json or DataName. It is relative path, and you do not need to add .json at the end.
-  "Sounds": "GrassBlock", // The folder directory for the sounds of the block. relative path again.
-  "BreakTime": 1, // Specifies how long it takes to break the block, in milliseconds.
-  "DropProbabilities": { // Specifies the drops of the block, none if no drops, or specify 0 to a random item/block drop. Number is an int percentage (0 to 100)
-
-    // Example of a 100 percent drop rate of Dirt. Need to specify if Block or Item for distinguishability in code.
-    "Blocks/Dirt": 100,
-
-    // Example of no drop rate using a random block/item.
-    "Blocks/Air": 0,
-
-    // Example of multiple drops, each with their own percentage value. They need to add up to 100.
-    "Blocks/Grass": 99,
-    "Blocks/Rock": 1,
-
-    // possible example with blocks dropping blocks/items of multiple quantites.
-    "Blocks/Stone": {
-
-      "Quantities": {
-
-        "5": 80,
-        "3": 20
-
-      }
-
-    }
-
-  }
+  "DataName": "GrassBlock",
+  "DisplayName": "Grass Block",
+  "Model": "GrassBlock.json",
+  "Sounds": "GrassBlock",
+  "BreakTime": 1
 
 }

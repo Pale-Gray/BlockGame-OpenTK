@@ -1,0 +1,80 @@
+{
+
+  "Faces": [
+
+    {
+
+      "Points": [
+         
+        {"Texture": "GrassBlockTop", "CullDirection": "Up", "Point": [1,1,1]},
+        {"Texture": "GrassBlockTop", "CullDirection": "Up", "Point": [0,1,1]},
+        {"Texture": "GrassBlockTop", "CullDirection": "Up", "Point": [1,1,0]},
+        {"Texture": "GrassBlockTop", "CullDirection": "Up", "Point": [0,1,0]}
+
+      ]
+
+    },
+    {
+
+      "Points": [
+         
+        {"Texture": "GrassBlockSide", "CullDirection": "Front", "Point": [1,1,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Front", "Point": [0,1,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Front", "Point": [1,0,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Front", "Point": [0,0,0]}
+
+      ]
+
+    },
+    {
+
+      "Points": [
+         
+        {"Texture": "GrassBlockSide", "CullDirection": "Right", "Point": [0,1,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Right", "Point": [0,1,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Right", "Point": [0,0,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Right", "Point": [0,0,1]}
+
+      ]
+
+    },
+    {
+
+      "Points": [
+         
+        {"Texture": "GrassBlockSide", "CullDirection": "Back", "Point": [0,1,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Back", "Point": [1,1,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Back", "Point": [0,0,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Back", "Point": [1,0,1]}
+
+      ]
+
+    },
+    {
+
+      "Points": [
+         
+        {"Texture": "GrassBlockSide", "CullDirection": "Left", "Point": [1,1,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Left", "Point": [1,1,0]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Left", "Point": [1,0,1]},
+        {"Texture": "GrassBlockSide", "CullDirection": "Left", "Point": [1,0,0]}
+
+      ]
+
+    },
+    {
+
+      "Points": [
+         
+        {"Texture": "DirtBlock", "CullDirection": "Down", "Point": [1,0,0]},
+        {"Texture": "DirtBlock", "CullDirection": "Down", "Point": [0,0,0]},
+        {"Texture": "DirtBlock", "CullDirection": "Down", "Point": [1,0,1]},
+        {"Texture": "DirtBlock", "CullDirection": "Down", "Point": [1,0,1]}
+
+      ]
+
+    }
+
+  ]
+  
+}
