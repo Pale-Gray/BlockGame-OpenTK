@@ -1,7 +1,7 @@
 ***Join my discord for updates!*** https://discord.gg/MjuakmUza9 
 
 # BlockGame-OpenTK
-A vision and in-progress game that is similar to Hytale or Minecraft with mods.
+A vision and in-progress voxel-based game
 
 ## About
 
