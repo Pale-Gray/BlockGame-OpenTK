@@ -1,0 +1,92 @@
+{
+
+  "Faces": [
+
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Up",
+      "Points": [
+
+        [ 1, 1, 1 ],
+        [ 1, 1, 0 ],
+        [ 0, 1, 0 ],
+        [ 0, 1, 1 ]
+
+      ]
+
+    },
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Down",
+      "Points": [
+
+        [ 1, 0, 0 ],
+        [ 1, 0, 1 ],
+        [ 0, 0, 1 ],
+        [ 0, 0, 0 ]
+
+      ]
+
+    },
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Left",
+      "Points": [
+
+        [ 1, 1, 1 ],
+        [ 1, 0, 1 ],
+        [ 1, 0, 0 ],
+        [ 1, 1, 0 ]
+
+      ]
+
+    },
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Right",
+      "Points": [
+
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+        [ 0, 0, 1 ],
+        [ 0, 1, 1 ]
+
+      ]
+
+    },
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Front",
+      "Points": [
+
+        [ 1, 1, 0 ],
+        [ 1, 0, 0 ],
+        [ 0, 0, 0 ],
+        [ 0, 1, 0 ]
+
+      ]
+
+    },
+    {
+
+      "Texture": "MissingTexture",
+      "CullDirection": "Back",
+      "Points": [
+
+        [ 0, 1, 1 ],
+        [ 0, 0, 1 ],
+        [ 1, 0, 1 ],
+        [ 1, 1, 1 ]
+
+      ]
+
+    }
+
+  ]
+
+}

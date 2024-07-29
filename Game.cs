@@ -244,6 +244,10 @@ namespace Blockgame_OpenTK
             Globals.Time += Globals.DeltaTime;
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
+
+            // Console.WriteLine($"Mouse Delta X: {Globals.Mouse.Delta.X}, Computed mouse delta X: {Globals.Mouse.X - Globals.Mouse.PreviousX}");
+            // Console.WriteLine(UInt32.MaxValue);
+
             if (Globals.Keyboard.IsKeyPressed(Keys.Escape))
             { 
 
@@ -281,13 +285,16 @@ namespace Blockgame_OpenTK
 
             base.OnLoad();
 
+            Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
+            //GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
+            GL.Enable(EnableCap.DebugOutput);
+
             // TextureArray.Load();
             //BlockModel bm = new BlockModel();
             // BlockModel bm = BlockModel.Load("GrassBlockNew");
             // Console.WriteLine(bm.BlockFaces.Count);
             Globals.ArrayTexture.Load();
             Blocks.Load();
-
             // Blocks.GetBlockFromName("RandomBlock");
 
             // original: 8. printed: 1
@@ -323,12 +330,16 @@ namespace Blockgame_OpenTK
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.DepthTest);
+            // GL.DepthFunc(DepthFunction.Equal);
+            // GL.DepthMask(false);
             GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.Enable(EnableCap.TextureCubeMap);
             GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.ActiveTexture(TextureUnit.Texture0);
+
+            GL.Enable(EnableCap.PolygonOffsetFill);
 
             texture = new Texture("atlas.png");
             emtexture = new Texture("atlas_em.png");
@@ -366,6 +377,7 @@ namespace Blockgame_OpenTK
             Stopwatch sw = Stopwatch.StartNew();
 
             frameBuffer.Bind();
+
             GL.ClearColor(1.0f, 0.0f, 0.0f, 1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -437,17 +449,25 @@ namespace Blockgame_OpenTK
             // Console.WriteLine("cam gl pos: {0} chunk pos from glblpos: {1}", ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToChunk(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
             // Console.WriteLine("hitpos: {0}, prevpos: {1}, prevpovloc: {2}", DDA.PositionAtHit, DDA.PreviousPositionAtHit, ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
 
-            GL.Disable(EnableCap.DepthTest);
+            //GL.Disable(EnableCap.DepthTest);
+            //GL.PolygonOffset(51, -5);
+
+            // GL.Enable(EnableCap.PolygonOffsetFill);
+            GL.FrontFace(FrontFaceDirection.Cw);
             rmodel.SetScale(1, 1, 1);
+            GL.PolygonOffset(1, -1);
             rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
             //rmodel.SetScale(1, 1, 1);
             //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             rmodel.SetScale(0.2f,0.2f,0.2f);
             rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
+            GL.FrontFace(FrontFaceDirection.Ccw);
+            GL.PolygonOffset(1, 0);
+            // GL.Disable(EnableCap.PolygonOffsetFill);
             // hitdisplay.Draw((0,0,0), camera, (float)time);
-            TestElement.Draw();
-            GL.Enable(EnableCap.DepthTest);
+            // TestElement.Draw();
+            //GL.Enable(EnableCap.DepthTest);
 
             // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
             // Console.WriteLine(DDA.HitPoint);

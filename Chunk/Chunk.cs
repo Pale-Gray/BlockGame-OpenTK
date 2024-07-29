@@ -18,7 +18,7 @@ namespace Blockgame_OpenTK.ChunkUtil
     public struct ChunkVertex
     {
 
-        public int ID;
+        public int ID = 0;
         public float AmbientValue = 1;
         public int TextureIndex;
         public Vector3 Position;

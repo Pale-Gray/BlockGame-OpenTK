@@ -92,7 +92,12 @@ namespace Blockgame_OpenTK.PlayerUtil
                         if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
                         {
 
-                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
+                            if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PositionAtHit)).GetBlock((Vector3i) ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit)) != Blocks.AirBlock)
+                            {
+
+                                ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
+
+                            }
 
                         }
 

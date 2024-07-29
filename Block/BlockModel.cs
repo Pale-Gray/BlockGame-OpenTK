@@ -29,7 +29,6 @@ namespace Blockgame_OpenTK.BlockUtil
 
     public struct BlockModelFace
     {
-
         public string Texture { get; set; }
 
         [JsonPropertyName("Points")]

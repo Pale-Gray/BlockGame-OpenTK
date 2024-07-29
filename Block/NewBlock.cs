@@ -2,6 +2,7 @@
 using Blockgame_OpenTK.Util;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -13,26 +14,29 @@ namespace Blockgame_OpenTK.BlockUtil
     internal class NewBlock
     {
         
-        string DataName { get; set; }
-        string DisplayName { get; set; }
-        BlockModel Model { get; set; }
+        public string DataName { get; set; }
+        public string DisplayName { get; set; }
+        [JsonConverter(typeof(JsonBlockModelNewConverter))]
+        [JsonPropertyName("Model")]
+        public BlockModelNew BlockModel { get; set; }
         [JsonPropertyName("Sounds")]
-        string SoundPath { get; set; }
-        int BreakTime { get; set; }
+        public string SoundPath { get; set; }
+        public int BreakTime { get; set; }
 
-
-        public NewBlock()
-        {
-
-
-
-        }
         public static NewBlock LoadFromJson(string fileName)
         {
 
-            return JsonSerializer.Deserialize<NewBlock>(Globals.BlockModelPath + fileName + ".json");
+            return JsonSerializer.Deserialize<NewBlock>(File.ReadAllText(Globals.BlockDataPath + fileName));
 
         }
+
+        public void OnBlockPlace() { }
+        public void OnBlockInteract() { }
+        public void OnBlockMine() { }
+        public void OnBlockDestroy() { }
+        public void OnTickUpdate() { }
+        public void OnRandomTickUpdate() { }
+
 
     }
 }
