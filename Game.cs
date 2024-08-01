@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -16,6 +16,7 @@ using Blockgame_OpenTK.FramebufferUtil;
 using System.Linq;
 using Blockgame_OpenTK.BlockUtil;
 using System.Text.Json;
+
 
 namespace Blockgame_OpenTK
 {
@@ -204,7 +205,8 @@ namespace Blockgame_OpenTK
 
         double ft = 0;
         double fs = 0;
-        Chunk c;
+        // Chunk c;
+        NewChunk nc = new NewChunk((0,0,0));
         Sun Sun;
 
         Player Player;
@@ -285,9 +287,9 @@ namespace Blockgame_OpenTK
 
             base.OnLoad();
 
-            Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
+            // Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
             //GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
-            GL.Enable(EnableCap.DebugOutput);
+            // GL.Enable(EnableCap.DebugOutput);
 
             // TextureArray.Load();
             //BlockModel bm = new BlockModel();
@@ -362,7 +364,8 @@ namespace Blockgame_OpenTK
             Player.SetPosition((0, 0, 0));
             // Blocks.GetBlockFromName("Air");
 
-            c = new Chunk(0,0,0);
+            // c = new Chunk(0,0,0);
+            // nc = new NewChunk((0,0,0));
 
             // snowb = Block.LoadFromJson("GrassBlockNew");
 
@@ -413,16 +416,47 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
-            // Blocks.Snow.BlockModel.GetConvertedFace(BlockFaceType.Up);
+            // ChunkLoader.Load();
+            // ChunkLoader.DrawReadyChunks(Player.Camera);
 
-            //c.Generate();
-            //c.InitializeData();
-            //c.GenerateMesh();
-            //c.ProcessToRender();
-            //Console.WriteLine($"{c.GetGenerationState()},{c.GetMeshState()},{c.GetChunkState()}");
-            //c.Draw(Globals.ChunkShader, Player.Camera, (float) time);
+            // Console.WriteLine(nc.GetGenerationState());
+            // ChunkBuilder.GeneratePassOne(ref nc);
+            // Console.WriteLine(nc.GetType());
+            // Console.WriteLine(nc.GetGenerationState());
+            if (nc.GetChunkState() != ChunkState.Ready)
+            {
+                
+                if (nc.GetGenerationState() != GenerationState.Generated)
+                {
 
-            // ChunkLoader.GenerateThreadedFilledColumns(16, camera.position);
+                    ChunkBuilder.GenerateThreaded(nc);
+
+                } else
+                {
+
+                    if (nc.GetMeshState() != MeshState.Meshed)
+                    {
+
+                        ChunkBuilder.MeshThreaded(nc);
+
+                    } else
+                    {
+
+                        ChunkBuilder.CallOpenGL(nc);
+
+                    }
+
+                }
+
+            } else
+            {
+
+                nc.Draw(Player.Camera);
+
+            }
+            
+            // Console.WriteLine($"ChunkState: {nc.GetChunkState()}, GenerationState: {nc.GetGenerationState()}, MeshState: {nc.GetMeshState()}, HasMesh: {nc.GetChunkMesh() != null}");
+            // Console.WriteLine($"ChunkState: {nc.ChunkState}, MeshState: {nc.MeshState}, GenerationState: {nc.GenerationState}, Vertex count: {nc.BlockData == null}");
 
             // Console.WriteLine(Blocks.Snow.DataName);
             if (debug)
@@ -432,17 +466,17 @@ namespace Blockgame_OpenTK
 
             }
 
-            ChunkLoader.GenerateThreaded(25, Player.Camera.Position);
-            ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, Player.Camera, (float)time);
+            // ChunkLoader.GenerateThreaded(25, Player.Camera.Position);
+            // ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, Player.Camera, (float)time);
 
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
             // Console.WriteLine($"amount of chunks: {ChunkLoader.ChunkDictionary.Count()}");
 
             // Player.GetBlockLooking(5);
             // DDA.Trace(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 10);
 
-            DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
+            // DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
             //  Console.WriteLine(DDA.PositionAtHit);
             // Console.WriteLine("cpos: {0}, blpos: {1}, bgpos: {2}, blposfrombgpos: {3}", ChunkUtils.PositionToChunk(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(Player.Camera.Position), ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
             // Console.WriteLine("prtb: {0}, chnp: {1}, hit: {2}", DDA.RoundedPosition,DDA.ChunkAtHit, DDA.ChunkAtHit);
@@ -471,12 +505,12 @@ namespace Blockgame_OpenTK
 
             // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
             // Console.WriteLine(DDA.HitPoint);
-            Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.Position);
-            Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.Position);
-            Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.Position);
+            // Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.Position);
+            // Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.Position);
+            // Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.Position);
 
-            text.UpdateText($"Player Position: {ChunkUtils.PositionToBlockGlobal(Player.Position)}");
-            text.Draw();
+            // text.UpdateText($"Player Position: {ChunkUtils.PositionToBlockGlobal(Player.Position)}");
+            // text.Draw();
 
             if (debug)
             {

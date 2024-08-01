@@ -1,5 +1,5 @@
 #version 400 core
-// out vec4 Outcolor;
+out vec4 Outcolor;
 
 uniform sampler2D atlas;
 uniform sampler2DArray arrays;
@@ -29,8 +29,6 @@ void main()
 	float thickness = 0.1;
 	if (vposition.x > thickness && vposition.x < 32 - thickness && vposition.y > thickness && vposition.y < 32 - thickness && vposition.z > thickness && vposition.z < 32 - thickness) {edge = 1;}
 
-	// Outcolor = vec4((array_texture.rgb) * value * vambient_value, 1.0);
-	
-	gl_FragColor = vec4((array_texture.rgb) * value * vambient_value, 1.0);
+	Outcolor = vec4(array_texture.rgb, 1.0);
 
 }

@@ -10,18 +10,17 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class JsonBlockModelNewConverter : JsonConverter<BlockModelNew>
+    internal class JsonBlockModelNewConverter : JsonConverter<BlockModel>
     {
-        public override BlockModelNew Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override BlockModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
 
-            // Console.WriteLine(reader.GetString());
-
-            return JsonSerializer.Deserialize<BlockModelNew>(File.ReadAllText(Globals.BlockModelPath + reader.GetString()));
+            // Console.WriteLine($"Loading {reader.GetString()}");
+            return BlockModel.LoadFromJson(reader.GetString());
 
         }
 
-        public override void Write(Utf8JsonWriter writer, BlockModelNew value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, BlockModel value, JsonSerializerOptions options)
         {
             throw new NotImplementedException();
         }

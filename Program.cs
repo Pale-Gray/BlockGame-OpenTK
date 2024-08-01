@@ -12,11 +12,8 @@ namespace Blockgame_OpenTK
 {
     internal class Program
     {
-
         public static void Main(string[] args)
         {
-
-            // NewBlock nb = NewBlock.LoadFromJson("GrassBlockNew.json");
 
             using (Game game = new Game((int)Globals.WIDTH, (int)Globals.HEIGHT, "BlockGame"))
             {

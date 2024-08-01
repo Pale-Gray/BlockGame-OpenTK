@@ -12,6 +12,7 @@ using Blockgame_OpenTK.BlockUtil;
 using System.Text.Json.Serialization;
 using Blockgame_OpenTK.Registry;
 using OpenTK.Audio.OpenAL;
+using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -50,6 +51,7 @@ namespace Blockgame_OpenTK.ChunkUtil
     {
 
         NotReady,
+        Processing,
         Ready
 
     }
@@ -58,7 +60,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         NotMeshed,
         Meshing,
-        Done
+        Meshed
 
     }
     internal class Chunk
@@ -170,7 +172,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void Generate()
         {
 
-            if (chunkState == ChunkState.NotReady && meshState == MeshState.Done)
+            if (chunkState == ChunkState.NotReady && meshState == MeshState.Meshed)
             {
                 ProcessToRender();
                 chunkState = ChunkState.Ready;
@@ -540,7 +542,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 MeshData = MeshDataList.ToArray();
 
             }
-            meshState = MeshState.Done;
+            meshState = MeshState.Meshed;
 
         }
 
@@ -552,37 +554,37 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (SampleBlock(position + Vector3i.UnitY))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Up), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Up), position));
 
             }
             if (SampleBlock(position - Vector3i.UnitY))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Down), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Down), position));
 
             }
             if (SampleBlock(position + Vector3i.UnitX))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Left), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Left), position));
 
             }
             if (SampleBlock(position - Vector3i.UnitX))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Right), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Right), position));
 
             }
             if (SampleBlock(position + Vector3i.UnitZ))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Back), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Back), position));
 
             }
             if (SampleBlock(position - Vector3i.UnitZ))
             {
 
-                chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Front), position));
+                // chunkMesh.AddRange(block.BlockModel.OffsetFace(block.BlockModel.GetConvertedFace(BlockFaceType.Front), position));
 
             }
 

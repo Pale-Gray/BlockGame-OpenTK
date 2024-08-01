@@ -9,15 +9,16 @@ layout (location=4) in float ambient_value;
 // layout (location=2) in vec3 normal;
 // layout (location=3) in vec2 texcoord;
 
-uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform float time;
 uniform vec3 cameraPosition;
 
 uniform mat4 rot;
+uniform vec3 chunk_position;
 
 out vec3 vposition;
+out vec3 vchunkposition;
 out vec2 vtexcoord;
 flat out int vtexture_index;
 out vec3 vnormal;
@@ -49,12 +50,12 @@ void main()
 
 	directionalLight = normalize((vec4(0,1,0,1) * rot)).xyz;
 
-	vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
+	// vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
 
-	vec3 coordinates = (vec4(1.0, 1.0, 1.0, 1.0) * model).xyz;
+	// vec3 coordinates = (vec4(1.0, 1.0, 1.0, 1.0) * model).xyz;
 
 	float fac = 2;
 
-	gl_Position = vec4(position.x, position.y, position.z, 1.0) * model * view * projection;
+	gl_Position = vec4(position.xyz, 1.0) * view * projection;
 
 }

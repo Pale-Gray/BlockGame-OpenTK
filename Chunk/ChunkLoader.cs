@@ -5,6 +5,7 @@ using OpenTK.Mathematics;
 using System.Diagnostics;
 
 using Blockgame_OpenTK.Util;
+using System.IO;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -202,7 +203,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                                 }
 
-                                if (GetChunk(PositionsExcludingReadyChunks[i]).GetMeshState() == MeshState.Done && GetChunk(PositionsExcludingReadyChunks[i]).GetChunkState() == ChunkState.NotReady)
+                                if (GetChunk(PositionsExcludingReadyChunks[i]).GetMeshState() == MeshState.Meshed && GetChunk(PositionsExcludingReadyChunks[i]).GetChunkState() == ChunkState.NotReady)
                                 {
 
                                     GetChunk(PositionsExcludingReadyChunks[i]).ProcessToRender();
@@ -317,7 +318,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                         }
 
-                        if (GetChunk(MeshingPosition).GetMeshState() == MeshState.Done && GetChunk(MeshingPosition).GetChunkState() == ChunkState.NotReady)
+                        if (GetChunk(MeshingPosition).GetMeshState() == MeshState.Meshed && GetChunk(MeshingPosition).GetChunkState() == ChunkState.NotReady)
                         {
 
                             GetChunk(MeshingPosition).ProcessToRender();
@@ -626,6 +627,91 @@ namespace Blockgame_OpenTK.ChunkUtil
         {
 
             ChunkDictionary.Remove(position);
+
+        }
+
+
+        static int Radius = 8;
+        static int CurrentRadius = 0;
+        static Dictionary<Vector3i, NewChunk> Chunks = new Dictionary<Vector3i, NewChunk>();
+
+        public static void Load()
+        {
+
+            foreach (Vector3i chunkPosition in Chunks.Keys)
+            {
+
+                // Console.WriteLine(chunkPosition);
+                if (Chunks[chunkPosition].GetChunkState() != ChunkState.Ready)
+                {
+
+                    if (Chunks[chunkPosition].GetGenerationState() != GenerationState.Generated)
+                    {
+
+                        ChunkBuilder.GenerateThreaded(Chunks[chunkPosition]);
+                        goto End;
+
+                    } else
+                    {
+
+                        if (Chunks[chunkPosition].GetMeshState() != MeshState.Meshed)
+                        {
+
+                            ChunkBuilder.MeshThreaded(Chunks[chunkPosition]);
+                            goto End;
+
+                        } else
+                        {
+
+                            ChunkBuilder.CallOpenGL(Chunks[chunkPosition]);
+
+                        }
+
+                    }
+
+                } else
+                {
+
+                    if (!Chunks.ContainsKey(chunkPosition + Vector3i.UnitX) && chunkPosition.X <= Radius)
+                    {
+
+                        NewChunk chunk = new NewChunk(chunkPosition + Vector3i.UnitX);
+                        // Console.WriteLine(chunk.GetChunkPosition());
+                        Chunks.Add(chunk.GetChunkPosition(), chunk);
+                        goto End;
+
+                    }
+
+                }
+
+            }
+
+            End:
+
+            if (!Chunks.ContainsKey(Vector3i.Zero)) // Replace Vector3i.Zero with the current camera position rounded to the chunk position;
+            {
+
+                NewChunk chunk = new NewChunk((0,0,0));
+                Chunks.Add(chunk.GetChunkPosition(), chunk);
+
+            }
+
+        }
+
+        public static void DrawReadyChunks(Camera camera)
+        {
+
+            foreach (Vector3i chunkPosition in Chunks.Keys)
+            {
+
+                if (Chunks[chunkPosition].GetChunkState() == ChunkState.Ready)
+                {
+
+                    Chunks[chunkPosition].Draw(camera);
+
+                }
+
+            }
 
         }
 

@@ -1,20 +1,18 @@
 ﻿using Blockgame_OpenTK.ChunkUtil;
 using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.ES11;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Drawing;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum BlockFaceType
+    public enum BlockModelNewCullDirection
     {
 
         Up,
@@ -23,125 +21,141 @@ namespace Blockgame_OpenTK.BlockUtil
         Right,
         Front,
         Back,
-        Extra
+        None
 
     }
-
-    public struct BlockModelFace
+    public struct BlockModelNewFace
     {
-        public string Texture { get; set; }
 
-        [JsonPropertyName("Points")]
+        [JsonConverter(typeof(JsonTextureIndexConverter))]
+        [JsonPropertyName("Texture")]
+        public int TextureIndex { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public BlockModelNewCullDirection? CullDirection { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonPropertyName("Reference")]
+        public BlockModelNewCullDirection? ReferenceCullDirection { get; set; }
         [JsonConverter(typeof(JsonVertexArrayConverter))]
-        public required Vector3[] Points { get; set; }
+        public Vector3[] Points { get; set; }
+
+        public BlockModelNewFace()
+        {
+
+            TextureIndex = Globals.ArrayTexture.GetTextureIndex("MissingTexture");
+
+        }
 
     }
+
     internal class BlockModel
     {
 
-        public bool NoCull { get; set; } = false;
-        public Dictionary<BlockFaceType, BlockModelFace> Faces { get; set; }
-        [JsonConstructor]
+        [JsonConverter(typeof(JsonBlockModelNewConverter))]
+        public BlockModel Reference { get; set; }
+        public BlockModelNewFace[] Faces { get; set; }
+
         public BlockModel()
         {
 
-
+            
 
         }
-
-        public ChunkVertex[] GetConvertedFace(BlockFaceType faceType)
+        public ChunkVertex[] ConvertToChunkReadableFaceOffset(Vector3 offset, BlockModelNewCullDirection referenceDirection)
         {
 
-            // Stopwatch sw = Stopwatch.StartNew();
+            ChunkVertex[] convertedVertices = ConvertToChunkReadableFace(referenceDirection);
+
+            for (int i = 0; i < convertedVertices.Length; i++)
+            {
+
+                convertedVertices[i].Position += offset;
+
+            }
+
+            return convertedVertices;
+
+        }
+        public ChunkVertex[] ConvertToChunkReadableFace(BlockModelNewCullDirection referenceDirection)
+        {
+
             List<ChunkVertex> vertices = new List<ChunkVertex>();
 
-            BlockModelFace face = Faces[faceType];
-            int textureIndex = Globals.ArrayTexture.GetTextureIndex(face.Texture);
-            // Console.WriteLine(textureIndex);
-
-            Vector3[] positions =
+            foreach (var face in Faces)
             {
 
-                face.Points[0],
-                face.Points[1],
-                face.Points[2],
-                face.Points[2],
-                face.Points[3],
-                face.Points[0]
-            
+
+                if (face.ReferenceCullDirection != null && face.ReferenceCullDirection == referenceDirection)
+                {
+
+                    int textureIndex = face.TextureIndex;
+                    foreach (var referenceFace in Reference.Faces)
+                    {
+
+                        if (referenceFace.CullDirection == referenceDirection)
+                        {
+
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[0], (0, 1), (0, 0, 0)));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[1], (0, 0), (0, 0, 0)));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[2], (1, 0), (0, 0, 0)));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[3], (1, 1), (0, 0, 0)));
+
+                        }
+
+                    }
+
+                } else // This means that the reference direction is null, so find the regular cull direction
+                {
+
+                    if (face.CullDirection != null && face.CullDirection == referenceDirection)
+                    {
+
+                        int textureIndex = face.TextureIndex;
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[0], (0, 1), (0, 0, 0)));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[1], (0, 0), (0, 0, 0)));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[2], (1, 0), (0, 0, 0)));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[3], (1, 1), (0, 0, 0)));
+
+                    }
+
+                }
+
+            }
+
+            ChunkVertex[] verticesToReturn =
+            {
+
+                vertices[0],
+                vertices[1],
+                vertices[2],
+                vertices[2],
+                vertices[3],
+                vertices[0]
+
             };
-            Vector2[] textureCoordinates =
-            {
 
-                (0, 1),
-                (0, 0),
-                (1, 0),
-                (1, 0),
-                (1, 1),
-                (0, 1)
-
-            };
-
-            for (int i = 0; i < positions.Length; i++)
-            {
-
-                vertices.Add(new ChunkVertex(textureIndex, positions[i], textureCoordinates[i], GetFaceNormal(faceType)));
-
-            }
-
-            // sw.Stop();
-            // Console.WriteLine($"Finished in {sw.Elapsed}");
-            return vertices.ToArray();
+            return verticesToReturn;
 
         }
-
-        public Vector3 GetFaceNormal(BlockFaceType faceType)
+        public static ChunkVertex[] OffsetVertices(Vector3 offset, ChunkVertex[] vertices)
         {
 
-            switch(faceType)
+            ChunkVertex[] verticesCopy = (ChunkVertex[]) vertices.Clone();
+            for (int i = 0; i < verticesCopy.Length; i++)
             {
 
-                case BlockFaceType.Up:
-                    return Vector3.UnitY;
-                case BlockFaceType.Down:
-                    return -Vector3.UnitY;
-                case BlockFaceType.Left:
-                    return Vector3.UnitX;
-                case BlockFaceType.Right:
-                    return -Vector3.UnitX;
-                case BlockFaceType.Back:
-                    return Vector3.UnitZ;
-                case BlockFaceType.Front:
-                    return -Vector3.UnitZ;
+                verticesCopy[i].Position += offset;
 
             }
-
-            return Vector3.Zero;
-
-        }
-
-        public ChunkVertex[] OffsetFace(ChunkVertex[] face, Vector3 offset)
-        {
-
-            ChunkVertex[] originalVertices = face;
-
-            for (int i = 0; i < originalVertices.Length; i++)
-            {
-
-                originalVertices[i].Position += offset;
-
-            }
-
-            return originalVertices;
+            return verticesCopy;
 
         }
-        public static BlockModel Load(string fileName)
+        public static BlockModel LoadFromJson(string fileName)
         {
 
+            // Console.WriteLine($"Deserializing {fileName}");
             return JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Globals.BlockModelPath + fileName));
 
         }
 
     }
-
 }

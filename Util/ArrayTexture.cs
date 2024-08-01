@@ -15,7 +15,7 @@ namespace Blockgame_OpenTK.Util
         string PathToTextures;
         int Width, Height, Depth;
         public int TextureID = 0;
-        List<string> TextureNames = new List<string>();
+        public List<string> TextureNames = new List<string>();
 
         public ArrayTexture()
         {
