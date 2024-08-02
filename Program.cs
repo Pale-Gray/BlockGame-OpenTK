@@ -1,16 +1,13 @@
 ﻿using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.Util;
-using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Graphics.Wgl;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using OpenTK.Mathematics;
 
 namespace Blockgame_OpenTK
 {
@@ -107,24 +104,30 @@ namespace Blockgame_OpenTK
             {
 
                 textList[i].SetPosition((-315, 210 - (i * (fontsize + 4)), 0));
+                textList[i].SetFontColor((1,1,1));
 
             }
 
             FontRenderer fr = new FontRenderer(8, e.Message + "\n" + e.StackTrace);
             // GL.LoadBindings(new GLFWBindingsContext());
             game.CursorState = CursorState.Normal;
-            // game.MakeCurrent();
-            // GLFW.MakeContextCurrent(game.WindowPtr);
-            // Console.WriteLine("err");
-            // GL.LoadBindings(new GLFWBindingsContext());
+            // GLFW.SetWindowSize(game.WindowPtr, 900, 480);
+            // GL.Viewport(0, 0, 640, 480);
+            game.frameBuffer.UpdateAspect();
 
             while (!game.IsExiting)
             {
 
-                GLFW.MakeContextCurrent(game.WindowPtr);
-
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 // game.Error("hi");
+                GL.ClearColor(0.2f, 0, 0.5f, 1);
+
+                foreach (var line in textList)
+                {
+
+                    line.Draw();
+
+                }
 
                 game.SwapBuffers();
                 GLFW.PollEvents();

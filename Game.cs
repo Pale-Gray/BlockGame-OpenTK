@@ -194,7 +194,7 @@ namespace Blockgame_OpenTK
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
-        Framebuffer frameBuffer;
+        public Framebuffer frameBuffer;
         FramebufferQuad framebufferQuad;
 
         ArrayTexture TextureArray = new ArrayTexture();
