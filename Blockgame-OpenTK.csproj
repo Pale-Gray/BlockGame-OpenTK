@@ -5,6 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Blockgame_OpenTK</RootNamespace>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

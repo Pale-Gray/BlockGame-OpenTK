@@ -23,20 +23,20 @@ namespace Blockgame_OpenTK.ChunkUtil
             {
 
                 chunk.SetGenerationState(GenerationState.Generating);
-                Task.Run(() => { GeneratePassOne(chunk); });
+                Task.Run(() => { GeneratePassOne(ref chunk); });
 
             }
             if (chunk.GetGenerationState() == GenerationState.PassOne)
             {
 
                 chunk.SetGenerationState(GenerationState.Generating);
-                Task.Run(() => { GeneratePassTwo(chunk); });
+                Task.Run(() => { GeneratePassTwo(ref chunk); });
 
             }
 
         }
 
-        public static void GeneratePassOne(NewChunk chunk)
+        public static void GeneratePassOne(ref NewChunk chunk)
         {
 
             for (int x = 0; x < Globals.ChunkSize; x++)
@@ -71,7 +71,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public static void GeneratePassTwo(NewChunk chunk)
+        public static void GeneratePassTwo(ref NewChunk chunk)
         {
 
             for (int x = 0; x < Globals.ChunkSize; x++)

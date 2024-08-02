@@ -675,9 +675,9 @@ namespace Blockgame_OpenTK.ChunkUtil
                     if (!Chunks.ContainsKey(chunkPosition + Vector3i.UnitX) && chunkPosition.X <= Radius)
                     {
 
-                        NewChunk chunk = new NewChunk(chunkPosition + Vector3i.UnitX);
+                        // NewChunk chunk = new NewChunk(chunkPosition + Vector3i.UnitX);
                         // Console.WriteLine(chunk.GetChunkPosition());
-                        Chunks.Add(chunk.GetChunkPosition(), chunk);
+                        Chunks.Add(chunkPosition + Vector3i.UnitX, new NewChunk(chunkPosition + Vector3i.UnitX));
                         goto End;
 
                     }
@@ -704,6 +704,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             foreach (Vector3i chunkPosition in Chunks.Keys)
             {
 
+                // Console.WriteLine(chunkPosition);
                 if (Chunks[chunkPosition].GetChunkState() == ChunkState.Ready)
                 {
 

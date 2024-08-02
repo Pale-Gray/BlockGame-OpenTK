@@ -249,7 +249,7 @@ namespace Blockgame_OpenTK
 
             // Console.WriteLine($"Mouse Delta X: {Globals.Mouse.Delta.X}, Computed mouse delta X: {Globals.Mouse.X - Globals.Mouse.PreviousX}");
             // Console.WriteLine(UInt32.MaxValue);
-
+            
             if (Globals.Keyboard.IsKeyPressed(Keys.Escape))
             { 
 
@@ -288,7 +288,7 @@ namespace Blockgame_OpenTK
             base.OnLoad();
 
             // Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
-            //GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
+            // GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
             // GL.Enable(EnableCap.DebugOutput);
 
             // TextureArray.Load();
@@ -376,6 +376,7 @@ namespace Blockgame_OpenTK
         {
 
             base.OnRenderFrame(args);
+            
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -416,6 +417,18 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
+            if (Globals.Keyboard.IsKeyDown(Keys.LeftControl))
+            {
+
+                if (Globals.Keyboard.IsKeyPressed(Keys.R))
+                {
+
+                    throw new Exception("Forcing a crash.");
+
+                }
+
+            }
+
             // ChunkLoader.Load();
             // ChunkLoader.DrawReadyChunks(Player.Camera);
 
@@ -423,6 +436,11 @@ namespace Blockgame_OpenTK
             // ChunkBuilder.GeneratePassOne(ref nc);
             // Console.WriteLine(nc.GetType());
             // Console.WriteLine(nc.GetGenerationState());
+
+            // ChunkLoader.Load();
+            // ChunkLoader.DrawReadyChunks(Player.Camera);
+
+            
             if (nc.GetChunkState() != ChunkState.Ready)
             {
                 
@@ -450,11 +468,12 @@ namespace Blockgame_OpenTK
 
             } else
             {
-
+                
                 nc.Draw(Player.Camera);
 
             }
             
+
             // Console.WriteLine($"ChunkState: {nc.GetChunkState()}, GenerationState: {nc.GetGenerationState()}, MeshState: {nc.GetMeshState()}, HasMesh: {nc.GetChunkMesh() != null}");
             // Console.WriteLine($"ChunkState: {nc.ChunkState}, MeshState: {nc.MeshState}, GenerationState: {nc.GenerationState}, Vertex count: {nc.BlockData == null}");
 
@@ -489,7 +508,7 @@ namespace Blockgame_OpenTK
             // GL.Enable(EnableCap.PolygonOffsetFill);
             GL.FrontFace(FrontFaceDirection.Cw);
             rmodel.SetScale(1, 1, 1);
-            GL.PolygonOffset(1, -1);
+            GL.PolygonOffset(-1, 1);
             rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
             //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
             //rmodel.SetScale(1, 1, 1);
@@ -497,7 +516,8 @@ namespace Blockgame_OpenTK
             rmodel.SetScale(0.2f,0.2f,0.2f);
             rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
             GL.FrontFace(FrontFaceDirection.Ccw);
-            GL.PolygonOffset(1, 0);
+            GL.PolygonOffset(0, 0);
+            // GL.PolygonOffset(0, 0);
             // GL.Disable(EnableCap.PolygonOffsetFill);
             // hitdisplay.Draw((0,0,0), camera, (float)time);
             // TestElement.Draw();
@@ -595,6 +615,16 @@ namespace Blockgame_OpenTK
             Globals.FrameInformation = "Ft: " + sw.ElapsedMilliseconds + "ms. campos: " + (Vector3i) cposition;
 
             SwapBuffers();
+
+        }
+
+        public void Error(string error)
+        {
+
+
+            FontRenderer fr = new FontRenderer(12, error);
+
+            fr.Draw();
 
         }
         protected override void OnUnload()

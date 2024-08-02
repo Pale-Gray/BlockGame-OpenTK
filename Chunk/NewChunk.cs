@@ -16,13 +16,13 @@ namespace Blockgame_OpenTK.ChunkUtil
     internal class NewChunk
     {
 
-        static ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
-        static ChunkVertex[] ChunkMesh;
-        static GenerationState GenerationState;// = GenerationState.NotGenerated;
-        static MeshState MeshState;// = MeshState.NotMeshed;
-        static ChunkState ChunkState;// = ChunkState.NotReady;
-        static Vector3i ChunkPosition;
-        static int Vao, Vbo;
+        ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
+        ChunkVertex[] ChunkMesh;
+        GenerationState GenerationState;// = GenerationState.NotGenerated;
+        MeshState MeshState;// = MeshState.NotMeshed;
+        ChunkState ChunkState;// = ChunkState.NotReady;
+        Vector3i ChunkPosition;
+        int Vao, Vbo;
 
         public NewChunk(Vector3i chunkPosition)
         {
@@ -44,7 +44,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "atlas"), 0);
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "arrays"), 1);
             GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "cameraPosition"), (0, 0, 0));
-            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "chunk_position"), ref ChunkPosition);
+            // Console.WriteLine(ChunkPosition);
+            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Globals.AtlasTexture.getID());
             GL.ActiveTexture(TextureUnit.Texture1);

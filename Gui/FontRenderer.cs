@@ -29,7 +29,7 @@ namespace Blockgame_OpenTK.Gui
     internal class FontRenderer
     {
 
-        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"':- ".ToArray();
+        char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"':- _\\".ToArray();
         Vector2 CharDimension = (8, 8);
         Vector2 CharRenderDimension;
         Vector2 RelativePosition;
@@ -52,9 +52,17 @@ namespace Blockgame_OpenTK.Gui
             FontShader = new Shader("font.vert", "font.frag");
 
             GenerateMesh(text);
-            model = Matrix4.CreateTranslation(-300, 200, 0);
+            // model = Matrix4.CreateTranslation(-300, 200, 0);
+            model = Matrix4.CreateTranslation(0, 0, 0);
 
             ProcessToRender();
+
+        }
+
+        public void SetPosition(Vector3i position)
+        {
+
+            model = Matrix4.CreateTranslation(position);
 
         }
 

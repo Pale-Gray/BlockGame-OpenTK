@@ -15,7 +15,7 @@ uniform float time;
 uniform vec3 cameraPosition;
 
 uniform mat4 rot;
-uniform vec3 chunk_position;
+uniform vec3 chunkpos;
 
 out vec3 vposition;
 out vec3 vchunkposition;
@@ -56,6 +56,6 @@ void main()
 
 	float fac = 2;
 
-	gl_Position = vec4(position.xyz, 1.0) * view * projection;
+	gl_Position = vec4(position.xyz + (chunkpos * 32), 1.0) * view * projection;
 
 }
