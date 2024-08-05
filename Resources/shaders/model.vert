@@ -20,6 +20,7 @@ void main()
 
 	v_position = position;
 	v_texcoord = texcoord;
+	v_time = time;
 
 	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
 

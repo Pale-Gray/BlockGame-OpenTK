@@ -13,6 +13,9 @@ void main()
 	
 	vec4 tex = texture(framebufferColorTexture, v_texcoord).rgba; // * (intensity + 0.25);
 
-	FragColor = tex.rgba;
+	// FragColor = tex.rgba;
+
+	// FragColor = vec4(mix(topColor, bottomColor, v_position.y), 1);
+	FragColor = tex;
 
 }

@@ -139,6 +139,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        /* 
         public void GenerateTerrainThreaded()
         {
 
@@ -201,6 +202,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        /*
         public int GetAmountNeighborsGenerated()
         {
 
@@ -275,6 +277,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             return num;
 
         }
+
+        */
+        /* 
         public Block GetBlockOverrided(Vector3i direction)
         {
 
@@ -910,7 +915,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 MeshDataList.AddRange(Block.GetFaceShifted(block.BottomFace, x, y, z, 1));
 
-            } */
+            }
 
         }
         public bool CheckAir(int x, int y, int z)
@@ -927,7 +932,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 return true;
 
-            } */
+            }
 
             return false;
 
@@ -943,7 +948,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                     return false;
 
-                } */
+                }
 
             }
 
@@ -962,7 +967,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                     return false;
 
-                } */
+                }
 
             }
 
@@ -1079,5 +1084,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             Vao.Unbind();
 
         }
+
+        */
+
     }
 }

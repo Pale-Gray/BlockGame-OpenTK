@@ -10,22 +10,16 @@ namespace Blockgame_OpenTK.BlockUtil
 
         public static List<Block> BlockList = new List<Block>();
 
-        // public static Block Air = new Block("Air").SetFaceTexture(1, 0, 0).Register();   
-
-        // public static Block Grass = new Block("Grass").SetFaceTexture(1, 0, 0, 1, 2, 3).SetFaceTexture(0, 0, 5).SetFaceTexture(2, 0, 4).Register();
-        // public static Block Dirt = new Block("Dirt").SetFaceTexture(0, 0, 0, 1, 2, 3, 4, 5).Register();
-        // public static Block Stone = new Block("Stone").Register(); //.SetFaceTexture(3, 0, 0, 1, 2, 3, 4, 5).Register();
         public static readonly Block AirBlock = Block.LoadFromJson("AirBlock.json");
-        public static readonly Block GrassBlock = Block.LoadFromJson("GrassBlockNew.json");
-            
-        // public readonly static Block G = new Block("") { Name = "Grass" }.Register();
-
+        public static readonly Block GrassBlock = Block.LoadFromJson("GrassBlock.json");
+        public static readonly Block StoneBlock = Block.LoadFromJson("StoneBlock.json");
         public static void Load()
         {
             // Block b = Block.LoadFromJson("GrassBlockNew.json");
             // Globals.Register.AddBlock(AirBlock);
             Globals.Register.AddBlock(AirBlock);
             Globals.Register.AddBlock(GrassBlock);
+            Globals.Register.AddBlock(StoneBlock);
 
         }
 

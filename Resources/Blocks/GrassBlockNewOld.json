@@ -3,7 +3,7 @@
   "DataName": "GrassBlock",
   "DisplayName": "Grass Block",
   "Model": "GrassBlock.json",
-  "SoundPath": "GrassBlock",
-  "BreakTime": 1000
+  "Sounds": "GrassBlock",
+  "BreakTime": 1
 
 }

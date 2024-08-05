@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 using Blockgame_OpenTK.Util;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -135,6 +136,8 @@ namespace Blockgame_OpenTK.ChunkUtil
         static int PositionsLeftUnchecked = Positions.Except(ChunkUtils.RingedColumnPadded(LastCameraPosition, 0, MaxRadius, MaxRadius)).Count();
         static List<Vector3> ChunksDone = new List<Vector3>();
         static Vector3[] PositionsExcludingReadyChunks = Positions.Except(ChunksDone).ToArray();
+
+        /*
         public static void GenerateThreaded(int chunksPerUpdate, Vector3 cameraPosition)
         {
 
@@ -349,6 +352,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
         }
+
+        */
         public static void UpdateLoadingPositions()
         {
 
@@ -356,6 +361,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             MeshingPositions = ChunkUtils.RingedColumn(LastCameraPosition, ChunkRadius, MaxRadius);
 
         }
+
+        /*
         public static void GenerateThreadedColumn(int chunksPerUpdate, Vector3 cameraPosition)
         {
 
@@ -449,6 +456,8 @@ namespace Blockgame_OpenTK.ChunkUtil
 
 
         }
+        */
+        /* 
         public static bool AllNeighborsGenerated(Vector3 position)
         {
 
@@ -471,6 +480,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             return false;
 
         }
+
+        */
         public static bool NeighborsGenerated(Vector3 position)
         {
 
@@ -500,6 +511,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
         }
+
+        /*
         public static void DrawAllReadyChunks(Shader shader, Camera camera, float time)
         {
 
@@ -519,6 +532,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
         }
+
+        */
+        /*
         public static void DrawAllChunks(Shader shader, Camera camera, float time)
         {
 
@@ -535,6 +551,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
         }
+        */
+
         public static Chunk GetChunkAtPosition(Vector3 position)
         {
 
@@ -579,15 +597,15 @@ namespace Blockgame_OpenTK.ChunkUtil
             ChunkDictionary.TryAdd(chunk.ChunkPosition, chunk);
 
         }
-        public static bool ContainsChunk(Vector3 position)
+        public static bool ContainsChunk(Vector3i position)
         {
 
 
-            return ChunkDictionary.ContainsKey(position);
+            return Chunks.ContainsKey(position);
 
         }
 
-        public static bool ContainsGeneratedChunk(Vector3 position)
+        public static bool ContainsGeneratedChunk(Vector3i position)
         {
 
             if (ContainsChunk(position) && GetChunk(position).GetGenerationState() == GenerationState.Generated)
@@ -600,13 +618,13 @@ namespace Blockgame_OpenTK.ChunkUtil
             return false;
 
         }
-        public static Chunk GetChunk(Vector3 position)
+        public static NewChunk GetChunk(Vector3i position)
         {
 
-            return ChunkDictionary[position];
+            return Chunks[position];
 
         }
-        public static void AddChunk(Vector3 position)
+        public static void AddChunk(Vector3i position)
         {
 
             if (!ContainsChunk(position))
@@ -632,67 +650,213 @@ namespace Blockgame_OpenTK.ChunkUtil
 
 
         static int Radius = 8;
-        static int CurrentRadius = 0;
-        static Dictionary<Vector3i, NewChunk> Chunks = new Dictionary<Vector3i, NewChunk>();
+        static int CurrentRadius = 16;
+        public static Dictionary<Vector3i, NewChunk> Chunks = new Dictionary<Vector3i, NewChunk>();
+        static Vector3i[] cposs = ChunkUtils.InitialFloodFill(2, 2);
+        static int MaximumChunksPerTick = 8;
+        static bool DoGenerationUpdateTicking = true;
 
-        public static void Load()
+        static Vector3i[] ChunksToGeneratePassOne = ChunkUtils.InitialFloodFill(Radius, CurrentRadius + 2);
+        static Vector3i[] ChunksToGeneratePassTwo = ChunkUtils.InitialFloodFill(Radius, CurrentRadius + 1);
+        static Vector3i[] ChunksToMesh = ChunkUtils.InitialFloodFill(Radius, CurrentRadius);
+
+        public static bool AreNeighborsGenerated(NewChunk chunk)
         {
 
-            foreach (Vector3i chunkPosition in Chunks.Keys)
+            Vector3i up = chunk.ChunkPosition + Vector3i.UnitY;
+            Vector3i down = chunk.ChunkPosition - Vector3i.UnitY;
+            Vector3i left = chunk.ChunkPosition + Vector3i.UnitX;
+            Vector3i right = chunk.ChunkPosition - Vector3i.UnitX;
+            Vector3i back = chunk.ChunkPosition + Vector3i.UnitZ;
+            Vector3i front = chunk.ChunkPosition - Vector3i.UnitZ;
+
+            int neighborsGenerated = 0;
+            if (Chunks.ContainsKey(up) && Chunks[up].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+            if (Chunks.ContainsKey(down) && Chunks[down].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+            if (Chunks.ContainsKey(left) && Chunks[left].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+            if (Chunks.ContainsKey(right) && Chunks[right].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+            if (Chunks.ContainsKey(back) && Chunks[back].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+            if (Chunks.ContainsKey(front) && Chunks[front].GenerationState >= GenerationState.Generated) neighborsGenerated++;
+
+            return neighborsGenerated == 6;
+
+        }
+
+        public static bool AreNeighborsPassOne(NewChunk chunk)
+        {
+
+            Vector3i up = chunk.ChunkPosition + Vector3i.UnitY;
+            Vector3i down = chunk.ChunkPosition - Vector3i.UnitY;
+            Vector3i left = chunk.ChunkPosition + Vector3i.UnitX;
+            Vector3i right = chunk.ChunkPosition - Vector3i.UnitX;
+            Vector3i back = chunk.ChunkPosition + Vector3i.UnitZ;
+            Vector3i front = chunk.ChunkPosition - Vector3i.UnitZ;
+
+            int neighborsGenerated = 0;
+            if (Chunks.ContainsKey(up) && Chunks[up].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+            if (Chunks.ContainsKey(down) && Chunks[down].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+            if (Chunks.ContainsKey(left) && Chunks[left].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+            if (Chunks.ContainsKey(right) && Chunks[right].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+            if (Chunks.ContainsKey(back) && Chunks[back].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+            if (Chunks.ContainsKey(front) && Chunks[front].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
+
+            return neighborsGenerated == 6;
+
+        }
+
+        public static Dictionary<Vector3i, NewChunk> GetChunkNeighbors(NewChunk chunk)
+        {
+
+            Vector3i up = chunk.ChunkPosition + Vector3i.UnitY;
+            Vector3i down = chunk.ChunkPosition - Vector3i.UnitY;
+            Vector3i left = chunk.ChunkPosition + Vector3i.UnitX;
+            Vector3i right = chunk.ChunkPosition - Vector3i.UnitX;
+            Vector3i back = chunk.ChunkPosition + Vector3i.UnitZ;
+            Vector3i front = chunk.ChunkPosition - Vector3i.UnitZ;
+
+            Dictionary<Vector3i, NewChunk> neighbors = new Dictionary<Vector3i, NewChunk>
             {
 
-                // Console.WriteLine(chunkPosition);
-                if (Chunks[chunkPosition].GetChunkState() != ChunkState.Ready)
+                { Vector3i.UnitY, Chunks[up] },
+                { -Vector3i.UnitY, Chunks[down] },
+                { Vector3i.UnitX, Chunks[left] },
+                { -Vector3i.UnitX, Chunks[right] },
+                { Vector3i.UnitZ, Chunks[back] },
+                { -Vector3i.UnitZ, Chunks[front] }
+
+            };
+
+            return neighbors;
+
+        }
+        public static void Load(Camera camera)
+        {
+
+            int chunksUpdated = 0;
+            // Console.WriteLine(DoGenerationUpdateTicking);
+            if (DoGenerationUpdateTicking)
+            {
+
+                // ChunksToGeneratePassOne = ChunkUtils.InitialFloodFill(Radius, CurrentRadius + 2);
+                // ChunksToGeneratePassTwo = ChunkUtils.InitialFloodFill(Radius, CurrentRadius + 1);
+                // ChunksToMesh = ChunkUtils.InitialFloodFill(Radius, CurrentRadius);
+
+                chunksUpdated = 0;
+                foreach (Vector3i chunksGeneratePassOne in ChunksToGeneratePassOne)
                 {
 
-                    if (Chunks[chunkPosition].GetGenerationState() != GenerationState.Generated)
+                    if (Chunks.ContainsKey(chunksGeneratePassOne))
                     {
 
-                        ChunkBuilder.GenerateThreaded(Chunks[chunkPosition]);
-                        goto End;
+                        if (Chunks[chunksGeneratePassOne].GenerationState == GenerationState.NotGenerated)
+                        {
+
+                            chunksUpdated++;
+                            ChunkBuilder.GeneratePassOneThreaded(Chunks[chunksGeneratePassOne]);
+
+                        }
 
                     } else
                     {
 
-                        if (Chunks[chunkPosition].GetMeshState() != MeshState.Meshed)
+                        Chunks.Add(chunksGeneratePassOne, new NewChunk(chunksGeneratePassOne));
+
+                    }
+
+                    if (chunksUpdated >= MaximumChunksPerTick)
+                    {
+
+                        chunksUpdated = 0;
+                        return;
+
+                    }
+
+
+                }
+                chunksUpdated = 0;
+                foreach (Vector3i chunksGeneratePassTwo in ChunksToGeneratePassTwo)
+                {
+
+                    if (Chunks.ContainsKey(chunksGeneratePassTwo))
+                    {
+
+                        if (Chunks[chunksGeneratePassTwo].GenerationState == GenerationState.PassOne)
                         {
 
-                            ChunkBuilder.MeshThreaded(Chunks[chunkPosition]);
-                            goto End;
+                            if (AreNeighborsPassOne(Chunks[chunksGeneratePassTwo]))
+                            {
 
-                        } else
-                        {
+                                chunksUpdated++;
+                                ChunkBuilder.GeneratePassTwoThreaded(Chunks[chunksGeneratePassTwo], GetChunkNeighbors(Chunks[chunksGeneratePassTwo]));
 
-                            ChunkBuilder.CallOpenGL(Chunks[chunkPosition]);
+                            }
 
                         }
 
                     }
 
-                } else
-                {
-
-                    if (!Chunks.ContainsKey(chunkPosition + Vector3i.UnitX) && chunkPosition.X <= Radius)
+                    if (chunksUpdated >= MaximumChunksPerTick)
                     {
 
-                        // NewChunk chunk = new NewChunk(chunkPosition + Vector3i.UnitX);
-                        // Console.WriteLine(chunk.GetChunkPosition());
-                        Chunks.Add(chunkPosition + Vector3i.UnitX, new NewChunk(chunkPosition + Vector3i.UnitX));
-                        goto End;
+                        chunksUpdated = 0;
+                        return;
+
+                    }
+
+                }
+                chunksUpdated = 0;
+                foreach (Vector3i chunksMesh in ChunksToMesh)
+                {
+
+                    if (Chunks.ContainsKey(chunksMesh))
+                    {
+
+                        if (Chunks[chunksMesh].GenerationState == GenerationState.Generated && Chunks[chunksMesh].MeshState == MeshState.NotMeshed)
+                        {
+
+                            if (AreNeighborsGenerated(Chunks[chunksMesh]))
+                            {
+
+                                chunksUpdated++;
+                                ChunkBuilder.MeshThreaded(Chunks[chunksMesh], GetChunkNeighbors(Chunks[chunksMesh]));
+
+                            }
+
+                        }
+                        if (Chunks[chunksMesh].MeshState == MeshState.Meshed && Chunks[chunksMesh].ChunkState == ChunkState.NotReady)
+                        {
+
+                            // Console.WriteLine("building mesh");
+                            ChunkBuilder.CallOpenGL(Chunks[chunksMesh]);
+
+                        }
+
+                    }
+
+                    if (chunksUpdated >= MaximumChunksPerTick)
+                    {
+
+                        chunksUpdated = 0;
+                        return;
 
                     }
 
                 }
 
-            }
+                int chunksNotGenerated = 0;
+                int chunksGenerating = 0;
+                int chunksPassOne = 0;
+                int chunksPassTwo = 0;
+                int chunksGenerated = 0;
+                int chunksReady = 0;
+                if (chunksReady >= Math.Pow(Radius + 1 + Radius, 3))
+                {
 
-            End:
+                    DoGenerationUpdateTicking = false;
 
-            if (!Chunks.ContainsKey(Vector3i.Zero)) // Replace Vector3i.Zero with the current camera position rounded to the chunk position;
-            {
-
-                NewChunk chunk = new NewChunk((0,0,0));
-                Chunks.Add(chunk.GetChunkPosition(), chunk);
+                }
+                CurrentRadius++;
+                // Console.WriteLine($"chunks not generated: {chunksNotGenerated}, chunks generating: {chunksGenerating}, chunks pass one: {chunksPassOne}, chunks pass two: {chunksPassTwo}, chunks generated: {chunksGenerated}, chunks ready: {chunksReady}");
 
             }
 

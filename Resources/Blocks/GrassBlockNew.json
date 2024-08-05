@@ -1,9 +1,0 @@
-{
-
-  "DataName": "GrassBlockNew",
-  "DisplayName": "Grass Block",
-  "Model": "GrassBlockNew.json",
-  "SoundPath": "GrassBlockNew",
-  "BreakTime": 1000
-
-}

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
 using static FastNoise;
 using Blockgame_OpenTK.BlockUtil;
+using System.Threading.Tasks.Dataflow;
+using System.Drawing;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -16,13 +18,13 @@ namespace Blockgame_OpenTK.ChunkUtil
     internal class NewChunk
     {
 
-        ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
-        ChunkVertex[] ChunkMesh;
-        GenerationState GenerationState;// = GenerationState.NotGenerated;
-        MeshState MeshState;// = MeshState.NotMeshed;
-        ChunkState ChunkState;// = ChunkState.NotReady;
-        Vector3i ChunkPosition;
-        int Vao, Vbo;
+        public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
+        public ChunkVertex[] ChunkMesh;
+        public GenerationState GenerationState;// = GenerationState.NotGenerated;
+        public MeshState MeshState;// = MeshState.NotMeshed;
+        public ChunkState ChunkState;// = ChunkState.NotReady;
+        public Vector3i ChunkPosition;
+        public int Vao, Vbo;
 
         public NewChunk(Vector3i chunkPosition)
         {
@@ -57,7 +59,17 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.getID(), "time"), (float)0);
             GL.BindVertexArray(Vao);
             // Console.WriteLine(ChunkMesh.Length);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
+            try
+            {
+
+                GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
+
+            } catch
+            {
+
+                Console.WriteLine("Some reason couldn't draw. Skipping");
+
+            }
             GL.BindVertexArray(0);
 
             Globals.ChunkShader.UnUse();
@@ -68,6 +80,30 @@ namespace Blockgame_OpenTK.ChunkUtil
         {
 
             return Globals.Register.GetBlockFromID(BlockData[position.X, position.Y, position.Z]);
+
+        }
+
+        public void SetBlock(Vector3i position, Block block)
+        {
+
+            BlockData[position.X, position.Y, position.Z] = (ushort) Globals.Register.GetIDFromBlock(block);
+
+        }
+
+        public Block GetBlockSafe(Vector3i position)
+        {
+
+            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize));
+
+            return Globals.Register.GetBlockFromID(BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z]);
+
+        }
+        public void SetBlockSafe(Vector3i position, Block block)
+        {
+
+            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize));
+
+            BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
 
         }
 
@@ -132,6 +168,34 @@ namespace Blockgame_OpenTK.ChunkUtil
         {
 
             BlockData[position.X, position.Y, position.Z] = data;
+
+        }
+
+        public void SetBlockDataGlobal(Vector3i position, ushort data)
+        {
+
+            int minX = (ChunkPosition.X * Globals.ChunkSize);
+            int minY = (ChunkPosition.Y * Globals.ChunkSize);
+            int minZ = (ChunkPosition.Z * Globals.ChunkSize);
+
+            int maxX = ((1 + ChunkPosition.X) * Globals.ChunkSize) - 1;
+            int maxY = ((1 + ChunkPosition.Y) * Globals.ChunkSize) - 1;
+            int maxZ = ((1 + ChunkPosition.Z) * Globals.ChunkSize) - 1;
+
+            if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY && position.Z >= minZ && position.Z <= maxZ)
+            {
+
+                // int xValue = x % (size-1);
+                // int yValue = y % (size-1);
+                // /int zValue = z % (size-1);
+
+                int xValue = position.X - (ChunkPosition.X * Globals.ChunkSize);
+                int yValue = position.Y - (ChunkPosition.Y * Globals.ChunkSize);
+                int zValue = position.Z - (ChunkPosition.Z * Globals.ChunkSize);
+
+                SetBlockData((xValue, yValue, zValue), data);
+
+            }
 
         }
 

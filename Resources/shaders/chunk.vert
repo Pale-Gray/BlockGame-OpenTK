@@ -48,7 +48,7 @@ void main()
 	vnormal = normal;
 	vambient_value = ambient_value;
 
-	directionalLight = normalize((vec4(0,1,0,1) * rot)).xyz;
+	directionalLight = normalize((vec4(0,1,0,1))).xyz;
 
 	// vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
 

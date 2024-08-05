@@ -13,16 +13,16 @@ using Blockgame_OpenTK.ChunkUtil;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.FramebufferUtil;
-using System.Linq;
 using Blockgame_OpenTK.BlockUtil;
-using System.Text.Json;
+using OpenTK.Windowing.Common.Input;
+using Image = OpenTK.Windowing.Common.Input.Image;
 
 
 namespace Blockgame_OpenTK
 {
     internal class Game : GameWindow
     {
-        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug }) { }
+        public Game(int width, int height, string title) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height), Title = title, Flags = ContextFlags.Debug}) { }
 
         public static float[] verts = {
 
@@ -190,7 +190,7 @@ namespace Blockgame_OpenTK
         NakedModel boundmodel;
         GUIElement TestElement;
         GUIClickable GUIClick;
-        FontRenderer text;
+        TextRenderer text;
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
@@ -279,13 +279,16 @@ namespace Blockgame_OpenTK
             }
             Globals.CursorState = CursorState;
 
-            Player.Update();
-
         }
         protected override void OnLoad()
         {
 
             base.OnLoad();
+
+            TextRenderer.InitTextRenderer();
+
+            Texture iconTexture = new Texture("icon.png", 0);
+            Icon = new WindowIcon(new Image(32, 32, iconTexture.Data));
 
             // Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
             // GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
@@ -349,8 +352,8 @@ namespace Blockgame_OpenTK
             cmtex = new CMTexture(t, 64);
 
             TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
-            text = new FontRenderer(16, "");
-            text.SetFontColor((0,0,0));
+            // text = new TextRenderer(16, "");
+            // text.SetFontColor((0,0,0));
 
             ChunkShader = new Shader("chunk.vert", "chunk.frag");
 
@@ -362,21 +365,14 @@ namespace Blockgame_OpenTK
             Player = new Player();
             Player.SetHeight(0);
             Player.SetPosition((0, 0, 0));
-            // Blocks.GetBlockFromName("Air");
-
-            // c = new Chunk(0,0,0);
-            // nc = new NewChunk((0,0,0));
-
-            // snowb = Block.LoadFromJson("GrassBlockNew");
-
-            // Blocks.Load();
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
         {
 
             base.OnRenderFrame(args);
-            
+
+            Player.Update();
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -396,26 +392,13 @@ namespace Blockgame_OpenTK
             // Player.Update();
             // etcW
             GL.Disable(EnableCap.DepthTest);
-            GL.Disable(EnableCap.CullFace);
-            // Skybox.SetRotation((float)time*5, 0, 0);
-            Skybox.Draw(cposition, camera, (float)time);
-            // Sun.SetPosition(camera.position);
-            float sec = 30;
-            float angle = Maths.ToRadians(360)*(float)(time/sec);
-            float angle2 = Maths.Lerp(Maths.ToRadians(45), Maths.ToRadians(-45), (float) ((Math.Cos(Maths.ToRadians(360) * (float) (time / sec))) / 2) + 0.5f);
-
-            Vector3 rotationPosition = (0.0f, (float)Math.Cos(angle) * Sun.RadiusFromCamera, (float)Math.Sin(angle) * Sun.RadiusFromCamera);
-
-            Sun.SetRotation((Maths.ToRadians(-45),0,Maths.ToRadians(-35)));
-            // Sun.SetPosition((0, (float)(4*Math.Sin(time)), 0));
-            Sun.Draw(camera);
-            Globals.ChunkShader.Use();
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "rot"), true, ref Sun.RotationMatrix);
-            Globals.ChunkShader.UnUse();
-            // Console.WriteLine(Sun.GetNormalToCamera(camera));
+            // draw skybox
+            Skybox.Draw(Player.Camera.Position, Player.Camera, (float)time);
 
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
+
+            // TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1, 0, 0)), (1,1,1), 24, Globals.FrameInformation);
 
             if (Globals.Keyboard.IsKeyDown(Keys.LeftControl))
             {
@@ -437,47 +420,11 @@ namespace Blockgame_OpenTK
             // Console.WriteLine(nc.GetType());
             // Console.WriteLine(nc.GetGenerationState());
 
-            // ChunkLoader.Load();
-            // ChunkLoader.DrawReadyChunks(Player.Camera);
+            TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1, 0.75f, 0)), (1, 1, 1), 18, Globals.FrameInformation);
 
+            ChunkLoader.Load(Player.Camera);
+            ChunkLoader.DrawReadyChunks(Player.Camera);
             
-            if (nc.GetChunkState() != ChunkState.Ready)
-            {
-                
-                if (nc.GetGenerationState() != GenerationState.Generated)
-                {
-
-                    ChunkBuilder.GenerateThreaded(nc);
-
-                } else
-                {
-
-                    if (nc.GetMeshState() != MeshState.Meshed)
-                    {
-
-                        ChunkBuilder.MeshThreaded(nc);
-
-                    } else
-                    {
-
-                        ChunkBuilder.CallOpenGL(nc);
-
-                    }
-
-                }
-
-            } else
-            {
-                
-                nc.Draw(Player.Camera);
-
-            }
-            
-
-            // Console.WriteLine($"ChunkState: {nc.GetChunkState()}, GenerationState: {nc.GetGenerationState()}, MeshState: {nc.GetMeshState()}, HasMesh: {nc.GetChunkMesh() != null}");
-            // Console.WriteLine($"ChunkState: {nc.ChunkState}, MeshState: {nc.MeshState}, GenerationState: {nc.GenerationState}, Vertex count: {nc.BlockData == null}");
-
-            // Console.WriteLine(Blocks.Snow.DataName);
             if (debug)
             {
 
@@ -485,52 +432,24 @@ namespace Blockgame_OpenTK
 
             }
 
-            // ChunkLoader.GenerateThreaded(25, Player.Camera.Position);
-            // ChunkLoader.DrawAllReadyChunks(Globals.ChunkShader, Player.Camera, (float)time);
+            DDA.TraceChunks(ChunkLoader.Chunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
 
-            // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            if (DDA.hit)
+            {
 
-            // Console.WriteLine($"amount of chunks: {ChunkLoader.ChunkDictionary.Count()}");
+                GL.FrontFace(FrontFaceDirection.Cw);
+                rmodel.SetScale(1, 1, 1);
+                GL.PolygonOffset(-1, 1);
+                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
+                //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
+                //rmodel.SetScale(1, 1, 1);
+                //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+                rmodel.SetScale(0.2f, 0.2f, 0.2f);
+                rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
+                GL.FrontFace(FrontFaceDirection.Ccw);
+                GL.PolygonOffset(0, 0);
 
-            // Player.GetBlockLooking(5);
-            // DDA.Trace(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, 10);
-
-            // DDA.TraceChunks(ChunkLoader.ChunkDictionary, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
-            //  Console.WriteLine(DDA.PositionAtHit);
-            // Console.WriteLine("cpos: {0}, blpos: {1}, bgpos: {2}, blposfrombgpos: {3}", ChunkUtils.PositionToChunk(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(Player.Camera.Position), ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToBlockLocal(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
-            // Console.WriteLine("prtb: {0}, chnp: {1}, hit: {2}", DDA.RoundedPosition,DDA.ChunkAtHit, DDA.ChunkAtHit);
-            // Console.WriteLine("cam gl pos: {0} chunk pos from glblpos: {1}", ChunkUtils.PositionToBlockGlobal(Player.Camera.Position), ChunkUtils.PositionToChunk(ChunkUtils.PositionToBlockGlobal(Player.Camera.Position)));
-            // Console.WriteLine("hitpos: {0}, prevpos: {1}, prevpovloc: {2}", DDA.PositionAtHit, DDA.PreviousPositionAtHit, ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
-
-            //GL.Disable(EnableCap.DepthTest);
-            //GL.PolygonOffset(51, -5);
-
-            // GL.Enable(EnableCap.PolygonOffsetFill);
-            GL.FrontFace(FrontFaceDirection.Cw);
-            rmodel.SetScale(1, 1, 1);
-            GL.PolygonOffset(-1, 1);
-            rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
-            //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
-            //rmodel.SetScale(1, 1, 1);
-            //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
-            rmodel.SetScale(0.2f,0.2f,0.2f);
-            rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
-            GL.FrontFace(FrontFaceDirection.Ccw);
-            GL.PolygonOffset(0, 0);
-            // GL.PolygonOffset(0, 0);
-            // GL.Disable(EnableCap.PolygonOffsetFill);
-            // hitdisplay.Draw((0,0,0), camera, (float)time);
-            // TestElement.Draw();
-            //GL.Enable(EnableCap.DepthTest);
-
-            // Console.WriteLine(ChunkUtils.PositionToBlockPositionRelativeToChunk(camera.position));
-            // Console.WriteLine(DDA.HitPoint);
-            // Vector3 CameraAtChunk = ChunkUtils.PositionToChunk(camera.Position);
-            // Vector3 CameraAtBlockLocal = ChunkUtils.PositionToBlockLocal(camera.Position);
-            // Vector3 CameraAtBlockGlobal = ChunkUtils.PositionToBlockGlobal(camera.Position);
-
-            // text.UpdateText($"Player Position: {ChunkUtils.PositionToBlockGlobal(Player.Position)}");
-            // text.Draw();
+            }
 
             if (debug)
             {
@@ -552,79 +471,12 @@ namespace Blockgame_OpenTK
 
             framebufferQuad.Draw(frameBuffer, (float)time);
             KeyboardState ks = KeyboardState;
-            if (ks.IsKeyPressed(Keys.F1))
-            {
-
-                // StbImageWrite.stbi_flip_vertically_on_write(1);
-                // /Stream str = File.OpenWrite("../../../res/ss/ss1.png");
-                // StreamReader sr = new StreamReader(File.OpenRead("../../../res/textures/testatlas.png"));
-                // ImageWriter wr = new ImageWriter();
-                // byte[] pixels = new byte[(640 * 480) * 4];
-                // GL.ReadPixels(0, 0, 640, 480, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-                // wr.WritePng(pixels, 640, 480, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, str);
-
-            }
-            if (ks.IsKeyPressed(Keys.F5))
-            {
-
-                // chunk.Save("../../../res/cdat/chunk.cdat");
-                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
-                {
-                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
-
-                    // ChunkLoader.GetAllChunks()[key].Save("../../../res/cdat/"+key+".cdat");
-
-
-                }
-
-            }
-            if (ks.IsKeyPressed(Keys.F6))
-            {
-
-                // chunk.Load("../../../res/cdat/chunk.cdat");
-
-                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
-                {
-                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
-
-                    // ChunkLoader.GetAllChunks()[key].Load("../../../res/cdat/" + key + ".cdat");
-
-
-                }
-
-            }
-            if (ks.IsKeyPressed(Keys.F7))
-            {
-
-                // chunk.Rewrite();
-
-                for (int i = 0; i < ChunkLoader.GetAllChunks().Count; i++)
-                {
-                    
-                    // string key = ChunkLoader.GetAllChunks().ElementAt(i).Key;
-
-                    // ChunkLoader.GetAllChunks()[key].Rewrite();
-
-
-                }
-
-            }
 
             sw.Stop();
             // Console.WriteLine("Finished frame in " + sw.ElapsedMilliseconds + " ms. FPS: " + (1000f/sw.ElapsedMilliseconds));
-            Globals.FrameInformation = "Ft: " + sw.ElapsedMilliseconds + "ms. campos: " + (Vector3i) cposition;
+            Globals.FrameInformation = "Ft: " + (sw.ElapsedMilliseconds.ToString().Length != 2 ? "0" + sw.ElapsedMilliseconds : sw.ElapsedMilliseconds) + "ms. campos: " + ChunkUtils.PositionToBlockGlobal(Player.Camera.Position);
 
             SwapBuffers();
-
-        }
-
-        public void Error(string error)
-        {
-
-
-            FontRenderer fr = new FontRenderer(12, error);
-
-            fr.Draw();
 
         }
         protected override void OnUnload()
@@ -652,9 +504,8 @@ namespace Blockgame_OpenTK
             camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();
             TestElement.Update();
-            text.Update();
+            TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
-            // GUIClick.Update();
 
         }
 

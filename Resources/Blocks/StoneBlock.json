@@ -1,0 +1,9 @@
+{
+
+  "DataName": "StoneBlock",
+  "DisplayName": "Stone Block",
+  "Model": "StoneBlock.json",
+  "SoundPath": "StoneBlock",
+  "BreakTime": 1000
+
+}

@@ -34,8 +34,8 @@ namespace Blockgame_OpenTK.Util
         public static Vector3i FaceHit = Vector3i.Zero;
 
         public static List<Vector3i> hitpositions;
-
-        public static void TraceChunks(Dictionary<Vector3, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        public static bool hit = false;
+        public static void TraceChunks(Dictionary<Vector3i, NewChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;
@@ -105,19 +105,13 @@ namespace Blockgame_OpenTK.Util
             // hitpositions = new List<Vector3i>();
 
             // Console.WriteLine("start");
-            
-            for (int i = 0; i <= maxSteps; i++)
+            hit = false;
+
+            if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
             {
 
-                // PreviousPositionAtHit = GlobalBlockPosition;
-                // hitpositions.Add(GlobalBlockPosition);
-
-                //PreviousPositionAtHit = GlobalBlockPosition;
-
-                if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+                while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
                 {
-
-                    // PreviousPositionAtHit = GlobalBlockPosition;
 
                     if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
                     {
@@ -125,6 +119,7 @@ namespace Blockgame_OpenTK.Util
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
                         // PositionAtHit = RoundedPosition;
                         ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(GlobalBlockPosition);
+                        hit = true;
                         PositionAtHit = GlobalBlockPosition;
                         SmoothPosition = position + NormalizedDirection * Distance;
 
@@ -188,8 +183,169 @@ namespace Blockgame_OpenTK.Util
                 }
 
             }
+
+
+            // Console.WriteLine("end");
+
+        }
+
+        public static void TraceChunksWhile(Dictionary<Vector3i, NewChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        {
+
+            FaceHit = Vector3i.Zero;
+            // RoundedPosition = (Vector3i) ChunkUtils.PositionToBlockGlobal(position);
+            ChunkAtHit = Vector3i.Zero;
+            PositionAtHit = Vector3i.Zero;
+
+            // Vector3i CameraPositionRounded = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
+            GlobalBlockPosition = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
+            PreviousPositionAtHit = GlobalBlockPosition;
+            Vector3i CameraPositionToBlockPositionGlobal = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
+
+            Vector3i Step = Vector3i.Zero;
+            Vector3 SideDistance = Vector3.Zero;
+            Vector3 NormalizedDirection = Vector3.Normalize(direction);
+            Vector3 DeltaDistance = (Math.Abs(1 / NormalizedDirection.X), Math.Abs(1 / NormalizedDirection.Y), Math.Abs(1 / NormalizedDirection.Z));
+            float Distance = 0;
+
+            if (NormalizedDirection.X < 0)
+            {
+
+                Step.X = -1;
+                SideDistance.X = (position.X - GlobalBlockPosition.X) * DeltaDistance.X;
+
+            }
+            if (NormalizedDirection.X >= 0)
+            {
+
+                Step.X = 1;
+                SideDistance.X = (GlobalBlockPosition.X + 1f - position.X) * DeltaDistance.X;
+
+            }
+            if (NormalizedDirection.Y < 0)
+            {
+
+                Step.Y = -1;
+                SideDistance.Y = (position.Y - GlobalBlockPosition.Y) * DeltaDistance.Y;
+
+            }
+            if (NormalizedDirection.Y >= 0)
+            {
+
+                Step.Y = 1;
+                SideDistance.Y = (GlobalBlockPosition.Y + 1f - position.Y) * DeltaDistance.Y;
+
+            }
+            if (NormalizedDirection.Z < 0)
+            {
+
+                Step.Z = -1;
+                SideDistance.Z = (position.Z - GlobalBlockPosition.Z) * DeltaDistance.Z;
+
+            }
+            if (NormalizedDirection.Z >= 0)
+            {
+
+                Step.Z = 1;
+                SideDistance.Z = (GlobalBlockPosition.Z + 1f - position.Z) * DeltaDistance.Z;
+
+            }
+
+            HitLocal = Vector3.Zero;
+            HitGlobal = Vector3.Zero;
+            SmoothHit = Vector3.Zero;
+            SmoothPosition = Vector3.Zero;
+
+            // hitpositions = new List<Vector3i>();
+
+            // Console.WriteLine("start");
+
+            int manhattanDistance = Maths.ManhattanDistance3D(position, GlobalBlockPosition);
             
+            bool hit = false;
+
+            // Console.WriteLine(manhattanDistance);
+
+            if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+            {
+
+                while (position.X < maxSteps && !hit)
+                {
+
+                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
+                    {
+
+                        // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
+                        // PositionAtHit = RoundedPosition;
+                        ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(GlobalBlockPosition);
+                        PositionAtHit = GlobalBlockPosition;
+                        hit = true;
+                        SmoothPosition = position + NormalizedDirection * Distance;
+
+                    }
+                    else
+                    {
+                        PreviousPositionAtHit = GlobalBlockPosition;
+                        if (SideDistance.X < SideDistance.Y)
+                        {
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            if (SideDistance.X < SideDistance.Z)
+                            {
+
+                                Distance = SideDistance.X;
+                                SideDistance.X += DeltaDistance.X;
+                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.X += Step.X;
+
+                            }
+                            else
+                            {
+
+                                Distance = SideDistance.Z;
+                                SideDistance.Z += DeltaDistance.Z;
+                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Z += Step.Z;
+
+                            }
+                            //PreviousPositionAtHit = GlobalBlockPosition;
+
+                        }
+                        else
+                        {
+
+                            //PreviousPositionAtHit = GlobalBlockPosition;
+                            if (SideDistance.Y < SideDistance.Z)
+                            {
+
+                                Distance = SideDistance.Y;
+                                SideDistance.Y += DeltaDistance.Y;
+                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Y += Step.Y;
+
+                            }
+                            else
+                            {
+
+                                Distance = SideDistance.Z;
+                                SideDistance.Z += DeltaDistance.Z;
+                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Z += Step.Z;
+
+                            }
+                            //PreviousPositionAtHit = GlobalBlockPosition;
+
+                        }
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+
+                    }
+
+                }
+
+            }
+
             
+
+
             // Console.WriteLine("end");
 
         }

@@ -16,7 +16,7 @@ namespace Blockgame_OpenTK.Util
         public static int ChebyshevDistance3D(Vector3 pointA, Vector3 pointB)
         {
 
-            return (int)(Math.Max(pointB.X - pointA.X, Math.Max(pointB.Y - pointA.Y, pointB.Z - pointA.Z)));
+            return (int)(Math.Max(Math.Abs(pointB.X - pointA.X), Math.Max(Math.Abs(pointB.Y - pointA.Y), Math.Abs(pointB.Z - pointA.Z))));
 
         }
 

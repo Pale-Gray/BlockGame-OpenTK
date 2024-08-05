@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.ChunkUtil
@@ -15,6 +14,56 @@ namespace Blockgame_OpenTK.ChunkUtil
         static int LR = 0;
         static Vector3 SpiralOrigin = Vector3.Zero;
         static Vector3 SpiralPosition = new Vector3(SpiralOrigin);
+
+        public static Vector3i[] FloodIterate(Vector3i[] currentVectors, int maxRadius)
+        {
+
+            List<Vector3i> vectorList = new List<Vector3i>(currentVectors);
+
+            for (int i = 0; i < currentVectors.Length; i++)
+            {
+
+                if ((vectorList[i] + Vector3i.UnitX).X <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitX))) vectorList.Add((vectorList[i] + Vector3i.UnitX));
+                if ((vectorList[i] - Vector3i.UnitX).X >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitX))) vectorList.Add((vectorList[i] - Vector3i.UnitX));
+                if ((vectorList[i] + Vector3i.UnitY).Y <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitY))) vectorList.Add((vectorList[i] + Vector3i.UnitY));
+                if ((vectorList[i] - Vector3i.UnitY).Y >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitY))) vectorList.Add((vectorList[i] - Vector3i.UnitY));
+                if ((vectorList[i] + Vector3i.UnitZ).Z <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitZ))) vectorList.Add((vectorList[i] + Vector3i.UnitZ));
+                if ((vectorList[i] - Vector3i.UnitZ).Z >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitZ))) vectorList.Add((vectorList[i] - Vector3i.UnitZ));
+
+            }
+
+            // Console.WriteLine(vectorList.Count());
+
+            return vectorList.ToArray();
+
+        }
+
+        public static Vector3i[] InitialFloodFill(int maxRadius, int iterations)
+        {
+
+            List<Vector3i> vectorList = new List<Vector3i> { Vector3i.Zero };
+
+            for (int it = 0; it < iterations; it++)
+            {
+
+                int count = vectorList.Count();
+                for (int i = 0; i < count; i++)
+                {
+
+                    if ((vectorList[i] + Vector3i.UnitX).X <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitX))) vectorList.Add((vectorList[i] + Vector3i.UnitX));
+                    if ((vectorList[i] - Vector3i.UnitX).X >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitX))) vectorList.Add((vectorList[i] - Vector3i.UnitX));
+                    if ((vectorList[i] + Vector3i.UnitY).Y <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitY))) vectorList.Add((vectorList[i] + Vector3i.UnitY));
+                    if ((vectorList[i] - Vector3i.UnitY).Y >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitY))) vectorList.Add((vectorList[i] - Vector3i.UnitY));
+                    if ((vectorList[i] + Vector3i.UnitZ).Z <= maxRadius && !vectorList.Contains((vectorList[i] + Vector3i.UnitZ))) vectorList.Add((vectorList[i] + Vector3i.UnitZ));
+                    if ((vectorList[i] - Vector3i.UnitZ).Z >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitZ))) vectorList.Add((vectorList[i] - Vector3i.UnitZ));
+
+                }
+
+            }
+
+            return vectorList.ToArray();
+
+        }
         
         public static Vector3 GetSpiralPosition()
         {
@@ -404,7 +453,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             return Vectors.ToArray();
 
         }
-        public static Vector3 PositionToChunk(Vector3 position)
+        public static Vector3i PositionToChunk(Vector3 position)
         {
 
             Vector3 Position = PositionToBlockGlobal(position);
@@ -414,7 +463,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (position.X >= 0)
             {
 
-                PositionChunk.X = (float) Math.Floor(Position.X / Globals.ChunkSize);
+                PositionChunk.X = (int) Math.Floor(Position.X / Globals.ChunkSize);
 
             }
             if (position.Y >= 0)
@@ -449,7 +498,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             }
 
-            return PositionChunk;
+            return (Vector3i) PositionChunk;
 
         }
         
@@ -502,7 +551,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public static Vector3 PositionToBlockLocal(Vector3 position)
+        public static Vector3i PositionToBlockLocal(Vector3 position)
         {
 
 
@@ -550,16 +599,16 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             }
 
-            return PositionBlock;
+            return (Vector3i) PositionBlock;
 
             // return ((float)Math.Floor(position.X) % Globals.ChunkSize, (float)Math.Floor(position.Y) % Globals.ChunkSize, (float)Math.Floor(position.Z) % Globals.ChunkSize);
 
         }
         
-        public static Vector3 PositionToBlockGlobal(Vector3 position)
+        public static Vector3i PositionToBlockGlobal(Vector3 position)
         {
 
-            return ((float)Math.Floor(position.X), (float)Math.Floor(position.Y), (float)Math.Floor(position.Z));
+            return ((int)Math.Floor(position.X), (int)Math.Floor(position.Y), (int)Math.Floor(position.Z));
 
         }
         public static Vector3 getPlayerPositionRelativeToChunk(Vector3 position)

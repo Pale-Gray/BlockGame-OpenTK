@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using StbImageSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -48,6 +49,7 @@ namespace Blockgame_OpenTK.Util
 
             Width = Image.Width;
             Height = Image.Height;
+            Data = Image.Data;
 
         }
 
@@ -81,6 +83,7 @@ namespace Blockgame_OpenTK.Util
 
             Width = Image.Width;
             Height = Image.Height;
+            Data = Image.Data;
 
         }
         public Texture(byte[] pixeldata, int width, int height)
@@ -180,7 +183,12 @@ namespace Blockgame_OpenTK.Util
             return Image;
         }
 
+        public void Dispose()
+        {
 
+            GL.DeleteTexture(Id);
+
+        }
 
     }
 }

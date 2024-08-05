@@ -1,22 +1,55 @@
 #version 400 core
-layout (location=0) in vec3 position;
-layout (location=1) in vec2 textureCoordinates;
+layout (location=0) in vec3 aPosition;
+layout (location=1) in vec3 aColor;
+layout (location=2) in vec2 aTexCoord;
+layout (location=3) in float aIsWiggle;
+layout (location=4) in float aIsItalics;
 
-uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform vec3 textPosition;
 uniform float time;
 
-out vec2 vtextureCoordinates;
+out vec2 vTexCoord;
+out vec3 vColor;
 
 void main()
 {
 
-	// vec3 pos = vec3(position.x, position.y + 2*sin((time*5)+(position.x/2)), position.z);
-	vec3 pos = position;
-	gl_Position = vec4(pos, 1.0) * model * view * projection;
+	vTexCoord = aTexCoord;
+	vColor = aColor;
 
-	vtextureCoordinates = textureCoordinates;
+	uint uinte = 0;
+
+	vec3 position = aPosition;
+
+	if (aIsItalics == 1.0)
+	{
+
+		if (position.y == textPosition.y)
+		{
+
+			position.x -= 8.0;
+
+		}
+
+		if (position.y >= textPosition.y)
+		{
+
+			position.x += 8.0;
+
+		}
+
+	}
+
+	if (aIsWiggle == 1.0)
+	{
+
+		position.y += 4 * sin(position.x*2 + (2*time));
+
+	}
+	
+	gl_Position = vec4(position.x, position.y, position.z, 1.0) * view * projection;
 
 }

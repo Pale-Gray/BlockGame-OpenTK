@@ -5,37 +5,37 @@
 
     {
 
-      
+      "Texture": "StoneBlock",
       "Reference": "Up"
 
     },
     {
 
-      "Texture": "DirtBlock",
+      "Texture": "StoneBlock",
       "Reference": "Down"
 
     },
     {
 
-      "Texture": "GrassBlockSide",
+      "Texture": "StoneBlock",
       "Reference": "Left"
 
     },
     {
 
-      "Texture": "GrassBlockSide",
+      "Texture": "StoneBlock",
       "Reference": "Right"
 
     },
     {
 
-      "Texture": "GrassBlockSide",
+      "Texture": "StoneBlock",
       "Reference": "Front"
 
     },
     {
 
-      "Texture": "GrassBlockSide",
+      "Texture": "StoneBlock",
       "Reference": "Back"
 
     }
