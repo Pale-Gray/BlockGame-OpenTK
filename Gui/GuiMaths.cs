@@ -25,7 +25,6 @@ namespace Blockgame_OpenTK.Gui
         {
 
             Vector3 absolutePosition = relativePosition;
-            absolutePosition /= 2;
             absolutePosition.X *= Globals.WIDTH;
             absolutePosition.Y *= Globals.HEIGHT;
 

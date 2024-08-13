@@ -29,5 +29,6 @@ void main()
 	
 	// FragColor = vec4(2*vposition.xyz,1);
 	FragColor = texture(sunTexture, vtextureCoordinate);
+	// FragColor = vec4(0,0,0,1);
 
 }

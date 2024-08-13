@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Blockgame_OpenTK.BlockUtil;
 using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.BlockUtil
@@ -22,6 +23,7 @@ namespace Blockgame_OpenTK.BlockUtil
         [JsonPropertyName("Sounds")]
         public string SoundPath { get; set; }
         public int BreakTime { get; set; }
+        public ushort ID = 0;
         public static Block LoadFromJson(string fileName)
         {
 

@@ -12,38 +12,55 @@ namespace Blockgame_OpenTK.Registry
     internal class Register
     {
 
-        public List<Block> BlockList = new List<Block>();
-        // public List<Item> ItemList = new List<Item>();
+        public Dictionary<ushort, Block> Blocks = new Dictionary<ushort, Block>();
 
         public Register() { }
 
-        public void AddBlock(Block block)
+        public void AddBlock(ushort id, Block block)
         {
 
             DebugMessage.WriteLine($"Registering {block.DataName}", DebugMessageType.Info);
-            BlockList.Add(block);
+            block.ID = id;
+            //BlockList.Add(block);
+            Blocks.Add(block.ID, block);
             DebugMessage.WriteLine($"Registered {block.DataName}", DebugMessageType.Info);
 
         }
 
-        public Block GetBlockFromID(int id)
+        public Block GetBlockFromID(ushort id)
         {
 
-            return BlockList[id];
+            try
+            {
+
+                return Blocks[id];
+
+            } catch
+            {
+
+                throw new BlockNotFoundException($"The block with ID {id} was not found or does not exist");
+
+            }
 
         }
 
-        public int GetIDFromBlock(Block block)
+        public ushort GetIDFromBlock(Block block)
         {
 
-            return BlockList.IndexOf(block);
+            return block.ID;
 
         }
 
-        public int GetIDFromName(string name)
+        public ushort GetIDFromName(string name)
         {
 
-            return BlockList.IndexOf(BlockList.Find(b => b.DataName == name));
+            foreach (Block b in Blocks.Values)
+            {
+
+                if (b.DataName == name) return b.ID;
+
+            }
+            throw new BlockNotFoundException($"The block with name {name} was not found or does not exist");
 
         }
 

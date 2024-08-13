@@ -16,6 +16,7 @@ uniform vec3 cameraPosition;
 
 uniform mat4 rot;
 uniform vec3 chunkpos;
+uniform vec3 sunDirection;
 
 out vec3 vposition;
 out vec3 vchunkposition;
@@ -24,6 +25,8 @@ flat out int vtexture_index;
 out vec3 vnormal;
 out float vtime;
 out float vambient_value;
+
+uniform float chunkLifetime;
 // out float vambientValue;
 
 out vec3 directionalLight;
@@ -48,7 +51,9 @@ void main()
 	vnormal = normal;
 	vambient_value = ambient_value;
 
-	directionalLight = normalize((vec4(0,1,0,1))).xyz;
+	directionalLight = sunDirection;
+
+	// directionalLight = normalize((vec4(0,1,0,1))).xyz;
 
 	// vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
 
@@ -56,6 +61,9 @@ void main()
 
 	float fac = 2;
 
-	gl_Position = vec4(position.xyz + (chunkpos * 32), 1.0) * view * projection;
+	//  - max((pow(1 - chunkLifetime, 15)), 0)
+	float displacement = dist3D(position + (chunkpos*32), cameraPosition);
+
+	gl_Position = vec4(vec3(position.x, position.y - (displacement/50), position.z) + (vec3(chunkpos.x, chunkpos.y - max((pow(1 - chunkLifetime, 15)), 0), chunkpos.z) * 32), 1.0) * view * projection;
 
 }

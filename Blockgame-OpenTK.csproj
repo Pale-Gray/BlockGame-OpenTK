@@ -6,12 +6,19 @@
     <RootNamespace>Blockgame_OpenTK</RootNamespace>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <BaseOutputPath>bin\</BaseOutputPath>
+	  <Deterministic>false</Deterministic>
+	  <AssemblyVersion>0.1.*</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.7.7" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Chunks\" />
   </ItemGroup>
 
 </Project>

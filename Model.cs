@@ -48,7 +48,7 @@ namespace Blockgame_OpenTK
 
         }
 
-        public void Draw(Vector3 position, Camera camera, float time)
+        public void Draw(Vector3 position, Vector3 sunVec, Camera camera, float time)
         {
 
             SetPosition(position.X, position.Y, position.Z);
@@ -62,6 +62,7 @@ namespace Blockgame_OpenTK
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
             GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "sunVec"), sunVec);
             GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);

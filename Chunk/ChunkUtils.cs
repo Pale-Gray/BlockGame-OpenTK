@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blockgame_OpenTK.Util;
+using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -15,11 +16,122 @@ namespace Blockgame_OpenTK.ChunkUtil
         static Vector3 SpiralOrigin = Vector3.Zero;
         static Vector3 SpiralPosition = new Vector3(SpiralOrigin);
 
+        public static Vector3i[] GenerateRingsOfColumnsWithPadding(int radius, int maxHeight, int padding)
+        {
+
+            List<Vector3i> vectors = new List<Vector3i>();
+
+            for (int i = 0; i <= padding; i++)
+            {
+
+                vectors.AddRange(GenerateRingsOfColumns(radius + i, maxHeight+padding));
+
+            }
+
+            return vectors.ToArray();
+
+        }
+
+        public static Vector3i[] GenerateColumns(int radius, int maxHeight)
+        {
+
+            List<Vector3i> vectors = new List<Vector3i>();
+
+            for (int i = 0; i <= maxHeight; i++)
+            {
+
+                vectors.Add((0, i, radius));
+                vectors.Add((0, -i, radius));
+                vectors.Add((0, i, -radius));
+                vectors.Add((0, -i, -radius));
+
+                vectors.Add((-radius, i, 0));
+                vectors.Add((radius, -i, 0));
+                vectors.Add((-radius, -i, 0));
+                vectors.Add((radius, i, 0));
+
+            }
+
+            return vectors.ToArray();
+
+        }
+
+        public static Vector3i[] GenerateRingsOfColumnsOffset(Vector3i offset, int radius, int maxHeight)
+        {
+
+            Vector3i[] ring = GenerateRing(radius);
+
+            List<Vector3i> vectors = new List<Vector3i>();
+
+            for (int i = 0; i < ring.Length; i++)
+            {
+
+                for (int c = 1; c <= maxHeight; c++)
+                {
+
+                    if (!vectors.Contains(ring[i] + offset)) vectors.Add(ring[i] + offset);
+                    if (!vectors.Contains(ring[i] + (0, c, 0) + offset)) vectors.Add(ring[i] + (0, c, 0) + offset);
+                    if (!vectors.Contains(ring[i] - (0, c, 0) + offset)) vectors.Add(ring[i] - (0, c, 0) + offset);
+
+                }
+
+            }
+
+            return vectors.ToArray();
+
+        }
+        public static Vector3i[] GenerateRingsOfColumns(int radius, int maxHeight)
+        {
+
+            Vector3i[] ring = GenerateRing(radius);
+
+            List<Vector3i> vectors = new List<Vector3i>();
+
+            for (int i = 0; i < ring.Length; i++)
+            {
+
+                for (int c = 1; c <= maxHeight; c++)
+                {
+
+                    if (!vectors.Contains(ring[i])) vectors.Add(ring[i]);
+                    if (!vectors.Contains(ring[i] + (0, c, 0))) vectors.Add(ring[i] + (0, c, 0));
+                    if (!vectors.Contains(ring[i] - (0, c, 0))) vectors.Add(ring[i] - (0, c, 0));
+
+                }
+
+            }
+
+            return vectors.ToArray();
+
+        }
+        public static Vector3i[] GenerateRing(int radius)
+        {
+
+            List<Vector3i> vectors = new List<Vector3i>();
+
+            for (int i = 0; i <= radius; i++)
+            {
+
+                if (!vectors.Contains((i, 0, radius))) vectors.Add((i, 0, radius));
+                if (!vectors.Contains((-i, 0, radius))) vectors.Add((-i, 0, radius));
+                if (!vectors.Contains((i, 0, -radius))) vectors.Add((i, 0, -radius));
+                if (!vectors.Contains((-i, 0, -radius))) vectors.Add((-i, 0, -radius));
+                if (!vectors.Contains((radius, 0, i))) vectors.Add((radius, 0, i));
+                if (!vectors.Contains((radius, 0, -i))) vectors.Add((radius, 0, -i));
+                if (!vectors.Contains((-radius, 0, i))) vectors.Add((-radius, 0, i));
+                if (!vectors.Contains((-radius, 0, -i))) vectors.Add((-radius, 0, -i));
+
+            }
+
+            return vectors.ToArray();
+
+        }
+
         public static Vector3i[] FloodIterate(Vector3i[] currentVectors, int maxRadius)
         {
 
             List<Vector3i> vectorList = new List<Vector3i>(currentVectors);
-
+            
             for (int i = 0; i < currentVectors.Length; i++)
             {
 
@@ -31,7 +143,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 if ((vectorList[i] - Vector3i.UnitZ).Z >= -maxRadius && !vectorList.Contains((vectorList[i] - Vector3i.UnitZ))) vectorList.Add((vectorList[i] - Vector3i.UnitZ));
 
             }
-
+            
             // Console.WriteLine(vectorList.Count());
 
             return vectorList.ToArray();

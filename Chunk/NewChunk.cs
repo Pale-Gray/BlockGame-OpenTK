@@ -11,6 +11,8 @@ using static FastNoise;
 using Blockgame_OpenTK.BlockUtil;
 using System.Threading.Tasks.Dataflow;
 using System.Drawing;
+using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -25,6 +27,12 @@ namespace Blockgame_OpenTK.ChunkUtil
         public ChunkState ChunkState;// = ChunkState.NotReady;
         public Vector3i ChunkPosition;
         public int Vao, Vbo;
+        public bool IsEmpty = true;
+        public bool IsFull = false;
+        public bool IsExposed = false;
+        public bool ShouldRender = false;
+        public bool IsQueuedForRemesh = false;
+        public float Lifetime = 0;
 
         public NewChunk(Vector3i chunkPosition)
         {
@@ -35,17 +43,97 @@ namespace Blockgame_OpenTK.ChunkUtil
             ChunkState = ChunkState.NotReady;
 
         }
+        
+        public void SaveToFile()
+        {
 
-        public void Draw(Camera camera)
+            List<byte> bytes = new List<byte>();
+            for (int x = 0; x < Globals.ChunkSize; x++)
+            {
+
+                for (int y = 0; y < Globals.ChunkSize; y++)
+                {
+
+                    for (int z = 0; z < Globals.ChunkSize; z++)
+                    {
+
+                        bytes.AddRange(BitConverter.GetBytes(BlockData[x,y,z]));
+
+                    }
+
+                }
+
+            }
+            using (FileStream fs = new FileStream($"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat", FileMode.Create, FileAccess.Write))
+            {
+
+                fs.Write(bytes.ToArray());
+
+            }
+
+        }
+
+        public bool CheckForFile()
+        {
+
+            // Console.WriteLine(ChunkPosition);
+
+            string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
+
+            return File.Exists(path);
+
+        }
+
+        public bool TryLoad()
+        {
+
+            // Console.WriteLine("reading");
+
+            string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
+
+            if (File.Exists(path))
+            {
+
+                byte[] bytes = File.ReadAllBytes(path);
+
+                for (int x = 0; x < Globals.ChunkSize; x++)
+                {
+
+                    for (int y = 0; y < Globals.ChunkSize; y++)
+                    {
+
+                        for (int z = 0; z < Globals.ChunkSize; z++)
+                        {
+
+                            byte[] data = new byte[] { bytes[(z * 2) + ((y * 2) * Globals.ChunkSize) + ((x * 2) * Globals.ChunkSize * Globals.ChunkSize)], bytes[1 + (z * 2) + ((y * 2) * Globals.ChunkSize) + ((x * 2) * Globals.ChunkSize * Globals.ChunkSize)] };
+                            BlockData[x, y, z] = BitConverter.ToUInt16(data);
+
+                        }
+
+                    }
+
+                }
+
+                return true;
+
+            }
+            return false;
+
+        }
+
+        public void Draw(Vector3 sunVec, Camera camera)
         {
 
             Globals.ChunkShader.Use();
 
             // Console.WriteLine(ChunkPosition);
+            Lifetime += (float) Globals.DeltaTime;
 
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "atlas"), 0);
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "arrays"), 1);
-            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "cameraPosition"), (0, 0, 0));
+            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "cameraPosition"), camera.Position);
+            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "sunDirection"), sunVec);
+            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkLifetime"), Lifetime);
             // Console.WriteLine(ChunkPosition);
             GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -76,6 +164,98 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        public bool CheckIfEmpty()
+        {
+
+            for (int x = 0; x < Globals.ChunkSize; x++)
+            {
+
+                for (int y = 0; y < Globals.ChunkSize; y++)
+                {
+
+                    for (int z = 0; z < Globals.ChunkSize; z++)
+                    {
+
+                        if (BlockData[x,y,z] != Globals.Register.GetIDFromBlock(Blocks.AirBlock))
+                        {
+
+                            return false;
+
+                        }
+
+                    }
+
+                }
+
+            }
+            return true;
+
+        }
+
+        public bool CheckIfFull()
+        {
+
+            for (int x = 0; x < Globals.ChunkSize; x++)
+            {
+
+                for (int y = 0; y < Globals.ChunkSize; y++)
+                {
+
+                    for (int z = 0; z < Globals.ChunkSize; z++)
+                    {
+
+                        if (BlockData[x, y, z] == Globals.Register.GetIDFromBlock(Blocks.AirBlock))
+                        {
+
+                            return false;
+
+                        }
+
+                    }
+
+                }
+
+            }
+            return true;
+
+        }
+
+        public bool CheckIfExposed(Dictionary<Vector3i, NewChunk> neighbors)
+        {
+
+            int blocksAreSolid = 0;
+            for (int x = 0 ; x < Globals.ChunkSize; x++)
+            {
+
+                for (int y =0 ; y < Globals.ChunkSize; y++)
+                {
+
+                    if (neighbors[Vector3i.UnitY].GetBlock((x, 0, y)) == Blocks.AirBlock) blocksAreSolid++;
+                    if (neighbors[-Vector3i.UnitY].GetBlock((x, Globals.ChunkSize-1, y)) == Blocks.AirBlock) blocksAreSolid++;
+                    if (neighbors[Vector3i.UnitX].GetBlock((0, x, y)) == Blocks.AirBlock) blocksAreSolid++;
+                    if (neighbors[-Vector3i.UnitX].GetBlock((Globals.ChunkSize-1, x, y)) == Blocks.AirBlock) blocksAreSolid++;
+                    if (neighbors[Vector3i.UnitZ].GetBlock((x, y, 0)) == Blocks.AirBlock) blocksAreSolid++;
+                    if (neighbors[-Vector3i.UnitZ].GetBlock((x, y, Globals.ChunkSize-1)) == Blocks.AirBlock) blocksAreSolid++;
+
+                }
+
+            }
+            return blocksAreSolid != 0;
+
+        }
+
+        public bool CheckIfShouldRender()
+        {
+
+            if (IsExposed == false)
+            {
+
+                return false;
+
+            }
+            return true;
+
+        }
         public Block GetBlock(Vector3i position)
         {
 
@@ -83,10 +263,30 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        public Block GetBlockOverflow(Vector3i position)
+        {
+
+            if (ChunkUtils.PositionToChunk(position) == Vector3i.Zero)
+            {
+
+                return GetBlock(position);
+
+            }
+            return ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(position)).GetBlock(ChunkUtils.PositionToBlockLocal(position));
+
+        }
+
         public void SetBlock(Vector3i position, Block block)
         {
 
             BlockData[position.X, position.Y, position.Z] = (ushort) Globals.Register.GetIDFromBlock(block);
+
+        }
+
+        public void SetBlockOverflow(Vector3i position, Block block)
+        {
+
+            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(position)).SetBlock(ChunkUtils.PositionToBlockLocal(position), block);
 
         }
 
@@ -164,13 +364,6 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public void SetBlockData(Vector3i position, ushort data)
-        {
-
-            BlockData[position.X, position.Y, position.Z] = data;
-
-        }
-
         public void SetBlockDataGlobal(Vector3i position, ushort data)
         {
 
@@ -193,7 +386,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 int yValue = position.Y - (ChunkPosition.Y * Globals.ChunkSize);
                 int zValue = position.Z - (ChunkPosition.Z * Globals.ChunkSize);
 
-                SetBlockData((xValue, yValue, zValue), data);
+                SetBlock((xValue, yValue, zValue), Globals.Register.GetBlockFromID(data));
 
             }
 

@@ -30,7 +30,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         public Matrix4 TranslationMatrix = Matrix4.CreateTranslation(0,0,0);
         public Matrix4 RotationMatrix = Matrix4.CreateFromQuaternion(Quaternion.Identity);
-        public Matrix4 ScaleMatrix;
+        public Matrix4 ScaleMatrix = Matrix4.CreateScale(1, 1, 1);
         public Texture SunTexture;
 
 
@@ -40,12 +40,12 @@ namespace Blockgame_OpenTK.ChunkUtil
         ModelVertex[] SunVertices =
         {
 
-            new ModelVertex((0.5f,1f,0.5f), (0,1,0), (0,1)),
-            new ModelVertex((0.5f,1f,-0.5f), (0,1,0), (0,0)),
-            new ModelVertex((-0.5f,1f,-0.5f), (0,1,0), (1,0)),
-            new ModelVertex((-0.5f,1f,-0.5f), (0,1,0), (1,0)),
-            new ModelVertex((-0.5f,1f,0.5f), (0,1,0), (1,1)),
-            new ModelVertex((0.5f,1f,0.5f), (0,1,0), (0,1))
+            new ModelVertex((0.5f,1f,-0.5f), (0,1,0), (0,1)),
+            new ModelVertex((0.5f,1f,0.5f), (0,1,0), (0,0)),
+            new ModelVertex((-0.5f,1f,0.5f), (0,1,0), (1,0)),
+            new ModelVertex((-0.5f,1f,0.5f), (0,1,0), (1,0)),
+            new ModelVertex((-0.5f,1f,-0.5f), (0,1,0), (1,1)),
+            new ModelVertex((0.5f,1f,-0.5f), (0,1,0), (0,1))
 
         };
 
@@ -54,7 +54,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             RadiusFromCamera = radiusFromCamera;
             // Matrix4.CreateScale((1,RadiusFromCamera,1), out ScaleMatrix);
-            ScaleMatrix = Matrix4.CreateScale(1, RadiusFromCamera, 1);
+            ScaleMatrix = Matrix4.CreateScale(1,1,1);
             SunTexture = new Texture(textureFile);
 
             Vbo = GL.GenBuffer();
@@ -75,6 +75,12 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
+        public void SetScale(Vector3 scale)
+        {
+
+            Matrix4.CreateScale(scale, out ScaleMatrix);
+
+        }
         public void SetRotation(Vector3 eulerRotation)
         {
 
@@ -92,7 +98,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void Draw(Camera camera)
         {
 
-            SetPosition(camera.Position);
+            // SetPosition(camera.Position);
 
             ModelMatrix = ScaleMatrix * RotationMatrix * TranslationMatrix;
             // shader.Use();

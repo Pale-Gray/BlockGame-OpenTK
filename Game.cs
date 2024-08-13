@@ -16,6 +16,7 @@ using Blockgame_OpenTK.FramebufferUtil;
 using Blockgame_OpenTK.BlockUtil;
 using OpenTK.Windowing.Common.Input;
 using Image = OpenTK.Windowing.Common.Input.Image;
+using System.Linq;
 
 
 namespace Blockgame_OpenTK
@@ -188,8 +189,8 @@ namespace Blockgame_OpenTK
 
         BoundingBox boundingbox = new BoundingBox(new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0.5f, 0.5f, 0.5f));
         NakedModel boundmodel;
-        GUIElement TestElement;
-        GUIClickable GUIClick;
+        // GUIElement TestElement;
+        // GUIClickable GUIClick;
         TextRenderer text;
 
         Ray ray = new Ray(0, 0, 0, 0, 0, 0);
@@ -210,6 +211,7 @@ namespace Blockgame_OpenTK
         Sun Sun;
 
         Player Player;
+        // GUIElement texx;
 
         // public static Block snowb;
 
@@ -280,6 +282,8 @@ namespace Blockgame_OpenTK
             Globals.CursorState = CursorState;
 
         }
+
+        GuiElement uiTest;
         protected override void OnLoad()
         {
 
@@ -287,8 +291,8 @@ namespace Blockgame_OpenTK
 
             TextRenderer.InitTextRenderer();
 
-            Texture iconTexture = new Texture("icon.png", 0);
-            Icon = new WindowIcon(new Image(32, 32, iconTexture.Data));
+            // Texture iconTexture = new Texture("icon.png", 0);
+            // Icon = new WindowIcon(new Image(32, 32, iconTexture.Data));
 
             // Console.WriteLine($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}, Max texture 2d size: {GL.GetInteger(GetPName.MaxTextureSize)}");
             // GL.DebugMessageCallback(DebugMessageDelegate, IntPtr.Zero);
@@ -298,6 +302,8 @@ namespace Blockgame_OpenTK
             //BlockModel bm = new BlockModel();
             // BlockModel bm = BlockModel.Load("GrassBlockNew");
             // Console.WriteLine(bm.BlockFaces.Count);
+            Console.WriteLine(GL.GetInteger(GetPName.MajorVersion) + "." + GL.GetInteger(GetPName.MinorVersion));
+
             Globals.ArrayTexture.Load();
             Blocks.Load();
             // Blocks.GetBlockFromName("RandomBlock");
@@ -308,6 +314,7 @@ namespace Blockgame_OpenTK
             Globals.AtlasTexture = new TextureAtlas("atlas.png", 32);
             Globals.ChunkShader = new Shader("chunk.vert", "chunk.frag");
             Globals.DefaultShader = new Shader("default.vert", "default.frag");
+            Globals.GuiShader = new Shader("gui.vert", "gui.frag");
             Globals.Mouse = MouseState;
             Globals.Keyboard = KeyboardState;
             CursorState = CursorState.Grabbed;
@@ -341,9 +348,8 @@ namespace Blockgame_OpenTK
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.Enable(EnableCap.Texture2D);
             GL.Enable(EnableCap.TextureCubeMap);
-            GL.Enable(EnableCap.TextureCubeMapSeamless);
+            // GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.ActiveTexture(TextureUnit.Texture0);
-
             GL.Enable(EnableCap.PolygonOffsetFill);
 
             texture = new Texture("atlas.png");
@@ -351,7 +357,7 @@ namespace Blockgame_OpenTK
             Texture t = new Texture("cubemap/cubemap_test.png");
             cmtex = new CMTexture(t, 64);
 
-            TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
+            // TestElement = new GUIElement(50, 50, 10, 10, OriginType.Center, t, GUIElement.Null);
             // text = new TextRenderer(16, "");
             // text.SetFontColor((0,0,0));
 
@@ -366,6 +372,23 @@ namespace Blockgame_OpenTK
             Player.SetHeight(0);
             Player.SetPosition((0, 0, 0));
 
+            byte[] dataExample = new byte[] { 255, 220 };
+
+            Console.WriteLine(TextureLoader.Sub(dataExample, 1));
+
+            Blockgame_OpenTK.Util.Image Image = Blockgame_OpenTK.Util.Image.LoadPng("../../../Resources/Textures/skybox.png", true);
+            Console.WriteLine($"width: {Image.Width}, height: {Image.Height}");
+
+            // byte[] textureData = File.ReadAllBytes("../../../Resources/Textures/TextureArray/DirtBlock.png");
+            // textureData = TextureLoader.DecompressPng(textureData);
+            // textureData = TextureLoader.Flip(textureData);
+
+            // texx = new GUIElement(50, 50, 120, 120, OriginType.Center, new Texture(Image.ImageData, Image.Width, Image.Height), GUIElement.Null);
+
+            uiTest = new GuiElement((8, 8), GuiElement.Center);
+            uiTest.SetRelativePosition(0.5f, 0.5f);
+            uiTest.Rotate(45);
+
         }
         protected override void OnRenderFrame(FrameEventArgs args)
         {
@@ -378,7 +401,7 @@ namespace Blockgame_OpenTK
 
             frameBuffer.Bind();
 
-            GL.ClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+            GL.ClearColor(1,1,1,1);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             cfront.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
@@ -393,12 +416,26 @@ namespace Blockgame_OpenTK
             // etcW
             GL.Disable(EnableCap.DepthTest);
             // draw skybox
-            Skybox.Draw(Player.Camera.Position, Player.Camera, (float)time);
+            Vector3 rotation = ((float)Globals.Time / 5f, 0, 0);
+            rotation = Vector3.Zero;
+            // Console.WriteLine(Vector3.Dot((0, 1, 0), (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz));
+            Sun.SetRotation(rotation);
+            Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera, (float)Globals.Time);
+            Sun = new Sun("sun.png", 0);
+            Sun.SetPosition(Player.Camera.Position);
+            Sun.SetScale((0.5f, 5, 0.5f));
+            Sun.SetRotation(rotation);
+            Sun.Draw(Player.Camera);
+            Sun = new Sun("moon.png", 0);
+            Sun.SetPosition(Player.Camera.Position);
+            Sun.SetScale((0.5f, 5, 0.5f));
+            Sun.SetRotation((rotation.X + (Maths.ToRadians(180)), rotation.Y, rotation.Z));
+            Sun.Draw(Player.Camera);
+
+            // texx.Draw();
 
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
-
-            // TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1, 0, 0)), (1,1,1), 24, Globals.FrameInformation);
 
             if (Globals.Keyboard.IsKeyDown(Keys.LeftControl))
             {
@@ -406,25 +443,60 @@ namespace Blockgame_OpenTK
                 if (Globals.Keyboard.IsKeyPressed(Keys.R))
                 {
 
-                    throw new Exception("Forcing a crash.");
+                    Globals.Register.GetBlockFromID(552);
+
+                }
+
+                if (Globals.Keyboard.IsKeyPressed(Keys.S))
+                {
+
+                    ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).SaveToFile();
+
+                }
+
+                if (Globals.Keyboard.IsKeyPressed(Keys.W))
+                {
+
+                    ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).TryLoad();
+                    ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(Player.Camera.Position));
 
                 }
 
             }
 
-            // ChunkLoader.Load();
-            // ChunkLoader.DrawReadyChunks(Player.Camera);
+            // Console.WriteLine(Vector3.Dot(Vector3.UnitY, (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz));
+            ChunkLoader.LoadChunks(Player.Camera.Position);
+            ChunkLoader.UpdateChunkQueue();
+            // ChunkLoader.UpdateSaveAndRemoveQueue();
 
-            // Console.WriteLine(nc.GetGenerationState());
-            // ChunkBuilder.GeneratePassOne(ref nc);
-            // Console.WriteLine(nc.GetType());
-            // Console.WriteLine(nc.GetGenerationState());
+            ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
 
-            TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1, 0.75f, 0)), (1, 1, 1), 18, Globals.FrameInformation);
+            /*
+            foreach (Vector3i chunkPosition in ChunkLoader.Chunks.Keys)
+            {
 
-            ChunkLoader.Load(Player.Camera);
-            ChunkLoader.DrawReadyChunks(Player.Camera);
-            
+                if (ChunkLoader.Chunks[chunkPosition].GetChunkState() == ChunkState.Ready && ChunkLoader.Chunks[chunkPosition].IsExposed && !ChunkLoader.Chunks[chunkPosition].IsEmpty)
+                {
+
+                    GL.FrontFace(FrontFaceDirection.Cw);
+                    rmodel.SetScale(32, 32, 32);
+                    rmodel.Draw(((Vector3)chunkPosition + (0.5f, 0.5f, 0.5f)) * Globals.ChunkSize, (0, 0, 0), Player.Camera, 0);
+                    rmodel.SetScale(1, 1, 1);
+                    GL.FrontFace(FrontFaceDirection.Ccw);
+
+                }
+
+            }
+            */
+
+
+
+            GL.Disable(EnableCap.DepthTest);
+            TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((0.0f, 1.0f, 0)) - (0, 21, 0), (0,0,0), 18, Globals.FrameInformation);
+
+            uiTest.Draw(0);
+            GL.Enable(EnableCap.DepthTest);
+
             if (debug)
             {
 
@@ -440,12 +512,12 @@ namespace Blockgame_OpenTK
                 GL.FrontFace(FrontFaceDirection.Cw);
                 rmodel.SetScale(1, 1, 1);
                 GL.PolygonOffset(-1, 1);
-                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
+                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
                 //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
                 //rmodel.SetScale(1, 1, 1);
                 //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
                 rmodel.SetScale(0.2f, 0.2f, 0.2f);
-                rmodel.Draw(DDA.SmoothPosition, Player.Camera, (float)time);
+                rmodel.Draw(DDA.SmoothPosition, Vector3.Zero, Player.Camera, (float)time);
                 GL.FrontFace(FrontFaceDirection.Ccw);
                 GL.PolygonOffset(0, 0);
 
@@ -458,12 +530,15 @@ namespace Blockgame_OpenTK
                 GL.Disable(EnableCap.DepthTest);
                 // GL.LineWidth(5f);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-                xyz_display.Draw(Player.Camera.Position + (Player.Camera.ForwardVector * 5), Player.Camera, (float)time);
+                xyz_display.Draw(Player.Camera.Position + (Player.Camera.ForwardVector * 5), Vector3.Zero, Player.Camera, (float)time);
                 GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
                 GL.Enable(EnableCap.CullFace);
                 GL.Enable(EnableCap.DepthTest);
 
             }
+            // TestElement.Draw();
+            // texx.Draw();
+
             frameBuffer.Unbind();
 
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -503,7 +578,9 @@ namespace Blockgame_OpenTK
 
             camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();
-            TestElement.Update();
+            Globals.GuiCamera.UpdateProjectionMatrix();
+            uiTest.OnScreenResize();
+            // TestElement.Update();
             TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
 

@@ -19,8 +19,11 @@ void main()
 {
 	// textureSize(tex,0);
 	// FragColor = textureCube(cubemap, R);
-	float ambient = 0.2;
-	float value = ambient + max(0, dot(directionalLight, vnormal));
+	float sunDotProduct = dot(directionalLight, vnormal);
+
+	float falloff = dot(vec3(0,1,0), directionalLight);
+	float ambient = clamp(0.5 * falloff, 0, 1);
+	float value = clamp(ambient + (max(0, sunDotProduct) * falloff), 0.1, 1.0);
 
 	// FragColor = vec4(texture(atlas, vtexcoord).rgb * value, 1.0);
 	vec4 tex = texture(atlas, vtexcoord);
@@ -29,6 +32,6 @@ void main()
 	float thickness = 0.1;
 	if (vposition.x > thickness && vposition.x < 32 - thickness && vposition.y > thickness && vposition.y < 32 - thickness && vposition.z > thickness && vposition.z < 32 - thickness) {edge = 1;}
 
-	Outcolor = vec4(array_texture.rgb, 1.0);
+	Outcolor = vec4(array_texture.rgb * value, 1.0);
 
 }

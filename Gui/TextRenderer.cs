@@ -12,7 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace Blockgame_OpenTK.Gui
 {
 
-    struct GUIVertex 
+    struct TextVertex 
     {
 
         public Vector3 Position;
@@ -20,7 +20,7 @@ namespace Blockgame_OpenTK.Gui
         public Vector2 TextureCoordinates;
         public float isWiggle = 0;
         public float isItalics = 0;
-        public GUIVertex(Vector3 position, Vector2 textureCoordinates, Vector3 color)
+        public TextVertex(Vector3 position, Vector2 textureCoordinates, Vector3 color)
         {
 
             Position = position;
@@ -39,7 +39,7 @@ namespace Blockgame_OpenTK.Gui
         static Vector2 CharRenderDimension;
         static Vector2 RelativePosition;
         static int Vbo, Vao;
-        static GUIVertex[] Vertices;
+        static TextVertex[] Vertices;
         static Texture FontTexture;
         static Shader FontShader;
         static Vector3[] TextColors;
@@ -238,22 +238,22 @@ namespace Blockgame_OpenTK.Gui
         public static void RenderText(Vector3 position, Vector3 color, int size, string text)
         {
 
-            List<GUIVertex> textVertices = new List<GUIVertex>();
+            List<TextVertex> textVertices = new List<TextVertex>();
             float stepSize = 1f/(InternalChars.Length+1);
 
             for (int i = 0; i < text.Length; i++)
             {
 
                 int charIndex = Array.IndexOf(InternalChars, text[i]);
-                GUIVertex[] vertices =
+                TextVertex[] vertices =
                 {
 
-                    new GUIVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
-                    new GUIVertex(position + (size*i, 0, 0), (charIndex * stepSize, 0), color),
-                    new GUIVertex(position + (size + size*i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
-                    new GUIVertex(position + (size + size * i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
-                    new GUIVertex(position + (size + size * i, size, 0), (stepSize + (charIndex * stepSize), 1), color),
-                    new GUIVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
+                    new TextVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
+                    new TextVertex(position + (size*i, 0, 0), (charIndex * stepSize, 0), color),
+                    new TextVertex(position + (size + size*i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
+                    new TextVertex(position + (size + size * i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
+                    new TextVertex(position + (size + size * i, size, 0), (stepSize + (charIndex * stepSize), 1), color),
+                    new TextVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
 
                 };
 
@@ -305,29 +305,24 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
-            if (IsInputtingFancyText)
-            {
-
-                IsInputtingFancyText = false;
-
-            }
+            IsInputtingFancyText = false;
 
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, textVertices.Count() * Marshal.SizeOf<GUIVertex>(), textVertices.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, textVertices.Count() * Marshal.SizeOf<TextVertex>(), textVertices.ToArray(), BufferUsageHint.StaticDraw);
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.Position)));
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.Position)));
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.Color)));
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.Color)));
             GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.TextureCoordinates)));
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.TextureCoordinates)));
             GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.isWiggle)));
+            GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.isWiggle)));
             GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(4, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<GUIVertex>(), Marshal.OffsetOf<GUIVertex>(nameof(GUIVertex.isItalics)));
+            GL.VertexAttribPointer(4, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.isItalics)));
             GL.EnableVertexAttribArray(4);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -338,8 +333,8 @@ namespace Blockgame_OpenTK.Gui
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, FontTexture.getID());
 
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref Camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref Camera.ProjectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref Globals.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref Globals.GuiCamera.ProjectionMatrix);
             GL.Uniform3(GL.GetUniformLocation(FontShader.id, "textPosition"), position);
             GL.Uniform1(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
             // Console.WriteLine(Globals.Time);

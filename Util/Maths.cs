@@ -1,10 +1,84 @@
-﻿using OpenTK.Mathematics;
+﻿using OpenTK.Graphics.ES11;
+using OpenTK.Mathematics;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
 {
     internal class Maths
     {
+
+        public static uint Random2(uint seed, int x, int y)
+        {
+
+            uint a = Unsafe.As<int, uint>(ref x);
+            uint b = Unsafe.As<int, uint>(ref y);
+
+            if (seed == 0) seed = 12451233 ^ 234881893 >> 34888199 ^ 234551233 << 334888 << 12223 << 112333 ^ 1199672934;
+            if (a == 0) a = 1 << 48129 >> 45891234 << 23411111 ^ 100944999;
+            if (b == 0) b = 1 << 1200052 >> 192984591 ^ 2399921;
+
+            a = a ^ (a << 16);
+            b = b ^ (b << 16);
+            a = a ^ (a >> 14);
+            b = b ^ (b >> 14);
+            a = a ^ (a << 5);
+            b = b ^ (b >> 5);
+
+            return (seed*a*b);
+
+        }
+
+        public static float FloatRandom2(uint seed, int x, int y)
+        {
+
+            return (Random2(seed, x, y) / (float)uint.MaxValue);
+
+        }
+
+        public static float Noise2(uint seed, float x, float y)
+        {
+
+            float bottomLeft = FloatRandom2(seed, (int)Math.Floor(x), (int)Math.Floor(y));
+            float bottomRight = FloatRandom2(seed, (int)Math.Floor(x) + 1, (int)Math.Floor(y));
+            float topLeft = FloatRandom2(seed, (int)Math.Floor(x), (int)Math.Floor(y) + 1);
+            float topRight = FloatRandom2(seed, (int)Math.Floor(x) + 1, (int)Math.Floor(y) + 1);
+
+            float xPart = x % 1;
+            float yPart = y % 1;
+            if (xPart < 0) xPart += 1;
+            if (yPart < 0) yPart += 1;
+            // Console.WriteLine($"{xPart}, {yPart}");
+
+            float topLerp = CosLerp(topLeft, topRight, xPart);
+            float bottomLerp = CosLerp(bottomLeft, bottomRight, xPart);
+
+            return CosLerp(bottomLerp, topLerp, yPart);
+
+        }
+
+        public static float CosLerp(float a, float b, float t)
+        {
+
+            double t2 = (1 - Math.Cos(t * Math.PI)) / 2.0;
+            return (a * (1 - (float)t2) + b * (float)t2);
+
+        }
+
+        public static double DoubleLerp(double a, double b, double t)
+        {
+
+            return (1 - t) * b + t * b;
+
+        }
+
+        public static double DoubleCosLerp(double a, double b, double t)
+        {
+
+            double t2 = (1 - Math.Cos(t * Math.PI))/2.0;
+            return (a * (1 - t2) + b * t2);
+
+        }
 
         public static float MapValueToMinMax(float value, float min, float max)
         {
@@ -61,23 +135,10 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static float Lerp(float p1, float p2, float t)
+        public static float Lerp(float a, float b, float t)
         {
 
-            switch (t)
-            {
-
-                case 1:
-                    return p2;
-                    break;
-                case 0:
-                    return p1;
-                    break;
-                default:
-                    return (1 - t) * p1 + t * p2;
-                    break;
-
-            }
+            return (a * (1-t) + b*t);
 
         }
 

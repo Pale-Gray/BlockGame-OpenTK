@@ -38,6 +38,9 @@ namespace Blockgame_OpenTK.Util
         public static Shader ChunkShader;
         public static Shader SkyboxShader;
         public static Shader DefaultShader;
+        public static Shader GuiShader;
+
+        public static Camera GuiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90f);
 
         public static string FrameInformation = "";
 

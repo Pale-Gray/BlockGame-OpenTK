@@ -3,6 +3,9 @@ using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Drawing;
+using System.IO.IsolatedStorage;
+using System.Diagnostics;
 
 namespace Blockgame_OpenTK.Util
 {

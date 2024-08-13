@@ -1,194 +1,152 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using Blockgame_OpenTK.Util;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-
-using Blockgame_OpenTK.Util;
+using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Gui
 {
-
-    public enum OriginType
+    public struct GuiVertex
     {
 
-        Center,
-        TopLeft,
-        TopRight,
-        BottomLeft,
-        BottomRight
+        public Vector3 Position;
+        public Vector2 TextureCoordinates;
 
-    };
-    internal class GUIElement
-    {
-
-        public Vector2 RelativePosition; // note that this is in PERCENTAGE (0 to 100)
-        public Vector2 Dimensions; // note that this is in PIXELS, not relative screen coordinates (0 to 1, percentages, etc)
-
-        public Vector2 Position;
-        public Vector2 PositionNoOffset;
-        public Vector2 OriginOffset;
-
-        public Vector2 PositionOffsetInPixels = (0,0);
-        public Vector2 PositionOffsetInPercentage = (0,0);
-
-        public Vector2 CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
-
-        public static Vector4i Null = (-1, -1, -1, -1);
-        public static Texture NullTexture = new Texture("missing.png");
-
-        // NOTE
-        // This instance is temporary, move to a global variables class
-        Camera Camera;// = new Camera((0.0f, 0.0f, 0.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
-
-        Shader GUIShader = new Shader("gui.vert", "gui.frag");
-        Texture Texture;
-
-        Matrix4 Model;
-
-        int vbo, vao;
-        float[] vertices;
-        private float x;
-        private float y;
-        private float w;
-        private float h;
-        private OriginType originType;
-
-        public GUIElement(float x, float y, float w, float h, OriginType originType, Texture texture, Vector4i texturePortion)
+        public GuiVertex(Vector3 position, Vector2 textureCoordinates)
         {
 
-            if (texturePortion == Null)
-            {
+            Position = position;
+            TextureCoordinates = textureCoordinates;
 
-                Texture = texture;
+        }
 
-            } else
-            {
+    }
 
-                Texture = Texture.GetPortion(false, texture, texturePortion.X, texturePortion.Y, texturePortion.Z, texturePortion.W);
+    internal class GuiElement
+    {
 
-            }
+        public static readonly Vector2 Center = (0.5f, 0.5f);
+        public static readonly Vector2 TopLeft = (0.0f, 1.0f);
 
-            switch(originType)
-            {
+        private int Vao, Vbo;
 
-                case OriginType.BottomLeft:
-                    OriginOffset = new Vector2(0f, 0f);
-                    break;
-                case OriginType.BottomRight:
-                    OriginOffset = new Vector2(1f, 0f);
-                    break;
-                case OriginType.TopLeft:
-                    OriginOffset = new Vector2(0f, 1f);
-                    break;
-                case OriginType.TopRight:
-                    OriginOffset = new Vector2(1f, 1f);
-                    break;
-                case OriginType.Center:
-                    OriginOffset = new Vector2(0.5f, 0.5f);
-                    break;
-                default:
-                    OriginOffset = new Vector2(0f, 0f);
-                    break;
+        Vector2 Position;
+        Vector2 AbsolutePosition;
+        Vector2 RelativeReference;
+        Vector2 RelativePosition;
+        Vector2 Origin;
+        Vector2 OriginOffset;
+        Vector2 Dimensions;
+        GuiVertex[] GuiMesh;
 
-            }
+        Matrix4 TranslationMatrix;
+        Matrix4 RotationMatrix;
+        Matrix4 ScaleMatrix;
+        Matrix4 ModelMatrix;
 
-            Camera = new Camera((0.0f, 0.0f, 1.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
+        public GuiElement(Vector2 dimensions, Vector2 origin)
+        {
 
-            RelativePosition = (x, y);
-            Dimensions = (w, h);
+            Dimensions = dimensions;
+            Origin = (origin.X, origin.Y);
 
-            PositionNoOffset = AbsolutePositionFromRelative((x, y));
-            Position = PositionNoOffset - CoordinateOffset;
+            ModelMatrix = Matrix4.Identity;
+            OriginOffset = dimensions * origin;
 
-            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
+            // ModelMatrix = Matrix4.CreateTranslation(((position.X - OriginOffset.X, position.Y - OriginOffset.Y, 0)));
+            TranslationMatrix = Matrix4.Identity;
+            RotationMatrix = Matrix4.Identity;
+            ScaleMatrix = Matrix4.Identity;
+            ModelMatrix = TranslationMatrix * RotationMatrix * ScaleMatrix;
 
-            Vector2 Offset = OriginOffset * Dimensions;
+            GenerateMesh();
+            CallOpenGL();
 
-            vertices = new float[] {
+        }
 
-                0f - Offset.X, 0f - Offset.Y, 0f, 0f, 0f,
-                Dimensions.X - Offset.X, 0f - Offset.Y, 0f, 1f, 0f,
-                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f, 1f, 1f,
-                Dimensions.X - Offset.X, Dimensions.Y - Offset.Y, 0f, 1f, 1f,
-                0f - Offset.X, Dimensions.Y - Offset.Y, 0f, 0f, 1f,
-                0f - Offset.X, 0f - Offset.Y, 0f, 0f, 0f
+        public void SetRelativePosition(float x, float y)
+        {
+
+            RelativeReference = (x, y);
+            RelativePosition = GuiMath.RelativeToAbsolute(RelativeReference.X, RelativeReference.Y);
+
+        }
+
+        public void SetAbsolutePosition(float x, float y)
+        {
+
+            AbsolutePosition = (x, y);
+
+        }
+
+        public void Rotate(float angle)
+        {
+
+            RotationMatrix = Matrix4.CreateRotationZ(Maths.ToRadians(angle));
+
+        }
+
+        private void GenerateMesh()
+        {
+
+            GuiMesh = new GuiVertex[] {
+
+                new GuiVertex((0, Dimensions.Y, 0), (0, 0)),
+                new GuiVertex((0, 0, 0), (0, 0)),
+                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
+                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
+                new GuiVertex((Dimensions.X, Dimensions.Y, 0), (0, 0)),
+                new GuiVertex((0, Dimensions.Y, 0), (0, 0)),
 
             };
 
-            vbo = Vbo.Generate(vertices, BufferUsageHint.StaticDraw);
-            vao = Vao.Generate(AttribPointerMode.VertexTexcoord);
-            Vbo.Unbind();
-            Vao.Unbind();
-
         }
 
-        public void Draw()
+        private void CallOpenGL()
         {
 
-            GUIShader.Use();
+            Vao = GL.GenVertexArray();
+            GL.BindVertexArray(Vao);
+            Vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, GuiMesh.Length * Marshal.SizeOf<GuiVertex>(), GuiMesh, BufferUsageHint.StaticDraw);
 
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Texture.getID());
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.TextureCoordinates)));
+            GL.EnableVertexAttribArray(1);
 
-            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "model"), true, ref Model);
-            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "view"), true, ref Camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GUIShader.getID(), "projection"), true, ref Camera.ProjectionMatrix);
-
-            GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length/5);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-
-            GUIShader.UnUse();
-
-        }
-        public void Update()
-        {
-
-            CoordinateOffset = (Globals.WIDTH / 2, Globals.HEIGHT / 2);
-
-            Camera.UpdateProjectionMatrix();
-            PositionNoOffset = AbsolutePositionFromRelative(RelativePosition);
-            Position = AbsolutePositionFromRelative(RelativePosition) - CoordinateOffset;
-            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
-
         }
 
-        public void SetRelativePosition(Vector2 relativePositionInPercentage)
+        public void Draw(float time)
         {
 
-            RelativePosition = relativePositionInPercentage;
-            Update();
+            Position = (AbsolutePosition + RelativePosition);
+            TranslationMatrix = Matrix4.CreateTranslation(Position.X, Position.Y, 0);
+            ModelMatrix = Matrix4.CreateTranslation(-OriginOffset.X, -OriginOffset.Y, 0) * RotationMatrix * TranslationMatrix * ScaleMatrix;
 
-        }
+            Globals.GuiShader.Use();
 
-        public void SetRelativePositionOffset(Vector2 relativePositionOffsetInPercentage)
-        {
+            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "model"), true, ref ModelMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "view"), true, ref Globals.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "projection"), true, ref Globals.GuiCamera.ProjectionMatrix);
 
-            PositionOffsetInPercentage = AbsolutePositionFromRelative(relativePositionOffsetInPercentage);
-            Update();
+            GL.BindVertexArray(Vao);
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, GuiMesh.Length);
+
+            GL.BindVertexArray(0);
+
+            Globals.GuiShader.UnUse();
 
         }
 
-        public void SetAbsolutePosition(Vector2 positionInPixels)
+        public void OnScreenResize()
         {
 
-            Position = positionInPixels;
-            Model = Matrix4.CreateTranslation(Position.X + PositionOffsetInPercentage.X + PositionOffsetInPixels.X, Position.Y + PositionOffsetInPercentage.Y + PositionOffsetInPixels.Y, 0.0f);
-
-        }
-
-        public void SetAbsolutePositionOffset(Vector2 positionOffsetInPixels)
-        {
-
-            PositionOffsetInPixels += positionOffsetInPixels;
-            Update();
-
-        }
-
-        public Vector2 AbsolutePositionFromRelative(Vector2 relativePositionAmount)
-        {
-
-            return ((relativePositionAmount / 100) * (Globals.WIDTH, Globals.HEIGHT));
+            SetRelativePosition(RelativeReference.X, RelativeReference.Y);
 
         }
 

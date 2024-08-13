@@ -36,20 +36,7 @@ namespace Blockgame_OpenTK.Util
             CameraType = type;
             Fov = fov;
 
-            switch (CameraType)
-            {
-
-                case CameraType.Orthographic:
-                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
-                    break;
-                case CameraType.Perspective:
-                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
-                    break;
-                default:
-                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
-                    break;
-
-            }
+            UpdateProjectionMatrix();
 
             // sets in case you dont use Update() but won't update the view matrix of course.
             ViewMatrix = Matrix4.LookAt(position, position + forwards, up);
@@ -63,13 +50,10 @@ namespace Blockgame_OpenTK.Util
             {
 
                 case CameraType.Orthographic:
-                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, Globals.WIDTH, 0, Globals.HEIGHT, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
                     ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
-                    break;
-                default:
-                    ProjectionMatrix = Matrix4.CreateOrthographic(Globals.WIDTH, Globals.HEIGHT, 0.1f, 1000f);
                     break;
 
             }

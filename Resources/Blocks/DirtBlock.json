@@ -1,0 +1,9 @@
+{
+
+  "DataName": "DirtBlock",
+  "DisplayName": "Dirt Block",
+  "Model": "DirtBlock.json",
+  "SoundPath": "DirtBlock",
+  "BreakTime": 1000
+
+}

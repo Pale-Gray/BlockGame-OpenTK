@@ -94,10 +94,11 @@ namespace Blockgame_OpenTK.BlockUtil
                         if (referenceFace.CullDirection == referenceDirection)
                         {
 
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[0], (0, 1), (0, 0, 0)));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[1], (0, 0), (0, 0, 0)));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[2], (1, 0), (0, 0, 0)));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[3], (1, 1), (0, 0, 0)));
+                            Vector3 normal = DetermineNormal(referenceDirection);
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[0], (0, 1), normal));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[1], (0, 0), normal));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[2], (1, 0), normal));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[3], (1, 1), normal));
 
                         }
 
@@ -110,10 +111,11 @@ namespace Blockgame_OpenTK.BlockUtil
                     {
 
                         int textureIndex = face.TextureIndex;
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[0], (0, 1), (0, 0, 0)));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[1], (0, 0), (0, 0, 0)));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[2], (1, 0), (0, 0, 0)));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[3], (1, 1), (0, 0, 0)));
+                        Vector3 normal = DetermineNormal(referenceDirection);
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[0], (0, 1), normal));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[1], (0, 0), normal));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[2], (1, 0), normal));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[3], (1, 1), normal));
 
                     }
 
@@ -134,6 +136,31 @@ namespace Blockgame_OpenTK.BlockUtil
             };
 
             return verticesToReturn;
+
+        }
+
+        private static Vector3 DetermineNormal(BlockModelNewCullDirection cullDirection)
+        {
+
+            switch (cullDirection)
+            {
+
+                case BlockModelNewCullDirection.Up:
+                    return Vector3.UnitY;
+                case BlockModelNewCullDirection.Down:
+                    return -Vector3.UnitY;
+                case BlockModelNewCullDirection.Left:
+                    return Vector3.UnitX;
+                case BlockModelNewCullDirection.Right:
+                    return -Vector3.UnitX;
+                case BlockModelNewCullDirection.Front:
+                    return -Vector3.UnitZ;
+                case BlockModelNewCullDirection.Back:
+                    return Vector3.UnitZ;
+                default:
+                    return Vector3.Zero;
+
+            }
 
         }
         public static ChunkVertex[] OffsetVertices(Vector3 offset, ChunkVertex[] vertices)

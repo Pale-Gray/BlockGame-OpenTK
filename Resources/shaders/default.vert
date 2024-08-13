@@ -9,6 +9,8 @@ uniform mat4 projection;
 uniform mat4 rotation;
 
 uniform vec3 cameraPosition;
+uniform vec3 sunVec;
+out vec3 sunNormal;
 
 out vec3 vposition;
 out vec3 vnormal;
@@ -23,6 +25,7 @@ void main()
 	vposition = position;
 	vtextureCoordinate = textureCoordinate;
 	vmodel = model;
+	sunNormal = sunVec;
 
 	vrotation = rotation;
 

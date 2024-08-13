@@ -1,0 +1,45 @@
+{
+
+  "Reference": "Cube.json",
+  "Faces": [
+
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Up"
+
+    },
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Down"
+
+    },
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Left"
+
+    },
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Right"
+
+    },
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Front"
+
+    },
+    {
+
+      "Texture": "DirtBlock",
+      "Reference": "Back"
+
+    }
+
+  ]
+
+}
