@@ -248,12 +248,12 @@ namespace Blockgame_OpenTK.Gui
                 TextVertex[] vertices =
                 {
 
-                    new TextVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
-                    new TextVertex(position + (size*i, 0, 0), (charIndex * stepSize, 0), color),
-                    new TextVertex(position + (size + size*i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
-                    new TextVertex(position + (size + size * i, 0, 0), (stepSize + (charIndex * stepSize), 0), color),
-                    new TextVertex(position + (size + size * i, size, 0), (stepSize + (charIndex * stepSize), 1), color),
-                    new TextVertex(position + (size * i, size, 0), (charIndex * stepSize, 1), color),
+                    new TextVertex(position + (size + size*i, size, 0), (stepSize + (charIndex * stepSize), 0), color),
+                    new TextVertex(position + (size + size*i, 0, 0), (stepSize + (charIndex * stepSize), 1), color),
+                    new TextVertex(position + (size*i, 0, 0), (charIndex * stepSize, 1), color),
+                    new TextVertex(position + (size*i, 0, 0), (charIndex * stepSize, 1), color),
+                    new TextVertex(position + (size*i, size, 0), (charIndex * stepSize, 0), color),
+                    new TextVertex(position + (size + size*i, size, 0), (stepSize + (charIndex * stepSize), 0), color)
 
                 };
 
@@ -352,6 +352,18 @@ namespace Blockgame_OpenTK.Gui
             GL.DeleteBuffer(Vbo);
 
             FontShader.UnUse();
+
+        }
+
+        public static void RenderLines(Vector3 position, Vector3 color, int size, int lineSpacing, string[] lines)
+        {
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+
+                RenderText(position + (0, (size + lineSpacing) * i, 0), color, size, lines[i]);
+
+            }
 
         }
 

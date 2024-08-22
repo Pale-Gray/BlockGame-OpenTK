@@ -62,35 +62,11 @@ namespace Blockgame_OpenTK.ChunkUtil
                         int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
                         int zGlobal = z + (chunkPosition.Z * Globals.ChunkSize);
 
-                        // float height = (int) (Globals.noise.GetNoise(xGlobal/5f, zGlobal/5f) * 25f);
-                        // height *= (Globals.noise.GetNoise((xGlobal/2.5f), (zGlobal/2.5f)));
                         uint seed = 0;
 
-                        /*
-                        float height = Maths.Noise2(seed, xGlobal/150f, zGlobal/150f);
-                        height += Maths.Noise2(seed, (xGlobal / 40f) + 50, (zGlobal / 40f) + 50)/2f;
-                        height += Maths.Noise2(seed, (xGlobal / 20f) - 482, (zGlobal / 20f) - 1004)/4f;
+                        float height = Maths.ValueNoise2Octaves(12345123, xGlobal / 32f, zGlobal / 32f, 3) * 32f;
 
-                        height *= 50f;
-
-                        if (yGlobal == (int) height) chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.GrassBlock));
-
-                        if (yGlobal < height-1)
-                        {
-
-                            chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.DirtBlock));
-
-                        }
-
-                        if (yGlobal < (int) height-3)
-                        {
-
-                            chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.StoneBlock));
-
-                        }
-                        */
-                        float density = Globals.noise.GetNoise(xGlobal, yGlobal, zGlobal);
-                        if (density > 0.7f + (yGlobal/24f))
+                        if (yGlobal < height)
                         {
 
                             chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.StoneBlock));
@@ -104,6 +80,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
             chunk.GenerationState = GenerationState.PassOne;
+            chunk.QueueMode = QueueMode.NotQueued;
 
         }
 
@@ -138,21 +115,23 @@ namespace Blockgame_OpenTK.ChunkUtil
                             int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
                             int zGlobal = z + (chunkPosition.Z * Globals.ChunkSize);
 
-                            if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock)// && ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal+1, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal+1, zGlobal))) == Blocks.AirBlock)
+                            if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock)
                             {
 
                                 if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + 1, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal + 1, zGlobal))) == Blocks.AirBlock)
                                 {
 
-                                    if (Maths.FloatRandom2(0, xGlobal, zGlobal) / 10f < 0.001f)
+                                    if (Maths.FloatRandom2(0, xGlobal, zGlobal) > 0.99f)
                                     {
 
-                                        for (int i = 0; i < 5; i++)
+                                        for (int i = 1; i <= 5; i++)
                                         {
 
-                                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + 1 + i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal + 1 + i, zGlobal)), Blocks.DirtBlock);
+                                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + i, zGlobal))).SetBlockDataGlobal((xGlobal, yGlobal + i, zGlobal), Globals.Register.GetIDFromBlock(Blocks.DirtBlock));
 
                                         }
+
+                                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + 1, zGlobal))).SetBlockDataGlobal((xGlobal, yGlobal + 1, zGlobal), Globals.Register.GetIDFromBlock(Blocks.DirtBlock));
 
                                     }
 
@@ -194,6 +173,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
             chunk.GenerationState = GenerationState.Generated;
+            chunk.QueueMode = QueueMode.NotQueued;
             // Console.WriteLine(chunk.GenerationState);
 
         }
@@ -262,7 +242,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
             chunk.SetChunkMesh(mesh.ToArray());
             // chunk.ChunkMesh = mesh.ToArray();
-            chunk.SetMeshState(MeshState.Meshed);
+            chunk.MeshState = MeshState.Meshed;
+            chunk.QueueMode = QueueMode.NotQueued;
+            // chunk.SetChunkState(ChunkState.Ready);
             // chunk.MeshState = MeshState.Meshed;
 
         }

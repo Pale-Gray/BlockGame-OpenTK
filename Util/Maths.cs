@@ -1,6 +1,7 @@
 ﻿using OpenTK.Graphics.ES11;
 using OpenTK.Mathematics;
 using System;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
@@ -50,10 +51,37 @@ namespace Blockgame_OpenTK.Util
             if (yPart < 0) yPart += 1;
             // Console.WriteLine($"{xPart}, {yPart}");
 
-            float topLerp = CosLerp(topLeft, topRight, xPart);
-            float bottomLerp = CosLerp(bottomLeft, bottomRight, xPart);
+            float topLerp = Slerp(topLeft, topRight, xPart);
+            float bottomLerp = Slerp(bottomLeft, bottomRight, xPart);
 
-            return CosLerp(bottomLerp, topLerp, yPart);
+            return Slerp(bottomLerp, topLerp, yPart);
+
+        }
+
+        public static float ValueNoise2Octaves(uint seed, float x, float y, int octaves)
+        {
+
+            float val = 0;
+
+            for (float i = 1; i <= octaves; i++)
+            {
+
+                val += Noise2(seed, x*i, y*i) / (i);
+
+            }
+
+            val /= (octaves);
+
+            return val;
+
+        }
+
+        public static float Slerp(float a, float b, float t)
+        {
+
+            t = t * t * t * (10f + t * (-15f + t * 6f));
+
+            return Lerp(a, b, t);
 
         }
 

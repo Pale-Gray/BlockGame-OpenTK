@@ -26,10 +26,16 @@ out vec3 vnormal;
 out float vtime;
 out float vambient_value;
 
+out float distFac;
+
 uniform float chunkLifetime;
 // out float vambientValue;
 
 out vec3 directionalLight;
+
+uniform float radius;
+
+out vec3 vPositionOffset;
 
 float dist3D(vec3 pos1, vec3 pos2) 
 {
@@ -50,8 +56,11 @@ void main()
 	vtime = time;
 	vnormal = normal;
 	vambient_value = ambient_value;
+	vPositionOffset = position + (chunkpos * 32);
 
 	directionalLight = sunDirection;
+
+	distFac = clamp(dist3D(vPositionOffset, cameraPosition) / (radius*32), 0, 1);
 
 	// directionalLight = normalize((vec4(0,1,0,1))).xyz;
 

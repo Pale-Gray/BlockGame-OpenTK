@@ -15,6 +15,7 @@ using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using System.Net;
+using System.Linq;
 
 namespace Blockgame_OpenTK
 {
@@ -94,25 +95,28 @@ namespace Blockgame_OpenTK
                 
                 Globals.Time += dt;
 
-                // Console.WriteLine(Environment.StackTrace);
-                // Console.WriteLine(Globals.Time);
+                float yOffset = 2;
+                float lineSpacing = 8;
+                int fontSize = 16;
 
-                // TextRenderer.RenderText(12, "Hello);
-                // TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1,0,0)), (1,0,0), 24, TextRenderer.FilterText("Hello <0x00FFFF>World!</0x00FFFF>"));
-                // TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((-1, 0.5f, 0)), (0, 0, 0), (int) GuiMaths.PixelSizeRelativeToPercentageAverage(2), TextRenderer.FilterText("<wiggle>Wiggly italics</wiggle>"));
-
-                // TextRenderer.RenderTextWithShadow(GuiMaths.RelativeToAbsolute((-1, -0.5f, 0)), (3, -3, 0), (1,0,0), (0.25f,0.25f,0.25f), 24, TextRenderer.FilterText("<italic>I am formatted text with shadow!</italic>"));
-
-                TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((0, 1, 0)) - (0, 24, 0), (1, 1, 1), 16, TextRenderer.FilterText("<0xF00000>Encountered an error.</0xF00000>"));
-
-                TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((0, 1, 0)) - (0, 50, 0), (1, 1, 1), 15, e.GetType() + ": " + message);
-
-                for (int i = 0; i < stackTrace.Length; i++)
+                TextRenderer.RenderLines((0, 2, 0), (1, 1, 1), 18, 2, new string[]
                 {
 
-                    TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((0, 1, 0)) - (0, 72, 0) - ((Vector3.UnitY * 24) * i), (1, 1, 1), 16, stackTrace[i]);
+                    "Encountered an error.",
+                    e.GetType() + ": " + e.Message,
 
-                }
+                }.Concat(stackTrace).ToArray());
+
+                // TextRenderer.RenderText((2, yOffset, 0), (1, 1, 1), fontSize, TextRenderer.FilterText("<0xF00000>Encountered an error.</0xF00000>"));
+
+                // TextRenderer.RenderText((2, yOffset + fontSize + lineSpacing, 0), (1, 1, 1), fontSize, e.GetType() + ": " + message);
+
+                // for (int i = 0; i < stackTrace.Length; i++)
+                // {
+
+                //      TextRenderer.RenderText((0, 2*(fontSize + lineSpacing) + yOffset + ( (fontSize + lineSpacing) * i), 0), (1, 1, 1), 16, stackTrace[i]);
+
+                // }
 
                 game.SwapBuffers();
                 GLFW.PollEvents();

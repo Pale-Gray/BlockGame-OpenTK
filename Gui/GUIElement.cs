@@ -25,23 +25,26 @@ namespace Blockgame_OpenTK.Gui
     {
 
         public static readonly Vector2 Center = (0.5f, 0.5f);
-        public static readonly Vector2 TopLeft = (0.0f, 1.0f);
+        public static readonly Vector2 TopLeft = (0.0f, 0.0f);
+        public static readonly Vector2 TopRight = (1.0f, 0.0f);
+        public static readonly Vector2 BottomLeft = (0.0f, 1.0f);
+        public static readonly Vector2 BottomRight = (1.0f, 1.0f);
 
-        private int Vao, Vbo;
+        public int Vao, Vbo;
 
-        Vector2 Position;
-        Vector2 AbsolutePosition;
-        Vector2 RelativeReference;
-        Vector2 RelativePosition;
-        Vector2 Origin;
-        Vector2 OriginOffset;
-        Vector2 Dimensions;
-        GuiVertex[] GuiMesh;
+        public Vector2 Position;
+        public Vector2 AbsolutePosition;
+        public Vector2 RelativeReference;
+        public Vector2 RelativePosition;
+        public Vector2 Origin;
+        public Vector2 OriginOffset;
+        public Vector2 Dimensions;
+        public GuiVertex[] GuiMesh;
 
-        Matrix4 TranslationMatrix;
-        Matrix4 RotationMatrix;
-        Matrix4 ScaleMatrix;
-        Matrix4 ModelMatrix;
+        public Matrix4 TranslationMatrix;
+        public Matrix4 RotationMatrix;
+        public Matrix4 ScaleMatrix;
+        public Matrix4 ModelMatrix;
 
         public GuiElement(Vector2 dimensions, Vector2 origin)
         {
@@ -90,12 +93,12 @@ namespace Blockgame_OpenTK.Gui
 
             GuiMesh = new GuiVertex[] {
 
-                new GuiVertex((0, Dimensions.Y, 0), (0, 0)),
-                new GuiVertex((0, 0, 0), (0, 0)),
-                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
-                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
                 new GuiVertex((Dimensions.X, Dimensions.Y, 0), (0, 0)),
+                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
+                new GuiVertex((0, 0, 0), (0, 0)),
+                new GuiVertex((0, 0, 0), (0, 0)),
                 new GuiVertex((0, Dimensions.Y, 0), (0, 0)),
+                new GuiVertex((Dimensions.X, Dimensions.Y, 0), (0, 0))
 
             };
 
@@ -120,7 +123,7 @@ namespace Blockgame_OpenTK.Gui
 
         }
 
-        public void Draw(float time)
+        public virtual void Draw(float time)
         {
 
             Position = (AbsolutePosition + RelativePosition);

@@ -183,6 +183,7 @@ namespace Blockgame_OpenTK
         Model xyz_display;
         Model hitdisplay;
         Model Skybox;
+        Model e;
         // Model Sun;
 
         NakedModel nakedmodel;
@@ -211,6 +212,10 @@ namespace Blockgame_OpenTK
         Sun Sun;
 
         Player Player;
+
+        GuiElement Element;
+        GuiButton ButtonElement;
+        GuiWindow GWindow;
         // GUIElement texx;
 
         // public static Block snowb;
@@ -379,15 +384,26 @@ namespace Blockgame_OpenTK
             Blockgame_OpenTK.Util.Image Image = Blockgame_OpenTK.Util.Image.LoadPng("../../../Resources/Textures/skybox.png", true);
             Console.WriteLine($"width: {Image.Width}, height: {Image.Height}");
 
-            // byte[] textureData = File.ReadAllBytes("../../../Resources/Textures/TextureArray/DirtBlock.png");
-            // textureData = TextureLoader.DecompressPng(textureData);
-            // textureData = TextureLoader.Flip(textureData);
-
-            // texx = new GUIElement(50, 50, 120, 120, OriginType.Center, new Texture(Image.ImageData, Image.Width, Image.Height), GUIElement.Null);
-
-            uiTest = new GuiElement((8, 8), GuiElement.Center);
+            uiTest = new GuiElement((24, 24), GuiElement.Center);
             uiTest.SetRelativePosition(0.5f, 0.5f);
             uiTest.Rotate(45);
+
+            Element = new GuiElement((50,50), GuiElement.TopLeft);
+            Element.SetRelativePosition(0, 1);
+
+            ButtonElement = new GuiButton((75, 75), GuiElement.Center);
+            ButtonElement.SetRelativePosition(0.5f, 0.5f);
+            ButtonElement.OnButtonClick = () => { Console.WriteLine("I was clicked!"); };
+            ButtonElement.IsMoveable = true;
+
+            GWindow = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
+            GWindow.SetRelativePosition(0.5f, 0.5f);
+
+            GuiButton button = new GuiButton((50, 50), GuiElement.BottomLeft);
+            button.SetRelativePosition(0, 1);
+            GWindow.AddElement(button);
+
+            e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
 
         }
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -432,8 +448,6 @@ namespace Blockgame_OpenTK
             Sun.SetRotation((rotation.X + (Maths.ToRadians(180)), rotation.Y, rotation.Z));
             Sun.Draw(Player.Camera);
 
-            // texx.Draw();
-
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
@@ -443,7 +457,7 @@ namespace Blockgame_OpenTK
                 if (Globals.Keyboard.IsKeyPressed(Keys.R))
                 {
 
-                    Globals.Register.GetBlockFromID(552);
+                    throw new BlockNotFoundException("Forced a crash using BlockNotFoundException");
 
                 }
 
@@ -462,40 +476,44 @@ namespace Blockgame_OpenTK
 
                 }
 
-            }
-
-            // Console.WriteLine(Vector3.Dot(Vector3.UnitY, (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz));
-            ChunkLoader.LoadChunks(Player.Camera.Position);
-            ChunkLoader.UpdateChunkQueue();
-            // ChunkLoader.UpdateSaveAndRemoveQueue();
-
-            ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
-
-            /*
-            foreach (Vector3i chunkPosition in ChunkLoader.Chunks.Keys)
-            {
-
-                if (ChunkLoader.Chunks[chunkPosition].GetChunkState() == ChunkState.Ready && ChunkLoader.Chunks[chunkPosition].IsExposed && !ChunkLoader.Chunks[chunkPosition].IsEmpty)
+                if (Globals.Keyboard.IsKeyPressed(Keys.C))
                 {
 
-                    GL.FrontFace(FrontFaceDirection.Cw);
-                    rmodel.SetScale(32, 32, 32);
-                    rmodel.Draw(((Vector3)chunkPosition + (0.5f, 0.5f, 0.5f)) * Globals.ChunkSize, (0, 0, 0), Player.Camera, 0);
-                    rmodel.SetScale(1, 1, 1);
-                    GL.FrontFace(FrontFaceDirection.Ccw);
+                    Console.WriteLine("Reloading chunks for debug purposes");
+                    ChunkLoader.DebugReset();
+
+                }
+
+                if (Globals.Keyboard.IsKeyPressed(Keys.F))
+                {
+
+                    Console.WriteLine("Toggling fog");
+                    Globals.ShouldRenderFog = !Globals.ShouldRenderFog;
 
                 }
 
             }
-            */
+
+            Globals.FogOffset += (0.1f * Globals.Mouse.ScrollDelta.Y);
+            Globals.FogOffset = Math.Clamp(Globals.FogOffset, 0, 1);
+
+            ChunkLoader.Generate(Player.Camera.Position);
+            ChunkLoader.UpdateChunkQueue();
+
+            ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
 
 
-
+            //GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            TextRenderer.RenderText(GuiMaths.RelativeToAbsolute((0.0f, 1.0f, 0)) - (0, 21, 0), (0,0,0), 18, Globals.FrameInformation);
+            TextRenderer.RenderTextWithShadow((0,4,0), (2,2,0), (0.8f,0.8f,0.8f), (0,0,0), 18, Globals.FrameInformation);
 
             uiTest.Draw(0);
+            // Element.Draw(0);
+            // ButtonElement.Draw(0);
+            // GWindow.Draw(0);
+            // Element.Draw(0);
             GL.Enable(EnableCap.DepthTest);
+            //GL.Enable(EnableCap.CullFace);
 
             if (debug)
             {

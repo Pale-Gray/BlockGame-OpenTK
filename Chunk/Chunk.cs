@@ -52,7 +52,8 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         NotReady,
         Processing,
-        Ready
+        Ready,
+        SaveAndRemove
 
     }
     public enum MeshState
@@ -61,6 +62,14 @@ namespace Blockgame_OpenTK.ChunkUtil
         NotMeshed,
         Meshing,
         Meshed
+
+    }
+
+    public enum QueueMode
+    {
+
+        NotQueued,
+        Queued
 
     }
     internal class Chunk

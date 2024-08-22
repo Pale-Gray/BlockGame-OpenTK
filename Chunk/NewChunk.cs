@@ -13,6 +13,7 @@ using System.Threading.Tasks.Dataflow;
 using System.Drawing;
 using System.IO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -25,6 +26,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public GenerationState GenerationState;// = GenerationState.NotGenerated;
         public MeshState MeshState;// = MeshState.NotMeshed;
         public ChunkState ChunkState;// = ChunkState.NotReady;
+        public QueueMode QueueMode = QueueMode.NotQueued;
         public Vector3i ChunkPosition;
         public int Vao, Vbo;
         public bool IsEmpty = true;
@@ -134,6 +136,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "cameraPosition"), camera.Position);
             GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "sunDirection"), sunVec);
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkLifetime"), Lifetime);
+            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "radius"), (float) ChunkLoader.Radius);
+            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "shouldRenderFog"), Globals.ShouldRenderFog ? 1 : 0);
+            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "fogOffset"), Globals.FogOffset);
             // Console.WriteLine(ChunkPosition);
             GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -146,18 +151,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.getID(), "time"), (float)0);
             GL.BindVertexArray(Vao);
-            // Console.WriteLine(ChunkMesh.Length);
-            try
-            {
-
-                GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
-
-            } catch
-            {
-
-                Console.WriteLine("Some reason couldn't draw. Skipping");
-
-            }
+            GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
             GL.BindVertexArray(0);
 
             Globals.ChunkShader.UnUse();

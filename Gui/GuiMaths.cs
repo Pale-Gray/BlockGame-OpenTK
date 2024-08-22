@@ -1,6 +1,7 @@
 ﻿using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System;
+using System.Formats.Asn1;
 
 namespace Blockgame_OpenTK.Gui
 {
@@ -67,6 +68,19 @@ namespace Blockgame_OpenTK.Gui
             float b = Globals.HEIGHT * (percentage / 100);
 
             return (a + b) / 2f;
+
+        }
+
+        public static bool DidCollideWithMousePointer(Vector2 position, Vector2 dimension, Vector2 origin)
+        {
+
+            Vector2 mousePosition = Globals.Mouse.Position;
+
+            position = position - (dimension * origin);
+
+            if (mousePosition.X >= position.X && mousePosition.X <= position.X + dimension.X && mousePosition.Y >= position.Y && mousePosition.Y <= position.Y + dimension.Y) return true;
+
+            return false; 
 
         }
 

@@ -32,6 +32,10 @@ namespace Blockgame_OpenTK.Util
         public const float Ratio = 1 / AtlasResolution;
 
         public static int seed = new Random().Next();
+
+        public static bool ShouldRenderFog = true;
+        public static float FogOffset = 0.0f;
+
         // public static long seed = 1245919872491;
         public static TextureAtlas AtlasTexture;
         public static ArrayTexture ArrayTexture = new ArrayTexture();
