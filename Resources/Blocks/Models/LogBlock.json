@@ -1,0 +1,45 @@
+{
+
+  "Reference": "Cube.json",
+  "Faces": [
+
+    {
+
+      "Texture": "LogBlockTop",
+      "Reference": "Up"
+
+    },
+    {
+
+      "Texture": "LogBlockTop",
+      "Reference": "Down"
+
+    },
+    {
+
+      "Texture": "LogBlockSide",
+      "Reference": "Left"
+
+    },
+    {
+
+      "Texture": "LogBlockSide",
+      "Reference": "Right"
+
+    },
+    {
+
+      "Texture": "LogBlockSide",
+      "Reference": "Front"
+
+    },
+    {
+
+      "Texture": "LogBlockSide",
+      "Reference": "Back"
+
+    }
+
+  ]
+
+}

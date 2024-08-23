@@ -35,6 +35,7 @@ namespace Blockgame_OpenTK.Util
 
         public static bool ShouldRenderFog = true;
         public static float FogOffset = 0.0f;
+        public static bool ShouldRenderBounds = false;
 
         // public static long seed = 1245919872491;
         public static TextureAtlas AtlasTexture;

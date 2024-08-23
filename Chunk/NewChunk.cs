@@ -23,9 +23,9 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public ChunkVertex[] ChunkMesh;
-        public GenerationState GenerationState;// = GenerationState.NotGenerated;
-        public MeshState MeshState;// = MeshState.NotMeshed;
-        public ChunkState ChunkState;// = ChunkState.NotReady;
+        public GenerationState GenerationState = GenerationState.NotGenerated;
+        public MeshState MeshState = MeshState.NotMeshed;
+        public ChunkState ChunkState = ChunkState.NotReady;
         public QueueMode QueueMode = QueueMode.NotQueued;
         public Vector3i ChunkPosition;
         public int Vao, Vbo;

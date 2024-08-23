@@ -73,6 +73,8 @@ void main()
 	//  - max((pow(1 - chunkLifetime, 15)), 0)
 	float displacement = dist3D(position + (chunkpos*32), cameraPosition);
 
-	gl_Position = vec4(vec3(position.x, position.y - (displacement/50), position.z) + (vec3(chunkpos.x, chunkpos.y - max((pow(1 - chunkLifetime, 15)), 0), chunkpos.z) * 32), 1.0) * view * projection;
+	// max((pow(1 - chunkLifetime, 15)), 0)
+
+	gl_Position = vec4(vec3(position.x, position.y, position.z) + (vec3(chunkpos.x, chunkpos.y, chunkpos.z) * 32), 1.0) * view * projection;
 
 }

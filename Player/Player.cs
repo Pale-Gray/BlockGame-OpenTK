@@ -68,13 +68,12 @@ namespace Blockgame_OpenTK.PlayerUtil
                                 ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlock(HitPositionLocal, Blocks.AirBlock);
                                 // ChunkBuilder.Remesh(ChunkLoader.GetChunk(DDA.ChunkAtHit), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(DDA.ChunkAtHit)));
                                 ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit);
-
-                                if (HitPositionLocal.X == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (1,0,0)); }
-                                if (HitPositionLocal.X == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (1,0,0)); }
-                                if (HitPositionLocal.Y == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (0,1,0)); }
-                                if (HitPositionLocal.Y == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (0,1,0)); }
-                                if (HitPositionLocal.Z == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (0,0,1)); }
-                                if (HitPositionLocal.Z == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (0,0,1)); }
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
+                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
 
                             }
 
@@ -104,20 +103,38 @@ namespace Blockgame_OpenTK.PlayerUtil
                             Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit);
                             Console.WriteLine("hitpos: {0}, prevpos: {1}", DDA.PositionAtHit, DDA.PreviousPositionAtHit);
 
-                            //Vector3i BuildCoordinate = HitPositionLocal + BuildOffset;
-
-                            if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
+                            if (DDA.PreviousPositionAtHit != ChunkUtils.PositionToBlockGlobal(Camera.Position))
                             {
 
-                                if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PositionAtHit)).GetBlock((Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit)) != Blocks.AirBlock)
+                                //Vector3i BuildCoordinate = HitPositionLocal + BuildOffset;
+
+                                if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
                                 {
 
-                                    // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
-                                    Vector3i blockLocal = ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit);
-                                    ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).BlockData[blockLocal.X, blockLocal.Y, blockLocal.Z] = (ushort)Globals.Register.GetIDFromBlock(Blocks.StoneBlock);
-                                    // ChunkBuilder.CallOpenGL(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)));
-                                    // ChunkBuilder.Remesh(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit))));
-                                    ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit));
+                                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PositionAtHit)).GetBlock((Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit)) != Blocks.AirBlock)
+                                    {
+
+                                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
+                                        Vector3i blockLocal = ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit);
+                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).BlockData[blockLocal.X, blockLocal.Y, blockLocal.Z] = (ushort)Globals.Register.GetIDFromBlock(Blocks.StoneBlock);
+                                        // ChunkBuilder.CallOpenGL(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)));
+                                        // ChunkBuilder.Remesh(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit))));
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit));
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
+                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
+
+                                        // if (HitPositionLocal.X == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (1, 0, 0)); }
+                                        // if (HitPositionLocal.X == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (1, 0, 0)); }
+                                        // if (HitPositionLocal.Y == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (0, 1, 0)); }
+                                        // if (HitPositionLocal.Y == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (0, 1, 0)); }
+                                        // if (HitPositionLocal.Z == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (0, 0, 1)); }
+                                        // if (HitPositionLocal.Z == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (0, 0, 1)); }
+
+                                    }
 
                                 }
 

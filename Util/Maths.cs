@@ -70,7 +70,7 @@ namespace Blockgame_OpenTK.Util
 
             }
 
-            val /= (octaves);
+            // val /= (octaves);
 
             return val;
 

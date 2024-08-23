@@ -40,6 +40,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static void GeneratePassOneThreaded(NewChunk chunk)
         {
 
+            chunk.QueueMode = QueueMode.Queued;
             chunk.GenerationState = GenerationState.Generating;
             Task.Run(() => { GeneratePassOne(chunk); });
 
@@ -84,21 +85,22 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public static void GeneratePassTwoThreaded(NewChunk chunk, Dictionary<Vector3i, NewChunk> chunkNeighbors)
+        public static void GeneratePassTwoThreaded(NewChunk chunk, Dictionary<Vector3i, NewChunk> world)
         {
 
+            // chunk.QueueMode = QueueMode.Queued;
             chunk.GenerationState = GenerationState.Generating;
-            Task.Run(() => { GeneratePassTwo(chunk, chunkNeighbors); });
+            Task.Run(() => { GeneratePassTwo(chunk, world); });
 
         }
-        public static void GeneratePassTwo(NewChunk chunk, Dictionary<Vector3i, NewChunk> chunkNeighbors)
+        public static void GeneratePassTwo(NewChunk chunk, Dictionary<Vector3i, NewChunk> world)
         {
 
-            chunk.IsEmpty = chunk.CheckIfEmpty();
-            chunk.IsFull = chunk.CheckIfFull();
-            chunk.IsExposed = chunk.CheckIfExposed(chunkNeighbors);
+            // chunk.IsEmpty = chunk.CheckIfEmpty();
+            // chunk.IsFull = chunk.CheckIfFull();
+            // chunk.IsExposed = chunk.CheckIfExposed(world);
 
-            if (chunk.IsExposed && !chunk.IsEmpty)
+            if (true)// chunk.IsExposed && !chunk.IsEmpty)
             {
 
                 for (int x = 0; x < Globals.ChunkSize; x++)
@@ -115,54 +117,46 @@ namespace Blockgame_OpenTK.ChunkUtil
                             int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
                             int zGlobal = z + (chunkPosition.Z * Globals.ChunkSize);
 
-                            if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock)
+                            if (chunk.GetBlock((x,y,z)) == Blocks.StoneBlock)
                             {
 
-                                if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + 1, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal + 1, zGlobal))) == Blocks.AirBlock)
+                                chunk.SetBlock((x, y, z), Blocks.DirtBlock);
+
+                            }
+
+                            /*
+                            if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock && ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal+1, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal+1, zGlobal))) == Blocks.AirBlock)
+                            {
+
+                                chunk.SetBlock((x, y, z), Blocks.GrassBlock);
+
+                                for (int i = 1; i <= 4; i++)
                                 {
 
-                                    if (Maths.FloatRandom2(0, xGlobal, zGlobal) > 0.99f)
+                                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal-i, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal-i, zGlobal))) == Blocks.StoneBlock)
                                     {
 
-                                        for (int i = 1; i <= 5; i++)
-                                        {
-
-                                            ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + i, zGlobal))).SetBlockDataGlobal((xGlobal, yGlobal + i, zGlobal), Globals.Register.GetIDFromBlock(Blocks.DirtBlock));
-
-                                        }
-
-                                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + 1, zGlobal))).SetBlockDataGlobal((xGlobal, yGlobal + 1, zGlobal), Globals.Register.GetIDFromBlock(Blocks.DirtBlock));
+                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal - i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal - i, zGlobal)), Blocks.DirtBlock);
 
                                     }
-
-                                    for (int i = 0; i < 5; i++)
-                                    {
-
-
-                                        if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal - i, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal - i, zGlobal))) != Blocks.AirBlock)
-                                        {
-
-                                            float num = (float)i - (2*Maths.FloatRandom2(0, xGlobal, yGlobal - i));
-
-
-                                            if (num < 3.2f)
-                                            {
-
-                                                ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal - i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal - i, zGlobal)), Blocks.DirtBlock);
-
-                                            }
-
-                                        }
-
-                                    }
-
-                                    chunk.SetBlock((x, y, z), Blocks.GrassBlock);
 
                                 }
 
-                                // chunk.SetBlock((x, y, z), Blocks.GrassBlock);
+                                if (Maths.FloatRandom2(0, xGlobal*2, zGlobal*2) > 0.99f)
+                                {
+
+                                    for (int i = 1; i <= 5; i++)
+                                    {
+
+                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal + i, zGlobal)), Blocks.LogBlock);
+
+                                    }
+
+                                }
 
                             }
+                            */
+
 
                         }
 
@@ -178,29 +172,27 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public static void MeshThreaded(NewChunk chunk, Dictionary<Vector3i, NewChunk> chunkNeighbors)
+        public static void MeshThreaded(NewChunk chunk, Dictionary<Vector3i, NewChunk> world)
         {
 
-            if (chunk.GetMeshState() == MeshState.NotMeshed)
-            {
-
-                chunk.SetMeshState(MeshState.Meshing);
-                Task.Run(() => { Mesh(chunk, chunkNeighbors); });
-
-            }
+            chunk.QueueMode = QueueMode.Queued;
+            chunk.SetMeshState(MeshState.Meshing);
+            Task.Run(() => { Mesh(chunk, world); });
 
         }
 
         private static void Mesh(NewChunk chunk, Dictionary<Vector3i, NewChunk> chunkNeighbors)
         {
 
-            chunk.IsEmpty = chunk.CheckIfEmpty();
-            chunk.IsFull = chunk.CheckIfFull();
-            chunk.IsExposed = chunk.CheckIfExposed(chunkNeighbors);
+            // chunk.IsEmpty = chunk.CheckIfEmpty();
+            // chunk.IsFull = chunk.CheckIfFull();
+            // chunk.IsExposed = chunk.CheckIfExposed(chunkNeighbors);
+
+            Vector3i chunkPosition = chunk.ChunkPosition;
 
             List<ChunkVertex> mesh = new List<ChunkVertex>();
 
-            if (chunk.IsExposed && !chunk.IsEmpty)
+            if (true)
             {
 
                 for (int x = 0; x < Globals.ChunkSize; x++)
@@ -223,6 +215,9 @@ namespace Blockgame_OpenTK.ChunkUtil
                                 Vector3i right = (x - 1, y, z);
                                 Vector3i back = (x, y, z + 1);
                                 Vector3i front = (x, y, z - 1);
+
+                                Vector3i globalPosition = (x, y, z) * (chunkPosition * Globals.ChunkSize);
+
 
                                 if (GetBlockWithNeighbors(chunk, chunkNeighbors, up) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
                                 if (GetBlockWithNeighbors(chunk, chunkNeighbors, down) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Down));
@@ -315,7 +310,8 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.DeleteVertexArray(chunk.Vao);
             GL.DeleteBuffer(chunk.Vbo);
 
-            chunk.SetChunkState(ChunkState.Processing);
+            // chunk.SetChunkState(ChunkState.Processing);
+            chunk.ChunkState = ChunkState.Processing;
             // chunk.ChunkState = ChunkState.Processing;
             // int vao = GL.GenVertexArray();
             chunk.SetVao(GL.GenVertexArray());
@@ -340,7 +336,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             GL.BindVertexArray(0);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            chunk.SetChunkState(ChunkState.Ready);// = ChunkState.Ready;
+            // chunk.SetChunkState(ChunkState.Ready);// = ChunkState.Ready;
+            chunk.ChunkState = ChunkState.Ready;
+            chunk.QueueMode = QueueMode.NotQueued;
             // chunk.ChunkState = ChunkState.Ready;
 
         }

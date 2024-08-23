@@ -176,7 +176,7 @@ namespace Blockgame_OpenTK
 
         double delay = 0;
 
-        Model rmodel;
+        public static Model rmodel;
         // Chunk chunk;
         Camera camera;
 
@@ -375,7 +375,7 @@ namespace Blockgame_OpenTK
 
             Player = new Player();
             Player.SetHeight(0);
-            Player.SetPosition((0, 0, 0));
+            Player.SetPosition((16, 16, 16));
 
             byte[] dataExample = new byte[] { 255, 220 };
 
@@ -492,13 +492,23 @@ namespace Blockgame_OpenTK
 
                 }
 
+                if (Globals.Keyboard.IsKeyPressed(Keys.B))
+                {
+
+                    Console.WriteLine("Toggling chunk bounds");
+                    Globals.ShouldRenderBounds = !Globals.ShouldRenderBounds;
+
+                }
+
+                Globals.FogOffset += (0.1f * Globals.Mouse.ScrollDelta.Y);
+                Globals.FogOffset = Math.Clamp(Globals.FogOffset, 0, 1);
+
             }
 
-            Globals.FogOffset += (0.1f * Globals.Mouse.ScrollDelta.Y);
-            Globals.FogOffset = Math.Clamp(Globals.FogOffset, 0, 1);
-
-            ChunkLoader.Generate(Player.Camera.Position);
-            ChunkLoader.UpdateChunkQueue();
+            // ChunkLoader.Generate(Player.Camera.Position);
+            ChunkLoader.Gen();
+            // ChunkLoader.LoadChunks(Player.Camera.Position);
+            // ChunkLoader.UpdateChunkQueue();
 
             ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
 

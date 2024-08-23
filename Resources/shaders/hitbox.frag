@@ -18,5 +18,8 @@ void main()
 
 	// FragColor = vec4(mix(color1*1.2, color1*1.4, v_position.y*1.2),1);//tex.rgba;
 	// FragColor = vec4(0,0,0,1);
+
+	if (tex.a == 0.0) discard;
+
 	FragColor = tex;
 }

@@ -1,0 +1,9 @@
+{
+
+  "DataName": "LogBlock",
+  "DisplayName": "Log Block",
+  "Model": "LogBlock.json",
+  "SoundPath": "LogBlock",
+  "BreakTime": 1000
+
+}
