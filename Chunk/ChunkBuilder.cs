@@ -96,11 +96,13 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static void GeneratePassTwo(NewChunk chunk, Dictionary<Vector3i, NewChunk> world)
         {
 
-            // chunk.IsEmpty = chunk.CheckIfEmpty();
-            // chunk.IsFull = chunk.CheckIfFull();
-            // chunk.IsExposed = chunk.CheckIfExposed(world);
+            chunk.IsEmpty = chunk.CheckIfEmpty();
+            chunk.IsFull = chunk.CheckIfFull();
+            chunk.IsExposed = chunk.CheckIfExposed(world);
 
-            if (true)// chunk.IsExposed && !chunk.IsEmpty)
+            Vector3i chunkPosition = chunk.GetChunkPosition();
+
+            if (!chunk.IsEmpty && chunk.IsExposed)// chunk.IsExposed && !chunk.IsEmpty)
             {
 
                 for (int x = 0; x < Globals.ChunkSize; x++)
@@ -112,55 +114,30 @@ namespace Blockgame_OpenTK.ChunkUtil
                         for (int z = 0; z < Globals.ChunkSize; z++)
                         {
 
-                            Vector3i chunkPosition = chunk.GetChunkPosition();
-                            int xGlobal = x + (chunkPosition.X * Globals.ChunkSize);
-                            int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
-                            int zGlobal = z + (chunkPosition.Z * Globals.ChunkSize);
+                            Vector3i globalBlockPosition = (x, y, z) + (chunkPosition * Globals.ChunkSize);
 
-                            if (chunk.GetBlock((x,y,z)) == Blocks.StoneBlock)
+                            try
                             {
 
-                                chunk.SetBlock((x, y, z), Blocks.DirtBlock);
-
-                            }
-
-                            /*
-                            if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock && ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal+1, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal+1, zGlobal))) == Blocks.AirBlock)
-                            {
-
-                                chunk.SetBlock((x, y, z), Blocks.GrassBlock);
-
-                                for (int i = 1; i <= 4; i++)
+                                if (chunk.GetBlock((x, y, z)) == Blocks.StoneBlock && ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitY)).GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitY)) == Blocks.AirBlock)
                                 {
 
-                                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal-i, zGlobal))).GetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal-i, zGlobal))) == Blocks.StoneBlock)
-                                    {
-
-                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal - i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal - i, zGlobal)), Blocks.DirtBlock);
-
-                                    }
+                                    chunk.SetBlock((x, y, z), Blocks.GrassBlock);
 
                                 }
 
-                                if (Maths.FloatRandom2(0, xGlobal*2, zGlobal*2) > 0.99f)
-                                {
+                            } catch
+                            {
 
-                                    for (int i = 1; i <= 5; i++)
-                                    {
 
-                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk((xGlobal, yGlobal + i, zGlobal))).SetBlock(ChunkUtils.PositionToBlockLocal((xGlobal, yGlobal + i, zGlobal)), Blocks.LogBlock);
-
-                                    }
-
-                                }
 
                             }
-                            */
 
 
                         }
 
                     }
+
 
                 }
 
@@ -181,7 +158,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        private static void Mesh(NewChunk chunk, Dictionary<Vector3i, NewChunk> chunkNeighbors)
+        private static void Mesh(NewChunk chunk, Dictionary<Vector3i, NewChunk> world)
         {
 
             // chunk.IsEmpty = chunk.CheckIfEmpty();
@@ -192,7 +169,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             List<ChunkVertex> mesh = new List<ChunkVertex>();
 
-            if (true)
+            if (!chunk.IsEmpty && chunk.IsExposed)
             {
 
                 for (int x = 0; x < Globals.ChunkSize; x++)
@@ -216,15 +193,75 @@ namespace Blockgame_OpenTK.ChunkUtil
                                 Vector3i back = (x, y, z + 1);
                                 Vector3i front = (x, y, z - 1);
 
-                                Vector3i globalPosition = (x, y, z) * (chunkPosition * Globals.ChunkSize);
+                                Vector3i globalPosition = (x, y, z) + (chunkPosition * Globals.ChunkSize);
+
+                                /*
+                                try
+                                {
+
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitY))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
+
+                                    }
+
+                                } catch
+                                {
 
 
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, up) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, down) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Down));
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, left) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Left));
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, right) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Right));
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, back) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Back));
-                                if (GetBlockWithNeighbors(chunk, chunkNeighbors, front) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Front));
+
+                                }
+                                */
+                                try
+                                {
+
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitY))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
+
+                                    }
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitY))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Down));
+
+                                    }
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitX)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitX))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Left));
+
+                                    }
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitX)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitX))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Right));
+
+                                    }
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitZ)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitZ))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Back));
+
+                                    }
+                                    if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitZ)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitZ))) == Blocks.AirBlock)
+                                    {
+
+                                        mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Front));
+
+                                    }
+
+                                }
+                                catch { }
+
+                                // if (GetBlockWithNeighbors(chunk, world, up) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
+                                // if (GetBlockWithNeighbors(chunk, chunkNeighbors, down) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Down));
+                                // if (GetBlockWithNeighbors(chunk, chunkNeighbors, left) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Left));
+                                // if (GetBlockWithNeighbors(chunk, chunkNeighbors, right) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Right));
+                                // if (GetBlockWithNeighbors(chunk, chunkNeighbors, back) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Back));
+                                // if (GetBlockWithNeighbors(chunk, chunkNeighbors, front) == Blocks.AirBlock) mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Front));
 
                             }
 

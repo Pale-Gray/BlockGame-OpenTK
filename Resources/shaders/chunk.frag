@@ -52,12 +52,12 @@ void main()
 
 	vec3 fogColor = vec3(0.522,0.667,0.933);
 
-	float fac = clamp(dist3D(cameraPosition, vPositionOffset) / (radius*32), 0, 1);
+	float fac = clamp(distFac, 0, 1);
 
 	if (shouldRenderFog)
 	{
 
-		Outcolor = vec4(mix(array_texture.rgb * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), 1.0);
+		Outcolor = vec4(mix(array_texture.rgb * value, fogColor, pow(clamp(distFac + fogOffset, 0, 1), 2.7)), 1.0);
 
 	} else 
 	{

@@ -278,7 +278,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         static int PassTwoPadding = 0;
         static int CurrentPassOneRadius = 0;
         static int CurrentPassTwoRadius = 0;
-        static int CurrentMeshRadius = 0;
+        public static int CurrentMeshRadius = 0;
         public static Dictionary<Vector3i, NewChunk> Chunks = new Dictionary<Vector3i, NewChunk>();
         static Vector3i[] cposs = ChunkUtils.InitialFloodFill(2, 2);
         static int MaximumChunksPerTick = 8;
@@ -338,7 +338,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             {
 
                 Vector3i position = MeshQueue.Dequeue();
-                ChunkBuilder.MeshThreaded(Chunks[position], GetChunkNeighbors(Chunks[position]));
+                ChunkBuilder.MeshThreaded(Chunks[position], Chunks);
                 chunksMeshed++;
 
             }
@@ -410,10 +410,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             int amtGenTwo = 0;
             int amtMeshed = 0;
 
-            UpdatePassOneQueue();
-            UpdatePassTwoQueue();
-            UpdateMeshQueue();
-
+            // UpdatePassOneQueue();
             if (CurrentPassOneRadius <= Radius + 2)
             {
 
@@ -453,6 +450,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 }
 
             }
+            UpdatePassOneQueue();
 
             if (CurrentPassOneRadius - CurrentPassTwoRadius > 1)
             {
@@ -493,6 +491,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 }
 
             }
+            UpdatePassTwoQueue();
 
             if (CurrentPassTwoRadius - CurrentMeshRadius > 1)
             {
@@ -539,6 +538,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                 }
 
             }
+            UpdateMeshQueue();
 
         }
 
@@ -1169,7 +1169,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             foreach (Vector3i chunkPosition in Chunks.Keys)
             {
 
-                if (Chunks[chunkPosition].GetChunkState() == ChunkState.Ready)// && Chunks[chunkPosition].IsExposed && !Chunks[chunkPosition].IsEmpty)
+                if (Chunks[chunkPosition].GetChunkState() == ChunkState.Ready && !Chunks[chunkPosition].IsEmpty && Chunks[chunkPosition].IsExposed)// && Chunks[chunkPosition].IsExposed && !Chunks[chunkPosition].IsEmpty)
                 {
 
                     Chunks[chunkPosition].Draw(sunVec, camera);

@@ -214,27 +214,18 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public bool CheckIfExposed(Dictionary<Vector3i, NewChunk> neighbors)
+        public bool CheckIfExposed(Dictionary<Vector3i, NewChunk> world)
         {
 
-            int blocksAreSolid = 0;
-            for (int x = 0 ; x < Globals.ChunkSize; x++)
-            {
+            int chunksSolid = 0;
+            if (!world[ChunkPosition + Vector3i.UnitY].IsFull) chunksSolid++;
+            if (!world[ChunkPosition + Vector3i.UnitX].IsFull) chunksSolid++;
+            if (!world[ChunkPosition + Vector3i.UnitZ].IsFull) chunksSolid++;
+            if (!world[ChunkPosition - Vector3i.UnitY].IsFull) chunksSolid++;
+            if (!world[ChunkPosition - Vector3i.UnitX].IsFull) chunksSolid++;
+            if (!world[ChunkPosition - Vector3i.UnitZ].IsFull) chunksSolid++;
 
-                for (int y =0 ; y < Globals.ChunkSize; y++)
-                {
-
-                    if (neighbors[Vector3i.UnitY].GetBlock((x, 0, y)) == Blocks.AirBlock) blocksAreSolid++;
-                    if (neighbors[-Vector3i.UnitY].GetBlock((x, Globals.ChunkSize-1, y)) == Blocks.AirBlock) blocksAreSolid++;
-                    if (neighbors[Vector3i.UnitX].GetBlock((0, x, y)) == Blocks.AirBlock) blocksAreSolid++;
-                    if (neighbors[-Vector3i.UnitX].GetBlock((Globals.ChunkSize-1, x, y)) == Blocks.AirBlock) blocksAreSolid++;
-                    if (neighbors[Vector3i.UnitZ].GetBlock((x, y, 0)) == Blocks.AirBlock) blocksAreSolid++;
-                    if (neighbors[-Vector3i.UnitZ].GetBlock((x, y, Globals.ChunkSize-1)) == Blocks.AirBlock) blocksAreSolid++;
-
-                }
-
-            }
-            return blocksAreSolid != 0;
+            return chunksSolid == 6;
 
         }
 
@@ -287,7 +278,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public Block GetBlockSafe(Vector3i position)
         {
 
-            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize));
+            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize-1, Globals.ChunkSize-1, Globals.ChunkSize-1));
 
             return Globals.Register.GetBlockFromID(BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z]);
 
