@@ -78,6 +78,16 @@ namespace Blockgame_OpenTK.ChunkUtil
 
     }
 
+    public enum QueueType
+    {
+
+        None,
+        PassOne,
+        PassTwo,
+        Mesh
+
+    }
+
     internal class Chunk
     {
 

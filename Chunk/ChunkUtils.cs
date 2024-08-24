@@ -684,10 +684,17 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public static Vector3i PositionToBlockLocal(Vector3 position)
+        public static Vector3i PositionToBlockLocal(Vector3i position)
         {
 
+            position.X = Maths.Mod(position.X, 32);
+            position.Y = Maths.Mod(position.Y, 32);
+            position.Z = Maths.Mod(position.Z, 32);
 
+            return position;
+
+
+            /*
             Vector3 Position = PositionToBlockGlobal(position);
 
             Vector3 PositionBlock = Vector3.Zero;
@@ -733,7 +740,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             }
 
             return (Vector3i) PositionBlock;
-
+            */
             // return ((float)Math.Floor(position.X) % Globals.ChunkSize, (float)Math.Floor(position.Y) % Globals.ChunkSize, (float)Math.Floor(position.Z) % Globals.ChunkSize);
 
         }

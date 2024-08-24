@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using Blockgame_OpenTK.ChunkUtil;
+using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.ES11;
 using OpenTK.Mathematics;
 
@@ -11,8 +13,8 @@ namespace Blockgame_OpenTK.Core.World
     internal class WorldGenerator
     {
 
-        static int MaxRadius = 8;
-        static int MaxChunksPerUpdate = 10;
+        public static int MaxRadius = 5;
+        static int MaxChunksPerUpdate = 8;
         static int CurrentRadius = 0;
         static int CurrentPassOneRadius = 0;
         static int CurrentPassTwoRadius = 0;
@@ -22,9 +24,9 @@ namespace Blockgame_OpenTK.Core.World
         static Queue<Vector3i> PassTwoQueue = new Queue<Vector3i>();
         static Queue<Vector3i> MeshPassQueue = new Queue<Vector3i>();
 
-        static Vector3i[] ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, MaxRadius + 2);
-        static Vector3i[] ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, MaxRadius + 1);
-        static Vector3i[] ChunksToDoMeshPass = ChunkUtils.GenerateRingsOfColumns(CurrentMeshPassRadius, MaxRadius);
+        public static Vector3i[] ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, MaxRadius + 2);
+        public static Vector3i[] ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, MaxRadius + 1);
+        public static Vector3i[] ChunksToDoMeshPass = ChunkUtils.GenerateRingsOfColumns(CurrentMeshPassRadius, MaxRadius);
 
         static Vector3i[] ChunksToGenerate = ChunkUtils.GenerateRingsOfColumnsWithPadding(CurrentRadius, MaxRadius + 2, 2);
         static int ChunksMeshedLength = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius).Length;
@@ -35,6 +37,44 @@ namespace Blockgame_OpenTK.Core.World
 
         static Stopwatch sw;
 
+        static PriorityQueue<Vector3i, QueueType> ChunkQueue = new PriorityQueue<Vector3i, QueueType>();
+
+        private static void UpdateChunkQueue(World world)
+        {
+
+            int amountUpdated = 0;
+
+            while (ChunkQueue.Count > 0 && amountUpdated <= MaxChunksPerUpdate)
+            {
+
+                Vector3i position;
+                QueueType queueType;
+                ChunkQueue.TryDequeue(out position, out queueType);
+
+                switch (queueType)
+                {
+
+                    case QueueType.PassOne:
+                        ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
+                        break;
+                    case QueueType.PassTwo:
+                        ChunkBuilder.GeneratePassTwoThreaded(world.WorldChunks[position], world.WorldChunks);
+                        break;
+                    case QueueType.Mesh:
+                        ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks);
+                        break;
+                    default:
+                        Console.WriteLine("Queue type not valid or None for some reason");
+                        break;
+
+                }
+
+                amountUpdated++;
+
+            }
+
+        }
+
         public static void Reset()
         {
 
@@ -42,6 +82,10 @@ namespace Blockgame_OpenTK.Core.World
             CurrentPassOneRadius = 0;
             CurrentPassTwoRadius = 0;
             CurrentMeshPassRadius = 0;
+
+            ChunkQueue.Clear();
+
+            Console.WriteLine(Maths.Mod(0, 32));
 
             PassOneQueue = new Queue<Vector3i>();
             PassTwoQueue = new Queue<Vector3i>();
@@ -106,6 +150,142 @@ namespace Blockgame_OpenTK.Core.World
 
             }
 
+        }
+
+        public static void Gen(World world, Vector3i cameraPosition)
+        {
+
+            int amtGenOne = 0;
+            int amtGenTwo = 0;
+            int amtMeshGen = 0;
+
+            UpdateChunkQueue(world);
+
+            if (CurrentPassOneRadius <= MaxRadius + 2)
+            {
+
+                for (int i = 0; i < ChunksToGeneratePassOne.Length; i++)
+                {
+
+                    if (!world.WorldChunks.ContainsKey(ChunksToGeneratePassOne[i]))
+                    {
+
+                        world.WorldChunks.Add(ChunksToGeneratePassOne[i], new Chunk(ChunksToGeneratePassOne[i]));
+                        ChunkQueue.Enqueue(ChunksToGeneratePassOne[i], QueueType.PassOne);
+
+                    } else
+                    {
+
+                        if (world.WorldChunks[ChunksToGeneratePassOne[i]].GenerationState == GenerationState.PassOne)
+                        {
+
+                            amtGenOne++;
+
+                        }
+
+                    }
+
+                }
+
+                if (amtGenOne >= ChunksToGeneratePassOne.Length)
+                {
+
+                    Console.WriteLine("inc one radius");
+                    CurrentPassOneRadius++;
+                    ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, MaxRadius+2);
+
+                }
+
+            }
+
+            if (CurrentPassOneRadius - CurrentPassTwoRadius > 0)
+            {
+
+                for (int i = 0; i < ChunksToGeneratePassTwo.Length; i++)
+                {
+
+                    if (world.WorldChunks[ChunksToGeneratePassTwo[i]].GenerationState == GenerationState.PassOne && world.WorldChunks[ChunksToGeneratePassTwo[i]].QueueMode == QueueMode.NotQueued)
+                    {
+
+                        // Console.WriteLine("yes");
+                        if (AreNeighborsCertainGenerationState(ChunksToGeneratePassTwo[i], GenerationState.PassOne, world))
+                        {
+
+                            world.WorldChunks[ChunksToGeneratePassTwo[i]].QueueMode = QueueMode.Queued;
+                            ChunkQueue.Enqueue(ChunksToGeneratePassTwo[i], QueueType.PassTwo);
+
+                        }
+
+                    }
+
+                    if (world.WorldChunks[ChunksToGeneratePassTwo[i]].GenerationState == GenerationState.Generated)
+                    {
+
+                        amtGenTwo++;
+
+                    }
+
+                }
+
+                // Console.WriteLine($"{amtGenTwo}, {ChunksToGeneratePassTwo.Length}");
+
+                if (amtGenTwo >= ChunksToGeneratePassTwo.Length)
+                {
+
+                    Console.WriteLine("inc two radius");
+                    CurrentPassTwoRadius++;
+                    ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, MaxRadius + 1);
+
+                }
+
+            }
+
+            if (CurrentPassTwoRadius - CurrentMeshPassRadius > 0)
+            {
+
+                // Console.WriteLine("yes");
+                for (int i = 0; i < ChunksToDoMeshPass.Length; i++)
+                {
+
+                    if (world.WorldChunks[ChunksToDoMeshPass[i]].GenerationState == GenerationState.Generated && world.WorldChunks[ChunksToDoMeshPass[i]].MeshState == MeshState.NotMeshed && world.WorldChunks[ChunksToDoMeshPass[i]].QueueMode == QueueMode.NotQueued)
+                    {
+
+                        if (AreNeighborsCertainGenerationState(ChunksToDoMeshPass[i], GenerationState.Generated, world))
+                        {
+
+                            world.WorldChunks[ChunksToDoMeshPass[i]].QueueMode = QueueMode.Queued;
+                            ChunkQueue.Enqueue(ChunksToDoMeshPass[i], QueueType.Mesh);
+
+                        }
+
+                    }
+
+                    if (world.WorldChunks[ChunksToDoMeshPass[i]].MeshState == MeshState.Meshed)
+                    {
+
+                        if (world.WorldChunks[ChunksToDoMeshPass[i]].ChunkState == ChunkState.NotReady)
+                        {
+
+                            ChunkBuilder.CallOpenGL(world.WorldChunks[ChunksToDoMeshPass[i]], world.WorldChunks);
+
+                        }
+
+                        amtMeshGen++;
+
+                    }
+
+                }
+
+                if (amtMeshGen >= ChunksToDoMeshPass.Length)
+                {
+
+                    CurrentMeshPassRadius++;
+                    ChunksToDoMeshPass = ChunkUtils.GenerateRingsOfColumns(CurrentMeshPassRadius, MaxRadius);
+
+                }
+
+            }
+ 
         }
 
         public static void Generate(World world, Vector3i cameraChunkPosition)

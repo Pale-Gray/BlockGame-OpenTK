@@ -30,6 +30,14 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static int Mod(int a, int b)
+        {
+
+            a %= b;
+            if (a < 0) a += b;
+            return a;
+
+        }
         public static float FloatRandom2(uint seed, int x, int y)
         {
 

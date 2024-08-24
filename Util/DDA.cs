@@ -356,7 +356,7 @@ namespace Blockgame_OpenTK.Util
             Vector3i Step = Vector3i.Zero;
             Vector3 SideDistance = Vector3.Zero;
             Vector3i BlockPositionGlobal = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
-            Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(position);
+            Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal((Vector3i)position);
             Vector3i ChunkPosition = (Vector3i)ChunkUtils.PositionToChunk(position);
             Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
             // Console.WriteLine(ChunkPositionBounds);
