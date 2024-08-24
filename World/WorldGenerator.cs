@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Blockgame_OpenTK.ChunkUtil;
 using OpenTK.Graphics.ES11;
@@ -31,6 +32,8 @@ namespace Blockgame_OpenTK.Core.World
         static Vector3i[] ChunksGenPassOne = ChunkUtils.GenerateRingsOfColumnsWithPadding(CurrentRadius, MaxRadius + 2, 2);
         static Vector3i[] ChunksGenPassTwo = ChunkUtils.GenerateRingsOfColumnsWithPadding(CurrentRadius, MaxRadius + 1, 1);
         static Vector3i[] ChunksMeshPass = ChunkUtils.GenerateRingsOfColumnsWithPadding(CurrentRadius, MaxRadius, 0);
+
+        static Stopwatch sw;
 
         public static void Reset()
         {
@@ -115,6 +118,8 @@ namespace Blockgame_OpenTK.Core.World
             int amountMeshed = 0;
             int amountPassOne = 0;
             int amountPassTwo = 0;
+
+            if (sw == null) sw = Stopwatch.StartNew();
 
             if (CurrentRadius <= MaxRadius)
             {
@@ -309,6 +314,13 @@ namespace Blockgame_OpenTK.Core.World
 
                 }
                 */
+
+            } else
+            {
+
+                sw.Stop();
+
+                Console.WriteLine($"Finished generating chunks with {MaxRadius} radius in {sw.ElapsedMilliseconds}ms, {sw.ElapsedMilliseconds/1000f}s");
 
             }
 

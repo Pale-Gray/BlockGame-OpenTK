@@ -198,37 +198,37 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                                 Vector3i globalPosition = (x, y, z) + (chunkPosition * Globals.ChunkSize);
 
-                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitY))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitY)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitY))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Up));
 
                                 }
-                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitY))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitY)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitY))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Down));
 
                                 }
-                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitX)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitX))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitX)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitX))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Left));
 
                                 }
-                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitX)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitX))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitX)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitX))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Right));
 
                                 }
-                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitZ)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitZ))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitZ)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitZ))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Back));
 
                                 }
-                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitZ)].GetBlock(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitZ))) == Blocks.AirBlock)
+                                if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitZ)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitZ))) == Blocks.AirBlock.ID)
                                 {
 
                                     mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelNewCullDirection.Front));
