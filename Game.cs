@@ -14,9 +14,8 @@ using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.FramebufferUtil;
 using Blockgame_OpenTK.BlockUtil;
-using OpenTK.Windowing.Common.Input;
-using Image = OpenTK.Windowing.Common.Input.Image;
-using System.Linq;
+using OpenTKImage = OpenTK.Windowing.Common.Input.Image;
+using Blockgame_OpenTK.Core.World;
 
 
 namespace Blockgame_OpenTK
@@ -194,7 +193,7 @@ namespace Blockgame_OpenTK
         // GUIClickable GUIClick;
         TextRenderer text;
 
-        Ray ray = new Ray(0, 0, 0, 0, 0, 0);
+        // Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
         public Framebuffer frameBuffer;
         FramebufferQuad framebufferQuad;
@@ -208,7 +207,7 @@ namespace Blockgame_OpenTK
         double ft = 0;
         double fs = 0;
         // Chunk c;
-        NewChunk nc = new NewChunk((0,0,0));
+        Chunk nc = new Chunk((0,0,0));
         Sun Sun;
 
         Player Player;
@@ -217,6 +216,8 @@ namespace Blockgame_OpenTK
         GuiButton ButtonElement;
         GuiWindow GWindow;
         // GUIElement texx;
+
+        World World = new World("nofile");
 
         // public static Block snowb;
 
@@ -403,6 +404,8 @@ namespace Blockgame_OpenTK
             button.SetRelativePosition(0, 1);
             GWindow.AddElement(button);
 
+            // World world = new World();
+
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
 
         }
@@ -464,15 +467,15 @@ namespace Blockgame_OpenTK
                 if (Globals.Keyboard.IsKeyPressed(Keys.S))
                 {
 
-                    ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).SaveToFile();
+                    // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).SaveToFile();
 
                 }
 
                 if (Globals.Keyboard.IsKeyPressed(Keys.W))
                 {
 
-                    ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).TryLoad();
-                    ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(Player.Camera.Position));
+                    // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).TryLoad();
+                    // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(Player.Camera.Position));
 
                 }
 
@@ -480,7 +483,8 @@ namespace Blockgame_OpenTK
                 {
 
                     Console.WriteLine("Reloading chunks for debug purposes");
-                    ChunkLoader.DebugReset();
+                    World.DebugReset();
+                    // ChunkLoader.DebugReset();
 
                 }
 
@@ -506,11 +510,16 @@ namespace Blockgame_OpenTK
             }
 
             // ChunkLoader.Generate(Player.Camera.Position);
-            ChunkLoader.Gen();
+            // ChunkLoader.Gen();
             // ChunkLoader.LoadChunks(Player.Camera.Position);
             // ChunkLoader.UpdateChunkQueue();
 
-            ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
+            World.Generate(ChunkUtils.PositionToChunk(Player.Camera.Position));
+            World.Draw(Player.Camera);
+
+            // Console.WriteLine(Globals.FogOffset);
+
+            // ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
 
 
             //GL.Disable(EnableCap.CullFace);
@@ -532,7 +541,7 @@ namespace Blockgame_OpenTK
 
             }
 
-            DDA.TraceChunks(ChunkLoader.Chunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
+            // DDA.TraceChunks(ChunkLoader.Chunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
 
             if (DDA.hit)
             {

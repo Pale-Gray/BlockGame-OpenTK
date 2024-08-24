@@ -35,7 +35,7 @@ namespace Blockgame_OpenTK.Util
 
         public static List<Vector3i> hitpositions;
         public static bool hit = false;
-        public static void TraceChunks(Dictionary<Vector3i, NewChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        public static void TraceChunks(Dictionary<Vector3i, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;
@@ -107,13 +107,13 @@ namespace Blockgame_OpenTK.Util
             // Console.WriteLine("start");
             hit = false;
 
-            if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+            // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
             {
 
                 while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
                 {
 
-                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
+                    // if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
                     {
 
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
@@ -124,7 +124,7 @@ namespace Blockgame_OpenTK.Util
                         SmoothPosition = position + NormalizedDirection * Distance;
 
                     }
-                    else
+                    // else
                     {
                         PreviousPositionAtHit = GlobalBlockPosition;
                         if (SideDistance.X < SideDistance.Y)
@@ -189,7 +189,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void TraceChunksWhile(Dictionary<Vector3i, NewChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        public static void TraceChunksWhile(Dictionary<Vector3i, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;
@@ -266,13 +266,13 @@ namespace Blockgame_OpenTK.Util
 
             // Console.WriteLine(manhattanDistance);
 
-            if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+            // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
             {
 
                 while (position.X < maxSteps && !hit)
                 {
 
-                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
+                    // if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
                     {
 
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
@@ -283,7 +283,7 @@ namespace Blockgame_OpenTK.Util
                         SmoothPosition = position + NormalizedDirection * Distance;
 
                     }
-                    else
+                    // else
                     {
                         PreviousPositionAtHit = GlobalBlockPosition;
                         if (SideDistance.X < SideDistance.Y)
@@ -361,7 +361,7 @@ namespace Blockgame_OpenTK.Util
             Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
             // Console.WriteLine(ChunkPositionBounds);
             Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
-            float Distance = 0;
+            // float Distance = 0;
 
             if (direction.X < 0)
             {

@@ -52,28 +52,28 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (RemoveDelay >= 0.25f)
                     {
 
-                        DDA.TraceChunks(ChunkLoader.Chunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        // DDA.TraceChunks(ChunkLoader.Chunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
                         if (DDA.hit)
                         {
 
                             Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit);
 
-                            if (ChunkLoader.ContainsGeneratedChunk(DDA.ChunkAtHit))
+                            // if (ChunkLoader.ContainsGeneratedChunk(DDA.ChunkAtHit))
                             {
 
                                 // ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlockRewrite(Blocks.AirBlock, HitPositionLocal);
                                 // ChunkLoader.GetChunk(DDA.ChunkAtHit).BlockData[HitPositionLocal.X, HitPositionLocal.Y, HitPositionLocal.Z] = (ushort) Globals.Register.GetIDFromBlock(Blocks.AirBlock);
                                 // ChunkBuilder.CallOpenGL(ChunkLoader.GetChunk(DDA.ChunkAtHit));
 
-                                ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlock(HitPositionLocal, Blocks.AirBlock);
+                                // ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlock(HitPositionLocal, Blocks.AirBlock);
                                 // ChunkBuilder.Remesh(ChunkLoader.GetChunk(DDA.ChunkAtHit), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(DDA.ChunkAtHit)));
-                                ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
-                                ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
+                                // ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
+                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
 
                             }
 
@@ -95,7 +95,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (PlaceDelay >= 0.25f)
                     {
 
-                        DDA.TraceChunks(ChunkLoader.Chunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        // DDA.TraceChunks(ChunkLoader.Chunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
                         
                         if (DDA.hit)
                         {
@@ -108,24 +108,24 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 //Vector3i BuildCoordinate = HitPositionLocal + BuildOffset;
 
-                                if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
+                                // if (ChunkLoader.ContainsChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)))
                                 {
 
-                                    if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PositionAtHit)).GetBlock((Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit)) != Blocks.AirBlock)
+                                   //  if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PositionAtHit)).GetBlock((Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit)) != Blocks.AirBlock)
                                     {
 
                                         // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).SetBlockRewrite(Blocks.GrassBlock, (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit));
                                         Vector3i blockLocal = ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit);
-                                        ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).BlockData[blockLocal.X, blockLocal.Y, blockLocal.Z] = (ushort)Globals.Register.GetIDFromBlock(Blocks.StoneBlock);
+                                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)).BlockData[blockLocal.X, blockLocal.Y, blockLocal.Z] = (ushort)Globals.Register.GetIDFromBlock(Blocks.StoneBlock);
                                         // ChunkBuilder.CallOpenGL(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)));
                                         // ChunkBuilder.Remesh(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit)), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit))));
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit));
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
-                                        ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit));
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
+                                        // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
 
                                         // if (HitPositionLocal.X == 0) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit - (1, 0, 0)); }
                                         // if (HitPositionLocal.X == Globals.ChunkSize - 1) { ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit + (1, 0, 0)); }
@@ -196,7 +196,7 @@ namespace Blockgame_OpenTK.PlayerUtil
         public void GetBlockLooking(int range)
         {
 
-            DDA.Trace(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, range);
+            // DDA.Trace(ChunkLoader.ChunkDictionary, Camera.Position, Camera.ForwardVector, range);
 
         }
 

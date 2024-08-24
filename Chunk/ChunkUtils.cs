@@ -24,7 +24,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             for (int i = 0; i <= padding; i++)
             {
 
-                vectors.AddRange(GenerateRingsOfColumns(radius + i, maxHeight+padding));
+                vectors.AddRange(GenerateRingsOfColumns(radius + i, maxHeight));
 
             }
 
@@ -87,6 +87,20 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             List<Vector3i> vectors = new List<Vector3i>();
 
+            if (radius == 0)
+            {
+
+                for (int c = 0; c <= maxHeight; c++)
+                {
+
+                    if (!vectors.Contains(Vector3i.Zero)) vectors.Add(Vector3i.Zero);
+                    if (!vectors.Contains((0, c, 0))) vectors.Add((0, c, 0));
+                    if (!vectors.Contains((0, c, 0))) vectors.Add((0, c, 0));
+
+                }
+
+            }
+
             for (int i = 0; i < ring.Length; i++)
             {
 
@@ -108,6 +122,13 @@ namespace Blockgame_OpenTK.ChunkUtil
         {
 
             List<Vector3i> vectors = new List<Vector3i>();
+
+            if (radius == 0)
+            {
+
+               return new Vector3i[] { Vector3i.Zero };
+
+            }
 
             for (int i = 0; i <= radius; i++)
             {

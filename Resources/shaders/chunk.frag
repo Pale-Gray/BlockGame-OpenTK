@@ -23,6 +23,8 @@ in float distFac;
 uniform bool shouldRenderFog;
 uniform float fogOffset;
 
+uniform float chunkLifetime;
+
 vec2[] texcoord = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
 
 float dist3D(vec3 pos1, vec3 pos2) 
@@ -54,15 +56,17 @@ void main()
 
 	float fac = clamp(distFac, 0, 1);
 
+	float a = 1;
+
 	if (shouldRenderFog)
 	{
 
-		Outcolor = vec4(mix(array_texture.rgb * value, fogColor, pow(clamp(distFac + fogOffset, 0, 1), 2.7)), 1.0);
+		Outcolor = vec4(mix(array_texture.rgb * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
 
 	} else 
 	{
 
-		Outcolor = vec4(array_texture.rgb * value, 1.0);
+		Outcolor = vec4(array_texture.rgb * value, a);
 
 	}
 
