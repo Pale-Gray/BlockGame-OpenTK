@@ -58,10 +58,10 @@ namespace Blockgame_OpenTK.Core.World
                         ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
                         break;
                     case QueueType.PassTwo:
-                        ChunkBuilder.GeneratePassTwoThreaded(world.WorldChunks[position], world.WorldChunks);
+                        ChunkBuilder.GeneratePassTwoThreaded(world.WorldChunks[position], GetChunkNeighbors(world, position));
                         break;
                     case QueueType.Mesh:
-                        ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks);
+                        ChunkBuilder.MeshThreaded(world.WorldChunks[position], GetChunkNeighbors(world, position));
                         break;
                     default:
                         Console.WriteLine("Queue type not valid or None for some reason");
@@ -72,6 +72,23 @@ namespace Blockgame_OpenTK.Core.World
                 amountUpdated++;
 
             }
+
+        }
+
+        public static Dictionary<Vector3i, Chunk> GetChunkNeighbors(World world, Vector3i chunkPosition)
+        {
+
+            Dictionary<Vector3i, Chunk> chunkNeighbors = new Dictionary<Vector3i, Chunk>();
+
+            chunkNeighbors.Add(chunkPosition, world.WorldChunks[chunkPosition]);
+            chunkNeighbors.Add(chunkPosition + Vector3i.UnitY, world.WorldChunks[chunkPosition + Vector3i.UnitY]);
+            chunkNeighbors.Add(chunkPosition - Vector3i.UnitY, world.WorldChunks[chunkPosition - Vector3i.UnitY]);
+            chunkNeighbors.Add(chunkPosition + Vector3i.UnitX, world.WorldChunks[chunkPosition + Vector3i.UnitX]);
+            chunkNeighbors.Add(chunkPosition - Vector3i.UnitX, world.WorldChunks[chunkPosition - Vector3i.UnitX]);
+            chunkNeighbors.Add(chunkPosition + Vector3i.UnitZ, world.WorldChunks[chunkPosition + Vector3i.UnitZ]);
+            chunkNeighbors.Add(chunkPosition - Vector3i.UnitZ, world.WorldChunks[chunkPosition - Vector3i.UnitZ]);
+
+            return chunkNeighbors;
 
         }
 

@@ -47,10 +47,11 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static void GeneratePassOne(Chunk chunk)
         {
 
-            Chunk c = new Chunk((0, 0, 0));
+            Chunk c;
             lock (_chunkLock)
             {
 
+                c = new Chunk(Vector3i.Zero);
                 c.ChunkPosition = chunk.ChunkPosition;
                 c.BlockData = chunk.BlockData;
 
@@ -119,11 +120,14 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             // Vector3i chunkPosition = chunk.ChunkPosition;
 
-            Chunk temp = new Chunk((0, 0, 0));
+            Chunk temp;
+            Dictionary<Vector3i, Chunk> tempWorld;
 
             lock (_chunkLock)
             {
 
+                tempWorld = new Dictionary<Vector3i, Chunk>(world);
+                temp = new Chunk(Vector3i.Zero);
                 temp.ChunkPosition = chunk.ChunkPosition;
                 temp.BlockData = chunk.BlockData;
 
@@ -131,10 +135,6 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             Vector3i chunkPosition = temp.ChunkPosition;
 
-            //  chunk.IsExposed = chunk.CheckIfExposed(world);
-            // chunk.IsExposed = chunk.CheckIfExposed(world);
-
-            /* 
             if (true)// && chunk.IsExposed)
             {
 
@@ -149,7 +149,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                             Vector3i globalBlockPosition = (x, y, z) + (chunkPosition * Globals.ChunkSize);
 
-                            if (temp.GetBlock((x, y, z)) == Blocks.StoneBlock && world[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitY)) == Blocks.AirBlock)// && chunk.GetBlock((x,y+1,z)) == Blocks.AirBlock)
+                            if (temp.GetBlock((x, y, z)) == Blocks.StoneBlock && tempWorld[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitY)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitY)) == Blocks.AirBlock)// && chunk.GetBlock((x,y+1,z)) == Blocks.AirBlock)
                             {
 
                                 temp.SetBlock((x, y, z), Blocks.GrassBlock);
@@ -157,10 +157,10 @@ namespace Blockgame_OpenTK.ChunkUtil
                                 for (int i = 1; i <= 4; i++)
                                 {
 
-                                    if (world[ChunkUtils.PositionToChunk(globalBlockPosition - (0, i, 0))].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition - (0, i, 0))) != Blocks.AirBlock)
+                                    if (tempWorld[ChunkUtils.PositionToChunk(globalBlockPosition - (0, i, 0))].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition - (0, i, 0))) != Blocks.AirBlock)
                                     {
 
-                                        world[ChunkUtils.PositionToChunk(globalBlockPosition - (0, i, 0))].SetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition - (0, i, 0)), Blocks.DirtBlock);
+                                        tempWorld[ChunkUtils.PositionToChunk(globalBlockPosition - (0, i, 0))].SetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition - (0, i, 0)), Blocks.DirtBlock);
 
                                     }
 
@@ -174,11 +174,13 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 }
 
-            } */
+            }
 
             lock (_chunkLock)
             {
 
+                world = tempWorld;
+                chunk.BlockData = temp.BlockData;
                 chunk.GenerationState = GenerationState.Generated;
                 chunk.QueueMode = QueueMode.NotQueued;
 
@@ -201,12 +203,13 @@ namespace Blockgame_OpenTK.ChunkUtil
             // chunk.CheckIfExposed(chunk.ChunkPosition, world);
 
             Dictionary<Vector3i, Chunk> tempWorld;// = new Dictionary<Vector3i, Chunk>();
-            Chunk tempChunk = new Chunk((0, 0, 0));
+            Chunk tempChunk;//  = new Chunk((0, 0, 0));
 
             lock(_chunkLock)
             {
 
                 tempWorld = new Dictionary<Vector3i, Chunk>(world);
+                tempChunk = new Chunk(Vector3i.Zero);
                 tempChunk.ChunkPosition = chunk.ChunkPosition;
                 tempChunk.BlockData = chunk.BlockData;
 
@@ -289,6 +292,7 @@ namespace Blockgame_OpenTK.ChunkUtil
             lock (_chunkLock)
             {
 
+                world = tempWorld;
                 chunk.ChunkMesh = mesh.ToArray();
                 chunk.MeshState = MeshState.Meshed;
                 chunk.QueueMode = QueueMode.NotQueued;
