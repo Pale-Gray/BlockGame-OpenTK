@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Net;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Blockgame_OpenTK
 {
@@ -26,6 +27,30 @@ namespace Blockgame_OpenTK
 
         public static void Main(string[] args)
         {
+
+            /*
+            Dictionary<Vector3i, Chunk> d = new Dictionary<Vector3i, Chunk>();
+            int Radius = 16;
+            Stopwatch sw = Stopwatch.StartNew();
+            for (int x = -Radius; x <= Radius; x++)
+            {
+
+                for (int y = -Radius; y <= Radius; y++)
+                {
+
+                    for (int z = -Radius; z <= Radius; z++)
+                    {
+
+                        d.Add((x, y, z), new Chunk((x, y, z)));
+
+                    }
+
+                }
+
+            }
+            sw.Stop();
+            Console.WriteLine($"Filled a dictionary containing {Math.Pow(Radius+1+Radius, 3)} chunks (Radius of {Radius}) in {sw.ElapsedMilliseconds}ms");  
+            */
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 

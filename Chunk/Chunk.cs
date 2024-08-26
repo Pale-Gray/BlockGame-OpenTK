@@ -14,6 +14,8 @@ using System.Drawing;
 using System.IO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
+using Blockgame_OpenTK.Registry;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -84,10 +86,11 @@ namespace Blockgame_OpenTK.ChunkUtil
         None,
         PassOne,
         PassTwo,
-        Mesh
+        Final,
+        Mesh,
+        Finish
 
     }
-
     internal class Chunk
     {
 
@@ -97,15 +100,18 @@ namespace Blockgame_OpenTK.ChunkUtil
         public MeshState MeshState = MeshState.NotMeshed;
         public ChunkState ChunkState = ChunkState.NotReady;
         public QueueMode QueueMode = QueueMode.NotQueued;
+        public QueueType QueueType = QueueType.PassOne;
         public Vector3i ChunkPosition;
-        public int Vao, Vbo;
+        // public int Vao, Vbo;
+        public int Vao = 0;
+        public int Vbo = 0;
         public bool IsEmpty = true;
         public bool IsFull = false;
         public bool IsExposed = false;
         public bool ShouldRender = false;
         public bool IsQueuedForRemesh = false;
         public float Lifetime = 0;
-
+        public object Lock = new();
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -113,6 +119,46 @@ namespace Blockgame_OpenTK.ChunkUtil
             GenerationState = GenerationState.NotGenerated;
             MeshState = MeshState.NotMeshed;
             ChunkState = ChunkState.NotReady;
+
+        }
+
+        public Chunk DeepCopy()
+        {
+
+            Chunk c = new Chunk(Vector3i.Zero);
+            c.ChunkPosition = ChunkPosition;
+            c.GenerationState = GenerationState;
+            c.MeshState = MeshState;
+            c.ChunkState = ChunkState;
+            c.QueueMode = QueueMode;
+            c.QueueType = QueueType;
+
+            for (int x = 0; x < Globals.ChunkSize; x++)
+            {
+
+                for (int y = 0; y < Globals.ChunkSize; y++)
+                {
+
+                    for (int z = 0; z < Globals.ChunkSize; z++)
+                    {
+
+                        c.BlockData[x, y, z] = BlockData[x, y, z];
+
+                    }
+
+                }
+
+            }
+
+            c.ChunkMesh = ChunkMesh;
+            c.IsEmpty = IsEmpty;
+            c.IsFull = IsFull;
+            c.IsExposed = IsExposed;
+            c.ShouldRender = ShouldRender;
+            c.IsQueuedForRemesh = IsQueuedForRemesh;
+            c.Lifetime = Lifetime;
+
+            return c;
 
         }
         
@@ -231,8 +277,6 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool CheckIfEmpty()
         {
 
-            int amountAir = 0;
-
             for (int x = 0; x < Globals.ChunkSize; x++)
             {
 
@@ -242,19 +286,15 @@ namespace Blockgame_OpenTK.ChunkUtil
                     for (int z = 0; z < Globals.ChunkSize; z++)
                     {
 
-                        if (BlockData[x,y,z] == Globals.Register.GetIDFromBlock(Blocks.AirBlock))
-                        {
-
-                            amountAir++;
-
-                        }
+                        if (BlockData[x, y, z] != Blocks.AirBlock.ID) return false;
 
                     }
 
                 }
 
             }
-            return amountAir == Globals.ChunkSize * Globals.ChunkSize * Globals.ChunkSize;
+
+            return true;
 
         }
 
@@ -291,12 +331,12 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             int amountExposed = 0;
 
-            if (!worldChunks[ChunkPosition + Vector3i.UnitX].IsFull) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitX].IsFull) amountExposed++;
-            if (!worldChunks[ChunkPosition + Vector3i.UnitY].IsFull) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitY].IsFull) amountExposed++;
-            if (!worldChunks[ChunkPosition + Vector3i.UnitZ].IsFull) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitZ].IsFull) amountExposed++;
+            if (!worldChunks[ChunkPosition + Vector3i.UnitX].CheckIfFull()) amountExposed++;
+            if (!worldChunks[ChunkPosition - Vector3i.UnitX].CheckIfFull()) amountExposed++;
+            if (!worldChunks[ChunkPosition + Vector3i.UnitY].CheckIfFull()) amountExposed++;
+            if (!worldChunks[ChunkPosition - Vector3i.UnitY].CheckIfFull()) amountExposed++;
+            if (!worldChunks[ChunkPosition + Vector3i.UnitZ].CheckIfFull()) amountExposed++;
+            if (!worldChunks[ChunkPosition - Vector3i.UnitZ].CheckIfFull()) amountExposed++;
 
             return amountExposed > 0;
 
@@ -324,7 +364,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void SetBlock(Vector3i position, Block block)
         {
 
-            BlockData[position.X, position.Y, position.Z] = (ushort) Globals.Register.GetIDFromBlock(block);
+            BlockData[position.X, position.Y, position.Z] = block.ID;
 
         }
 

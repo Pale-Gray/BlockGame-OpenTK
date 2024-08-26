@@ -415,7 +415,7 @@ namespace Blockgame_OpenTK
 
             base.OnRenderFrame(args);
 
-            Player.Update();
+            Player.Update(World);
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -542,7 +542,7 @@ namespace Blockgame_OpenTK
 
             }
 
-            // DDA.TraceChunks(ChunkLoader.Chunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
+            DDA.TraceChunks(World.WorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
 
             if (DDA.hit)
             {
@@ -550,10 +550,10 @@ namespace Blockgame_OpenTK
                 GL.FrontFace(FrontFaceDirection.Cw);
                 rmodel.SetScale(1, 1, 1);
                 GL.PolygonOffset(-1, 1);
-                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
-                //rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Player.Camera, (float)time);
-                //rmodel.SetScale(1, 1, 1);
-                //rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Player.Camera, (float)time);
+                // rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
+                rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
+                rmodel.SetScale(1, 1, 1);
+                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Vector3.Zero, Player.Camera, (float)time);
                 rmodel.SetScale(0.2f, 0.2f, 0.2f);
                 rmodel.Draw(DDA.SmoothPosition, Vector3.Zero, Player.Camera, (float)time);
                 GL.FrontFace(FrontFaceDirection.Ccw);
@@ -587,7 +587,7 @@ namespace Blockgame_OpenTK
 
             sw.Stop();
             // Console.WriteLine("Finished frame in " + sw.ElapsedMilliseconds + " ms. FPS: " + (1000f/sw.ElapsedMilliseconds));
-            Globals.FrameInformation = "Ft: " + (sw.ElapsedMilliseconds.ToString().Length != 2 ? "0" + sw.ElapsedMilliseconds : sw.ElapsedMilliseconds) + "ms. campos: " + ChunkUtils.PositionToBlockGlobal(Player.Camera.Position);
+            Globals.FrameInformation = "Ft: " + (sw.ElapsedMilliseconds.ToString().Length < 2 ? "0" + sw.ElapsedMilliseconds : sw.ElapsedMilliseconds) + "ms. campos: " + ChunkUtils.PositionToBlockGlobal(Player.Camera.Position);
 
             SwapBuffers();
 

@@ -108,12 +108,14 @@ namespace Blockgame_OpenTK.Util
             hit = false;
 
             // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+            if (chunkDictionary.ContainsKey(ChunkUtils.PositionToChunk(GlobalBlockPosition)) && chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].QueueType == QueueType.Finish)
             {
 
                 while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
                 {
 
                     // if (ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)).GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
+                    if (chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
                     {
 
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
@@ -124,8 +126,9 @@ namespace Blockgame_OpenTK.Util
                         SmoothPosition = position + NormalizedDirection * Distance;
 
                     }
-                    // else
+                    else
                     {
+
                         PreviousPositionAtHit = GlobalBlockPosition;
                         if (SideDistance.X < SideDistance.Y)
                         {
@@ -135,7 +138,7 @@ namespace Blockgame_OpenTK.Util
 
                                 Distance = SideDistance.X;
                                 SideDistance.X += DeltaDistance.X;
-                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
                                 GlobalBlockPosition.X += Step.X;
 
                             }
@@ -144,23 +147,23 @@ namespace Blockgame_OpenTK.Util
 
                                 Distance = SideDistance.Z;
                                 SideDistance.Z += DeltaDistance.Z;
-                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
                                 GlobalBlockPosition.Z += Step.Z;
 
                             }
-                            //PreviousPositionAtHit = GlobalBlockPosition;
+                            // PreviousPositionAtHit = GlobalBlockPosition;
 
                         }
                         else
                         {
 
-                            //PreviousPositionAtHit = GlobalBlockPosition;
+                            PreviousPositionAtHit = GlobalBlockPosition;
                             if (SideDistance.Y < SideDistance.Z)
                             {
 
                                 Distance = SideDistance.Y;
                                 SideDistance.Y += DeltaDistance.Y;
-                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
                                 GlobalBlockPosition.Y += Step.Y;
 
                             }
@@ -169,7 +172,7 @@ namespace Blockgame_OpenTK.Util
 
                                 Distance = SideDistance.Z;
                                 SideDistance.Z += DeltaDistance.Z;
-                                //PreviousPositionAtHit = GlobalBlockPosition;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
                                 GlobalBlockPosition.Z += Step.Z;
 
                             }
