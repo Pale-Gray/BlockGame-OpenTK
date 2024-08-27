@@ -54,36 +54,50 @@ namespace Blockgame_OpenTK.Core.World
             {
 
                 Vector3i position;
-                ChunkUpdateQueue.TryDequeue(out position);
+                bool did = ChunkUpdateQueue.TryDequeue(out position);
+                // Console.WriteLine(Maths.ChebyshevDistance3D(position, cameraPosition));
 
                 switch (world.WorldChunks[position].QueueType)
                 {
 
-                    case QueueType.PassOne:
-                        ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
+                    case QueueType.Final:
+                        world.WorldChunks[position].NeedsToRequeue = false;
+                        ChunkBuilder.CallOpenGL(world.WorldChunks[position], world.WorldChunks);
                         break;
                     case QueueType.Mesh:
+
                         if (Maths.ChebyshevDistance3D(position, cameraPosition) <= MaxRadius)
                         {
 
-                            if (NeighborQueueType(position, world, QueueType.Mesh) && !world.WorldChunks[position].CheckIfEmpty() && world.WorldChunks[position].CheckIfExposed(world.WorldChunks))
+                            if (!world.WorldChunks[position].IsEmpty && world.WorldChunks[position].CheckIfExposed(world.WorldChunks))
                             {
 
-                                ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
+                                if (NeighborQueueType(position, world, QueueType.Mesh))
+                                {
+                                    // Console.WriteLine("yes");
+                                    ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
+
+                                }
 
                             }
-                            else
-                            {
 
-                                ChunkUpdateQueue.Enqueue(position);
+                        } else
+                        {
 
-                            }
+                            world.WorldChunks[position].NeedsToRequeue = false;
 
                         }
                         break;
-                    case QueueType.Final:
-                        ChunkBuilder.CallOpenGL(world.WorldChunks[position], world.WorldChunks);
+                    case QueueType.PassOne:
+                        ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
                         break;
+
+                }
+
+                if (world.WorldChunks[position].NeedsToRequeue)
+                {
+
+                    ChunkUpdateQueue.Enqueue(position);
 
                 }
 
@@ -112,6 +126,8 @@ namespace Blockgame_OpenTK.Core.World
         static Stopwatch sw;
         public static void GenerateWorld(World world, Vector3i cameraPosition)
         {
+
+            // Console.WriteLine(ChunkUpdateQueue.Count);
 
             UpdateQueue(world, Vector3i.Zero);
             UpdateAlterQueue(world);

@@ -16,6 +16,13 @@ namespace Blockgame_OpenTK.ChunkUtil
         static Vector3 SpiralOrigin = Vector3.Zero;
         static Vector3 SpiralPosition = new Vector3(SpiralOrigin);
 
+        public static int VecToIndex(Vector3i position)
+        {
+
+            return position.X + (position.Y * Globals.ChunkSize) + (position.Z * Globals.ChunkSize * Globals.ChunkSize);
+
+        }
+
         public static Vector3i[] GenerateRingsOfColumnsWithPadding(int radius, int maxHeight, int padding)
         {
 

@@ -17,6 +17,7 @@ using Blockgame_OpenTK.BlockUtil;
 using OpenTKImage = OpenTK.Windowing.Common.Input.Image;
 using Blockgame_OpenTK.Core.World;
 using System.Threading;
+using System.Linq;
 
 
 namespace Blockgame_OpenTK
@@ -461,7 +462,13 @@ namespace Blockgame_OpenTK
                 if (Globals.Keyboard.IsKeyPressed(Keys.R))
                 {
 
-                    throw new BlockNotFoundException("Forced a crash using BlockNotFoundException");
+                    // throw new BlockNotFoundException("Forced a crash using BlockNotFoundException");
+
+                    // Console.WriteLine($"Is empty: {World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].IsEmpty} is exposed: {World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].CheckIfExposed(World.WorldChunks)}, queue type: {World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType}, queue count: {WorldGenerator.ChunkUpdateQueue.Count}, in queue: {WorldGenerator.ChunkUpdateQueue.Where(value => value == ChunkUtils.PositionToChunk(Player.Camera.Position)) != null}");
+
+                    Console.WriteLine("forcing a mesh");
+                    // ChunkBuilder.MeshThreaded(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)], World.WorldChunks, Vector3i.Zero);
+                    WorldGenerator.ChunkUpdateQueue.Enqueue(ChunkUtils.PositionToChunk(Player.Camera.Position));
 
                 }
 
@@ -470,10 +477,29 @@ namespace Blockgame_OpenTK
 
                     // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).SaveToFile();
 
+                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Finish)
+                    {
+
+                        World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].SaveToFile();
+
+                    } else
+                    {
+
+                        Console.WriteLine($"The chunk at {ChunkUtils.PositionToChunk(Player.Camera.Position)} either is not used or is not ready.");
+
+                    }
+
                 }
 
                 if (Globals.Keyboard.IsKeyPressed(Keys.W))
                 {
+
+                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Finish)
+                    {
+
+                        World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].TryLoad();
+
+                    }
 
                     // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(Player.Camera.Position)).TryLoad();
                     // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(Player.Camera.Position));
@@ -510,16 +536,15 @@ namespace Blockgame_OpenTK
 
             }
 
-            // ChunkLoader.Generate(Player.Camera.Position);
-            // ChunkLoader.Gen();
-            // ChunkLoader.LoadChunks(Player.Camera.Position);
-            // ChunkLoader.UpdateChunkQueue();
-
             World.Generate(ChunkUtils.PositionToChunk(Player.Camera.Position));
             World.Draw(Player.Camera);
 
             // Console.WriteLine(Globals.FogOffset);
 
+            GL.FrontFace(FrontFaceDirection.Cw);
+            rmodel.SetScale(5, 5, 5);
+            rmodel.Draw(Vector3.Zero, Vector3.Zero, Player.Camera, (float)time);
+            GL.FrontFace(FrontFaceDirection.Ccw);
             // ChunkLoader.DrawReadyChunks((new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera);
 
 
@@ -542,20 +567,20 @@ namespace Blockgame_OpenTK
 
             }
 
-            DDA.TraceChunks(World.WorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
+            Dda.TraceChunks(World.WorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, Globals.PlayerRange);
 
-            if (DDA.hit)
+            if (Dda.hit)
             {
 
                 GL.FrontFace(FrontFaceDirection.Cw);
                 rmodel.SetScale(1, 1, 1);
                 GL.PolygonOffset(-1, 1);
                 // rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
-                rmodel.Draw((Vector3)DDA.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
+                rmodel.Draw((Vector3)Dda.PreviousPositionAtHit + (0.5f, 0.5f, 0.5f), Vector3.Zero, Player.Camera, (float)time);
                 rmodel.SetScale(1, 1, 1);
-                rmodel.Draw((Vector3)DDA.PositionAtHit + (0.5f,0.5f,0.5f), Vector3.Zero, Player.Camera, (float)time);
+                rmodel.Draw((Vector3)Dda.PositionAtHit + (0.5f,0.5f,0.5f), Vector3.Zero, Player.Camera, (float)time);
                 rmodel.SetScale(0.2f, 0.2f, 0.2f);
-                rmodel.Draw(DDA.SmoothPosition, Vector3.Zero, Player.Camera, (float)time);
+                rmodel.Draw(Dda.SmoothPosition, Vector3.Zero, Player.Camera, (float)time);
                 GL.FrontFace(FrontFaceDirection.Ccw);
                 GL.PolygonOffset(0, 0);
 
@@ -596,6 +621,13 @@ namespace Blockgame_OpenTK
         {
 
             base.OnUnload();
+
+            foreach (Chunk c in World.WorldChunks.Values)
+            {
+
+                c.SaveToFile();
+
+            }
 
             // this portion is not required
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);

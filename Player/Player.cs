@@ -53,20 +53,20 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (RemoveDelay >= 0.25f)
                     {
 
-                        DDA.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
-                        if (DDA.hit)
+                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        if (Dda.hit)
                         {
 
-                            Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PositionAtHit);
+                            Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit);
 
-                            world.WorldChunks[DDA.ChunkAtHit].SetBlock(HitPositionLocal, Blocks.AirBlock);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit + Vector3i.UnitZ);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit - Vector3i.UnitZ);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit + Vector3i.UnitX);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit - Vector3i.UnitX);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit + Vector3i.UnitY);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(DDA.ChunkAtHit - Vector3i.UnitY);
+                            world.WorldChunks[Dda.ChunkAtHit].SetBlock(HitPositionLocal, Blocks.AirBlock);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitY);
+                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitY);
 
 
                             // if (ChunkLoader.ContainsGeneratedChunk(DDA.ChunkAtHit))
@@ -106,20 +106,20 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (PlaceDelay >= 0.25f)
                     {
 
-                        DDA.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
                         
-                        if (DDA.hit)
+                        if (Dda.hit)
                         {
 
-                            Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(DDA.PreviousPositionAtHit);
-                            Console.WriteLine("hitpos: {0}, prevpos: {1}", DDA.PositionAtHit, DDA.PreviousPositionAtHit);
+                            Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(Dda.PreviousPositionAtHit);
+                            Console.WriteLine("hitpos: {0}, prevpos: {1}", Dda.PositionAtHit, Dda.PreviousPositionAtHit);
 
-                            if (DDA.PreviousPositionAtHit != ChunkUtils.PositionToBlockGlobal(Camera.Position))
+                            if (Dda.PreviousPositionAtHit != ChunkUtils.PositionToBlockGlobal(Camera.Position))
                             {
 
-                                Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit);
+                                Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit);
 
-                                world.WorldChunks[previousPositionChunkHit].SetBlock(HitPositionLocal, Blocks.GrassBlock);
+                                world.WorldChunks[previousPositionChunkHit].SetBlock(HitPositionLocal, Blocks.StoneBlock);
                                 WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit);
                                 WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitZ);
                                 WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ);

@@ -21,6 +21,24 @@ void main()
 	v_position = position;
 	v_texcoord = texcoord;
 
-	gl_Position = vec4(position.xyz, 1.0) * model * view * projection;
+	vec4 positionWorld = vec4(position.xyz, 1.0) * model * view * projection;
+
+	mat4 viewMatrix = transpose(view);
+
+	// vec3 cameraRight = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+	// vec3 cameraUp = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+	// vec4 cameraRight = vec4(1,0,0,1) * viewMatrix;
+	// vec4 cameraUp = vec4(0, 1, 0, 1) * viewMatrix;
+
+	vec3 cameraRight = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
+	vec3 cameraUp = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+
+	vec4 pos = vec4(0.0, 0.0, 0.0, 1.0) * model * view * projection;
+	pos /= pos.w;
+	pos.xy += (vec4(position, 1.0) * projection).xy;
+
+	pos = vec4(position.x * cameraRight + position.y * cameraUp, 1) * model * view * projection;
+
+	gl_Position = pos;
 
 }

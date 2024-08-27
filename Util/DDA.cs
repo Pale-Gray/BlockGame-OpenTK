@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class DDA
+    internal class Dda
     {
 
         public static Vector3 FinalPosition = Vector3.Zero;

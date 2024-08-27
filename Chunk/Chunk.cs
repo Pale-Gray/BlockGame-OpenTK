@@ -2,20 +2,10 @@
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
-using static FastNoise;
 using Blockgame_OpenTK.BlockUtil;
-using System.Threading.Tasks.Dataflow;
-using System.Drawing;
 using System.IO;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Runtime.InteropServices;
-using System.Text.Json.Serialization;
-using Blockgame_OpenTK.Registry;
+using Blockgame_OpenTK.Core.World;
 
 namespace Blockgame_OpenTK.ChunkUtil
 {
@@ -86,15 +76,16 @@ namespace Blockgame_OpenTK.ChunkUtil
         None,
         PassOne,
         PassTwo,
-        Final,
         Mesh,
+        Final,
         Finish
 
     }
     internal class Chunk
     {
 
-        public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
+        // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
+        public ushort[] BlockData = new ushort[Globals.ChunkSize * Globals.ChunkSize * Globals.ChunkSize];
         public ChunkVertex[] ChunkMesh;
         public GenerationState GenerationState = GenerationState.NotGenerated;
         public MeshState MeshState = MeshState.NotMeshed;
@@ -111,7 +102,8 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool ShouldRender = false;
         public bool IsQueuedForRemesh = false;
         public float Lifetime = 0;
-        public object Lock = new();
+        public readonly object ChunkLock = new();
+        public bool NeedsToRequeue = true;
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -121,80 +113,32 @@ namespace Blockgame_OpenTK.ChunkUtil
             ChunkState = ChunkState.NotReady;
 
         }
-
-        public Chunk DeepCopy()
-        {
-
-            Chunk c = new Chunk(Vector3i.Zero);
-            c.ChunkPosition = ChunkPosition;
-            c.GenerationState = GenerationState;
-            c.MeshState = MeshState;
-            c.ChunkState = ChunkState;
-            c.QueueMode = QueueMode;
-            c.QueueType = QueueType;
-
-            for (int x = 0; x < Globals.ChunkSize; x++)
-            {
-
-                for (int y = 0; y < Globals.ChunkSize; y++)
-                {
-
-                    for (int z = 0; z < Globals.ChunkSize; z++)
-                    {
-
-                        c.BlockData[x, y, z] = BlockData[x, y, z];
-
-                    }
-
-                }
-
-            }
-
-            c.ChunkMesh = ChunkMesh;
-            c.IsEmpty = IsEmpty;
-            c.IsFull = IsFull;
-            c.IsExposed = IsExposed;
-            c.ShouldRender = ShouldRender;
-            c.IsQueuedForRemesh = IsQueuedForRemesh;
-            c.Lifetime = Lifetime;
-
-            return c;
-
-        }
-        
         public void SaveToFile()
         {
 
             List<byte> bytes = new List<byte>();
-            for (int x = 0; x < Globals.ChunkSize; x++)
-            {
 
-                for (int y = 0; y < Globals.ChunkSize; y++)
-                {
+            byte[] rleData = Rle.Compress(BlockData);
 
-                    for (int z = 0; z < Globals.ChunkSize; z++)
-                    {
+            //for (int i = 0; i < BlockData.Length; i++)
+            //{
 
-                        bytes.AddRange(BitConverter.GetBytes(BlockData[x,y,z]));
+            //    bytes.AddRange(BitConverter.GetBytes(BlockData[i]));
 
-                    }
-
-                }
-
-            }
+            //}
             using (FileStream fs = new FileStream($"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat", FileMode.Create, FileAccess.Write))
             {
 
-                fs.Write(bytes.ToArray());
+                // fs.Write(bytes.ToArray());
+                fs.Write(rleData);
 
             }
+            // Console.WriteLine($"wrote to file {ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat");
 
         }
 
         public bool CheckForFile()
         {
-
-            // Console.WriteLine(ChunkPosition);
 
             string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
 
@@ -205,33 +149,16 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool TryLoad()
         {
 
-            // Console.WriteLine("reading");
-
             string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
 
             if (File.Exists(path))
             {
 
-                byte[] bytes = File.ReadAllBytes(path);
-
-                for (int x = 0; x < Globals.ChunkSize; x++)
-                {
-
-                    for (int y = 0; y < Globals.ChunkSize; y++)
-                    {
-
-                        for (int z = 0; z < Globals.ChunkSize; z++)
-                        {
-
-                            byte[] data = new byte[] { bytes[(z * 2) + ((y * 2) * Globals.ChunkSize) + ((x * 2) * Globals.ChunkSize * Globals.ChunkSize)], bytes[1 + (z * 2) + ((y * 2) * Globals.ChunkSize) + ((x * 2) * Globals.ChunkSize * Globals.ChunkSize)] };
-                            BlockData[x, y, z] = BitConverter.ToUInt16(data);
-
-                        }
-
-                    }
-
-                }
-
+                // byte[] bytes = File.ReadAllBytes(path);
+                // byte[] bytes = Rle.Decompress(File.ReadAllBytes(path));
+                // System.Buffer.BlockCopy(bytes, 0, BlockData, 0, bytes.Length);
+                BlockData = Rle.Decompress(File.ReadAllBytes(path));
+                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(ChunkPosition);
                 return true;
 
             }
@@ -277,23 +204,12 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool CheckIfEmpty()
         {
 
-            for (int x = 0; x < Globals.ChunkSize; x++)
+            for (int i = 0; i < BlockData.Length; i++)
             {
 
-                for (int y = 0; y < Globals.ChunkSize; y++)
-                {
-
-                    for (int z = 0; z < Globals.ChunkSize; z++)
-                    {
-
-                        if (BlockData[x, y, z] != Blocks.AirBlock.ID) return false;
-
-                    }
-
-                }
+                if (BlockData[i] != Blocks.AirBlock.ID) return false;
 
             }
-
             return true;
 
         }
@@ -301,25 +217,10 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool CheckIfFull()
         {
 
-            for (int x = 0; x < Globals.ChunkSize; x++)
+            for (int i = 0; i < BlockData.Length; i++)
             {
 
-                for (int y = 0; y < Globals.ChunkSize; y++)
-                {
-
-                    for (int z = 0; z < Globals.ChunkSize; z++)
-                    {
-
-                        if (BlockData[x, y, z] == Globals.Register.GetIDFromBlock(Blocks.AirBlock))
-                        {
-
-                            return false;
-
-                        }
-
-                    }
-
-                }
+                if (BlockData[i] == Blocks.AirBlock.ID) return false;
 
             }
             return true;
@@ -357,14 +258,17 @@ namespace Blockgame_OpenTK.ChunkUtil
         public Block GetBlock(Vector3i position)
         {
 
-            return Globals.Register.GetBlockFromID(BlockData[position.X, position.Y, position.Z]);
+            return Globals.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
+            // return Globals.Register.GetBlockFromID(BlockData[position.X, position.Y, position.Z]);
 
         }
 
         public void SetBlock(Vector3i position, Block block)
         {
 
-            BlockData[position.X, position.Y, position.Z] = block.ID;
+            // BlockData[position.X, position.Y, position.Z] = block.ID;
+
+            BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
 
         }
 
@@ -373,7 +277,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize-1, Globals.ChunkSize-1, Globals.ChunkSize-1));
 
-            return Globals.Register.GetBlockFromID(BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z]);
+            return Globals.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
 
         }
         public void SetBlockSafe(Vector3i position, Block block)
@@ -381,14 +285,16 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize));
 
-            BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
+            // BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
 
         }
 
         public ushort GetBlockID(Vector3i position)
         {
 
-            return BlockData[position.X, position.Y, position.Z];
+            // return BlockData[position.X, position.Y, position.Z];
+
+            return BlockData[ChunkUtils.VecToIndex(position)];
 
         }
 
@@ -435,7 +341,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        public ushort[,,] GetBlockData()
+        public ushort[] GetBlockData()
         {
 
             return BlockData;

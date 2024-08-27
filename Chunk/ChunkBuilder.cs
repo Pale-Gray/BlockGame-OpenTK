@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.ChunkUtil
@@ -49,44 +50,50 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static void GeneratePassOne(Chunk chunk)
         {
 
-            for (int x = 0; x < Globals.ChunkSize; x++)
+            lock (chunk.ChunkLock)
             {
 
-                for (int y = 0; y < Globals.ChunkSize; y++)
+                Vector3i chunkPosition = chunk.ChunkPosition;
+
+                for (int x = 0; x < Globals.ChunkSize; x++)
                 {
 
                     for (int z = 0; z < Globals.ChunkSize; z++)
                     {
 
-                        Vector3i chunkPosition = chunk.ChunkPosition;
                         int xGlobal = x + (chunkPosition.X * Globals.ChunkSize);
-                        int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
                         int zGlobal = z + (chunkPosition.Z * Globals.ChunkSize);
-
-                        uint seed = 0;
-
                         float height = Maths.ValueNoise2Octaves(12345123, xGlobal / 32f, zGlobal / 32f, 3) * 32f;
 
-                        if (yGlobal < height)
+                        for (int y = 0; y < Globals.ChunkSize; y++)
                         {
 
-                            chunk.SetBlock((x, y, z), Blocks.GrassBlock);
+                            int yGlobal = y + (chunkPosition.Y * Globals.ChunkSize);
 
-                        }
+                            uint seed = 0;
 
-                        if (yGlobal < height - 1)
-                        {
+                            if (yGlobal < height)
+                            {
 
-                            chunk.SetBlock((x, y, z), Blocks.DirtBlock);
+                                chunk.SetBlock((x, y, z), Blocks.GrassBlock);
 
-                        }
+                            }
 
-                        if (yGlobal < height-4)
-                        {
+                            if (yGlobal < height - 1)
+                            {
 
-                            // chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.StoneBlock));
-                            chunk.SetBlock((x, y, z), Blocks.StoneBlock);
-                            // chunk.IsEmpty = false;
+                                chunk.SetBlock((x, y, z), Blocks.DirtBlock);
+
+                            }
+
+                            if (yGlobal < height - 4)
+                            {
+
+                                // chunk.SetBlockDataGlobal((xGlobal, yGlobal, zGlobal), Globals.Register.GetIDFromBlock(Blocks.StoneBlock));
+                                chunk.SetBlock((x, y, z), Blocks.StoneBlock);
+                                // chunk.IsEmpty = false;
+
+                            }
 
                         }
 
@@ -94,13 +101,14 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 }
 
+                chunk.IsEmpty = chunk.CheckIfEmpty();
+                chunk.IsFull = chunk.CheckIfFull();
+                // Console.WriteLine(chunk.IsEmpty);
+                // Console.WriteLine(chunk.IsFull);
+                chunk.QueueType = QueueType.Mesh;
+                // WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
+
             }
-
-            chunk.IsEmpty = chunk.CheckIfEmpty();
-            chunk.IsFull = chunk.CheckIfFull();
-            chunk.QueueType = QueueType.Mesh;
-
-            WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
 
         }
 
@@ -158,7 +166,7 @@ namespace Blockgame_OpenTK.ChunkUtil
                                     Vector3i localPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition + (0, i, 0));
 
                                     // world[ChunkUtils.PositionToChunk(globalBlockPosition + (0, i, 0))].ChunkPregenData[localPosition.X, localPosition.Y, localPosition.Z] = Blocks.LogBlock.ID;
-                                   // world[ChunkUtils.PositionToChunk(globalBlockPosition + (0, i, 0))].SetBlockDataGlobal(globalBlockPosition + (0, i, 0), Blocks.LogBlock.ID);
+                                    // world[ChunkUtils.PositionToChunk(globalBlockPosition + (0, i, 0))].SetBlockDataGlobal(globalBlockPosition + (0, i, 0), Blocks.LogBlock.ID);
 
                                 }
 
@@ -170,11 +178,11 @@ namespace Blockgame_OpenTK.ChunkUtil
 
                 }
 
-            }
+                chunk.GenerationState = GenerationState.PassTwo;
+                chunk.QueueMode = QueueMode.NotQueued;
+                chunk.QueueType = QueueType.Final;
 
-            chunk.GenerationState = GenerationState.PassTwo;
-            chunk.QueueMode = QueueMode.NotQueued;
-            chunk.QueueType = QueueType.Final;
+            }
 
         }
 
@@ -204,7 +212,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
         }
 
-        private static void Mesh(Chunk chunk, Dictionary<Vector3i, Chunk> world, Vector3i cameraPosition)
+        public static void Mesh(Chunk chunk, Dictionary<Vector3i, Chunk> world, Vector3i cameraPosition)
         {
 
             Vector3i chunkPosition = chunk.ChunkPosition;
@@ -281,7 +289,7 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             chunk.ChunkMesh = mesh.ToArray();
             chunk.QueueType = QueueType.Final;
-            WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
+            // WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
 
         }
 

@@ -17,6 +17,7 @@ using System.Text;
 using System.Net;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Blockgame_OpenTK
 {
@@ -51,6 +52,13 @@ namespace Blockgame_OpenTK
             sw.Stop();
             Console.WriteLine($"Filled a dictionary containing {Math.Pow(Radius+1+Radius, 3)} chunks (Radius of {Radius}) in {sw.ElapsedMilliseconds}ms");  
             */
+
+            int work;
+            int complete;
+            ThreadPool.GetMaxThreads(out work, out complete);
+            Console.WriteLine(work);
+
+            ThreadPool.SetMaxThreads(8, 0);
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 

@@ -62,18 +62,10 @@ void main()
 
 	distFac = clamp(dist3D(vPositionOffset, cameraPosition) / (radius*32), 0, 1);
 
-	// directionalLight = normalize((vec4(0,1,0,1))).xyz;
-
-	// vec3 worldPosition = (vec4(position, 1.0) * model).xyz;
-
-	// vec3 coordinates = (vec4(1.0, 1.0, 1.0, 1.0) * model).xyz;
-
 	float fac = 2;
 
 	//  - max((pow(1 - chunkLifetime, 15)), 0)
 	float displacement = dist3D(position + (chunkpos*32), cameraPosition);
-
-	// max((pow(1 - chunkLifetime, 15)), 0)
 
 	gl_Position = vec4(vec3(position.x, position.y, position.z) + (vec3(chunkpos.x, chunkpos.y, chunkpos.z) * 32), 1.0) * view * projection;
 
