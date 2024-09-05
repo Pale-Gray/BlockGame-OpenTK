@@ -17,8 +17,8 @@ namespace Blockgame_OpenTK.Util
             int vertshader;
             int fragshader;
 
-            string vert = File.ReadAllText(Globals.ShaderPath + vertexFile);
-            string frag = File.ReadAllText(Globals.ShaderPath + fragmentFile);
+            string vert = File.ReadAllText(Path.Combine(GlobalValues.ShaderPath, vertexFile));
+            string frag = File.ReadAllText(Path.Combine(GlobalValues.ShaderPath, fragmentFile));
 
             // creating shader and source
             vertshader = GL.CreateShader(ShaderType.VertexShader);

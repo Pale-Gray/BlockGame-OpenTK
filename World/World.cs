@@ -1,21 +1,17 @@
-﻿using Blockgame_OpenTK.ChunkUtil;
-using Blockgame_OpenTK.Util;
+﻿using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.Core.World
+using Blockgame_OpenTK.Core.Chunks;
+
+namespace Blockgame_OpenTK.Core.Worlds
 {
     internal class World
     {
 
         public string SaveFileName;
         private int MaxRadius = 8;
-        public Dictionary<Vector3i, Chunk> WorldChunks = new Dictionary<Vector3i, Chunk>();
+        public Dictionary<Vector3i, Chunks.Chunk> WorldChunks = new Dictionary<Vector3i, Chunks.Chunk>();
 
         public World(string saveFileName)
         {
@@ -33,10 +29,10 @@ namespace Blockgame_OpenTK.Core.World
 
         }
 
-        public void Generate(Vector3i cameraChunkPosition)
+        public void Generate(Vector3 playerPositiom)
         {
 
-            WorldGenerator.GenerateWorld(this, cameraChunkPosition);
+            WorldGenerator.GenerateWorld(this, playerPositiom);
 
         }
 
@@ -51,14 +47,14 @@ namespace Blockgame_OpenTK.Core.World
 
                     chunk.Draw((0,1,0), playerCamera);
 
-                    if (Globals.ShouldRenderBounds)
-                    {
+                }
 
-                        Game.rmodel.SetScale(32, 32, 32);
-                        Game.rmodel.Draw(((Vector3)chunk.ChunkPosition + (0.5f, 0.5f, 0.5f)) * 32, Vector3.Zero, playerCamera, 0);
-                        Game.rmodel.SetScale(1, 1, 1);
-
-                    }
+                if (GlobalValues.ShouldRenderBounds && chunk.QueueType == QueueType.Finish)
+                {
+                    
+                    Game.rmodel.SetScale(32, 32, 32);
+                    Game.rmodel.Draw(((Vector3)chunk.ChunkPosition + (0.5f, 0.5f, 0.5f)) * 32, Vector3.Zero, playerCamera, 0);
+                    Game.rmodel.SetScale(1, 1, 1);
 
                 }
 

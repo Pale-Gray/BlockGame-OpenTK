@@ -5,7 +5,7 @@ using System.Linq;
 using Blockgame_OpenTK.Util;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.ChunkUtil
+namespace Blockgame_OpenTK.Core.Chunks
 {
     internal class ChunkUtils
     {
@@ -19,7 +19,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static int VecToIndex(Vector3i position)
         {
 
-            return position.X + (position.Y * Globals.ChunkSize) + (position.Z * Globals.ChunkSize * Globals.ChunkSize);
+            return position.X + (position.Y * GlobalValues.ChunkSize) + (position.Z * GlobalValues.ChunkSize * GlobalValues.ChunkSize);
 
         }
 
@@ -428,9 +428,9 @@ namespace Blockgame_OpenTK.ChunkUtil
         public static Vector3 WorldPositionToChunkPosition(Vector3 position)
         {
 
-            int x = (int) Math.Floor(position.X / Globals.ChunkSize);
-            int y = (int)Math.Floor(position.Y / Globals.ChunkSize);
-            int z = (int)Math.Floor(position.Z / Globals.ChunkSize);
+            int x = (int) Math.Floor(position.X / GlobalValues.ChunkSize);
+            int y = (int)Math.Floor(position.Y / GlobalValues.ChunkSize);
+            int z = (int)Math.Floor(position.Z / GlobalValues.ChunkSize);
 
             return (x, y, z);
 
@@ -603,38 +603,38 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (position.X >= 0)
             {
 
-                PositionChunk.X = (int) Math.Floor(Position.X / Globals.ChunkSize);
+                PositionChunk.X = (int) Math.Floor(Position.X / GlobalValues.ChunkSize);
 
             }
             if (position.Y >= 0)
             {
 
-                PositionChunk.Y = (float)Math.Floor(Position.Y / Globals.ChunkSize);
+                PositionChunk.Y = (float)Math.Floor(Position.Y / GlobalValues.ChunkSize);
 
             }
             if (position.Z >= 0)
             {
 
-                PositionChunk.Z = (float)Math.Floor(Position.Z / Globals.ChunkSize);
+                PositionChunk.Z = (float)Math.Floor(Position.Z / GlobalValues.ChunkSize);
 
             }
             if (position.X < 0)
             {
 
-                PositionChunk.X = (float) Math.Floor(position.X / Globals.ChunkSize);
+                PositionChunk.X = (float) Math.Floor(position.X / GlobalValues.ChunkSize);
                 // PositionChunk.X = (float) Math.Ceiling(Position.X / Globals.ChunkSize);
 
             }
             if (position.Y < 0)
             {
 
-                PositionChunk.Y = (float)Math.Floor(position.Y / Globals.ChunkSize);
+                PositionChunk.Y = (float)Math.Floor(position.Y / GlobalValues.ChunkSize);
 
             }
             if (position.Z < 0)
             {
 
-                PositionChunk.Z = (float)Math.Floor(position.Z / Globals.ChunkSize);
+                PositionChunk.Z = (float)Math.Floor(position.Z / GlobalValues.ChunkSize);
 
             }
 
@@ -650,38 +650,38 @@ namespace Blockgame_OpenTK.ChunkUtil
             if (position.X >= 0)
             {
 
-                PositionBlock.X = position.X % Globals.ChunkSize;
+                PositionBlock.X = position.X % GlobalValues.ChunkSize;
 
             }
             if (position.Y >= 0)
             {
 
-                PositionBlock.Y = position.Y % Globals.ChunkSize;
+                PositionBlock.Y = position.Y % GlobalValues.ChunkSize;
 
             }
             if (position.Z >= 0)
             {
 
-                PositionBlock.Z = position.Z % Globals.ChunkSize;
+                PositionBlock.Z = position.Z % GlobalValues.ChunkSize;
 
             }
 
             if (position.X < 0)
             {
 
-                PositionBlock.X = (Globals.ChunkSize) - Math.Abs(position.X) % Globals.ChunkSize;
+                PositionBlock.X = (GlobalValues.ChunkSize) - Math.Abs(position.X) % GlobalValues.ChunkSize;
 
             }
             if (position.Y < 0)
             {
 
-                PositionBlock.Y = (Globals.ChunkSize) - Math.Abs(position.Y) % Globals.ChunkSize;
+                PositionBlock.Y = (GlobalValues.ChunkSize) - Math.Abs(position.Y) % GlobalValues.ChunkSize;
 
             }
             if (position.Z < 0)
             {
 
-                PositionBlock.Z = (Globals.ChunkSize) - Math.Abs(position.Z) % Globals.ChunkSize;
+                PositionBlock.Z = (GlobalValues.ChunkSize) - Math.Abs(position.Z) % GlobalValues.ChunkSize;
 
             }
 
@@ -765,9 +765,9 @@ namespace Blockgame_OpenTK.ChunkUtil
             float y = Math.Max(0, (float)Math.Floor(position.Y + 0.5f));
             float z = Math.Max(0, (float)Math.Floor(position.Z + 0.5f));
 
-            x = Math.Min(Globals.ChunkSize - 1, x);
-            y = Math.Min(Globals.ChunkSize - 1, y);
-            z = Math.Min(Globals.ChunkSize - 1, z);
+            x = Math.Min(GlobalValues.ChunkSize - 1, x);
+            y = Math.Min(GlobalValues.ChunkSize - 1, y);
+            z = Math.Min(GlobalValues.ChunkSize - 1, z);
 
             return new Vector3(x, y, z);
 

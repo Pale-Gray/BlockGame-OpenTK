@@ -1,4 +1,4 @@
-﻿using Blockgame_OpenTK.ChunkUtil;
+﻿using Blockgame_OpenTK.Core.Chunks;
 
 namespace Blockgame_OpenTK.BlockUtil
 {

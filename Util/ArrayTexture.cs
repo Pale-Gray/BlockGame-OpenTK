@@ -19,7 +19,7 @@ namespace Blockgame_OpenTK.Util
         {
             Width = 32;
             Height = 32;
-            PathToTextures = Globals.LocalPath;
+            PathToTextures = GlobalValues.LocalPath;
 
         }
 

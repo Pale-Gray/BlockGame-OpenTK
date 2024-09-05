@@ -33,7 +33,7 @@ namespace Blockgame_OpenTK.Util
 
                 // Console.WriteLine("Could not load the image because it is not of the PNG format");
                 // Console.WriteLine("Loading invalid texture PNG");
-                image = LoadPng("../../../Resources/Textures/invalid.png", true);
+                image = LoadPng("Resources/Textures/invalid.png", true);
                 return image;
 
             }
@@ -69,7 +69,7 @@ namespace Blockgame_OpenTK.Util
                         // throw new Exception("Cannot load file beacuse it is not of color type 6 (RGBA)");
                         // Console.WriteLine("Could not load the image because is it not of color type 6 (RGBA)");
                         // Console.WriteLine("Loading invalid texture PNG");
-                        image = LoadPng("../../../Resources/Textures/invalid.png", true);
+                        image = LoadPng("Resources/Textures/invalid.png", true);
                         return image;
 
                     }
@@ -80,7 +80,7 @@ namespace Blockgame_OpenTK.Util
                         // throw new Exception("Cannot load file because it is not of bit depth 8 (32BPP)");
                         // Console.WriteLine("Could not load the image beacuse it is not of bit depth 8 (32BPP)");
                         // Console.WriteLine("Loading invalid texture PNG");
-                        image = LoadPng("../../../Resources/Textures/invalid.png", true);
+                        image = LoadPng("Resources/Textures/invalid.png", true);
                         return image;
 
                     }

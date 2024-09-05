@@ -5,28 +5,33 @@ using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL4;
 using Blockgame_OpenTK.BlockUtil;
 using System.IO;
-using Blockgame_OpenTK.Core.World;
+using Blockgame_OpenTK.Core.Worlds;
+using System.IO.Compression;
+using System.Text;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-namespace Blockgame_OpenTK.ChunkUtil
+namespace Blockgame_OpenTK.Core.Chunks
 {
 
     public struct ChunkVertex
     {
 
         public int ID = 0;
-        public float AmbientValue = 1;
+        public float AmbientValue = 1.0f;
         public int TextureIndex;
         public Vector3 Position;
         public Vector3 Normal;
         public Vector2 TextureCoordinates;
 
-        public ChunkVertex(int textureIndex, Vector3 position, Vector2 textureCoordinate, Vector3 normal)
+        public ChunkVertex(int textureIndex, Vector3 position, Vector2 textureCoordinate, Vector3 normal, float ambientValue)
         {
 
             TextureIndex = textureIndex;
             Position = position;
             TextureCoordinates = textureCoordinate;
             Normal = normal;
+            AmbientValue = ambientValue;
 
         }
 
@@ -78,14 +83,15 @@ namespace Blockgame_OpenTK.ChunkUtil
         PassTwo,
         Mesh,
         Final,
-        Finish
+        Finish,
+        Remove
 
     }
     internal class Chunk
     {
 
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
-        public ushort[] BlockData = new ushort[Globals.ChunkSize * Globals.ChunkSize * Globals.ChunkSize];
+        public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public ChunkVertex[] ChunkMesh;
         public GenerationState GenerationState = GenerationState.NotGenerated;
         public MeshState MeshState = MeshState.NotMeshed;
@@ -120,27 +126,23 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             byte[] rleData = Rle.Compress(BlockData);
 
-            //for (int i = 0; i < BlockData.Length; i++)
-            //{
+            // byte[] destination = new byte[BrotliEncoder.GetMaxCompressedLength(BlockData.Length * 2)];
+            // BrotliEncoder.TryCompress(MemoryMarshal.AsBytes<ushort>(BlockData), destination, out int amtWritten);
+            // Array.Resize(ref destination, amtWritten);
 
-            //    bytes.AddRange(BitConverter.GetBytes(BlockData[i]));
-
-            //}
-            using (FileStream fs = new FileStream($"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat", FileMode.Create, FileAccess.Write))
+            using (FileStream fs = new FileStream($"Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat", FileMode.Create, FileAccess.Write))
             {
 
-                // fs.Write(bytes.ToArray());
                 fs.Write(rleData);
 
             }
-            // Console.WriteLine($"wrote to file {ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat");
-
+            
         }
 
         public bool CheckForFile()
         {
 
-            string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
+            string path = $"Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
 
             return File.Exists(path);
 
@@ -149,16 +151,12 @@ namespace Blockgame_OpenTK.ChunkUtil
         public bool TryLoad()
         {
 
-            string path = $"../../../Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
+            string path = $"Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
 
             if (File.Exists(path))
             {
 
-                // byte[] bytes = File.ReadAllBytes(path);
-                // byte[] bytes = Rle.Decompress(File.ReadAllBytes(path));
-                // System.Buffer.BlockCopy(bytes, 0, BlockData, 0, bytes.Length);
                 BlockData = Rle.Decompress(File.ReadAllBytes(path));
-                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(ChunkPosition);
                 return true;
 
             }
@@ -169,35 +167,36 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void Draw(Vector3 sunVec, Camera camera)
         {
 
-            Globals.ChunkShader.Use();
+            GlobalValues.ChunkShader.Use();
 
             // Console.WriteLine(ChunkPosition);
-            Lifetime += (float) Globals.DeltaTime;
+            Lifetime += (float) GlobalValues.DeltaTime;
 
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "atlas"), 0);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "arrays"), 1);
-            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "cameraPosition"), camera.Position);
-            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "sunDirection"), sunVec);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkLifetime"), Lifetime);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "radius"), (float) 8);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "shouldRenderFog"), Globals.ShouldRenderFog ? 1 : 0);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.id, "fogOffset"), Globals.FogOffset);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "atlas"), 0);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 1);
+            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), camera.Position);
+            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), sunVec);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkLifetime"), Lifetime);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "radius"), (float) 8);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderFog"), GlobalValues.ShouldRenderFog ? 1 : 0);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderAmbientOcclusion"), GlobalValues.RenderAmbientOcclusion ? 1 : 0);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "fogOffset"), GlobalValues.FogOffset);
             // Console.WriteLine(ChunkPosition);
-            GL.Uniform3(GL.GetUniformLocation(Globals.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
+            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Globals.AtlasTexture.getID());
+            GL.BindTexture(TextureTarget.Texture2D, GlobalValues.AtlasTexture.GetID());
             GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2DArray, Globals.ArrayTexture.TextureID);
+            GL.BindTexture(TextureTarget.Texture2DArray, GlobalValues.ArrayTexture.TextureID);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), true, ref camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
-            GL.Uniform1(GL.GetUniformLocation(Globals.ChunkShader.getID(), "time"), (float)0);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float)0);
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
             GL.BindVertexArray(0);
 
-            Globals.ChunkShader.UnUse();
+            GlobalValues.ChunkShader.UnUse();
 
         }
 
@@ -232,12 +231,12 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             int amountExposed = 0;
 
-            if (!worldChunks[ChunkPosition + Vector3i.UnitX].CheckIfFull()) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitX].CheckIfFull()) amountExposed++;
-            if (!worldChunks[ChunkPosition + Vector3i.UnitY].CheckIfFull()) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitY].CheckIfFull()) amountExposed++;
-            if (!worldChunks[ChunkPosition + Vector3i.UnitZ].CheckIfFull()) amountExposed++;
-            if (!worldChunks[ChunkPosition - Vector3i.UnitZ].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition + Vector3i.UnitX) && !worldChunks[ChunkPosition + Vector3i.UnitX].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition - Vector3i.UnitX) && !worldChunks[ChunkPosition - Vector3i.UnitX].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition + Vector3i.UnitY) && !worldChunks[ChunkPosition + Vector3i.UnitY].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition - Vector3i.UnitY) && !worldChunks[ChunkPosition - Vector3i.UnitY].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition + Vector3i.UnitZ) && !worldChunks[ChunkPosition + Vector3i.UnitZ].CheckIfFull()) amountExposed++;
+            if (worldChunks.ContainsKey(ChunkPosition - Vector3i.UnitZ) && !worldChunks[ChunkPosition - Vector3i.UnitZ].CheckIfFull()) amountExposed++;
 
             return amountExposed > 0;
 
@@ -258,7 +257,7 @@ namespace Blockgame_OpenTK.ChunkUtil
         public Block GetBlock(Vector3i position)
         {
 
-            return Globals.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
+            return GlobalValues.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
             // return Globals.Register.GetBlockFromID(BlockData[position.X, position.Y, position.Z]);
 
         }
@@ -275,15 +274,15 @@ namespace Blockgame_OpenTK.ChunkUtil
         public Block GetBlockSafe(Vector3i position)
         {
 
-            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize-1, Globals.ChunkSize-1, Globals.ChunkSize-1));
+            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize-1, GlobalValues.ChunkSize-1, GlobalValues.ChunkSize-1));
 
-            return Globals.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
+            return GlobalValues.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
 
         }
         public void SetBlockSafe(Vector3i position, Block block)
         {
 
-            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize));
+            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize));
 
             // BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
 
@@ -351,13 +350,13 @@ namespace Blockgame_OpenTK.ChunkUtil
         public void SetBlockDataGlobal(Vector3i position, ushort data)
         {
 
-            int minX = (ChunkPosition.X * Globals.ChunkSize);
-            int minY = (ChunkPosition.Y * Globals.ChunkSize);
-            int minZ = (ChunkPosition.Z * Globals.ChunkSize);
+            int minX = (ChunkPosition.X * GlobalValues.ChunkSize);
+            int minY = (ChunkPosition.Y * GlobalValues.ChunkSize);
+            int minZ = (ChunkPosition.Z * GlobalValues.ChunkSize);
 
-            int maxX = ((1 + ChunkPosition.X) * Globals.ChunkSize) - 1;
-            int maxY = ((1 + ChunkPosition.Y) * Globals.ChunkSize) - 1;
-            int maxZ = ((1 + ChunkPosition.Z) * Globals.ChunkSize) - 1;
+            int maxX = ((1 + ChunkPosition.X) * GlobalValues.ChunkSize) - 1;
+            int maxY = ((1 + ChunkPosition.Y) * GlobalValues.ChunkSize) - 1;
+            int maxZ = ((1 + ChunkPosition.Z) * GlobalValues.ChunkSize) - 1;
 
             if (position.X >= minX && position.X <= maxX && position.Y >= minY && position.Y <= maxY && position.Z >= minZ && position.Z <= maxZ)
             {
@@ -366,11 +365,11 @@ namespace Blockgame_OpenTK.ChunkUtil
                 // int yValue = y % (size-1);
                 // /int zValue = z % (size-1);
 
-                int xValue = position.X - (ChunkPosition.X * Globals.ChunkSize);
-                int yValue = position.Y - (ChunkPosition.Y * Globals.ChunkSize);
-                int zValue = position.Z - (ChunkPosition.Z * Globals.ChunkSize);
+                int xValue = position.X - (ChunkPosition.X * GlobalValues.ChunkSize);
+                int yValue = position.Y - (ChunkPosition.Y * GlobalValues.ChunkSize);
+                int zValue = position.Z - (ChunkPosition.Z * GlobalValues.ChunkSize);
 
-                SetBlock((xValue, yValue, zValue), Globals.Register.GetBlockFromID(data));
+                SetBlock((xValue, yValue, zValue), GlobalValues.Register.GetBlockFromID(data));
 
             }
 

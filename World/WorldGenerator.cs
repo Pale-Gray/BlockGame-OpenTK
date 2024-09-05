@@ -1,14 +1,12 @@
-﻿using Blockgame_OpenTK.ChunkUtil;
+﻿using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 
-namespace Blockgame_OpenTK.Core.World
+namespace Blockgame_OpenTK.Core.Worlds
 {
     internal class WorldGenerator
     {
@@ -17,6 +15,7 @@ namespace Blockgame_OpenTK.Core.World
         static int CurrentRadius = 0;
         static int MaxChunkUpdates = 50;
         public static ConcurrentQueue<Vector3i> ChunkUpdateQueue = new ConcurrentQueue<Vector3i>();
+        public static Queue<Vector3i> SaveAndRemoveQueue = new Queue<Vector3i>();
         public static LinkedList<Vector3i> Queue = new LinkedList<Vector3i>();
         public static Queue<Vector3i> ChunkAlterUpdateQueue = new Queue<Vector3i>();
         private static Vector3i[] ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius + 2);
@@ -33,7 +32,33 @@ namespace Blockgame_OpenTK.Core.World
             if (world.WorldChunks.ContainsKey(position + Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitZ].QueueType >= queueType) pass++;
             if (world.WorldChunks.ContainsKey(position - Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitZ].QueueType >= queueType) pass++;
 
-            return pass == 6;
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY + Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY + Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY + Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY + Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY - Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY - Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY - Vector3i.UnitX + Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY - Vector3i.UnitX + Vector3i.UnitZ].QueueType >= queueType) pass++;
+
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY + Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY + Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY + Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY + Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY - Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY - Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY - Vector3i.UnitX - Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY - Vector3i.UnitX - Vector3i.UnitZ].QueueType >= queueType) pass++;
+
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY + Vector3i.UnitX) && world.WorldChunks[position + Vector3i.UnitY + Vector3i.UnitX].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY + Vector3i.UnitX) && world.WorldChunks[position - Vector3i.UnitY + Vector3i.UnitX].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY - Vector3i.UnitX) && world.WorldChunks[position + Vector3i.UnitY - Vector3i.UnitX].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY - Vector3i.UnitX) && world.WorldChunks[position - Vector3i.UnitY - Vector3i.UnitX].QueueType >= queueType) pass++;
+
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY + Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY + Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY + Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position + Vector3i.UnitY - Vector3i.UnitZ) && world.WorldChunks[position + Vector3i.UnitY - Vector3i.UnitZ].QueueType >= queueType) pass++;
+            if (world.WorldChunks.ContainsKey(position - Vector3i.UnitY - Vector3i.UnitZ) && world.WorldChunks[position - Vector3i.UnitY - Vector3i.UnitZ].QueueType >= queueType) pass++;
+
+            return pass == 26; // originally 6...
 
         }
 
@@ -57,47 +82,45 @@ namespace Blockgame_OpenTK.Core.World
                 bool did = ChunkUpdateQueue.TryDequeue(out position);
                 // Console.WriteLine(Maths.ChebyshevDistance3D(position, cameraPosition));
 
-                switch (world.WorldChunks[position].QueueType)
+                if (world.WorldChunks.ContainsKey(position))
                 {
 
-                    case QueueType.Final:
-                        world.WorldChunks[position].NeedsToRequeue = false;
-                        ChunkBuilder.CallOpenGL(world.WorldChunks[position], world.WorldChunks);
-                        break;
-                    case QueueType.Mesh:
+                    if (world.WorldChunks[position].NeedsToRequeue)
+                    {
 
-                        if (Maths.ChebyshevDistance3D(position, cameraPosition) <= MaxRadius)
-                        {
+                        ChunkUpdateQueue.Enqueue(position);
 
+                    }
+
+                    switch (world.WorldChunks[position].QueueType)
+                    {
+
+                        case QueueType.Remove:
+                            world.WorldChunks[position].SaveToFile();
+                            world.WorldChunks.Remove(position);
+                            break;
+                        case QueueType.Final:
+                            world.WorldChunks[position].NeedsToRequeue = false;
+                            ChunkBuilder.CallOpenGL(world.WorldChunks[position], world.WorldChunks);
+                            break;
+                        case QueueType.Mesh:
                             if (!world.WorldChunks[position].IsEmpty && world.WorldChunks[position].CheckIfExposed(world.WorldChunks))
                             {
 
                                 if (NeighborQueueType(position, world, QueueType.Mesh))
                                 {
-                                    // Console.WriteLine("yes");
+
                                     ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
 
                                 }
 
                             }
+                            break;
+                        case QueueType.PassOne:
+                            ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
+                            break;
 
-                        } else
-                        {
-
-                            world.WorldChunks[position].NeedsToRequeue = false;
-
-                        }
-                        break;
-                    case QueueType.PassOne:
-                        ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[position]);
-                        break;
-
-                }
-
-                if (world.WorldChunks[position].NeedsToRequeue)
-                {
-
-                    ChunkUpdateQueue.Enqueue(position);
+                    }
 
                 }
 
@@ -112,25 +135,48 @@ namespace Blockgame_OpenTK.Core.World
 
             int amtUpdated = 0;
 
-            while (ChunkAlterUpdateQueue.Count > 0 && amtUpdated <= MaxChunkUpdates)
+            while (ChunkAlterUpdateQueue.Count > 0 && amtUpdated <= 0)
             {
 
                 Vector3i position = ChunkAlterUpdateQueue.Dequeue();
 
                 ChunkBuilder.Remesh(world.WorldChunks[position], world.WorldChunks);
+                // ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
+
+            }
+
+        }
+
+        public static void UpdateSaveAndRemoveQueue(World world)
+        {
+
+            int amtUpdated = 0;
+
+            while (SaveAndRemoveQueue.Count > 0 && amtUpdated < MaxChunkUpdates)
+            {
+
+                Vector3i position = SaveAndRemoveQueue.Dequeue();
+
+                world.WorldChunks[position].SaveToFile();
+                bool removed = world.WorldChunks.Remove(position);
+
+                amtUpdated++;
 
             }
 
         }
 
         static Stopwatch sw;
-        public static void GenerateWorld(World world, Vector3i cameraPosition)
+        static Vector3i PreviousChunkPosition = Vector3i.Zero;
+        public static void GenerateWorld(World world, Vector3 playerPosition)
         {
 
-            // Console.WriteLine(ChunkUpdateQueue.Count);
+            Vector3i playerChunkPosition = ChunkUtils.PositionToChunk(playerPosition);
 
-            UpdateQueue(world, Vector3i.Zero);
             UpdateAlterQueue(world);
+            Console.WriteLine(world.WorldChunks.Count);
+            UpdateQueue(world, PreviousChunkPosition);
+            // UpdateSaveAndRemoveQueue(world);
 
             if (CurrentRadius <= MaxRadius + 2)
             {
@@ -138,13 +184,44 @@ namespace Blockgame_OpenTK.Core.World
                 for (int i = 0; i < ChunksToAdd.Length; i++)
                 {
 
-                    world.WorldChunks.Add(ChunksToAdd[i], new Chunk(ChunksToAdd[i]));
-                    ChunkUpdateQueue.Enqueue(ChunksToAdd[i]);
+                    if (!world.WorldChunks.ContainsKey(ChunksToAdd[i] + PreviousChunkPosition))
+                    {
+
+                        world.WorldChunks.Add(ChunksToAdd[i] + PreviousChunkPosition, new Chunk(ChunksToAdd[i] + PreviousChunkPosition));
+                        world.WorldChunks[ChunksToAdd[i] + PreviousChunkPosition].NeedsToRequeue = true;
+                        ChunkUpdateQueue.Enqueue(ChunksToAdd[i] + PreviousChunkPosition);
+
+                    }
 
                 }
 
                 CurrentRadius++;
                 ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius + 2);
+
+            }
+
+            if (Maths.ChebyshevDistance3D(playerChunkPosition, PreviousChunkPosition) > 1)
+            {
+
+                Console.WriteLine("Chunk position changed");
+                // CurrentRadius = 0; // MaxRadius - Maths.ChebyshevDistance3D(playerChunkPosition, PreviousChunkPosition);
+                // ChunkUpdateQueue.Clear();
+                CurrentRadius = 0; // CurrentRadius - Maths.ChebyshevDistance3D(playerChunkPosition, PreviousChunkPosition);
+                ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius + 2);
+                PreviousChunkPosition = playerChunkPosition;
+
+                foreach (Chunk chunk in world.WorldChunks.Values)
+                {
+
+                    if (Maths.ChebyshevDistance3D(PreviousChunkPosition, chunk.ChunkPosition) > MaxRadius + 2)
+                    {
+
+                        chunk.QueueType = QueueType.Remove;
+                        ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
+
+                    }
+
+                }
 
             }
 

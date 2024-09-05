@@ -17,11 +17,11 @@ namespace Blockgame_OpenTK.BlockUtil
         {
             // Block b = Block.LoadFromJson("GrassBlockNew.json");
             // Globals.Register.AddBlock(AirBlock);
-            Globals.Register.AddBlock(0, AirBlock);
-            Globals.Register.AddBlock(1, GrassBlock);
-            Globals.Register.AddBlock(2, StoneBlock);
-            Globals.Register.AddBlock(3, DirtBlock);
-            Globals.Register.AddBlock(4, LogBlock);
+            GlobalValues.Register.AddBlock(0, AirBlock);
+            GlobalValues.Register.AddBlock(1, GrassBlock);
+            GlobalValues.Register.AddBlock(2, StoneBlock);
+            GlobalValues.Register.AddBlock(3, DirtBlock);
+            GlobalValues.Register.AddBlock(4, LogBlock);
 
         }
 

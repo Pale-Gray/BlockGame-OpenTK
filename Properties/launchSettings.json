@@ -1,11 +1,12 @@
 {
   "profiles": {
-    "Debug": {
-      "commandName": "Project",
-      "commandLineArgs": "debug"
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
     },
-    "NoDebug": {
-      "commandName": "Project"
+    "Run": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
     }
   }
 }

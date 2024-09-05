@@ -37,6 +37,8 @@ uniform float radius;
 
 out vec3 vPositionOffset;
 
+out vec4 ambientValues;
+
 float dist3D(vec3 pos1, vec3 pos2) 
 {
 
@@ -57,6 +59,8 @@ void main()
 	vnormal = normal;
 	vambient_value = ambient_value;
 	vPositionOffset = position + (chunkpos * 32);
+
+	ambientValues = vec4(ambient_value, ambient_value, ambient_value, 1.0);
 
 	directionalLight = sunDirection;
 

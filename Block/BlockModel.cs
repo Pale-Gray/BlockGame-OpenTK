@@ -1,18 +1,15 @@
-﻿using Blockgame_OpenTK.ChunkUtil;
-using Blockgame_OpenTK.Util;
-using OpenTK.Mathematics;
-using System;
+﻿using OpenTK.Mathematics;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Blockgame_OpenTK.Util;
+using Blockgame_OpenTK.Core.Chunks;
+
 namespace Blockgame_OpenTK.BlockUtil
 {
-    public enum BlockModelNewCullDirection
+    public enum BlockModelCullDirection
     {
 
         Up,
@@ -24,24 +21,24 @@ namespace Blockgame_OpenTK.BlockUtil
         None
 
     }
-    public struct BlockModelNewFace
+    public struct BlockModelFace
     {
 
         [JsonConverter(typeof(JsonTextureIndexConverter))]
         [JsonPropertyName("Texture")]
         public int TextureIndex { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public BlockModelNewCullDirection? CullDirection { get; set; }
+        public BlockModelCullDirection? CullDirection { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         [JsonPropertyName("Reference")]
-        public BlockModelNewCullDirection? ReferenceCullDirection { get; set; }
+        public BlockModelCullDirection? ReferenceCullDirection { get; set; }
         [JsonConverter(typeof(JsonVertexArrayConverter))]
         public Vector3[] Points { get; set; }
 
-        public BlockModelNewFace()
+        public BlockModelFace()
         {
 
-            TextureIndex = Globals.ArrayTexture.GetTextureIndex("MissingTexture");
+            TextureIndex = GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture");
 
         }
 
@@ -52,7 +49,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
         [JsonConverter(typeof(JsonBlockModelNewConverter))]
         public BlockModel Reference { get; set; }
-        public BlockModelNewFace[] Faces { get; set; }
+        public BlockModelFace[] Faces { get; set; }
 
         public BlockModel()
         {
@@ -60,10 +57,10 @@ namespace Blockgame_OpenTK.BlockUtil
             
 
         }
-        public ChunkVertex[] ConvertToChunkReadableFaceOffset(Vector3 offset, BlockModelNewCullDirection referenceDirection)
+        public ChunkVertex[] ConvertToChunkReadableFaceOffset(Vector3 offset, BlockModelCullDirection referenceDirection, float[] ambientPoints)
         {
 
-            ChunkVertex[] convertedVertices = ConvertToChunkReadableFace(referenceDirection);
+            ChunkVertex[] convertedVertices = ConvertToChunkReadableFace(referenceDirection, ambientPoints);
 
             for (int i = 0; i < convertedVertices.Length; i++)
             {
@@ -75,7 +72,7 @@ namespace Blockgame_OpenTK.BlockUtil
             return convertedVertices;
 
         }
-        public ChunkVertex[] ConvertToChunkReadableFace(BlockModelNewCullDirection referenceDirection)
+        public ChunkVertex[] ConvertToChunkReadableFace(BlockModelCullDirection referenceDirection, float[] ambientPoints)
         {
 
             List<ChunkVertex> vertices = new List<ChunkVertex>();
@@ -95,10 +92,10 @@ namespace Blockgame_OpenTK.BlockUtil
                         {
 
                             Vector3 normal = DetermineNormal(referenceDirection);
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[0], (0, 1), normal));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[1], (0, 0), normal));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[2], (1, 0), normal));
-                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[3], (1, 1), normal));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[0], (0, 1), normal, ambientPoints[0]));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[1], (0, 0), normal, ambientPoints[1]));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[2], (1, 0), normal, ambientPoints[2]));
+                            vertices.Add(new ChunkVertex(textureIndex, referenceFace.Points[3], (1, 1), normal, ambientPoints[3]));
 
                         }
 
@@ -112,10 +109,10 @@ namespace Blockgame_OpenTK.BlockUtil
 
                         int textureIndex = face.TextureIndex;
                         Vector3 normal = DetermineNormal(referenceDirection);
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[0], (0, 1), normal));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[1], (0, 0), normal));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[2], (1, 0), normal));
-                        vertices.Add(new ChunkVertex(textureIndex, face.Points[3], (1, 1), normal));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[0], (0, 1), normal, ambientPoints[0]));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[1], (0, 0), normal, ambientPoints[1]));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[2], (1, 0), normal, ambientPoints[2]));
+                        vertices.Add(new ChunkVertex(textureIndex, face.Points[3], (1, 1), normal, ambientPoints[3]));
 
                     }
 
@@ -139,23 +136,23 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        private static Vector3 DetermineNormal(BlockModelNewCullDirection cullDirection)
+        private static Vector3 DetermineNormal(BlockModelCullDirection cullDirection)
         {
 
             switch (cullDirection)
             {
 
-                case BlockModelNewCullDirection.Up:
+                case BlockModelCullDirection.Up:
                     return Vector3.UnitY;
-                case BlockModelNewCullDirection.Down:
+                case BlockModelCullDirection.Down:
                     return -Vector3.UnitY;
-                case BlockModelNewCullDirection.Left:
+                case BlockModelCullDirection.Left:
                     return Vector3.UnitX;
-                case BlockModelNewCullDirection.Right:
+                case BlockModelCullDirection.Right:
                     return -Vector3.UnitX;
-                case BlockModelNewCullDirection.Front:
+                case BlockModelCullDirection.Front:
                     return -Vector3.UnitZ;
-                case BlockModelNewCullDirection.Back:
+                case BlockModelCullDirection.Back:
                     return Vector3.UnitZ;
                 default:
                     return Vector3.Zero;
@@ -180,7 +177,7 @@ namespace Blockgame_OpenTK.BlockUtil
         {
 
             // Console.WriteLine($"Deserializing {fileName}");
-            return JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Globals.BlockModelPath + fileName));
+            return JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(GlobalValues.BlockModelPath + fileName));
 
         }
 

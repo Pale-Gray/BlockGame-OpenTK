@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Blockgame_OpenTK.Util;
 
-namespace Blockgame_OpenTK.ChunkUtil
+namespace Blockgame_OpenTK.Core.Chunks
 {
     public struct ModelVertex
     {
@@ -102,23 +102,23 @@ namespace Blockgame_OpenTK.ChunkUtil
 
             ModelMatrix = ScaleMatrix * RotationMatrix * TranslationMatrix;
             // shader.Use();
-            Globals.DefaultShader.Use();
-            GL.Uniform1(GL.GetUniformLocation(Globals.DefaultShader.getID(), "sunTexture"), 0);
+            GlobalValues.DefaultShader.Use();
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.DefaultShader.getID(), "sunTexture"), 0);
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, SunTexture.getID());
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "model"), true, ref ModelMatrix);
+            GL.BindTexture(TextureTarget.Texture2D, SunTexture.GetID());
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.DefaultShader.getID(), "model"), true, ref ModelMatrix);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "rotation"), true, ref r);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.DefaultShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
-            GL.Uniform3(GL.GetUniformLocation(Globals.DefaultShader.getID(), "cameraPosition"), ref camera.Position);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.DefaultShader.getID(), "view"), true, ref camera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.DefaultShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.Uniform3(GL.GetUniformLocation(GlobalValues.DefaultShader.getID(), "cameraPosition"), ref camera.Position);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             // GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
-            GL.BindTexture(TextureTarget.Texture2D, SunTexture.getID());
+            GL.BindTexture(TextureTarget.Texture2D, SunTexture.GetID());
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, SunVertices.Length);
             GL.BindVertexArray(0);
             GL.BindTexture(TextureTarget.Texture2D, 0);
-            Globals.DefaultShader.UnUse();
+            GlobalValues.DefaultShader.UnUse();
 
         }
 

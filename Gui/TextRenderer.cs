@@ -47,6 +47,12 @@ namespace Blockgame_OpenTK.Gui
         static bool[] isWiggle;
         static bool[] isTag;
         static bool IsInputtingFancyText = false;
+
+        public static Vector3 TopLeft = (0, 0, 0);
+        public static Vector3 TopRight = (1, 0, 0);
+        public static Vector3 BottomLeft = (0, 1, 0);
+        public static Vector3 BottomRight = (1, 1, 0);
+        public static Vector3 Center = (0.5f, 0.5f, 0);
         // NOTE can be in Globals class
         public static Camera Camera = new Camera((0.0f, 0.0f, 1.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
 
@@ -223,23 +229,24 @@ namespace Blockgame_OpenTK.Gui
             return new string(chars.ToArray());
 
         }
-
-        public static void RenderTextWithShadow(Vector3 position, Vector3 shadowOffset, Vector3 color, Vector3 shadowColor, int size, string text)
+        public static void RenderTextWithShadow(Vector3 position, Vector3 origin, Vector3 shadowOffset, Vector3 color, Vector3 shadowColor, int size, string text)
         {
 
             bool keepFancy = false;
             if (IsInputtingFancyText) keepFancy = true; 
 
-            RenderText(position + shadowOffset, color * (0.2f,0.2f,0.2f), size, text);
+            RenderText(position + shadowOffset, origin, color * (0.2f,0.2f,0.2f), size, text);
             IsInputtingFancyText = keepFancy;
-            RenderText(position, color, size, text);
+            RenderText(position, origin, color, size, text);
 
         }
-        public static void RenderText(Vector3 position, Vector3 color, int size, string text)
+        public static void RenderText(Vector3 position, Vector3 origin, Vector3 color, int size, string text)
         {
 
             List<TextVertex> textVertices = new List<TextVertex>();
             float stepSize = 1f/(InternalChars.Length+1);
+            float width = text.Length * size;
+            float height = size;
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -256,8 +263,6 @@ namespace Blockgame_OpenTK.Gui
                     new TextVertex(position + (size + size*i, size, 0), (stepSize + (charIndex * stepSize), 0), color)
 
                 };
-
-                // Console.WriteLine($"tag: {isTag[i]}, italics: {isItalics[i]}, wiggle: {isWiggle[i]}");
 
                 if (IsInputtingFancyText)
                 {
@@ -305,6 +310,16 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
+            TextVertex[] textVerticesArray = textVertices.ToArray();
+
+            for (int i = 0; i < textVerticesArray.Length; i++)
+            {
+
+                textVerticesArray[i].Position.Y -= height * origin.Y;
+                textVerticesArray[i].Position.X -= width * origin.X;
+
+            }
+
             IsInputtingFancyText = false;
 
             Vao = GL.GenVertexArray();
@@ -312,7 +327,7 @@ namespace Blockgame_OpenTK.Gui
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, textVertices.Count() * Marshal.SizeOf<TextVertex>(), textVertices.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, textVerticesArray.Length * Marshal.SizeOf<TextVertex>(), textVerticesArray, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.Position)));
             GL.EnableVertexAttribArray(0);
@@ -331,18 +346,22 @@ namespace Blockgame_OpenTK.Gui
             FontShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, FontTexture.getID());
+            GL.BindTexture(TextureTarget.Texture2D, FontTexture.GetID());
 
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref Globals.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref Globals.GuiCamera.ProjectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
             GL.Uniform3(GL.GetUniformLocation(FontShader.id, "textPosition"), position);
             GL.Uniform1(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
             // Console.WriteLine(Globals.Time);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "time"), (float) Globals.Time);
+            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "time"), (float) GlobalValues.Time);
 
             GL.BindVertexArray(Vao);
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, textVertices.Count());
+            GL.Disable(EnableCap.CullFace);
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, textVerticesArray.Length);
+
+            GL.Enable(EnableCap.CullFace);
 
             GL.BindVertexArray(0);
 
@@ -355,13 +374,13 @@ namespace Blockgame_OpenTK.Gui
 
         }
 
-        public static void RenderLines(Vector3 position, Vector3 color, int size, int lineSpacing, string[] lines)
+        public static void RenderLines(Vector3 position, Vector3 origin, Vector3 color, int size, int lineSpacing, string[] lines)
         {
 
             for (int i = 0; i < lines.Length; i++)
             {
 
-                RenderText(position + (0, (size + lineSpacing) * i, 0), color, size, lines[i]);
+                RenderText(position + (0, (size + lineSpacing) * i, 0), origin, color, size, lines[i]);
 
             }
 

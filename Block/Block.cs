@@ -1,14 +1,7 @@
-﻿using Blockgame_OpenTK.ChunkUtil;
-using Blockgame_OpenTK.Util;
-using System;
-using System.Collections.Generic;
+﻿using Blockgame_OpenTK.Util;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Blockgame_OpenTK.BlockUtil;
-using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
@@ -27,7 +20,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public static Block LoadFromJson(string fileName)
         {
 
-            return JsonSerializer.Deserialize<Block>(File.ReadAllText(Globals.BlockDataPath + fileName));
+            return JsonSerializer.Deserialize<Block>(File.ReadAllText(GlobalValues.BlockDataPath + fileName));
 
         }
 

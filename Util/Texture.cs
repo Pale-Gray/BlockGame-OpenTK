@@ -1,11 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using StbImageSharp;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Drawing;
-using System.IO.IsolatedStorage;
-using System.Diagnostics;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -26,8 +22,11 @@ namespace Blockgame_OpenTK.Util
 
             Id = GL.GenTexture();
 
+            if (imageFile == null) imageFile = "missing.png";
+
             FileName = imageFile;
-            Path = Globals.TexturePath + imageFile;
+            Path = System.IO.Path.Combine(GlobalValues.TexturePath, imageFile);
+
 
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Id);
@@ -36,15 +35,15 @@ namespace Blockgame_OpenTK.Util
             if (imageFile == null)
             {
 
-                Path = Globals.MissingTexture;
+                Path = GlobalValues.MissingTexture;
 
             }
             Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
 
@@ -61,7 +60,7 @@ namespace Blockgame_OpenTK.Util
 
             Id = GL.GenTexture();
 
-            Path = Globals.TexturePath + imageFile;
+            Path = GlobalValues.TexturePath + imageFile;
 
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Id);
@@ -70,7 +69,7 @@ namespace Blockgame_OpenTK.Util
             if (Path == null)
             {
 
-                Path = Globals.MissingTexture;
+                Path = GlobalValues.MissingTexture;
 
             }
             Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
@@ -175,13 +174,13 @@ namespace Blockgame_OpenTK.Util
             return new Texture(datalist.ToArray(), width, height);
 
         }
-        public int getID()
+        public int GetID()
         {
 
             return Id; 
 
         }
-        public ImageResult getImage()
+        public ImageResult GetImage()
         {
             return Image;
         }

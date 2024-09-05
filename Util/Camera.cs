@@ -50,10 +50,10 @@ namespace Blockgame_OpenTK.Util
             {
 
                 case CameraType.Orthographic:
-                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, Globals.WIDTH, Globals.HEIGHT, 0, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, GlobalValues.WIDTH, GlobalValues.HEIGHT, 0, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), Globals.WIDTH / Globals.HEIGHT, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), GlobalValues.WIDTH / GlobalValues.HEIGHT, 0.1f, 1000f);
                     break;
 
             }
@@ -74,7 +74,7 @@ namespace Blockgame_OpenTK.Util
         public void Update(Vector3 position)
         {
 
-            Vector2 MouseDelta = Globals.Mouse.Delta;
+            Vector2 MouseDelta = GlobalValues.Mouse.Delta;
 
             Yaw += MouseDelta.X;
             Pitch -= MouseDelta.Y;
@@ -91,9 +91,9 @@ namespace Blockgame_OpenTK.Util
         public void CalculateFrontFromYawPitch(float yaw, float pitch)
         {
 
-            ForwardVector.X = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
-            ForwardVector.Y = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
-            ForwardVector.Z = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
+            ForwardVector.X = (float)Math.Cos(Maths.ToRadians(pitch)) * (float)Math.Cos(Maths.ToRadians(yaw));
+            ForwardVector.Y = (float)Math.Sin(Maths.ToRadians(pitch));
+            ForwardVector.Z = (float)Math.Cos(Maths.ToRadians(pitch)) * (float)Math.Sin(Maths.ToRadians(yaw));
             ForwardVector = Vector3.Normalize(ForwardVector);
         }
 

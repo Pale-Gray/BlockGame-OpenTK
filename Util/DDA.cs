@@ -5,6 +5,7 @@ using Blockgame_OpenTK.ChunkUtil;
 using System;
 using Blockgame_OpenTK.BlockUtil;
 using System.Runtime.CompilerServices;
+using Blockgame_OpenTK.Core.Chunks;
 
 namespace Blockgame_OpenTK.Util
 {

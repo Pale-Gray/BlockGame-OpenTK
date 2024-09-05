@@ -3,10 +3,10 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using Blockgame_OpenTK.Util;
 using System;
-using Blockgame_OpenTK.ChunkUtil;
+using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.BlockUtil;
 using OpenTK.Windowing.Common;
-using Blockgame_OpenTK.Core.World;
+using Blockgame_OpenTK.Core.Worlds;
 
 namespace Blockgame_OpenTK.PlayerUtil
 {
@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK.PlayerUtil
         public Camera Camera = new Camera(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY, CameraType.Perspective, 90.0f);
         float CameraOffsetY = 0.0f;
         float WalkSpeed = 15.0f;
-        float RunSpeed = 50.0f;
+        float RunSpeed = 30.0f; // 1.0f;
 
         float PressDelay = 1.0f;
         float PlaceDelay = 1.0f;
@@ -29,10 +29,10 @@ namespace Blockgame_OpenTK.PlayerUtil
         {
             float Speed = 0;
 
-            if (Globals.CursorState == CursorState.Grabbed)
+            if (GlobalValues.CursorState == CursorState.Grabbed)
             {
 
-                if (Globals.Keyboard.IsKeyDown(Keys.LeftShift))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.LeftShift))
                 {
 
                     Speed = RunSpeed;
@@ -45,15 +45,15 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                if (Globals.Mouse.IsButtonDown(MouseButton.Left))
+                if (GlobalValues.Mouse.IsButtonDown(MouseButton.Left))
                 {
 
-                    RemoveDelay += (float)Globals.DeltaTime;
+                    RemoveDelay += (float)GlobalValues.DeltaTime;
 
-                    if (RemoveDelay >= 0.25f)
+                    if (RemoveDelay >= 0.15f)
                     {
 
-                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
                         if (Dda.hit)
                         {
 
@@ -61,52 +61,31 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                             world.WorldChunks[Dda.ChunkAtHit].SetBlock(HitPositionLocal, Blocks.AirBlock);
                             WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitY);
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitY);
 
-
-                            // if (ChunkLoader.ContainsGeneratedChunk(DDA.ChunkAtHit))
-                            {
-
-                                // ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlockRewrite(Blocks.AirBlock, HitPositionLocal);
-                                // ChunkLoader.GetChunk(DDA.ChunkAtHit).BlockData[HitPositionLocal.X, HitPositionLocal.Y, HitPositionLocal.Z] = (ushort) Globals.Register.GetIDFromBlock(Blocks.AirBlock);
-                                // ChunkBuilder.CallOpenGL(ChunkLoader.GetChunk(DDA.ChunkAtHit));
-
-                                // ChunkLoader.GetChunk(DDA.ChunkAtHit).SetBlock(HitPositionLocal, Blocks.AirBlock);
-                                // ChunkBuilder.Remesh(ChunkLoader.GetChunk(DDA.ChunkAtHit), ChunkLoader.GetChunkNeighbors(ChunkLoader.GetChunk(DDA.ChunkAtHit)));
-                                // ChunkLoader.RemeshQueue.Add(DDA.ChunkAtHit);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitX);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitX);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitY);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitY);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) + Vector3i.UnitZ);
-                                // ChunkLoader.RemeshQueue.Add(ChunkUtils.PositionToChunk(DDA.PreviousPositionAtHit) - Vector3i.UnitZ);
-
-                            }
+                            if (HitPositionLocal.Y == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitY);
+                            if (HitPositionLocal.Y == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitY);
+                            if (HitPositionLocal.X == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX);
+                            if (HitPositionLocal.X == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX);
+                            if (HitPositionLocal.Z == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ);
+                            if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ);
 
                             RemoveDelay = 0;
 
                         }
-                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.HitChunkPosition)).SetBlockRewrite(Blocks.Air, (Vector3i) DDA.HitBlockPositionLocalToChunk);
-                        // ChunkLoader.GetChunk(ChunkUtils.PositionToChunk(DDA.HitChunkPosition)).SetBlock((Vector3i)DDA.HitBlockPositionLocalToChunk, Blocks.AirBlock);
-
+                        
                     }
 
                 } else { RemoveDelay = 1; }
 
-                if (Globals.Mouse.IsButtonDown(MouseButton.Right))
+                if (GlobalValues.Mouse.IsButtonDown(MouseButton.Right))
                 {
 
-                    PlaceDelay += (float)Globals.DeltaTime;
+                    PlaceDelay += (float)GlobalValues.DeltaTime;
 
-                    if (PlaceDelay >= 0.25f)
+                    if (PlaceDelay >= 0.15f)
                     {
 
-                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, Globals.PlayerRange);
+                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
                         
                         if (Dda.hit)
                         {
@@ -121,12 +100,18 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 world.WorldChunks[previousPositionChunkHit].SetBlock(HitPositionLocal, Blocks.StoneBlock);
                                 WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitZ);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitY);
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitY);
+
+                                if (HitPositionLocal.Y == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitY);
+                                if (HitPositionLocal.Y == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitY);
+                                if (HitPositionLocal.X == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX);
+                                if (HitPositionLocal.X == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX);
+                                if (HitPositionLocal.Z == 0) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ);
+                                if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1) WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ);
+
+                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ + Vector3i.UnitX);
+                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX);
+                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ - Vector3i.UnitX);
+                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ + Vector3i.UnitX);
 
                             }
 
@@ -138,42 +123,42 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 } else {  PlaceDelay = 1; }
 
-                if (Globals.Keyboard.IsKeyDown(Keys.W))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.W))
                 {
 
-                    Position += Camera.ForwardVector * Speed * (float)Globals.DeltaTime;
+                    Position += Camera.ForwardVector * Speed * (float)GlobalValues.DeltaTime;
 
                 }
-                if (Globals.Keyboard.IsKeyDown(Keys.A))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.A))
                 {
 
-                    Position -= Vector3.Normalize(Vector3.Cross(Camera.ForwardVector, Camera.UpVector)) * (Speed * (float)Globals.DeltaTime);
+                    Position -= Vector3.Normalize(Vector3.Cross(Camera.ForwardVector, Camera.UpVector)) * (Speed * (float)GlobalValues.DeltaTime);
 
                 }
-                if (Globals.Keyboard.IsKeyDown(Keys.S))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.S))
                 {
 
-                    Position -= Camera.ForwardVector * Speed * (float)Globals.DeltaTime;
+                    Position -= Camera.ForwardVector * Speed * (float)GlobalValues.DeltaTime;
 
                 }
-                if (Globals.Keyboard.IsKeyDown(Keys.D))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.D))
                 {
 
-                    Position += Vector3.Normalize(Vector3.Cross(Camera.ForwardVector, Camera.UpVector)) * (Speed * (float)Globals.DeltaTime);
-
-                }
-
-                if (Globals.Keyboard.IsKeyDown(Keys.E))
-                {
-
-                    AddPlayerPosition(Camera.UpVector * (Speed * (float)Globals.DeltaTime));
+                    Position += Vector3.Normalize(Vector3.Cross(Camera.ForwardVector, Camera.UpVector)) * (Speed * (float)GlobalValues.DeltaTime);
 
                 }
 
-                if (Globals.Keyboard.IsKeyDown(Keys.Q))
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.E))
                 {
 
-                    AddPlayerPosition(Camera.UpVector * (-Speed * (float)Globals.DeltaTime));
+                    AddPlayerPosition(Camera.UpVector * (Speed * (float)GlobalValues.DeltaTime));
+
+                }
+
+                if (GlobalValues.Keyboard.IsKeyDown(Keys.Q))
+                {
+
+                    AddPlayerPosition(Camera.UpVector * (-Speed * (float)GlobalValues.DeltaTime));
 
                 }
 

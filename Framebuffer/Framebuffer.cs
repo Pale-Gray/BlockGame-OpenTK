@@ -23,7 +23,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)Globals.WIDTH, (int)Globals.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorBufferId, 0);
@@ -34,7 +34,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth24Stencil8, (int)Globals.WIDTH, (int)Globals.HEIGHT, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, (IntPtr)null);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth24Stencil8, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, (IntPtr)null);
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, textureDepthStencilBufferId, 0);
@@ -92,7 +92,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)Globals.WIDTH, (int)Globals.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureColorBufferId, 0);
@@ -103,7 +103,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth24Stencil8, (int)Globals.WIDTH, (int)Globals.HEIGHT, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, (IntPtr)null);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth24Stencil8, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, (IntPtr)null);
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, textureDepthStencilBufferId, 0);

@@ -14,7 +14,7 @@ namespace Blockgame_OpenTK.Util
         {
 
             Console.WriteLine($"Converting texture name {reader.GetString()} to index");
-            return Globals.ArrayTexture.GetTextureIndex(reader.GetString());
+            return GlobalValues.ArrayTexture.GetTextureIndex(reader.GetString());
 
         }
 

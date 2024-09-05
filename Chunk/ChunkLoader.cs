@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using OpenTK.Platform.Windows;
 
-namespace Blockgame_OpenTK.ChunkUtil
+namespace Blockgame_OpenTK.Core.Chunks
 {
     internal class ChunkLoader
     {

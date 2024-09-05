@@ -64,12 +64,12 @@ namespace Blockgame_OpenTK.Util
             ushort[] encoded = new ushort[rleData.Length/2];
             Buffer.BlockCopy(rleData, 0, encoded, 0, rleData.Length);
             List<ushort> decompressed = new List<ushort>();
-
-            while (encoded.Length > 0)
+            
+            for(int i = 0; i < encoded.Length; i+=2)
             {
 
-                ushort value = encoded[0];
-                ushort count = encoded[1];
+                ushort value = encoded[i];
+                ushort count = encoded[i+1];
 
                 for (int c = 0; c < count; c++)
                 {
@@ -78,9 +78,7 @@ namespace Blockgame_OpenTK.Util
 
                 }
 
-                encoded = encoded.Skip(2).ToArray();
-
-            } 
+            }
 
             return decompressed.ToArray();
 

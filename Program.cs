@@ -18,6 +18,8 @@ using System.Net;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.IO;
+using Blockgame_OpenTK.BlockUtil;
 
 namespace Blockgame_OpenTK
 {
@@ -29,29 +31,23 @@ namespace Blockgame_OpenTK
         public static void Main(string[] args)
         {
 
-            /*
-            Dictionary<Vector3i, Chunk> d = new Dictionary<Vector3i, Chunk>();
-            int Radius = 16;
-            Stopwatch sw = Stopwatch.StartNew();
-            for (int x = -Radius; x <= Radius; x++)
+            string hello = "HELLOあいうえお";
+
+            Console.OutputEncoding = Encoding.Unicode;
+            Console.WriteLine(hello[7]);
+            Console.WriteLine("あ");
+
+            Console.WriteLine(Directory.GetCurrentDirectory());
+
+            Console.WriteLine(GlobalValues.PATH);
+
+            Test t = new Test();
+            if (t is ITest)
             {
 
-                for (int y = -Radius; y <= Radius; y++)
-                {
-
-                    for (int z = -Radius; z <= Radius; z++)
-                    {
-
-                        d.Add((x, y, z), new Chunk((x, y, z)));
-
-                    }
-
-                }
+                Console.WriteLine("Test is inheriting ITest");
 
             }
-            sw.Stop();
-            Console.WriteLine($"Filled a dictionary containing {Math.Pow(Radius+1+Radius, 3)} chunks (Radius of {Radius}) in {sw.ElapsedMilliseconds}ms");  
-            */
 
             int work;
             int complete;
@@ -76,7 +72,7 @@ namespace Blockgame_OpenTK
             Console.WriteLine("Press any button to continue");
             Console.ReadLine();
 
-            game = new Game((int)Globals.WIDTH, (int)Globals.HEIGHT, "Game");
+            game = new Game((int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, "Game");
 
             using (game)
             {
@@ -116,8 +112,8 @@ namespace Blockgame_OpenTK
                 GLFW.GetWindowSize(game.WindowPtr, out int w, out int h);
 
                 GL.Viewport(0, 0, w, h);
-                Globals.WIDTH = w;
-                Globals.HEIGHT = h;
+                GlobalValues.WIDTH = w;
+                GlobalValues.HEIGHT = h;
                 TextRenderer.Camera.UpdateProjectionMatrix();
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -126,13 +122,13 @@ namespace Blockgame_OpenTK
                 float dt = (float)GLFW.GetTime() - (float)previousTime;
                 previousTime = (float)GLFW.GetTime();
                 
-                Globals.Time += dt;
+                GlobalValues.Time += dt;
 
                 float yOffset = 2;
                 float lineSpacing = 8;
                 int fontSize = 16;
 
-                TextRenderer.RenderLines((0, 2, 0), (1, 1, 1), 18, 2, new string[]
+                TextRenderer.RenderLines((0, 2, 0), TextRenderer.TopLeft, (1, 1, 1), 18, 2, new string[]
                 {
 
                     "Encountered an error.",

@@ -1,9 +1,13 @@
 #version 330 core
 layout (location=0) in vec3 position;
-layout (location=1) in vec2 texcoord;
+layout (location=1) in vec3 normal;
+layout (location=2) in vec2 texcoord;
 
 out vec3 v_position;
 out vec2 v_texcoord;
+out vec3 vNormal;
+out vec3 viewNormal;
+out vec4 viewPosition;
 
 out float v_time;
 
@@ -15,30 +19,43 @@ float PI = 3.141459265359;
 
 uniform float time;
 
+uniform vec3 cameraPosition;
+out vec3 vCameraPosition;
+out vec4 worldPosition;
+out vec3 cameraEye;
+out mat4 modelMatrix;
+
+out mat4 viewMatrix;
+out mat4 projectionMatrix;
+
 void main()
 {
 
 	v_position = position;
 	v_texcoord = texcoord;
+	v_time = time;
+	vCameraPosition = cameraPosition;
 
-	vec4 positionWorld = vec4(position.xyz, 1.0) * model * view * projection;
+	modelMatrix = model;
 
-	mat4 viewMatrix = transpose(view);
+	vNormal = normal;
+	viewNormal = normalize((vec4(normal, 1.0) * view).xyz);
 
-	// vec3 cameraRight = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
-	// vec3 cameraUp = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
-	// vec4 cameraRight = vec4(1,0,0,1) * viewMatrix;
-	// vec4 cameraUp = vec4(0, 1, 0, 1) * viewMatrix;
+	// vec4 positionWorld = vec4(position.xyz + 0.5, 1.0) * model * view * projection;
+	// worldPosition = (vec4(position.xyz + 0.5, 1.0) * model);
 
-	vec3 cameraRight = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
-	vec3 cameraUp = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+	worldPosition = vec4(position, 1.0) * model;
 
-	vec4 pos = vec4(0.0, 0.0, 0.0, 1.0) * model * view * projection;
-	pos /= pos.w;
-	pos.xy += (vec4(position, 1.0) * projection).xy;
+	vec4 modelViewPosition = vec4(position, 1.0) * model * view;
+	viewPosition = modelViewPosition;
 
-	pos = vec4(position.x * cameraRight + position.y * cameraUp, 1) * model * view * projection;
+	// mat4 viewMatrix = transpose(view);
 
-	gl_Position = pos;
+	viewMatrix = transpose(view);
+	projectionMatrix = projection;
+
+	cameraEye = vec3(view[0][2], view[1][2], view[2][2]);
+
+	gl_Position = modelViewPosition * projection;
 
 }

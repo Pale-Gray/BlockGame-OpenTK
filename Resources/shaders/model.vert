@@ -28,9 +28,14 @@ out mat4 vModelMatrix;
 out mat4 vViewMatrix;
 out mat4 vProjectionMatrix;
 
+uniform vec3 cameraPosition;
+
+out vec3 vCameraPosition;
+
 void main()
 {
 
+	vCameraPosition = cameraPosition;
 	sunNormal = sunVec;
 
 	v_position = position;

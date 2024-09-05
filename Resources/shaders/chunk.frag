@@ -7,6 +7,9 @@ uniform vec3 cameraPosition;
 
 uniform float radius;
 
+uniform mat4 view;
+uniform mat4 projection;
+
 in vec3 vposition;
 in vec2 vtexcoord;
 flat in int vtexture_index;
@@ -24,6 +27,9 @@ uniform bool shouldRenderFog;
 uniform float fogOffset;
 
 uniform float chunkLifetime;
+uniform bool shouldRenderAmbientOcclusion;
+
+in vec4 ambientValues;
 
 vec2[] texcoord = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
 
@@ -58,16 +64,24 @@ void main()
 
 	float a = 1;
 
+	vec4 ambientOcclusion = clamp(ambientValues + 0.3, 0, 1);
+	if (!shouldRenderAmbientOcclusion)
+	{
+		ambientOcclusion = vec4(1,1,1,1);
+	}
+
 	if (shouldRenderFog)
 	{
 
-		Outcolor = vec4(mix(array_texture.rgb * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
+		Outcolor = vec4(mix(array_texture.rgb * ambientOcclusion.rgb * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
 
 	} else 
 	{
 
-		Outcolor = vec4(array_texture.rgb * value, a);
+		Outcolor = vec4(array_texture.rgb * ambientOcclusion.rgb * value, a);
 
 	}
+
+	// Outcolor = clamp(vec4(vnormal, 1.0) * inverse(transpose(view)), 0.0, 1.0);
 
 }

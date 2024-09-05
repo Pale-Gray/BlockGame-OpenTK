@@ -12,10 +12,10 @@ namespace Blockgame_OpenTK.Gui
         {
 
             Vector3 relativePosition = absolutePostion;
-            relativePosition.X /= Globals.WIDTH;
+            relativePosition.X /= GlobalValues.WIDTH;
             relativePosition.X *= 2;
             relativePosition.X -= 1;
-            relativePosition.Y /= Globals.HEIGHT;
+            relativePosition.Y /= GlobalValues.HEIGHT;
             relativePosition.Y *= 2;
             relativePosition.Y -= 1;
             return relativePosition;
@@ -26,8 +26,8 @@ namespace Blockgame_OpenTK.Gui
         {
 
             Vector3 absolutePosition = relativePosition;
-            absolutePosition.X *= Globals.WIDTH;
-            absolutePosition.Y *= Globals.HEIGHT;
+            absolutePosition.X *= GlobalValues.WIDTH;
+            absolutePosition.Y *= GlobalValues.HEIGHT;
 
             return absolutePosition;
 
@@ -36,36 +36,36 @@ namespace Blockgame_OpenTK.Gui
         public static float PixelSizeRelativeToPercentageOfWidth(float percentage)
         {
 
-            return Globals.WIDTH * (percentage / 100);
+            return GlobalValues.WIDTH * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageOfHeight(float percentage)
         {
 
-            return Globals.HEIGHT * (percentage / 100);
+            return GlobalValues.HEIGHT * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageMax(float percentage)
         {
 
-            return Math.Max(Globals.HEIGHT, Globals.WIDTH) * (percentage / 100);
+            return Math.Max(GlobalValues.HEIGHT, GlobalValues.WIDTH) * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageMin(float percentage)
         {
 
-            return Math.Min(Globals.HEIGHT, Globals.WIDTH) * (percentage / 100);
+            return Math.Min(GlobalValues.HEIGHT, GlobalValues.WIDTH) * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageAverage(float percentage)
         {
 
-            float a = Globals.WIDTH * (percentage / 100);
-            float b = Globals.HEIGHT * (percentage / 100);
+            float a = GlobalValues.WIDTH * (percentage / 100);
+            float b = GlobalValues.HEIGHT * (percentage / 100);
 
             return (a + b) / 2f;
 
@@ -74,7 +74,7 @@ namespace Blockgame_OpenTK.Gui
         public static bool DidCollideWithMousePointer(Vector2 position, Vector2 dimension, Vector2 origin)
         {
 
-            Vector2 mousePosition = Globals.Mouse.Position;
+            Vector2 mousePosition = GlobalValues.Mouse.Position;
 
             position = position - (dimension * origin);
 

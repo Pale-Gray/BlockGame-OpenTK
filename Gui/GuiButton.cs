@@ -37,20 +37,20 @@ namespace Blockgame_OpenTK.Gui
             if (IsMoveable && IsGrabbed)
             {
 
-                Vector2 mouseDelta = Globals.Mouse.Delta;
+                Vector2 mouseDelta = GlobalValues.Mouse.Delta;
 
-                AbsolutePosition += Globals.Mouse.Delta;
+                AbsolutePosition += GlobalValues.Mouse.Delta;
 
             }
 
-            if (!Globals.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (!GlobalValues.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 OnButtonHover();
 
             }
 
-            if (Globals.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (GlobalValues.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 IsGrabbed = true;
@@ -59,7 +59,7 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
-            if (Globals.Mouse.IsButtonReleased(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (GlobalValues.Mouse.IsButtonReleased(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 IsGrabbed = false;
@@ -68,7 +68,7 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
-            if (Globals.Mouse.IsButtonPressed(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (GlobalValues.Mouse.IsButtonPressed(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 OnButtonClick();

@@ -130,11 +130,11 @@ namespace Blockgame_OpenTK.Gui
             TranslationMatrix = Matrix4.CreateTranslation(Position.X, Position.Y, 0);
             ModelMatrix = Matrix4.CreateTranslation(-OriginOffset.X, -OriginOffset.Y, 0) * RotationMatrix * TranslationMatrix * ScaleMatrix;
 
-            Globals.GuiShader.Use();
+            GlobalValues.GuiShader.Use();
 
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "model"), true, ref ModelMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "view"), true, ref Globals.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(Globals.GuiShader.id, "projection"), true, ref Globals.GuiCamera.ProjectionMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "model"), true, ref ModelMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
 
             GL.BindVertexArray(Vao);
 
@@ -142,7 +142,7 @@ namespace Blockgame_OpenTK.Gui
 
             GL.BindVertexArray(0);
 
-            Globals.GuiShader.UnUse();
+            GlobalValues.GuiShader.UnUse();
 
         }
 
