@@ -15,10 +15,4 @@ void main()
 
 	FragColor = vec4(fontColor.rgb * vColor, fontColor.a);
 
-	// FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-	// FragColor = texture(fatlas, vtextureCoordinates) * vec4(fontColor, 1.0);
-	// FragColor = vec4(1,1,1,1);
-	// FragColor = vec4(fontColor, 1.0);
-	// FragColor = texture(tex, v_TexCoords);
-
 }

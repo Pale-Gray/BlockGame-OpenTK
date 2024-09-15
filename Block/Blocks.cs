@@ -13,6 +13,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public static readonly Block StoneBlock = Block.LoadFromJson("StoneBlock.json");
         public static readonly Block DirtBlock = Block.LoadFromJson("DirtBlock.json");
         public static readonly Block LogBlock = Block.LoadFromJson("LogBlock.json");
+        public static readonly Block BrickBlock = Block.LoadFromJson("BrickBlock.json");
         public static void Load()
         {
             // Block b = Block.LoadFromJson("GrassBlockNew.json");
@@ -22,6 +23,7 @@ namespace Blockgame_OpenTK.BlockUtil
             GlobalValues.Register.AddBlock(2, StoneBlock);
             GlobalValues.Register.AddBlock(3, DirtBlock);
             GlobalValues.Register.AddBlock(4, LogBlock);
+            GlobalValues.Register.AddBlock(5, BrickBlock);
 
         }
 

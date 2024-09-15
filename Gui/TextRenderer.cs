@@ -6,8 +6,6 @@ using OpenTK.Graphics.OpenGL4;
 using System.Runtime.InteropServices;
 
 using Blockgame_OpenTK.Util;
-using System.ComponentModel;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Blockgame_OpenTK.Gui
 {
@@ -342,6 +340,9 @@ namespace Blockgame_OpenTK.Gui
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             FontShader.Use();
 

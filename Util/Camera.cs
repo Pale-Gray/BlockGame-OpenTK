@@ -78,6 +78,7 @@ namespace Blockgame_OpenTK.Util
 
             Yaw += MouseDelta.X;
             Pitch -= MouseDelta.Y;
+            Pitch = Math.Clamp(Pitch, -88, 88);
 
             CalculateFrontFromYawPitch(Yaw, Pitch);
             

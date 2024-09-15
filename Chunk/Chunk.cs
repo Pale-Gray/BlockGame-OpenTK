@@ -1,15 +1,9 @@
 ﻿using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
-using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL4;
 using Blockgame_OpenTK.BlockUtil;
 using System.IO;
-using Blockgame_OpenTK.Core.Worlds;
-using System.IO.Compression;
-using System.Text;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -93,6 +87,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public ChunkVertex[] ChunkMesh;
+        public List<Vector3i> StructurePoints = new List<Vector3i>();
         public GenerationState GenerationState = GenerationState.NotGenerated;
         public MeshState MeshState = MeshState.NotMeshed;
         public ChunkState ChunkState = ChunkState.NotReady;
@@ -110,6 +105,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public float Lifetime = 0;
         public readonly object ChunkLock = new();
         public bool NeedsToRequeue = true;
+        public bool CallForRemesh = false;
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -172,8 +168,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             // Console.WriteLine(ChunkPosition);
             Lifetime += (float) GlobalValues.DeltaTime;
 
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "atlas"), 0);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 1);
+            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
             GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), camera.Position);
             GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), sunVec);
             GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkLifetime"), Lifetime);
@@ -184,8 +179,6 @@ namespace Blockgame_OpenTK.Core.Chunks
             // Console.WriteLine(ChunkPosition);
             GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, GlobalValues.AtlasTexture.GetID());
-            GL.ActiveTexture(TextureUnit.Texture1);
             GL.BindTexture(TextureTarget.Texture2DArray, GlobalValues.ArrayTexture.TextureID);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "model"), true, ref model);
             GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), true, ref camera.ViewMatrix);
@@ -282,7 +275,17 @@ namespace Blockgame_OpenTK.Core.Chunks
         public void SetBlockSafe(Vector3i position, Block block)
         {
 
-            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize));
+            Vector3i min = ChunkPosition * GlobalValues.ChunkSize;
+            Vector3i max = min + (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize);
+
+            if (position.X >= min.X && position.X < max.X && position.Y >= min.Y && position.Y < max.Y && position.Z >= min.Z && position.Z < max.Z) 
+            {
+
+                BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(position))] = block.ID;
+
+            }
+
+            // Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize));
 
             // BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
 

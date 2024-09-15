@@ -1,10 +1,8 @@
 ﻿using OpenTK.Mathematics;
 using System.Collections.Generic;
 
-using Blockgame_OpenTK.ChunkUtil;
 using System;
 using Blockgame_OpenTK.BlockUtil;
-using System.Runtime.CompilerServices;
 using Blockgame_OpenTK.Core.Chunks;
 
 namespace Blockgame_OpenTK.Util
@@ -25,8 +23,6 @@ namespace Blockgame_OpenTK.Util
         public static Vector3 HitBlockPositionGlobal = Vector3.Zero;
         public static Vector3 HitChunkPosition = Vector3.Zero;
 
-
-
         public static Vector3i ChunkAtHit = Vector3i.Zero;
         public static Vector3i PositionAtHit = Vector3i.Zero;
         public static Vector3i PreviousPositionAtHit = Vector3i.Zero;
@@ -36,6 +32,14 @@ namespace Blockgame_OpenTK.Util
 
         public static List<Vector3i> hitpositions;
         public static bool hit = false;
+
+        /*
+         * 
+         * Implemented based on a few links
+         * https://www.researchgate.net/publication/233899848_Efficient_implementation_of_the_3D-DDA_ray_traversal_algorithm_on_GPU_and_its_application_in_radiation_dose_calculation
+         * https://www.shadertoy.com/view/4dX3zl
+         * 
+         */
         public static void TraceChunks(Dictionary<Vector3i, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
@@ -108,7 +112,140 @@ namespace Blockgame_OpenTK.Util
             // Console.WriteLine("start");
             hit = false;
 
-            // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
+            while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
+            {
+
+                if (chunkDictionary.ContainsKey(ChunkUtils.PositionToChunk(GlobalBlockPosition)) && chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].QueueType == QueueType.Finish)
+                {
+
+                    if (chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition)) != Blocks.AirBlock)
+                    {
+
+                        // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);
+                        // PositionAtHit = RoundedPosition;
+                        ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(GlobalBlockPosition);
+                        hit = true;
+                        PositionAtHit = GlobalBlockPosition;
+                        SmoothPosition = position + NormalizedDirection * Distance;
+
+                    } else
+                    {
+
+                        PreviousPositionAtHit = GlobalBlockPosition;
+                        if (SideDistance.X < SideDistance.Y)
+                        {
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            if (SideDistance.X < SideDistance.Z)
+                            {
+
+                                Distance = SideDistance.X;
+                                SideDistance.X += DeltaDistance.X;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.X += Step.X;
+
+                            }
+                            else
+                            {
+
+                                Distance = SideDistance.Z;
+                                SideDistance.Z += DeltaDistance.Z;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Z += Step.Z;
+
+                            }
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+
+                        }
+                        else
+                        {
+
+                            PreviousPositionAtHit = GlobalBlockPosition;
+                            if (SideDistance.Y < SideDistance.Z)
+                            {
+
+                                Distance = SideDistance.Y;
+                                SideDistance.Y += DeltaDistance.Y;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Y += Step.Y;
+
+                            }
+                            else
+                            {
+
+                                Distance = SideDistance.Z;
+                                SideDistance.Z += DeltaDistance.Z;
+                                // PreviousPositionAtHit = GlobalBlockPosition;
+                                GlobalBlockPosition.Z += Step.Z;
+
+                            }
+                            //PreviousPositionAtHit = GlobalBlockPosition;
+
+                        }
+
+                    }
+
+                } else
+                {
+
+                    PreviousPositionAtHit = GlobalBlockPosition;
+                    if (SideDistance.X < SideDistance.Y)
+                    {
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+                        if (SideDistance.X < SideDistance.Z)
+                        {
+
+                            Distance = SideDistance.X;
+                            SideDistance.X += DeltaDistance.X;
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            GlobalBlockPosition.X += Step.X;
+
+                        }
+                        else
+                        {
+
+                            Distance = SideDistance.Z;
+                            SideDistance.Z += DeltaDistance.Z;
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            GlobalBlockPosition.Z += Step.Z;
+
+                        }
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+
+                    }
+                    else
+                    {
+
+                        PreviousPositionAtHit = GlobalBlockPosition;
+                        if (SideDistance.Y < SideDistance.Z)
+                        {
+
+                            Distance = SideDistance.Y;
+                            SideDistance.Y += DeltaDistance.Y;
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            GlobalBlockPosition.Y += Step.Y;
+
+                        }
+                        else
+                        {
+
+                            Distance = SideDistance.Z;
+                            SideDistance.Z += DeltaDistance.Z;
+                            // PreviousPositionAtHit = GlobalBlockPosition;
+                            GlobalBlockPosition.Z += Step.Z;
+
+                        }
+                        //PreviousPositionAtHit = GlobalBlockPosition;
+
+                    }
+
+                }
+
+
+            }
+
+
+            /*
+                // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
             if (chunkDictionary.ContainsKey(ChunkUtils.PositionToChunk(GlobalBlockPosition)) && chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].QueueType == QueueType.Finish)
             {
 
@@ -186,9 +323,63 @@ namespace Blockgame_OpenTK.Util
 
                 }
 
+            } else
+            {
+
+                PreviousPositionAtHit = GlobalBlockPosition;
+                if (SideDistance.X < SideDistance.Y)
+                {
+                    // PreviousPositionAtHit = GlobalBlockPosition;
+                    if (SideDistance.X < SideDistance.Z)
+                    {
+
+                        Distance = SideDistance.X;
+                        SideDistance.X += DeltaDistance.X;
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+                        GlobalBlockPosition.X += Step.X;
+
+                    }
+                    else
+                    {
+
+                        Distance = SideDistance.Z;
+                        SideDistance.Z += DeltaDistance.Z;
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+                        GlobalBlockPosition.Z += Step.Z;
+
+                    }
+                    // PreviousPositionAtHit = GlobalBlockPosition;
+
+                }
+                else
+                {
+
+                    PreviousPositionAtHit = GlobalBlockPosition;
+                    if (SideDistance.Y < SideDistance.Z)
+                    {
+
+                        Distance = SideDistance.Y;
+                        SideDistance.Y += DeltaDistance.Y;
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+                        GlobalBlockPosition.Y += Step.Y;
+
+                    }
+                    else
+                    {
+
+                        Distance = SideDistance.Z;
+                        SideDistance.Z += DeltaDistance.Z;
+                        // PreviousPositionAtHit = GlobalBlockPosition;
+                        GlobalBlockPosition.Z += Step.Z;
+
+                    }
+                    //PreviousPositionAtHit = GlobalBlockPosition;
+
+                }
+
             }
 
-
+            */
             // Console.WriteLine("end");
 
         }

@@ -1,0 +1,9 @@
+{
+
+  "DataName": "BrickBlock",
+  "DisplayName": "Brick Block",
+  "Model": "BrickBlock.json",
+  "SoundPath": "BrickBlock",
+  "BreakTime": 1000
+
+}

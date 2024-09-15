@@ -1,10 +1,7 @@
 ﻿using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Gui
@@ -30,6 +27,7 @@ namespace Blockgame_OpenTK.Gui
 
     }
 
+    // implemented based on https://wwwtyro.net/2019/11/18/instanced-lines.html
     internal class LineRenderer
     {
 

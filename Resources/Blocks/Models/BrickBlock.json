@@ -1,0 +1,45 @@
+{
+
+  "Reference": "Cube.json",
+  "Faces": [
+
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Up"
+
+    },
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Down"
+
+    },
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Left"
+
+    },
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Right"
+
+    },
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Front"
+
+    },
+    {
+
+      "Texture": "BrickBlock",
+      "Reference": "Back"
+
+    }
+
+  ]
+
+}

@@ -3,6 +3,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using OpenTK.Mathematics;
 using Blockgame_OpenTK.Registry;
+using System.IO;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -12,7 +13,7 @@ namespace Blockgame_OpenTK.Util
         public static string TexturePath = "Resources/Textures/";
         public static string ShaderPath = "Resources/Shaders/";
         public static string MissingTexture = "Resources/Textures/missing.png";
-        public static string LocalPath = TexturePath + "TextureArray";
+        public static string LocalPath = Path.Combine(TexturePath, "TextureArray");
         public static string BlockDataPath = "Resources/Blocks/";
         public static string BlockModelPath = "Resources/Blocks/Models/";
 
@@ -28,6 +29,7 @@ namespace Blockgame_OpenTK.Util
         public static KeyboardState Keyboard = null;
         public static CursorState CursorState = CursorState.Normal;
         public static bool RenderAmbientOcclusion = true;
+        public static bool ShouldRenderWireframe = false;
 
         public static readonly int PlayerRange = 10;
 
@@ -47,12 +49,13 @@ namespace Blockgame_OpenTK.Util
         public static Shader SkyboxShader;
         public static Shader DefaultShader;
         public static Shader GuiShader;
+        public static Shader GuiBlockShader;
+
+        public static ushort BlockSelectorID = 1;
 
         public static Camera GuiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90f);
 
         public static string FrameInformation = "";
-
-        public static FastNoiseLite noise = new FastNoiseLite();
 
         public static Register Register = new Register();
 

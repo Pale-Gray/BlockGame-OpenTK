@@ -5,21 +5,11 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using OpenTK.Mathematics;
-using System.Diagnostics;
 using Blockgame_OpenTK.BlockUtil;
-using System.Reflection;
-using Blockgame_OpenTK.ChunkUtil;
-using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
 using System.Text;
-using System.Net;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading;
 using System.IO;
-using Blockgame_OpenTK.BlockUtil;
 
 namespace Blockgame_OpenTK
 {
@@ -31,33 +21,11 @@ namespace Blockgame_OpenTK
         public static void Main(string[] args)
         {
 
-            string hello = "HELLOあいうえお";
-
             Console.OutputEncoding = Encoding.Unicode;
-            Console.WriteLine(hello[7]);
-            Console.WriteLine("あ");
-
-            Console.WriteLine(Directory.GetCurrentDirectory());
-
-            Console.WriteLine(GlobalValues.PATH);
-
-            Test t = new Test();
-            if (t is ITest)
-            {
-
-                Console.WriteLine("Test is inheriting ITest");
-
-            }
-
-            int work;
-            int complete;
-            ThreadPool.GetMaxThreads(out work, out complete);
-            Console.WriteLine(work);
-
-            ThreadPool.SetMaxThreads(8, 0);
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
+            /*
             Console.Write("Please enter a username to connect to the server: ");
             string username = Console.ReadLine();
             byte[] usernameBytes = Encoding.UTF8.GetBytes(username);
@@ -71,6 +39,7 @@ namespace Blockgame_OpenTK
             Console.WriteLine($"The first address in the addresses of {address} is {addresses[0]}");
             Console.WriteLine("Press any button to continue");
             Console.ReadLine();
+            */
 
             game = new Game((int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, "Game");
 

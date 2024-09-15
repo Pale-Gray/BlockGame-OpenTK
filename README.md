@@ -3,6 +3,10 @@
 # BlockGame-OpenTK
 A vision and in-progress voxel-based game
 
+## For Playtesters
+
+Please submit any issues you find!! They are very helpful for me and the game!!
+
 ## About
 
 My game is going to be similar to Minecraft, but with added features and implementations that strive away from Minecraft itself

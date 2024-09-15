@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -85,12 +86,21 @@ namespace Blockgame_OpenTK.Core.Worlds
                 if (world.WorldChunks.ContainsKey(position))
                 {
 
+                    if (Maths.ChebyshevDistance3D(position, cameraPosition) > MaxRadius + 2)
+                    {
+
+                        world.WorldChunks[position].NeedsToRequeue = false;
+
+                    }
+
                     if (world.WorldChunks[position].NeedsToRequeue)
                     {
 
                         ChunkUpdateQueue.Enqueue(position);
 
                     }
+
+                    // Console.WriteLine($"Chunk queue type: {world.WorldChunks[position].QueueType}, distance {Maths.ChebyshevDistance3D(position, cameraPosition)}");
 
                     switch (world.WorldChunks[position].QueueType)
                     {
@@ -114,6 +124,11 @@ namespace Blockgame_OpenTK.Core.Worlds
 
                                 }
 
+                            } else
+                            {
+
+                                world.WorldChunks[position].NeedsToRequeue = false;
+
                             }
                             break;
                         case QueueType.PassOne:
@@ -135,13 +150,31 @@ namespace Blockgame_OpenTK.Core.Worlds
 
             int amtUpdated = 0;
 
-            while (ChunkAlterUpdateQueue.Count > 0 && amtUpdated <= 0)
+            Console.WriteLine(ChunkAlterUpdateQueue.Count);
+
+            while (ChunkAlterUpdateQueue.Count > 0 && amtUpdated < MaxChunkUpdates)
             {
 
                 Vector3i position = ChunkAlterUpdateQueue.Dequeue();
+                if (world.WorldChunks[position].CallForRemesh)
+                {
 
-                ChunkBuilder.Remesh(world.WorldChunks[position], world.WorldChunks);
-                // ChunkBuilder.MeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
+                    ChunkBuilder.RemeshThreaded(world.WorldChunks[position], world.WorldChunks, Vector3i.Zero);
+                    if (world.WorldChunks[position].CallForRemesh)
+                    {
+
+                        ChunkAlterUpdateQueue.Enqueue(position);
+
+                    }
+
+                } else
+                {
+
+                    ChunkBuilder.CallOpenGL(world.WorldChunks[position], world.WorldChunks);
+
+                }
+
+                amtUpdated++;
 
             }
 
@@ -174,9 +207,8 @@ namespace Blockgame_OpenTK.Core.Worlds
             Vector3i playerChunkPosition = ChunkUtils.PositionToChunk(playerPosition);
 
             UpdateAlterQueue(world);
-            Console.WriteLine(world.WorldChunks.Count);
             UpdateQueue(world, PreviousChunkPosition);
-            // UpdateSaveAndRemoveQueue(world);
+            // Console.WriteLine(ChunkUpdateQueue.Count);
 
             if (CurrentRadius <= MaxRadius + 2)
             {
@@ -189,6 +221,7 @@ namespace Blockgame_OpenTK.Core.Worlds
 
                         world.WorldChunks.Add(ChunksToAdd[i] + PreviousChunkPosition, new Chunk(ChunksToAdd[i] + PreviousChunkPosition));
                         world.WorldChunks[ChunksToAdd[i] + PreviousChunkPosition].NeedsToRequeue = true;
+                        world.WorldChunks[ChunksToAdd[i] + PreviousChunkPosition].QueueType = QueueType.PassOne;
                         ChunkUpdateQueue.Enqueue(ChunksToAdd[i] + PreviousChunkPosition);
 
                     }
@@ -204,8 +237,6 @@ namespace Blockgame_OpenTK.Core.Worlds
             {
 
                 Console.WriteLine("Chunk position changed");
-                // CurrentRadius = 0; // MaxRadius - Maths.ChebyshevDistance3D(playerChunkPosition, PreviousChunkPosition);
-                // ChunkUpdateQueue.Clear();
                 CurrentRadius = 0; // CurrentRadius - Maths.ChebyshevDistance3D(playerChunkPosition, PreviousChunkPosition);
                 ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius + 2);
                 PreviousChunkPosition = playerChunkPosition;

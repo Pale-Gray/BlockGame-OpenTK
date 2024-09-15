@@ -1,10 +1,15 @@
-﻿using Blockgame_OpenTK.Util;
+﻿using Blockgame_OpenTK.Gui;
+using Blockgame_OpenTK.Util;
+using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
+
+    [JsonSerializable(typeof(Block))]
     internal class Block
     {
         
@@ -17,13 +22,20 @@ namespace Blockgame_OpenTK.BlockUtil
         public string SoundPath { get; set; }
         public int BreakTime { get; set; }
         public ushort ID = 0;
+        public AxisAlignedBoundingBox BoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0));
+        public GuiBlockModel GuiRenderableBlockModel;
         public static Block LoadFromJson(string fileName)
         {
 
-            return JsonSerializer.Deserialize<Block>(File.ReadAllText(GlobalValues.BlockDataPath + fileName));
+            Block block = JsonSerializer.Deserialize<Block>(File.ReadAllText(GlobalValues.BlockDataPath + fileName));
+
+            block.BoundingBox.StaticFriction = 0.8f;
+            block.BoundingBox.DynamicFriction = 0.8f;
+            block.GuiRenderableBlockModel = new GuiBlockModel(block);
+
+            return block;
 
         }
-
         public void OnBlockPlace() { }
         public void OnBlockInteract() { }
         public void OnBlockMine() { }

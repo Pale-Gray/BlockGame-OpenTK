@@ -1,7 +1,6 @@
 #version 400 core
 out vec4 Outcolor;
 
-uniform sampler2D atlas;
 uniform sampler2DArray arrays;
 uniform vec3 cameraPosition;
 
@@ -52,7 +51,6 @@ void main()
 	float ambient = clamp(0.5 * falloff, 0, 1);
 	float value = clamp(ambient + (max(0, sunDotProduct) * falloff), 0.1, 1.0);
 
-	vec4 tex = texture(atlas, vtexcoord);
 	vec4 array_texture = texture(arrays, vec3(vtexcoord, vtexture_index));
 	float edge = 0;
 	float thickness = 0.1;
@@ -64,7 +62,7 @@ void main()
 
 	float a = 1;
 
-	vec4 ambientOcclusion = clamp(ambientValues + 0.3, 0, 1);
+	vec4 ambientOcclusion = ambientValues;
 	if (!shouldRenderAmbientOcclusion)
 	{
 		ambientOcclusion = vec4(1,1,1,1);
@@ -78,7 +76,7 @@ void main()
 	} else 
 	{
 
-		Outcolor = vec4(array_texture.rgb * ambientOcclusion.rgb * value, a);
+		Outcolor = vec4(array_texture.rgb * value * ambientOcclusion.rgb, a);
 
 	}
 

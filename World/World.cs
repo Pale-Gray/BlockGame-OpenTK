@@ -3,6 +3,7 @@ using OpenTK.Mathematics;
 using System.Collections.Generic;
 
 using Blockgame_OpenTK.Core.Chunks;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -42,10 +43,13 @@ namespace Blockgame_OpenTK.Core.Worlds
             foreach (Chunk chunk in WorldChunks.Values)
             {
 
+
                 if (chunk.QueueType == QueueType.Finish)
                 {
 
+                    GL.PolygonMode(MaterialFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
                     chunk.Draw((0,1,0), playerCamera);
+                    GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
                 }
 
