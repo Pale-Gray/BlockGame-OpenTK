@@ -150,8 +150,6 @@ namespace Blockgame_OpenTK.Core.Worlds
 
             int amtUpdated = 0;
 
-            Console.WriteLine(ChunkAlterUpdateQueue.Count);
-
             while (ChunkAlterUpdateQueue.Count > 0 && amtUpdated < MaxChunkUpdates)
             {
 
