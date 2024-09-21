@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 using System;
 using System.IO;
 
@@ -29,17 +29,22 @@ namespace Blockgame_OpenTK.Util
             // compiling
             GL.CompileShader(vertshader);
 
-            GL.GetShader(vertshader, ShaderParameter.CompileStatus, out int Cv);
+            // GL.GetShader(vertshader, , out int Cv);
+            int Cv = GL.GetShaderi(vertshader, ShaderParameterName.CompileStatus);
             if (Cv == 0)
             {
-                Console.WriteLine(GL.GetShaderInfoLog(vertshader));
+                // Console.WriteLine(GL.GetShaderInfoLog(vertshader));
+                GL.GetShaderInfoLog(vertshader, out string info);
+                Console.WriteLine(info);
             }
             GL.CompileShader(fragshader);
 
-            GL.GetShader(fragshader, ShaderParameter.CompileStatus, out int Cf);
-            if (Cf == 0)
+            // GL.GetShader(fragshader, ShaderParameter.CompileStatus, out int Cf);
+            if (GL.GetShaderi(fragshader, ShaderParameterName.CompileStatus) == 0)
             {
-                Console.WriteLine(GL.GetShaderInfoLog(fragshader));
+                //Console.WriteLine(GL.GetShaderInfoLog(fragshader));
+                GL.GetShaderInfoLog(fragshader, out string info);
+                Console.WriteLine(info);
             }
 
             // attaching to program
@@ -48,12 +53,14 @@ namespace Blockgame_OpenTK.Util
             GL.AttachShader(id, fragshader);
 
             GL.LinkProgram(id);
-            GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int Cs);
+            // GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int Cs);
+            int Cs = GL.GetProgrami(id, ProgramProperty.LinkStatus);
             if (Cs == 0)
             {
 
-                Console.WriteLine(GL.GetProgramInfoLog(id));
-
+                //Console.WriteLine(GL.GetProgramInfoLog(id));
+                GL.GetProgramInfoLog(id, out string info);
+                Console.WriteLine(info);
             }
 
             // cleanup

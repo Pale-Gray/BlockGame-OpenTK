@@ -27,7 +27,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public static Block LoadFromJson(string fileName)
         {
 
-            Block block = JsonSerializer.Deserialize<Block>(File.ReadAllText(GlobalValues.BlockDataPath + fileName));
+            Block block = JsonSerializer.Deserialize<Block>(File.ReadAllText(Path.Combine(GlobalValues.BlockDataPath, fileName)));
 
             block.BoundingBox.StaticFriction = 0.8f;
             block.BoundingBox.DynamicFriction = 0.8f;

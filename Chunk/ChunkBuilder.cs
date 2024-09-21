@@ -1,6 +1,7 @@
 ﻿using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -45,10 +46,9 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static void GeneratePassOne(Chunk chunk)
         {
 
-           
             Vector3i chunkPosition = chunk.ChunkPosition;
 
-            if (true)
+            if (!chunk.TryLoad())
             {
 
                 for (int x = -GlobalValues.ChunkSize; x <= 2*GlobalValues.ChunkSize; x++)
@@ -149,8 +149,8 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             chunk.IsEmpty = chunk.CheckIfEmpty();
             chunk.IsFull = chunk.CheckIfFull();
-            // Console.WriteLine(chunk.IsEmpty);
-            // Console.WriteLine(chunk.IsFull);
+            // Console.Log(chunk.IsEmpty);
+            // Console.Log(chunk.IsFull);
             chunk.QueueType = QueueType.Mesh;
             // WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
             // WorldGenerator.ChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
@@ -560,12 +560,14 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.ChunkMesh = mesh.ToArray();
             chunk.CallForRemesh = false;
 
+            WorldGenerator.ChunkOpenglUpdateQueue.Enqueue(chunk.ChunkPosition);
+
         }
 
         private static Block GetBlockWithNeighbors(Chunk chunk, Dictionary<Vector3i, Chunk> neighbors, Vector3i position)
         {
 
-            // Console.WriteLine(position.X < 0);
+            // Console.Log(position.X < 0);
 
             if (position.Z >= GlobalValues.ChunkSize) return neighbors[Vector3i.UnitZ].GetBlock((position.X, position.Y, 0));
             if (position.Z < 0) return neighbors[-Vector3i.UnitZ].GetBlock((position.X, position.Y, GlobalValues.ChunkSize - 1));
@@ -622,7 +624,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static void CallOpenGL(Chunk chunk, Dictionary<Vector3i, Chunk> worldChunks)
+        public static void CallOpenGL(Chunk chunk)
         {
 
             GL.DeleteVertexArray(chunk.Vao);
@@ -630,7 +632,6 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             chunk.IsEmpty = chunk.CheckIfEmpty();
             chunk.IsFull = chunk.CheckIfFull();
-            chunk.IsExposed = chunk.CheckIfExposed(worldChunks);
 
             // chunk.SetChunkState(ChunkState.Processing);
             // chunk.ChunkState = ChunkState.Processing;
@@ -643,7 +644,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.SetVbo(GL.GenBuffer());
             // chunk.Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, chunk.GetVbo());
-            GL.BufferData(BufferTarget.ArrayBuffer, chunk.ChunkMesh == null ? 0 : chunk.ChunkMesh.Length * Marshal.SizeOf<ChunkVertex>(), chunk.GetChunkMesh(), BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, chunk.ChunkMesh == null ? 0 : chunk.ChunkMesh.Length * Marshal.SizeOf<ChunkVertex>(), chunk.GetChunkMesh(), BufferUsage.DynamicDraw);
 
             GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureIndex)));
             GL.EnableVertexAttribArray(0);
@@ -658,11 +659,8 @@ namespace Blockgame_OpenTK.Core.Chunks
             GL.BindVertexArray(0);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            // chunk.SetChunkState(ChunkState.Ready);// = ChunkState.Ready;
-            // chunk.ChunkState = ChunkState.Ready;
-            // chunk.QueueMode = QueueMode.NotQueued;
+
             chunk.QueueType = QueueType.Finish;
-            // chunk.ChunkState = ChunkState.Ready;
 
         }
 
@@ -670,7 +668,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         {
 
             Mesh(chunk, world, Vector3i.Zero);
-            CallOpenGL(chunk, world);
+            CallOpenGL(chunk);
 
         }
 

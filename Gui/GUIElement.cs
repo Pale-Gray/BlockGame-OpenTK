@@ -1,5 +1,5 @@
 ﻿using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Runtime.InteropServices;
 
@@ -111,7 +111,7 @@ namespace Blockgame_OpenTK.Gui
             GL.BindVertexArray(Vao);
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, GuiMesh.Length * Marshal.SizeOf<GuiVertex>(), GuiMesh, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, GuiMesh.Length * Marshal.SizeOf<GuiVertex>(), GuiMesh, BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
             GL.EnableVertexAttribArray(0);
@@ -132,9 +132,9 @@ namespace Blockgame_OpenTK.Gui
 
             GlobalValues.GuiShader.Use();
 
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "model"), true, ref ModelMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "model"), 1, true, ref ModelMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
 
             GL.BindVertexArray(Vao);
 

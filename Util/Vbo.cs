@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -6,7 +6,7 @@ namespace Blockgame_OpenTK.Util
     {
 
         static int vbo;// = GL.GenBuffer();
-        public static int Generate(float[] meshData, BufferUsageHint hint)
+        public static int Generate(float[] meshData, BufferUsage hint)
         {
             if (meshData == null)
             {

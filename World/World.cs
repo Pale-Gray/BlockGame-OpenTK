@@ -3,7 +3,8 @@ using OpenTK.Mathematics;
 using System.Collections.Generic;
 
 using Blockgame_OpenTK.Core.Chunks;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -43,22 +44,21 @@ namespace Blockgame_OpenTK.Core.Worlds
             foreach (Chunk chunk in WorldChunks.Values)
             {
 
-
-                if (chunk.QueueType == QueueType.Finish)
+                if (chunk.QueueType == QueueType.Finish && chunk.ChunkMesh.Length != 0)
                 {
 
-                    GL.PolygonMode(MaterialFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
+                    GL.PolygonMode(TriangleFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
                     chunk.Draw((0,1,0), playerCamera);
-                    GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+                    GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
-                }
+                    if (GlobalValues.ShouldRenderBounds)
+                    {
 
-                if (GlobalValues.ShouldRenderBounds && chunk.QueueType == QueueType.Finish)
-                {
-                    
-                    Game.rmodel.SetScale(32, 32, 32);
-                    Game.rmodel.Draw(((Vector3)chunk.ChunkPosition + (0.5f, 0.5f, 0.5f)) * 32, Vector3.Zero, playerCamera, 0);
-                    Game.rmodel.SetScale(1, 1, 1);
+                        // Game.rmodel.SetScale(32, 32, 32);
+                        // Game.rmodel.Draw(((Vector3)chunk.ChunkPosition + (0.5f, 0.5f, 0.5f)) * 32, Vector3.Zero, playerCamera, 0);
+                        // Game.rmodel.SetScale(1, 1, 1);
+
+                    }
 
                 }
 

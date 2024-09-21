@@ -1,4 +1,8 @@
 #version 400 core
+
+precision mediump float;
+precision mediump sampler2DArray;
+
 out vec4 Outcolor;
 
 uniform sampler2DArray arrays;
@@ -52,31 +56,40 @@ void main()
 	float value = clamp(ambient + (max(0, sunDotProduct) * falloff), 0.1, 1.0);
 
 	vec4 array_texture = texture(arrays, vec3(vtexcoord, vtexture_index));
-	float edge = 0;
+	// float edge = 0;
 	float thickness = 0.1;
-	if (vposition.x > thickness && vposition.x < 32 - thickness && vposition.y > thickness && vposition.y < 32 - thickness && vposition.z > thickness && vposition.z < 32 - thickness) {edge = 1;}
+	// if (vposition.x > thickness && vposition.x < 32 - thickness && vposition.y > thickness && vposition.y < 32 - thickness && vposition.z > thickness && vposition.z < 32 - thickness) {edge = 1;}
 
 	vec3 fogColor = vec3(0.522,0.667,0.933);
 
 	float fac = clamp(distFac, 0, 1);
 
-	float a = 1;
+	float a = 1.0;
 
-	vec4 ambientOcclusion = ambientValues;
+	float ambientIntensity = 0.5;
+	float falloffMultiplier = 0.0;
+
+	float ambientValue = ambientValues.r;
+	// if (ambientValue == 0.0) ambientValue = ambientIntensity;
+
+	vec4 ambientOcclusion = vec4(ambientValue);
 	if (!shouldRenderAmbientOcclusion)
 	{
 		ambientOcclusion = vec4(1,1,1,1);
 	}
 
+	float ambientFac = (ambientIntensity + falloffMultiplier) * (ambientIntensity * (1-ambientOcclusion.r)) - (ambientIntensity * falloffMultiplier);
+	ambientFac = clamp(ambientFac, 0, 1);
+
 	if (shouldRenderFog)
 	{
 
-		Outcolor = vec4(mix(array_texture.rgb * ambientOcclusion.rgb * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
+		Outcolor = vec4(mix(array_texture.rgb * (1-ambientFac) * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
 
 	} else 
 	{
 
-		Outcolor = vec4(array_texture.rgb * value * ambientOcclusion.rgb, a);
+		Outcolor = vec4(array_texture.rgb * value * (1-ambientFac), a);
 
 	}
 

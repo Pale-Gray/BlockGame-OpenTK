@@ -1,9 +1,11 @@
 ﻿using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using Blockgame_OpenTK.BlockUtil;
 using System.IO;
+using System.Threading.Tasks;
+using Blockgame_OpenTK.Core.Worlds;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -106,6 +108,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public readonly object ChunkLock = new();
         public bool NeedsToRequeue = true;
         public bool CallForRemesh = false;
+        public bool ForceAborted = false;
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -113,6 +116,19 @@ namespace Blockgame_OpenTK.Core.Chunks
             GenerationState = GenerationState.NotGenerated;
             MeshState = MeshState.NotMeshed;
             ChunkState = ChunkState.NotReady;
+
+        }
+
+        public void SaveToFileThreaded()
+        {
+
+            Task.Run(() => 
+            {
+
+                SaveToFile();
+                // WorldGenerator.ChunkRemoveQueue.Enqueue(ChunkPosition);
+            
+            });
 
         }
         public void SaveToFile()
@@ -147,7 +163,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public bool TryLoad()
         {
 
-            string path = $"Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat";
+            string path = Path.Combine("Chunks", $"{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat");
 
             if (File.Exists(path))
             {
@@ -165,26 +181,26 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             GlobalValues.ChunkShader.Use();
 
-            // Console.WriteLine(ChunkPosition);
+            // Console.Log(ChunkPosition);
             Lifetime += (float) GlobalValues.DeltaTime;
 
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
-            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), camera.Position);
-            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), sunVec);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkLifetime"), Lifetime);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "radius"), (float) 8);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderFog"), GlobalValues.ShouldRenderFog ? 1 : 0);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderAmbientOcclusion"), GlobalValues.RenderAmbientOcclusion ? 1 : 0);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "fogOffset"), GlobalValues.FogOffset);
-            // Console.WriteLine(ChunkPosition);
-            GL.Uniform3(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkpos"), ChunkPosition.ToVector3());
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), 1, camera.Position);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), 1, sunVec);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkLifetime"), Lifetime);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "radius"), (float) 8);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderFog"), GlobalValues.ShouldRenderFog ? 1 : 0);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "shouldRenderAmbientOcclusion"), GlobalValues.RenderAmbientOcclusion ? 1 : 0);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "fogOffset"), GlobalValues.FogOffset);
+            // Console.Log(ChunkPosition);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkpos"), 1, ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2DArray, GlobalValues.ArrayTexture.TextureID);
+            GL.BindTexture(TextureTarget.Texture2dArray, GlobalValues.ArrayTexture.TextureID);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), 1, true, camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), 1, true, camera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float)0);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float)0);
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
             GL.BindVertexArray(0);

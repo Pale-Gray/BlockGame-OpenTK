@@ -1,0 +1,156 @@
+[INFO] Loading Textures
+[INFO] Loading File Resources\Textures\TextureArray\BrickBlock.png
+[INFO] Added BrickBlock to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\DirtBlock.png
+[INFO] Added DirtBlock to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\GrassBlockSide.png
+[INFO] Added GrassBlockSide to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\GrassBlockTop.png
+[INFO] Added GrassBlockTop to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\LogBlockSide.png
+[INFO] Added LogBlockSide to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\LogBlockTop.png
+[INFO] Added LogBlockTop to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\MissingTexture.png
+[INFO] Added MissingTexture to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\StoneBlock.png
+[INFO] Added StoneBlock to TextureNames
+[INFO] Loading File Resources\Textures\TextureArray\X.png
+[INFO] Added X to TextureNames
+[INFO] Finished Loading Textures
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture GrassBlockTop exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture GrassBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture GrassBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture GrassBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture GrassBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture StoneBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture DirtBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockTop exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockTop exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture LogBlockSide exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] The texture MissingTexture exists in TextureNames
+[INFO] The texture BrickBlock exists in TextureNames
+[INFO] Registering AirBlock
+[INFO] Registered AirBlock
+[INFO] Registering GrassBlock
+[INFO] Registered GrassBlock
+[INFO] Registering StoneBlock
+[INFO] Registered StoneBlock
+[INFO] Registering DirtBlock
+[INFO] Registered DirtBlock
+[INFO] Registering LogBlock
+[INFO] Registered LogBlock
+[INFO] Registering BrickBlock
+[INFO] Registered BrickBlock
+Blockgame_OpenTK.Util.BlockNotFoundException: Forced a crash
+   at Blockgame_OpenTK.Game.OnRenderFrame(FrameEventArgs args) in C:\Users\gavin\Source\Repos\BlockGame-OpenTK\Game.cs:line 402
+   at OpenTK.Windowing.Desktop.GameWindow.Run()
+   at Blockgame_OpenTK.Program.Main(String[] args) in C:\Users\gavin\Source\Repos\BlockGame-OpenTK\Program.cs:line 40

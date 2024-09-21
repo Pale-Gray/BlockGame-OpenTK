@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using OpenTK.Mathematics;
-using System.Diagnostics;
-
-using Blockgame_OpenTK.Util;
-using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading.Tasks;
-using System.Reflection;
-using OpenTK.Platform.Windows;
-
-namespace Blockgame_OpenTK.Core.Chunks
+﻿namespace Blockgame_OpenTK.Core.Chunks
 {
     internal class ChunkLoader
     {
@@ -50,7 +37,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             elapsed.Stop();
             TimeSpan elapsedtime = elapsed.Elapsed;
-            Console.WriteLine("Finished generating " + ChunkDictionary.Count + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
+            Console.Log("Finished generating " + ChunkDictionary.Count + " chunks in " + Math.Round(elapsedtime.TotalSeconds, 2) + " seconds.");
 
         }
 
@@ -66,9 +53,9 @@ namespace Blockgame_OpenTK.Core.Chunks
             if (Ticking > TickLength)
             {
 
-                Console.WriteLine("Ticking.");
-                Console.WriteLine(ChunkPositions.Length);
-                // Console.WriteLine("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
+                Console.Log("Ticking.");
+                Console.Log(ChunkPositions.Length);
+                // Console.Log("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
                 if ((MaxChunks - ChunkDictionary.Count) < ChunksPerTick)
                 {
 
@@ -77,8 +64,8 @@ namespace Blockgame_OpenTK.Core.Chunks
                 }
                 for (int a = 0; a < ChunksPerTick; a++)
                 {
-                    Console.WriteLine("appending...");
-                    // Console.WriteLine("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
+                    Console.Log("appending...");
+                    // Console.Log("{0}, {1}, {2}", ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]);
                     Append(new Chunk(ChunkPositions[0], ChunkPositions[1], ChunkPositions[2]));
                     ChunkPositions = ChunkPositions.Skip(3).ToArray();
 
@@ -185,7 +172,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static String ReturnChunkPositionCombined(int cx, int cy, int cz)
         {
 
-            // Console.WriteLine(cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString());
+            // Console.Log(cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString());
 
 
             return cx.ToString() + "_" + cy.ToString() + "_" + cz.ToString();
@@ -200,7 +187,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             for (int i = 0; i < numbers.Length; i++)
             {
 
-                Console.WriteLine(numbers[i]);
+                Console.Log(numbers[i]);
 
             }
 
@@ -443,7 +430,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                 if (amtGenOne >= ChunksToGeneratePassOne.Length)
                 {
 
-                    Console.WriteLine("inc p1");
+                    Console.Log("inc p1");
 
                     CurrentPassOneRadius++;
                     ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, Radius + 2);
@@ -484,7 +471,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                 if (amtGenTwo >= ChunksToGeneratePassTwo.Length)
                 {
 
-                    Console.WriteLine("inc p2");
+                    Console.Log("inc p2");
 
                     CurrentPassTwoRadius++;
                     ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, Radius+1);
@@ -532,7 +519,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                 if (amtMeshed >= ChunksToMesh.Length)
                 {
 
-                    Console.WriteLine("inc mesh radius");
+                    Console.Log("inc mesh radius");
                     CurrentMeshRadius++;
                     ChunksToMesh = ChunkUtils.GenerateRingsOfColumns(CurrentMeshRadius, Radius);
 
@@ -556,7 +543,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             UpdatePassTwoQueue();
             UpdatePassOneQueue();
             UpdateChunkQueue();
-            // Console.WriteLine($"gen one queue: {GenOneQueue.Count}, gen two queue: {GenTwoQueue.Count}, mesh queue: {MeshQueue.Count}");
+            // Console.Log($"gen one queue: {GenOneQueue.Count}, gen two queue: {GenTwoQueue.Count}, mesh queue: {MeshQueue.Count}");
 
             int distance = Maths.ChebyshevDistance3D(PreviousPlayerChunkPosition, ChunkUtils.PositionToChunk(cameraPosition));
 
@@ -605,14 +592,14 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                 }
 
-                // Console.WriteLine($"Amount chunks gen pass one: {amtChunksGenPassOne}");
+                // Console.Log($"Amount chunks gen pass one: {amtChunksGenPassOne}");
 
                 if (amtChunksGenPassOne >= ChunksToGeneratePassOne.Length)
                 {
 
                     CurrentPassOneRadius++;
                     ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, Radius + 2);
-                    Console.WriteLine($"Pass one radius: {CurrentPassOneRadius}");
+                    Console.Log($"Pass one radius: {CurrentPassOneRadius}");
                     // amtChunksGenPassOne = 0;
 
                 }
@@ -647,14 +634,14 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                 }
 
-                // Console.WriteLine($"Amount chunks gen pass two: {amtChunksGenPassTwo}");
+                // Console.Log($"Amount chunks gen pass two: {amtChunksGenPassTwo}");
 
                 if (amtChunksGenPassTwo >= ChunksToGeneratePassTwo.Length)
                 {
 
                     CurrentPassTwoRadius++;
                     ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, Radius + 1);
-                    Console.WriteLine($"Pass two radius: {CurrentPassTwoRadius}");
+                    Console.Log($"Pass two radius: {CurrentPassTwoRadius}");
                     // amtChunksGenPassTwo = 0;
 
                 }
@@ -673,7 +660,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                         if (Chunks[PreviousPlayerChunkPosition + ChunksToMesh[i]].GenerationState == GenerationState.Generated && Chunks[PreviousPlayerChunkPosition + ChunksToMesh[i]].MeshState == MeshState.NotMeshed && AreNeighborsGenerated(PreviousPlayerChunkPosition + ChunksToMesh[i]) && Chunks[PreviousPlayerChunkPosition + ChunksToMesh[i]].QueueMode == QueueMode.NotQueued)
                         {
 
-                            // Console.WriteLine("yes");
+                            // Console.Log("yes");
 
                             Chunks[PreviousPlayerChunkPosition + ChunksToMesh[i]].QueueMode = QueueMode.Queued;
                             MeshQueue.Enqueue(PreviousPlayerChunkPosition + ChunksToMesh[i]);
@@ -700,14 +687,14 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                 }
 
-                // Console.WriteLine($"Amount chunks meshed: {amtChunksMeshed}");
+                // Console.Log($"Amount chunks meshed: {amtChunksMeshed}");
 
                 if (amtChunksMeshed >= ChunksToMesh.Length)
                 {
 
                     CurrentMeshRadius++;
                     ChunksToMesh = ChunkUtils.GenerateRingsOfColumns(CurrentMeshRadius, Radius);
-                    Console.WriteLine($"Current mesh radius: {CurrentMeshRadius}");
+                    Console.Log($"Current mesh radius: {CurrentMeshRadius}");
                     // amtChunksMeshed = 0;
 
                 }
@@ -759,7 +746,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             if (Chunks.ContainsKey(back) && Chunks[back].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
             if (Chunks.ContainsKey(front) && Chunks[front].GenerationState >= GenerationState.PassOne) neighborsGenerated++;
 
-            // Console.WriteLine(neighborsGenerated == 6);
+            // Console.Log(neighborsGenerated == 6);
 
             return neighborsGenerated == 6;
 
@@ -848,7 +835,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                 // UpdateLoadAndMeshQueue();
 
-                // Console.WriteLine($"{CurrentPassOneRadius}, {CurrentPassTwoRadius}, {CurrentMeshRadius}");
+                // Console.Log($"{CurrentPassOneRadius}, {CurrentPassTwoRadius}, {CurrentMeshRadius}");
 
                 int chunksUpdated = 0;
                 if (CurrentMeshRadius >= Radius)
@@ -933,7 +920,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                     if (amountPassOne == ChunksToGeneratePassOne.Length)
                     {
 
-                        Console.WriteLine("inc pass one radius");
+                        Console.Log("inc pass one radius");
                         CurrentPassOneRadius++;
                         ChunksToGeneratePassOne = ChunkUtils.GenerateRingsOfColumns(CurrentPassOneRadius, Radius + 2);
 
@@ -989,7 +976,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                     if (amountPassTwo == ChunksToGeneratePassTwo.Length)
                     {
 
-                        Console.WriteLine("inc pass two radius");
+                        Console.Log("inc pass two radius");
                         CurrentPassTwoRadius++;
                         ChunksToGeneratePassTwo = ChunkUtils.GenerateRingsOfColumns(CurrentPassTwoRadius, Radius + 1);
 
@@ -1052,7 +1039,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                     if (amountMeshed == ChunksToMesh.Length)
                     {
 
-                        Console.WriteLine("inc pass mesh radius");
+                        Console.Log("inc pass mesh radius");
                         CurrentMeshRadius++;
                         ChunksToMesh = ChunkUtils.GenerateRingsOfColumns(CurrentMeshRadius, Radius);
 

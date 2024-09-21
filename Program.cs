@@ -1,66 +1,187 @@
-﻿using Blockgame_OpenTK.Gui;
-using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
-using Blockgame_OpenTK.BlockUtil;
+﻿using System;
 using System.Text;
-using System.Linq;
 using System.Threading;
-using System.IO;
+using OpenTK.Platform;
+using OpenTK.Core.Utility;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
+using Blockgame_OpenTK.Util;
+using OpenTK.Mathematics;
+using System.Diagnostics;
 
 namespace Blockgame_OpenTK
 {
     internal unsafe class Program
-    {
-
-        static Game game;
+    { 
 
         public static void Main(string[] args)
         {
 
             Console.OutputEncoding = Encoding.Unicode;
 
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            Input.Initialize();
 
-            /*
-            Console.Write("Please enter a username to connect to the server: ");
-            string username = Console.ReadLine();
-            byte[] usernameBytes = Encoding.UTF8.GetBytes(username);
-            byte[] usernameHashBytes = SHA256.HashData(usernameBytes);
-            uint usernameHash = BitConverter.ToUInt32(usernameHashBytes);
-            Console.WriteLine($"For debug purposes, the hash of your username is {BitConverter.ToString(usernameHashBytes).Replace("-", string.Empty)}. This is the unique ID to connect to the server.");
-            Console.Write("Enter the server IP or name to connect: ");
-            string address = Console.ReadLine();
-            IPAddress[] addresses = Dns.GetHostAddresses(address);
+            ThreadPool.SetMaxThreads(8, 8);
+            
+            ToolkitOptions toolkitOptions = new ToolkitOptions();
+            toolkitOptions.ApplicationName = "Game";
+            toolkitOptions.Logger = new ConsoleLogger();
+            Toolkit.Init(toolkitOptions);
 
-            Console.WriteLine($"The first address in the addresses of {address} is {addresses[0]}");
-            Console.WriteLine("Press any button to continue");
-            Console.ReadLine();
-            */
-
-            game = new Game((int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, "Game");
-
-            using (game)
+            OpenGLGraphicsApiHints contextSettings = new OpenGLGraphicsApiHints()
             {
 
-                game.Run();
+                Version = new Version(4, 6),
+                Profile = OpenGLProfile.Core,
+                DebugFlag = true,
+                DepthBits = ContextDepthBits.Depth24,
+                StencilBits = ContextStencilBits.Stencil8
+
+            };
+
+            WindowHandle window = Toolkit.Window.Create(contextSettings);
+            OpenGLContextHandle glContext = Toolkit.OpenGL.CreateFromWindow(window);
+
+            Toolkit.OpenGL.SetCurrentContext(glContext);
+            GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(glContext));
+
+            BlockGame.Load();
+
+            EventQueue.EventRaised += EventRaised;
+
+            Toolkit.Window.SetTitle(window, "Game");
+            Toolkit.Window.SetSize(window, 640, 480);
+            Toolkit.Window.SetMode(window, WindowMode.Normal);
+            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
+            //Toolkit.Window.GetClientSize(window, out int w, out int h);
+            //Console.WriteLine($"{w}, {h}");
+            // CursorHandle invisibleCursor = Toolkit.Cursor.Create(1, 1, new ReadOnlySpan<byte>(new byte[4]), 0, 0);
+            CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
+            Toolkit.Window.SetCursor(window, null);
+
+            {
+
+                Toolkit.Mouse.GetPosition(out int x, out int y);
+                Input.PreviousMousePosition = (x, y);
+
+            }
+            GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
+            while (true)
+            {
+
+                GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
+                GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
+                GlobalValues.PreviousTime = GlobalValues.CurrentTime;
+
+                Input.MouseDelta = Vector2.Zero;
+
+                GlobalValues.Time += GlobalValues.DeltaTime;
+
+                Toolkit.Window.ProcessEvents(false);
+
+                if (Toolkit.Window.IsWindowDestroyed(window))
+                {
+
+                    BlockGame.Unload();
+                    break;
+
+                }
+
+                if (Input.IsKeyPressed(Key.Escape))
+                {
+
+                    Console.WriteLine("yes");
+                    if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
+                    {
+
+                        Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Normal);
+                        Toolkit.Window.SetCursor(window, visibleCursor);
+                        GlobalValues.IsCursorLocked = false;
+                        
+                    } else
+                    {
+
+                        Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
+                        Toolkit.Window.SetCursor(window, null);
+                        GlobalValues.IsCursorLocked = true;
+
+                    }
+
+                }
+
+                BlockGame.Render();
+
+                Toolkit.OpenGL.SwapBuffers(glContext);
 
             }
 
         }
 
+        static void EventRaised(PalHandle? handle, PlatformEventType type, EventArgs args)
+        {
+
+            if (args is CloseEventArgs closeEventArgs)
+            {
+
+                Toolkit.Window.Destroy(closeEventArgs.Window);
+
+            }
+
+            if (args is WindowResizeEventArgs windowResizeEventArgs)
+            {
+                // BlockGame.UpdateScreenSize(windowResizeEventArgs.Window);
+
+                Console.WriteLine("resizing");
+                BlockGame.UpdateScreenSize(windowResizeEventArgs);
+
+            }
+
+            if (args is WindowFramebufferResizeEventArgs framwbufferResizeEventArgs)
+            {
+
+                BlockGame.UpdateFramebufferSize(framwbufferResizeEventArgs);
+
+            }
+
+            if (args is KeyDownEventArgs keyDown)
+            {
+
+                KeyState keyState = Input.KeyStates[keyDown.Key];
+                keyState.IsKeyDown = true;
+                Input.KeyStates[keyDown.Key] = keyState;
+
+            }
+
+            if (args is KeyUpEventArgs keyUp)
+            {
+
+                KeyState keyState = Input.KeyStates[keyUp.Key];
+                keyState.IsKeyDown = false;
+                keyState.AllowKeyPress = true;
+                Input.CurrentKeyDown = Key.Unknown;
+                Input.CurrentKeyPressed = Key.Unknown;
+                Input.KeyStates[keyUp.Key] = keyState;
+
+            }
+
+            if (args is MouseMoveEventArgs mouseMove)
+            {
+
+
+                Input.CurrentMousePosition = mouseMove.Position;
+                Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
+                Input.PreviousMousePosition = Input.CurrentMousePosition;
+
+            }
+
+        }
+
+        /*
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
 
             Exception e = args.ExceptionObject as Exception;
-
-            // Console.WriteLine($"Caught an exception, \n {e.Message + "\n" + e.StackTrace}");
-
-            // string message = "An error occured:\n\n" + e.Message + "\n" + e.StackTrace;
-            // string[] lines = message.Split(new [] { '\r', '\n' });
 
             string message = e.Message;
             string[] stackTrace = e.StackTrace.Split(Environment.NewLine);
@@ -74,6 +195,21 @@ namespace Blockgame_OpenTK
             float previousTime = 0;
 
             GL.Disable(EnableCap.DepthTest);
+
+            using (FileStream stream = new FileStream("log.txt", FileMode.Create))
+            {
+
+                foreach (string line in GlobalValues.LogMessages)
+                {
+
+                    stream.Write(Encoding.UTF8.GetBytes($"{line}\n"));
+
+                }
+
+                stream.Write(Encoding.UTF8.GetBytes($"{e.GetType()}: {e.Message}\n"));
+                stream.Write(Encoding.UTF8.GetBytes(e.StackTrace));
+
+            }
 
             while (!game.IsExiting)
             {
@@ -132,6 +268,7 @@ namespace Blockgame_OpenTK
             gw2.Run();
 
         }
+        */
 
     }
 }

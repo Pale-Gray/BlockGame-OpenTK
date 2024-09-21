@@ -15,7 +15,7 @@ namespace Blockgame_OpenTK.Util
         public override BlockModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
 
-            // Console.WriteLine($"Loading {reader.GetString()}");
+            // Console.Log($"Loading {reader.GetString()}");
             return BlockModel.LoadFromJson(reader.GetString());
 
         }

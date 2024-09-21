@@ -1,7 +1,5 @@
-﻿using OpenTK.Graphics.ES11;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 using System;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
@@ -57,7 +55,7 @@ namespace Blockgame_OpenTK.Util
             float yPart = y % 1;
             if (xPart < 0) xPart += 1;
             if (yPart < 0) yPart += 1;
-            // Console.WriteLine($"{xPart}, {yPart}");
+            // Console.Log($"{xPart}, {yPart}");
 
             float topLerp = Slerp(topLeft, topRight, xPart);
             float bottomLerp = Slerp(bottomLeft, bottomRight, xPart);

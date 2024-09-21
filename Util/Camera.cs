@@ -74,10 +74,10 @@ namespace Blockgame_OpenTK.Util
         public void Update(Vector3 position)
         {
 
-            Vector2 MouseDelta = GlobalValues.Mouse.Delta;
+            Vector2 MouseDelta = Input.MouseDelta;
 
-            Yaw += MouseDelta.X;
-            Pitch -= MouseDelta.Y;
+            Yaw += MouseDelta.X * GlobalValues.Settings.MouseSensitivity;
+            Pitch -= MouseDelta.Y * GlobalValues.Settings.MouseSensitivity;
             Pitch = Math.Clamp(Pitch, -88, 88);
 
             CalculateFrontFromYawPitch(Yaw, Pitch);

@@ -25,6 +25,16 @@ namespace Blockgame_OpenTK.BlockUtil
             GlobalValues.Register.AddBlock(4, LogBlock);
             GlobalValues.Register.AddBlock(5, BrickBlock);
 
+            for (int i = 0; i < 5; i++)
+            {
+
+                Block block = GlobalValues.Register.GetBlockFromID((ushort)i);
+
+                // Console.Log(block.DataName);
+                // Console.Log(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Up]);
+
+            }
+
         }
 
     }

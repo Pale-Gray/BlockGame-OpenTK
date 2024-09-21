@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -30,20 +30,20 @@ namespace Blockgame_OpenTK.Util
             GL.ActiveTexture(TextureUnit.Texture1);
             GL.BindTexture(TextureTarget.TextureCubeMap, id);
 
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.Repeat);
             
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeZ, 0, PixelInternalFormat.Rgba, front.Width, front.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, front.Data);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, right.Width, right.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, right.Data);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveZ, 0, PixelInternalFormat.Rgba, back.Width, back.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, back.Data);
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeX, 0, PixelInternalFormat.Rgba, left.Width, left.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, left.Data);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba, top.Width, top.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, top.Data);
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, PixelInternalFormat.Rgba, bottom.Width, bottom.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, bottom.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeZ, 0, InternalFormat.Rgba, front.Width, front.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, front.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, InternalFormat.Rgba, right.Width, right.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, right.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveZ, 0, InternalFormat.Rgba, back.Width, back.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, back.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeX, 0, InternalFormat.Rgba, left.Width, left.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, left.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, InternalFormat.Rgba, top.Width, top.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, top.Data);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, InternalFormat.Rgba, bottom.Width, bottom.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, bottom.Data);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
         }
 
     }

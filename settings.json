@@ -1,0 +1,19 @@
+{
+
+  "Keymap": {
+
+    "Forwards": "Keydown.W",
+    "Backwards": "Keydown.S",
+    "Left": "Keydown.A",
+    "Right": "Keydown.D",
+    "Up": "Keydown.E",
+    "Down": "Keydown.Q",
+    "Sprint": "Keydown.LeftShift",
+    "PlaceBlock": "Mouse.Right",
+    "DestroyBlock": "Mouse.Left",
+    "Jump": "Keydown.Space"
+
+  },
+  "MouseSensitivity": 1.0
+
+}

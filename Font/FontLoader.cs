@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Util;
 using FreeTypeSharp;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using static FreeTypeSharp.FT;
 
@@ -83,18 +83,18 @@ namespace Blockgame_OpenTK.Font
             TextureWidth = width;
             TextureHeight = height;
 
-            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
             texture = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.BindTexture(TextureTarget.Texture2d, texture);
 
             Console.WriteLine($"width: {width}, height: {height}");
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, 0);
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, 0);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
 
             int xOffset = 0;
             int yOffset = 0;
@@ -114,7 +114,7 @@ namespace Blockgame_OpenTK.Font
 
                 Characters.TryAdd((char)i, ci);
 
-                GL.TexSubImage2D(TextureTarget.Texture2D, 0, xOffset, yOffset, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, PixelFormat.Red, PixelType.UnsignedByte, (nint)face->glyph->bitmap.buffer);
+                GL.TexSubImage2D(TextureTarget.Texture2d, 0, xOffset, yOffset, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, PixelFormat.Red, PixelType.UnsignedByte, (nint)face->glyph->bitmap.buffer);
                 xOffset += (int)face->glyph->bitmap.width;
                 rowHeight = Math.Max(rowHeight, (int) face->glyph->bitmap.rows);
                 if (xOffset > maxTextureWidth)
@@ -127,7 +127,7 @@ namespace Blockgame_OpenTK.Font
 
             }
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             FontShader = new Shader("newfont.vert", "newfont.frag");
 
@@ -170,7 +170,7 @@ namespace Blockgame_OpenTK.Font
             GL.UniformMatrix4(GL.GetUniformLocation(shader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
             GL.Uniform3(GL.GetUniformLocation(shader.id, "textPosition"), (0,0,0));
             GL.Uniform1(GL.GetUniformLocation(shader.id, "fontTexture"), 0);
-            // Console.WriteLine(Globals.Time);
+            // Console.Log(Globals.Time);
             GL.Uniform1(GL.GetUniformLocation(shader.id, "time"), (float)GlobalValues.Time);
 
             GL.BindVertexArray(vao);
@@ -254,7 +254,7 @@ namespace Blockgame_OpenTK.Font
             int vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, verticesArray.Length * Marshal.SizeOf<TextVertex>(), verticesArray, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, verticesArray.Length * Marshal.SizeOf<TextVertex>(), verticesArray, BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), 0);
             GL.EnableVertexAttribArray(0);
@@ -267,13 +267,13 @@ namespace Blockgame_OpenTK.Font
             FontShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.BindTexture(TextureTarget.Texture2d, texture);
 
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
-            // Console.WriteLine(Globals.Time);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "time"), (float)GlobalValues.Time);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
+            // Console.Log(Globals.Time);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "time"), (float)GlobalValues.Time);
 
             GL.BindVertexArray(vao);
 
@@ -285,7 +285,7 @@ namespace Blockgame_OpenTK.Font
 
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             GL.DeleteVertexArray(vao);
             GL.DeleteBuffer(vbo);
@@ -357,7 +357,7 @@ namespace Blockgame_OpenTK.Font
             int vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, verticesArray.Length * Marshal.SizeOf<TextVertex>(), verticesArray, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, verticesArray.Length * Marshal.SizeOf<TextVertex>(), verticesArray, BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), 0);
             GL.EnableVertexAttribArray(0);
@@ -370,13 +370,13 @@ namespace Blockgame_OpenTK.Font
             FontShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, texture);
+            GL.BindTexture(TextureTarget.Texture2d, texture);
 
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
-            // Console.WriteLine(Globals.Time);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "time"), (float)GlobalValues.Time);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
+            // Console.Log(Globals.Time);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "time"), (float)GlobalValues.Time);
 
             GL.BindVertexArray(vao);
 
@@ -388,7 +388,7 @@ namespace Blockgame_OpenTK.Font
 
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             GL.DeleteVertexArray(vao);
             GL.DeleteBuffer(vbo);

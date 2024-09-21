@@ -37,7 +37,7 @@ namespace Blockgame_OpenTK.Util
 
                     vertices.Add((X, Y, Z));
 
-                    // Console.WriteLine($"{X}, {Y}, {Z}");
+                    // Console.Log($"{X}, {Y}, {Z}");
 
                 }
 

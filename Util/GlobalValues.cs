@@ -4,18 +4,36 @@ using System;
 using OpenTK.Mathematics;
 using Blockgame_OpenTK.Registry;
 using System.IO;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Collections;
 
 namespace Blockgame_OpenTK.Util
 {
+
+    public struct GameSettings
+    {
+
+        public Dictionary<string, string> Keymap { get; set; }
+        public float MouseSensitivity { get; set; }
+
+    }
     internal class GlobalValues
     {
 
-        public static string TexturePath = "Resources/Textures/";
-        public static string ShaderPath = "Resources/Shaders/";
-        public static string MissingTexture = "Resources/Textures/missing.png";
-        public static string LocalPath = Path.Combine(TexturePath, "TextureArray");
-        public static string BlockDataPath = "Resources/Blocks/";
-        public static string BlockModelPath = "Resources/Blocks/Models/";
+        public static string TexturePath = Path.Combine("Resources", "Textures") + Path.DirectorySeparatorChar; //"Resources/Textures/";
+        public static string ShaderPath = Path.Combine("Resources", "Shaders") + Path.DirectorySeparatorChar;//"Resources/Shaders/";
+        public static string MissingTexture = Path.Combine("Resources", "Textures", "missing.png") + Path.DirectorySeparatorChar;//"Resources/Textures/missing.png";
+        public static string LocalPath = Path.Combine("Resources", "Textures", "TextureArray") + Path.DirectorySeparatorChar;
+        public static string BlockDataPath = Path.Combine("Resources", "Blocks") + Path.DirectorySeparatorChar;//"Resources/Blocks/";
+        public static string BlockModelPath = Path.Combine("Resources", "Blocks", "Models") + Path.DirectorySeparatorChar;//"Resources/Blocks/Models/";
+
+        public static string Phase = "Pre-Alpha";
+        public static string Version = "0.2.0";
+
+        public static List<string> LogMessages = new List<string>();
+
+        public static GameSettings Settings;// JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("settings.json"));
 
         public const string PATH = "hello";
 
@@ -23,6 +41,8 @@ namespace Blockgame_OpenTK.Util
         public static float HEIGHT = 480f;
         public static Vector2 Center = (WIDTH / 2f, HEIGHT / 2f);
         public const int ChunkSize = 32;
+        public static double PreviousTime = 0;
+        public static double CurrentTime = 0;
         public static double DeltaTime = 0;
         public static double Time = 0;
         public static MouseState Mouse = null;
@@ -30,6 +50,7 @@ namespace Blockgame_OpenTK.Util
         public static CursorState CursorState = CursorState.Normal;
         public static bool RenderAmbientOcclusion = true;
         public static bool ShouldRenderWireframe = false;
+        public static bool IsCursorLocked = true;
 
         public static readonly int PlayerRange = 10;
 

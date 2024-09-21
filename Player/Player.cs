@@ -8,6 +8,7 @@ using Blockgame_OpenTK.BlockUtil;
 using OpenTK.Windowing.Common;
 using Blockgame_OpenTK.Core.Worlds;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Blockgame_OpenTK.PlayerUtil
 {
@@ -39,10 +40,10 @@ namespace Blockgame_OpenTK.PlayerUtil
         {
             float Speed = 0;
 
-            if (GlobalValues.CursorState == CursorState.Grabbed)
+            if (GlobalValues.IsCursorLocked)
             {
 
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.LeftShift))
+                if (Translator.ResolveKeymap("Sprint"))
                 {
 
                     Speed = RunSpeed;
@@ -55,7 +56,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                if (GlobalValues.Mouse.IsButtonDown(MouseButton.Left))
+                if (Translator.ResolveKeymap("DestroyBlock"))
                 {
 
                     RemoveDelay += (float)GlobalValues.DeltaTime;
@@ -231,12 +232,13 @@ namespace Blockgame_OpenTK.PlayerUtil
                             RemoveDelay = 0;
 
                         }
-                        
+
                     }
 
-                } else { RemoveDelay = 1; }
+                }
+                else { RemoveDelay = 1; }
 
-                if (GlobalValues.Mouse.IsButtonDown(MouseButton.Right))
+                if (Translator.ResolveKeymap("PlaceBlock"))
                 {
 
                     PlaceDelay += (float)GlobalValues.DeltaTime;
@@ -245,7 +247,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     {
 
                         Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
-                        
+
                         if (Dda.hit)
                         {
 
@@ -424,11 +426,12 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                     }
 
-                } else {  PlaceDelay = 1; }
+                }
+                else { PlaceDelay = 1; }
 
                 Vector3 positionAlter = Vector3.Zero;
 
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.W))
+                if (Translator.ResolveKeymap("Forwards"))
                 {
 
                     float xValue = (float) Math.Cos(Maths.ToRadians(Camera.Yaw));
@@ -441,7 +444,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     // Velocity.Z = positionAlter.Z;
 
                 }
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.A))
+                if (Translator.ResolveKeymap("Left"))
                 {
 
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
@@ -455,7 +458,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     // Velocity.Z = positionAlter.Z;
 
                 }
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.S))
+                if (Translator.ResolveKeymap("Backwards"))
                 {
 
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
@@ -469,7 +472,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     // Velocity.Z = positionAlter.Z;
 
                 }
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.D))
+                if (Translator.ResolveKeymap("Right"))
                 {
 
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
@@ -500,7 +503,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                 // if (Velocity.X != 0) Velocity.X = positionAlter.X;
                 // if (Velocity.Z != 0) Velocity.Z = positionAlter.Z;
 
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.E))
+                if (Translator.ResolveKeymap("Up"))
                 {
 
                     AddPlayerPosition(Camera.UpVector * (Speed * (float)GlobalValues.DeltaTime));
@@ -508,7 +511,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.Q))
+                if (Translator.ResolveKeymap("Down"))
                 {
 
                     AddPlayerPosition(Camera.UpVector * (-Speed * (float)GlobalValues.DeltaTime));
@@ -618,13 +621,13 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 Camera.Update(Position + (0.5f * PlayerBounds.Dimensions.X, CameraOffsetY, 0.5f * PlayerBounds.Dimensions.Z));
 
-                if (GlobalValues.Keyboard.IsKeyDown(Keys.Space))
+                if (Translator.ResolveKeymap("Jump"))
                 {
 
                     if (IsGrounded)
                     {
 
-                        Velocity.Y = 7.0f;
+                        Velocity.Y = 8.0f;
                         IsGrounded = false;
 
                     }

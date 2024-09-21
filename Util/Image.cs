@@ -31,8 +31,8 @@ namespace Blockgame_OpenTK.Util
             if (Encoding.ASCII.GetString(new ArraySegment<byte>(rawBytes, 1, 3)) != "PNG")
             {
 
-                // Console.WriteLine("Could not load the image because it is not of the PNG format");
-                // Console.WriteLine("Loading invalid texture PNG");
+                // Console.Log("Could not load the image because it is not of the PNG format");
+                // Console.Log("Loading invalid texture PNG");
                 image = LoadPng("Resources/Textures/invalid.png", true);
                 return image;
 
@@ -49,7 +49,7 @@ namespace Blockgame_OpenTK.Util
                 int length = BitConverter.ToInt32(new ArraySegment<byte>(rawBytes, 0, 4).Reverse().ToArray());
                 string type = Encoding.ASCII.GetString(new ArraySegment<byte>(rawBytes, 4, 4));
 
-                // Console.WriteLine(type);
+                // Console.Log(type);
 
                 if (type == "IHDR") // important things like width and height
                 {
@@ -59,16 +59,16 @@ namespace Blockgame_OpenTK.Util
                     int bitDepth = rawBytes[16];
                     int colorType = rawBytes[17];
 
-                    // Console.WriteLine("Height is " + image.Height);
-                    // Console.WriteLine("Color type is " + colorType);
-                    // Console.WriteLine("bit depth is " + bitDepth);
+                    // Console.Log("Height is " + image.Height);
+                    // Console.Log("Color type is " + colorType);
+                    // Console.Log("bit depth is " + bitDepth);
 
                     if (colorType != 6)
                     {
 
                         // throw new Exception("Cannot load file beacuse it is not of color type 6 (RGBA)");
-                        // Console.WriteLine("Could not load the image because is it not of color type 6 (RGBA)");
-                        // Console.WriteLine("Loading invalid texture PNG");
+                        // Console.Log("Could not load the image because is it not of color type 6 (RGBA)");
+                        // Console.Log("Loading invalid texture PNG");
                         image = LoadPng("Resources/Textures/invalid.png", true);
                         return image;
 
@@ -78,8 +78,8 @@ namespace Blockgame_OpenTK.Util
                     {
 
                         // throw new Exception("Cannot load file because it is not of bit depth 8 (32BPP)");
-                        // Console.WriteLine("Could not load the image beacuse it is not of bit depth 8 (32BPP)");
-                        // Console.WriteLine("Loading invalid texture PNG");
+                        // Console.Log("Could not load the image beacuse it is not of bit depth 8 (32BPP)");
+                        // Console.Log("Loading invalid texture PNG");
                         image = LoadPng("Resources/Textures/invalid.png", true);
                         return image;
 
@@ -132,7 +132,7 @@ namespace Blockgame_OpenTK.Util
             for (int l = 0; l < filterCodes.Length; l++)
             {
 
-                // Console.WriteLine("Filter code: " + filterCodes[l]);
+                // Console.Log("Filter code: " + filterCodes[l]);
                 if (filterCodes[l] == 1) // undo sub filter
                 {
 
@@ -166,8 +166,8 @@ namespace Blockgame_OpenTK.Util
         public void FlipY()
         {
 
-            // Console.WriteLine("The width flip is " + Width);
-            // Console.WriteLine("The height flip is " + Height);
+            // Console.Log("The width flip is " + Width);
+            // Console.Log("The height flip is " + Height);
 
 
             List<byte> flippedData = new List<byte>();

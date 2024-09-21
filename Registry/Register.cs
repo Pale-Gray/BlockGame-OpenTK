@@ -19,11 +19,11 @@ namespace Blockgame_OpenTK.Registry
         public void AddBlock(ushort id, Block block)
         {
 
-            DebugMessage.WriteLine($"Registering {block.DataName}", DebugMessageType.Info);
+            Debugger.Log($"Registering {block.DataName}", Severity.Info);
             block.ID = id;
             //BlockList.Add(block);
             Blocks.Add(block.ID, block);
-            DebugMessage.WriteLine($"Registered {block.DataName}", DebugMessageType.Info);
+            Debugger.Log($"Registered {block.DataName}", Severity.Info);
 
         }
 

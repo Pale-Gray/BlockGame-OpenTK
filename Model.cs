@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 using Blockgame_OpenTK.Util;
@@ -32,7 +32,7 @@ namespace Blockgame_OpenTK
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0 * sizeof(float)); // this is the vertices
@@ -59,19 +59,19 @@ namespace Blockgame_OpenTK
             shader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, texture.GetID());
+            GL.BindTexture(TextureTarget.Texture2d, texture.GetID());
 
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
-            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "sunVec"), sunVec);
-            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)GlobalValues.Time);
-            GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cameraPosition"), camera.Position);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "model"), 1, true, model);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "view"), 1, true, camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "projection"), 1, true, camera.ProjectionMatrix);
+            GL.Uniform3f(GL.GetUniformLocation(shader.getID(), "sunVec"), 1, sunVec);
+            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "time"), (float)GlobalValues.Time);
+            GL.Uniform3f(GL.GetUniformLocation(shader.getID(), "cameraPosition"), 1, camera.Position);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             shader.UnUse();
 

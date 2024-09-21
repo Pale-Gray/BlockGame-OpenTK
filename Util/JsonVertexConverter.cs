@@ -35,14 +35,14 @@ namespace Blockgame_OpenTK.Util
 
                 }
 
-                // Console.WriteLine(reader.TokenType);
+                // Console.Log(reader.TokenType);
 
             }
 
             /* foreach (float point in positions)
             {
 
-                Console.WriteLine(point);
+                Console.Log(point);
 
             } */
 

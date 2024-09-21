@@ -354,7 +354,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             float[] ambientValues = new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            BlockModel model = JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(GlobalValues.BlockModelPath + fileName));
+            BlockModel model = JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
 
             model.ChunkReadableFaces.Add(BlockModelCullDirection.Up, model.ConvertToChunkReadableFace(BlockModelCullDirection.Up));
             model.ChunkReadableFaces.Add(BlockModelCullDirection.Down, model.ConvertToChunkReadableFace(BlockModelCullDirection.Down));

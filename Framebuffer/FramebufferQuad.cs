@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 
 using Blockgame_OpenTK.Util;
 
@@ -29,7 +29,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0 * sizeof(float)); // this is the vertices
@@ -48,19 +48,19 @@ namespace Blockgame_OpenTK.FramebufferUtil
 
             shader.Use();
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, framebuffer.textureColorBufferId);
+            GL.BindTexture(TextureTarget.Texture2d, framebuffer.textureColorBufferId);
             GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2D, framebuffer.textureDepthStencilBufferId);
+            GL.BindTexture(TextureTarget.Texture2d, framebuffer.textureDepthStencilBufferId);
 
-            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
-            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "framebufferColorTexture"), 0);
-            GL.Uniform1(GL.GetUniformLocation(shader.getID(), "framebufferDepthStencilTexture"), 1);
+            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
+            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "framebufferColorTexture"), 0);
+            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "framebufferDepthStencilTexture"), 1);
 
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length/5);
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
             shader.UnUse();
 
             GL.Enable(EnableCap.DepthTest);

@@ -14,7 +14,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         static int FB = 1;
         static int LR = 0;
         static Vector3 SpiralOrigin = Vector3.Zero;
-        static Vector3 SpiralPosition = new Vector3(SpiralOrigin);
+        static Vector3 SpiralPosition = SpiralOrigin;
 
         public static int VecToIndex(Vector3i position)
         {
@@ -172,7 +172,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
             
-            // Console.WriteLine(vectorList.Count());
+            // Console.Log(vectorList.Count());
 
             return vectorList.ToArray();
 

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 
 using Blockgame_OpenTK.Util;
@@ -86,7 +86,7 @@ namespace Blockgame_OpenTK.Gui
                     if (text[i+1] == '0' && text[i+2] == 'x')
                     {
 
-                        // Console.WriteLine("found a color change");
+                        // Console.Log("found a color change");
 
                         string hex = new string(new char[] { text[i+3], text[i+4], text[i+5], text[i+6], text[i+7], text[i+8] });
                         float r = Convert.ToByte(hex.Substring(0, 2), 16) / 255f;
@@ -241,6 +241,9 @@ namespace Blockgame_OpenTK.Gui
         public static void RenderText(Vector3 position, Vector3 origin, Vector3 color, int size, string text)
         {
 
+            GL.DeleteVertexArray(Vao);
+            GL.DeleteBuffer(Vbo);
+
             List<TextVertex> textVertices = new List<TextVertex>();
             float stepSize = 1f/(InternalChars.Length+1);
             float width = text.Length * size;
@@ -264,8 +267,6 @@ namespace Blockgame_OpenTK.Gui
 
                 if (IsInputtingFancyText)
                 {
-
-                    // Console.WriteLine($"tag: {isTag[i]}, italics: {isItalics[i]}, wiggle: {isWiggle[i]}");
 
                     if (TextColors[i] != (-1,-1,-1))
                     {
@@ -325,7 +326,7 @@ namespace Blockgame_OpenTK.Gui
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, textVerticesArray.Length * Marshal.SizeOf<TextVertex>(), textVerticesArray, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, textVerticesArray.Length * Marshal.SizeOf<TextVertex>(), textVerticesArray, BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<TextVertex>(), Marshal.OffsetOf<TextVertex>(nameof(TextVertex.Position)));
             GL.EnableVertexAttribArray(0);
@@ -347,14 +348,14 @@ namespace Blockgame_OpenTK.Gui
             FontShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, FontTexture.GetID());
+            GL.BindTexture(TextureTarget.Texture2d, FontTexture.GetID());
 
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(FontShader.id, "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform3(GL.GetUniformLocation(FontShader.id, "textPosition"), position);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
-            // Console.WriteLine(Globals.Time);
-            GL.Uniform1(GL.GetUniformLocation(FontShader.id, "time"), (float) GlobalValues.Time);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform3f(GL.GetUniformLocation(FontShader.id, "textPosition"), 1, position);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
+            // Console.Log(Globals.Time);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "time"), (float) GlobalValues.Time);
 
             GL.BindVertexArray(Vao);
 
@@ -366,10 +367,7 @@ namespace Blockgame_OpenTK.Gui
 
             GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-
-            GL.DeleteVertexArray(Vao);
-            GL.DeleteBuffer(Vbo);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             FontShader.UnUse();
 

@@ -1,7 +1,7 @@
 ﻿using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -19,7 +19,7 @@ namespace Blockgame_OpenTK.Gui
 
             List<ChunkVertex> vertices = new List<ChunkVertex>();
 
-            // Console.WriteLine(block.BlockModel == null);
+            // Console.Log(block.BlockModel == null);
 
             if (block.BlockModel != null)
             {
@@ -53,7 +53,7 @@ namespace Blockgame_OpenTK.Gui
             GL.BindVertexArray(Vao);
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, Vertices.Length * Marshal.SizeOf<ChunkVertex>(), Vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, Vertices.Length * Marshal.SizeOf<ChunkVertex>(), Vertices, BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureIndex)));
             GL.EnableVertexAttribArray(0);
@@ -83,12 +83,12 @@ namespace Blockgame_OpenTK.Gui
             GlobalValues.GuiBlockShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2DArray, GlobalValues.ArrayTexture.TextureID);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "model"), true, ref ModelMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "view"), true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "projection"), true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.BindTexture(TextureTarget.Texture2dArray, GlobalValues.ArrayTexture.TextureID);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "model"), 1, true, ModelMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
-            GL.Uniform1(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "time"), (float) GlobalValues.Time);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "time"), (float) GlobalValues.Time);
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, Vertices.Length);
             GL.BindVertexArray(0);

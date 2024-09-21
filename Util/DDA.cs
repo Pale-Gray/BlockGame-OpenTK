@@ -109,7 +109,7 @@ namespace Blockgame_OpenTK.Util
 
             // hitpositions = new List<Vector3i>();
 
-            // Console.WriteLine("start");
+            // Console.Log("start");
             hit = false;
 
             while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
@@ -380,7 +380,7 @@ namespace Blockgame_OpenTK.Util
             }
 
             */
-            // Console.WriteLine("end");
+            // Console.Log("end");
 
         }
 
@@ -453,13 +453,13 @@ namespace Blockgame_OpenTK.Util
 
             // hitpositions = new List<Vector3i>();
 
-            // Console.WriteLine("start");
+            // Console.Log("start");
 
             int manhattanDistance = Maths.ManhattanDistance3D(position, GlobalBlockPosition);
             
             bool hit = false;
 
-            // Console.WriteLine(manhattanDistance);
+            // Console.Log(manhattanDistance);
 
             // if (ChunkLoader.ContainsGeneratedChunk(ChunkUtils.PositionToChunk(GlobalBlockPosition)))
             {
@@ -541,7 +541,7 @@ namespace Blockgame_OpenTK.Util
             
 
 
-            // Console.WriteLine("end");
+            // Console.Log("end");
 
         }
 
@@ -554,7 +554,7 @@ namespace Blockgame_OpenTK.Util
             Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal((Vector3i)position);
             Vector3i ChunkPosition = (Vector3i)ChunkUtils.PositionToChunk(position);
             Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
-            // Console.WriteLine(ChunkPositionBounds);
+            // Console.Log(ChunkPositionBounds);
             Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
             // float Distance = 0;
 
@@ -606,7 +606,7 @@ namespace Blockgame_OpenTK.Util
             SmoothHit = Vector3.Zero;
             SmoothPosition = Vector3.Zero;
 
-            // Console.WriteLine("{0}, {1}, {2}", BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
+            // Console.Log("{0}, {1}, {2}", BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
 
             for (int i = 0; i < maxSteps; i++)
             {
@@ -667,7 +667,7 @@ namespace Blockgame_OpenTK.Util
 
                 } */
 
-                // Console.WriteLine(ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
+                // Console.Log(ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
 
             }
 

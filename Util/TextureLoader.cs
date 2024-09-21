@@ -31,7 +31,7 @@ namespace Blockgame_OpenTK.Util
         {
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            // Console.WriteLine(data.Length);
+            // Console.Log(data.Length);
             int width=0, height=0;
             int bitDepth, colorMode; // color mode will always be 6, bit depth will always be 8
             int filterMethod, interlacedMode;
@@ -88,8 +88,8 @@ namespace Blockgame_OpenTK.Util
             /*for (int l = 0; l < 32; l++)
             {
 
-                // Console.WriteLine(decompressedData.ToArray()[l * ((32*4) + 1)]);
-                Console.WriteLine(GetLineWithFilterCode(decompressedData.ToArray(), l)[0]);
+                // Console.Log(decompressedData.ToArray()[l * ((32*4) + 1)]);
+                Console.Log(GetLineWithFilterCode(decompressedData.ToArray(), l)[0]);
 
             }*/
             byte[] lineOne = GetLineWithFilterCode(decompressedData.ToArray(), 0);
@@ -97,7 +97,7 @@ namespace Blockgame_OpenTK.Util
             /* for (int i = 0; i < lineOne.Length; i++)
             {
 
-                Console.WriteLine($"{lineOne[i]}, {i}, {lineOne.Length}");
+                Console.Log($"{lineOne[i]}, {i}, {lineOne.Length}");
 
             } */
 
@@ -153,13 +153,13 @@ namespace Blockgame_OpenTK.Util
                     imageData = UnPaethLine(imageData, i);
 
                 }
-                // Console.WriteLine(filterCodes[i]);
+                // Console.Log(filterCodes[i]);
 
             }
 
             // imageData = UnSubLine(imageData, 0);
 
-            // Console.WriteLine(filterCodes.Length + ", " + imageData.Length);
+            // Console.Log(filterCodes.Length + ", " + imageData.Length);
 
             return imageData;
 
@@ -204,7 +204,7 @@ namespace Blockgame_OpenTK.Util
 
             byte[] image = (byte[])imageData.Clone();
             int start = lineIndex * (32 * 4);
-            // Console.WriteLine(lineIndex + ", " + start + ", " + (start + (32*4)));
+            // Console.Log(lineIndex + ", " + start + ", " + (start + (32*4)));
             for (int i = start; i < start + (32*4); i++)
             {
 

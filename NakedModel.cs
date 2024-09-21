@@ -50,7 +50,7 @@ namespace Blockgame_OpenTK
 
             vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
             vao = GL.GenVertexArray();
             GL.BindVertexArray(vao);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0 * sizeof(float)); // this is the vertices
@@ -73,9 +73,9 @@ namespace Blockgame_OpenTK
             //GL.Disable(EnableCap.CullFace);
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "model"), true, ref model);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(shader.getID(), "projection"), true, ref camera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "model"), 1, true, ref model);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "view"), 1, true, ref camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "projection"), 1, true, ref camera.ProjectionMatrix);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);

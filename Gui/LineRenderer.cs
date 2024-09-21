@@ -1,5 +1,5 @@
 ﻿using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -37,6 +37,9 @@ namespace Blockgame_OpenTK.Gui
         public static void DrawLine(Vector3 pointA, Vector3 pointB, float thickness, Vector3 color, Camera camera)
         {
 
+            GL.DeleteVertexArray(Vao);
+            GL.DeleteBuffer(Vbo);
+
             List<LineVertex> vertices = new List<LineVertex>();
             Vector3 distance = pointB - pointA;
 
@@ -52,7 +55,7 @@ namespace Blockgame_OpenTK.Gui
             Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
 
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * Marshal.SizeOf<LineVertex>(), vertices.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * Marshal.SizeOf<LineVertex>(), vertices.ToArray(), BufferUsage.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<LineVertex>(), Marshal.OffsetOf<LineVertex>(nameof(LineVertex.Position)));
             GL.EnableVertexAttribArray(0);
@@ -70,12 +73,12 @@ namespace Blockgame_OpenTK.Gui
 
             GL.Disable(EnableCap.CullFace);
 
-            GL.UniformMatrix4(GL.GetUniformLocation(LineShader.id, "view"), true, ref camera.ViewMatrix);
-            GL.UniformMatrix4(GL.GetUniformLocation(LineShader.id, "projection"), true, ref camera.ProjectionMatrix);
-            GL.Uniform1(GL.GetUniformLocation(LineShader.id, "thickness"), thickness);
-            GL.Uniform2(GL.GetUniformLocation(LineShader.id, "screenDimensions"), (GlobalValues.WIDTH, GlobalValues.HEIGHT));
-            GL.Uniform3(GL.GetUniformLocation(LineShader.id, "pointAPoint"), pointA);
-            GL.Uniform3(GL.GetUniformLocation(LineShader.id, "pointBPoint"), pointB);
+            GL.UniformMatrix4f(GL.GetUniformLocation(LineShader.id, "view"), 1, true, ref camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(LineShader.id, "projection"), 1, true, ref camera.ProjectionMatrix);
+            GL.Uniform1f(GL.GetUniformLocation(LineShader.id, "thickness"), thickness);
+            GL.Uniform2f(GL.GetUniformLocation(LineShader.id, "screenDimensions"), 1, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            GL.Uniform3f(GL.GetUniformLocation(LineShader.id, "pointAPoint"), 1, pointA);
+            GL.Uniform3f(GL.GetUniformLocation(LineShader.id, "pointBPoint"), 1, pointB);
 
             GL.BindVertexArray(Vao);
 
@@ -84,9 +87,6 @@ namespace Blockgame_OpenTK.Gui
             GL.Enable(EnableCap.CullFace);
 
             GL.BindVertexArray(0);
-
-            GL.DeleteVertexArray(Vao);
-            GL.DeleteBuffer(Vbo);
 
             LineShader.UnUse();
 

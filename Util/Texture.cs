@@ -1,4 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL;
 using StbImageSharp;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +29,7 @@ namespace Blockgame_OpenTK.Util
 
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Id);
+            GL.BindTexture(TextureTarget.Texture2d, Id);
 
             StbImage.stbi_set_flip_vertically_on_load(1);
             if (imageFile == null)
@@ -38,16 +38,22 @@ namespace Blockgame_OpenTK.Util
                 Path = GlobalValues.MissingTexture;
 
             }
-            Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            using (FileStream stream = File.OpenRead(Path))
+            {
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
+                Image = ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
+
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
+
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             Width = Image.Width;
             Height = Image.Height;
@@ -63,7 +69,7 @@ namespace Blockgame_OpenTK.Util
             Path = GlobalValues.TexturePath + imageFile;
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Id);
+            GL.BindTexture(TextureTarget.Texture2d, Id);
 
             StbImage.stbi_set_flip_vertically_on_load(flip);
             if (Path == null)
@@ -74,14 +80,14 @@ namespace Blockgame_OpenTK.Util
             }
             Image = ImageResult.FromStream(File.OpenRead(Path), StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             Width = Image.Width;
             Height = Image.Height;
@@ -94,16 +100,16 @@ namespace Blockgame_OpenTK.Util
             Id = GL.GenTexture();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Id);
+            GL.BindTexture(TextureTarget.Texture2d, Id);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixeldata);
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, Image.Width, Image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, Image.Data);
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.BindTexture(TextureTarget.Texture2d, 0);
 
             this.Data = pixeldata;
             this.Width = width;
@@ -131,9 +137,9 @@ namespace Blockgame_OpenTK.Util
                 for (int x = 0; x < twidth * 4; x += 4)
                 {
 
-                    // Console.WriteLine("{0}, {1}, {2}, {3}", tdata[yoffset + x], tdata[yoffset + x + 1], tdata[yoffset + x + 2], tdata[yoffset + x + 3]);
+                    // Console.Log("{0}, {1}, {2}, {3}", tdata[yoffset + x], tdata[yoffset + x + 1], tdata[yoffset + x + 2], tdata[yoffset + x + 3]);
 
-                    // Console.WriteLine("{0}, {1}", x, y);
+                    // Console.Log("{0}, {1}", x, y);
 
                     if (x / 4 >= xo && x / 4 <= xo + width - 1 && y >= yo && y <= yo + height - 1)
                     {
@@ -146,7 +152,7 @@ namespace Blockgame_OpenTK.Util
                     }
 
                 }
-                // Console.WriteLine("newstrip");
+                // Console.Log("newstrip");
 
             }
 
