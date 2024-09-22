@@ -222,6 +222,7 @@ namespace Blockgame_OpenTK
         {
 
             Translator.LoadGameSettings();
+            Input.Initialize();
 
             // GL.Viewport(0, 0, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT);
 
@@ -508,7 +509,8 @@ namespace Blockgame_OpenTK
 
             // GL.Viewport(0, 0, fw, fh);
             // GL.Viewport(0, 0, args.NewClientSize.X, args.NewClientSize.Y);
-
+            Toolkit.Window.GetFramebufferSize(args.Window, out int w, out int h);
+            GL.Viewport(0, 0, w, h);
             // GlobalValues.WIDTH = e.Width;
             // GlobalValues.HEIGHT = e.Height;
             GlobalValues.WIDTH = args.NewClientSize.X;
@@ -522,13 +524,6 @@ namespace Blockgame_OpenTK
             // TestElement.Update();
             TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
-
-        }
-
-        public static void UpdateFramebufferSize(WindowFramebufferResizeEventArgs args)
-        {
-
-            GL.Viewport(0, 0, args.NewFramebufferSize.X, args.NewFramebufferSize.Y);
 
         }
 

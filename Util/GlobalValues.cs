@@ -45,7 +45,7 @@ namespace Blockgame_OpenTK.Util
         public static double CurrentTime = 0;
         public static double DeltaTime = 0;
         public static double Time = 0;
-        public static MouseState Mouse = null;
+        // public static MouseState Mouse = null;
         public static KeyboardState Keyboard = null;
         public static CursorState CursorState = CursorState.Normal;
         public static bool RenderAmbientOcclusion = true;

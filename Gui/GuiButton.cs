@@ -1,9 +1,7 @@
 ﻿using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Platform;
 using System;
-using System.Transactions;
 
 namespace Blockgame_OpenTK.Gui
 {
@@ -37,20 +35,20 @@ namespace Blockgame_OpenTK.Gui
             if (IsMoveable && IsGrabbed)
             {
 
-                Vector2 mouseDelta = GlobalValues.Mouse.Delta;
+                Vector2 mouseDelta = Input.MouseDelta;
 
-                AbsolutePosition += GlobalValues.Mouse.Delta;
+                AbsolutePosition += Input.MouseDelta;
 
             }
 
-            if (!GlobalValues.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (!Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 OnButtonHover();
 
             }
 
-            if (GlobalValues.Mouse.IsButtonDown(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 IsGrabbed = true;
@@ -59,7 +57,7 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
-            if (GlobalValues.Mouse.IsButtonReleased(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 IsGrabbed = false;
@@ -68,7 +66,7 @@ namespace Blockgame_OpenTK.Gui
 
             }
 
-            if (GlobalValues.Mouse.IsButtonPressed(MouseButton.Left) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
+            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
             {
 
                 OnButtonClick();

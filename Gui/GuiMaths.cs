@@ -74,7 +74,7 @@ namespace Blockgame_OpenTK.Gui
         public static bool DidCollideWithMousePointer(Vector2 position, Vector2 dimension, Vector2 origin)
         {
 
-            Vector2 mousePosition = GlobalValues.Mouse.Position;
+            Vector2 mousePosition = Input.CurrentMousePosition;
 
             position = position - (dimension * origin);
 

@@ -64,7 +64,7 @@ namespace Blockgame_OpenTK
                 {
 
                     MouseButton m;
-                    Enum.TryParse(GlobalValues.Settings.Keymap[key].Split(".")[1], out m);
+                    Enum.TryParse(GlobalValues.Settings.Keymap[key].Split(".")[1] == "Right" ? "Button2" : GlobalValues.Settings.Keymap[key].Split(".")[1] == "Left" ? "Button1" : "Button0", out m);
 
                     if (Input.IsMouseButtonDown(m))
                     {
@@ -84,70 +84,8 @@ namespace Blockgame_OpenTK
         public static void LoadGameSettings()
         {
 
-
             GameSettings settings = JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("settings.json"));
-
-            List<string> translatedKeyMap = new List<string>();
-            string[] keysInKeyMap = settings.Keymap.Keys.ToArray();
-
             GlobalValues.Settings = settings;
-
-            /*
-            foreach (string bind in settings.Keymap.Values)
-            {
-
-                Key key = (Key) Enum.Parse(typeof(Key), bind.Split(".")[1]);
-
-                // Keys newKey = (Keys)Enum.Parse(typeof(Keys), GLFW.GetKeyName(key, 0));
-
-                Key newKey = Key.Unknown;
-
-                try
-                {
-
-                    if (char.IsAscii(GLFW.GetKeyName(key, 0).ToCharArray()[0]))
-                    {
-
-                        if (char.IsAsciiLetter(GLFW.GetKeyName(key, 0).ToCharArray()[0]))
-                        {
-
-                            newKey = (Keys)Enum.Parse(typeof(Keys), GLFW.GetKeyName(key, 0).ToUpper());
-
-                        }
-                        else
-                        {
-
-                            newKey = (Keys)Enum.Parse(typeof(Keys), GLFW.GetKeyName(key, 0));
-
-                        }
-
-                    }
-
-                } catch
-                {
-
-                    newKey = key;
-
-                }
-
-                translatedKeyMap.Add(newKey.ToString());
-
-                Console.WriteLine($"{key.ToString()}, {GLFW.GetKeyName(key, 0)}. new key: {newKey.ToString()}");
-
-            }
-
-            for (int i = 0; i < keysInKeyMap.Length; i++)
-            {
-
-                string firstValue = settings.Keymap[keysInKeyMap[i]].Split(".")[0];
-
-                settings.Keymap[keysInKeyMap[i]] = string.Join(".", firstValue, translatedKeyMap[i]);
-
-            }
-            */
-
-
-            // GlobalValues.Settings = settings;
 
         }
 

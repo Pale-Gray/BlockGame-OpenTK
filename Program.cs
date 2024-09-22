@@ -20,7 +20,6 @@ namespace Blockgame_OpenTK
             Console.OutputEncoding = Encoding.Unicode;
 
             // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
-            Input.Initialize();
 
             ThreadPool.SetMaxThreads(8, 8);
             
@@ -130,17 +129,8 @@ namespace Blockgame_OpenTK
 
             if (args is WindowResizeEventArgs windowResizeEventArgs)
             {
-                // BlockGame.UpdateScreenSize(windowResizeEventArgs.Window);
-
-                Console.WriteLine("resizing");
+                
                 BlockGame.UpdateScreenSize(windowResizeEventArgs);
-
-            }
-
-            if (args is WindowFramebufferResizeEventArgs framwbufferResizeEventArgs)
-            {
-
-                BlockGame.UpdateFramebufferSize(framwbufferResizeEventArgs);
 
             }
 
@@ -162,6 +152,27 @@ namespace Blockgame_OpenTK
                 Input.CurrentKeyDown = Key.Unknown;
                 Input.CurrentKeyPressed = Key.Unknown;
                 Input.KeyStates[keyUp.Key] = keyState;
+
+            }
+
+            if (args is MouseButtonDownEventArgs mouseDown)
+            {
+
+                MouseState state = Input.MouseStates[mouseDown.Button];
+                state.IsMouseButtonDown = true;
+                Input.MouseStates[mouseDown.Button] = state;
+
+            }
+
+            if (args is MouseButtonUpEventArgs mouseUp)
+            {
+
+                MouseState state = Input.MouseStates[mouseUp.Button];
+                state.IsMouseButtonDown = false;
+                state.AllowButtonPress = true;
+                Input.CurrentButtonDown = null;
+                Input.CurrentButtonPressed = null;
+                Input.MouseStates[mouseUp.Button] = state;
 
             }
 

@@ -56,7 +56,7 @@ namespace Blockgame_OpenTK.Gui
                 if (WindowTab.IsGrabbed)
                 {
 
-                    Vector2 mouseDelta = GlobalValues.Mouse.Delta;
+                    Vector2 mouseDelta = Input.MouseDelta;
 
                     AbsolutePosition += mouseDelta;
 
