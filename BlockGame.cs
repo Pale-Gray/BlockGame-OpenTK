@@ -343,7 +343,8 @@ namespace Blockgame_OpenTK
                 {
 
                     Console.WriteLine("forcing a crash");
-                    throw new BlockNotFoundException("Forced a crash");
+                    // throw new BlockNotFoundException("Forced a crash");
+                    Chunk.Throw();
 
                 }
 

@@ -6,6 +6,7 @@ using Blockgame_OpenTK.BlockUtil;
 using System.IO;
 using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Worlds;
+using OpenTK.Graphics.Vulkan;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -206,6 +207,13 @@ namespace Blockgame_OpenTK.Core.Chunks
             GL.BindVertexArray(0);
 
             GlobalValues.ChunkShader.UnUse();
+
+        }
+
+        public static void Throw()
+        {
+
+            throw new System.Exception("Forced a crash");
 
         }
 

@@ -150,7 +150,7 @@
 [INFO] Registered LogBlock
 [INFO] Registering BrickBlock
 [INFO] Registered BrickBlock
-Blockgame_OpenTK.Util.BlockNotFoundException: Forced a crash
-   at Blockgame_OpenTK.Game.OnRenderFrame(FrameEventArgs args) in C:\Users\gavin\Source\Repos\BlockGame-OpenTK\Game.cs:line 402
-   at OpenTK.Windowing.Desktop.GameWindow.Run()
-   at Blockgame_OpenTK.Program.Main(String[] args) in C:\Users\gavin\Source\Repos\BlockGame-OpenTK\Program.cs:line 40
+System.Exception: Forced a crash
+   at Blockgame_OpenTK.Core.Chunks.Chunk.Throw() in .\Chunk\Chunk.cs:line 216
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 347
+   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 113

@@ -8,6 +8,7 @@ using OpenTK.Graphics.OpenGL;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
+using System.IO;
 
 namespace Blockgame_OpenTK
 {
@@ -19,7 +20,7 @@ namespace Blockgame_OpenTK
 
             Console.OutputEncoding = Encoding.Unicode;
 
-            // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             ThreadPool.SetMaxThreads(8, 8);
             
@@ -183,6 +184,33 @@ namespace Blockgame_OpenTK
                 Input.CurrentMousePosition = mouseMove.Position;
                 Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
                 Input.PreviousMousePosition = Input.CurrentMousePosition;
+
+            }
+
+        }
+
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+
+            Console.WriteLine("an exception occured");
+
+            Exception e = args.ExceptionObject as Exception;
+
+            string message = e.Message;
+            string[] stackTrace = e.StackTrace.Split(Environment.NewLine);
+
+            using (FileStream stream = new FileStream("log.txt", FileMode.Create))
+            {
+
+                foreach (string line in GlobalValues.LogMessages)
+                {
+
+                    stream.Write(Encoding.UTF8.GetBytes($"{line}\n"));
+
+                }
+
+                stream.Write(Encoding.UTF8.GetBytes($"{e.GetType()}: {e.Message}\n"));
+                stream.Write(Encoding.UTF8.GetBytes(e.StackTrace));
 
             }
 
