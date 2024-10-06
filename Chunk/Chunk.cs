@@ -89,7 +89,8 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public ChunkVertex[] ChunkMesh;
+        public ChunkVertex[] OpaqueMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
+        public ChunkVertex[] TransparentMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
         public List<Vector3i> StructurePoints = new List<Vector3i>();
         public GenerationState GenerationState = GenerationState.NotGenerated;
         public MeshState MeshState = MeshState.NotMeshed;
@@ -203,7 +204,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float)0);
             GL.BindVertexArray(Vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, ChunkMesh.Length);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, OpaqueMesh.Length);
             GL.BindVertexArray(0);
 
             GlobalValues.ChunkShader.UnUse();
@@ -433,14 +434,14 @@ namespace Blockgame_OpenTK.Core.Chunks
         public ChunkVertex[] GetChunkMesh()
         {
 
-            return ChunkMesh;
+            return OpaqueMesh;
 
         }
 
         public void SetChunkMesh(ChunkVertex[] mesh)
         {
 
-            ChunkMesh = mesh;
+            OpaqueMesh = mesh;
 
         }
 

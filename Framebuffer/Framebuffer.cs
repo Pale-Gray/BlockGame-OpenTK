@@ -41,10 +41,10 @@ namespace Blockgame_OpenTK.FramebufferUtil
 
             // Why am I not using renderbuffers? Because I feel like it. Also you can view the depth texture in the fragment shader
 
-            // renderBuffer = GL.GenRenderbuffer();
-            // GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
-            // GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, (int)Constants.WIDTH, (int)Constants.HEIGHT);
-            // GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
+            renderBuffer = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.Depth24Stencil8, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, renderBuffer);
 
             if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferStatus.FramebufferComplete)
             {

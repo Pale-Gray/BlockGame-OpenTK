@@ -1,0 +1,10 @@
+{
+
+  "DataName": "GrassBlock",
+  "DisplayName": "Grass Block",
+  "Model": "GrassBlock.json",
+  "SoundPath": "GrassBlock",
+  "BreakTime": 1000,
+  "IsOpaque": true
+
+}

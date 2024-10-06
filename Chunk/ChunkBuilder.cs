@@ -48,7 +48,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             Vector3i chunkPosition = chunk.ChunkPosition;
 
-            if (!chunk.TryLoad())
+            if (true)
             {
 
                 for (int x = -GlobalValues.ChunkSize; x <= 2*GlobalValues.ChunkSize; x++)
@@ -466,7 +466,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
 
-            chunk.ChunkMesh = mesh.ToArray();
+            chunk.OpaqueMesh = mesh.ToArray();
             chunk.QueueType = QueueType.Final;
 
         }
@@ -557,7 +557,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
 
-            chunk.ChunkMesh = mesh.ToArray();
+            chunk.OpaqueMesh = mesh.ToArray();
             chunk.CallForRemesh = false;
 
             WorldGenerator.ChunkOpenglUpdateQueue.Enqueue(chunk.ChunkPosition);
@@ -644,7 +644,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.SetVbo(GL.GenBuffer());
             // chunk.Vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, chunk.GetVbo());
-            GL.BufferData(BufferTarget.ArrayBuffer, chunk.ChunkMesh == null ? 0 : chunk.ChunkMesh.Length * Marshal.SizeOf<ChunkVertex>(), chunk.GetChunkMesh(), BufferUsage.DynamicDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, chunk.OpaqueMesh == null ? 0 : chunk.OpaqueMesh.Length * Marshal.SizeOf<ChunkVertex>(), chunk.GetChunkMesh(), BufferUsage.DynamicDraw);
 
             GL.VertexAttribPointer(0, 1, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureIndex)));
             GL.EnableVertexAttribArray(0);

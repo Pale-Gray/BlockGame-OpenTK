@@ -524,6 +524,10 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 PriorityQueue<AxisAlignedBoundingBox, float> boundPriorityQueue = new PriorityQueue<AxisAlignedBoundingBox, float>();
 
+                Camera.Update(Position + (0.5f * PlayerBounds.Dimensions.X, CameraOffsetY, 0.5f * PlayerBounds.Dimensions.Z));
+
+                Position += Velocity * (float)GlobalValues.DeltaTime;
+
                 AxisAlignedBoundingBox playerBoundsOffsetted = PlayerBounds.GetOffsetBoundingBox(Position);
 
                 for (int x = min.X - 1; x <= max.X + 1; x++)
@@ -619,8 +623,6 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                Camera.Update(Position + (0.5f * PlayerBounds.Dimensions.X, CameraOffsetY, 0.5f * PlayerBounds.Dimensions.Z));
-
                 if (Translator.ResolveKeymap("Jump"))
                 {
 
@@ -633,8 +635,6 @@ namespace Blockgame_OpenTK.PlayerUtil
                     }
 
                 }
-
-                Position += Velocity * (float)GlobalValues.DeltaTime;
 
                 // Velocity.X /= (1.0f + lastDynamicFriction) * (float)GlobalValues.DeltaTime;
                 // Velocity.Z /= (1.0f + lastDynamicFriction) * (float)GlobalValues.DeltaTime;

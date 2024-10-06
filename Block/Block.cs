@@ -9,19 +9,19 @@ using System.Text.Json.Serialization;
 namespace Blockgame_OpenTK.BlockUtil
 {
 
-    [JsonSerializable(typeof(Block))]
+    
     internal class Block
     {
         
-        public string DataName { get; set; }
         public string DisplayName { get; set; }
-        [JsonConverter(typeof(JsonBlockModelNewConverter))]
+        public string DataName { get; set; }
+        [JsonConverter(typeof(JsonBlockModelConverter))]
         [JsonPropertyName("Model")]
         public BlockModel BlockModel { get; set; }
-        [JsonPropertyName("Sounds")]
         public string SoundPath { get; set; }
-        public int BreakTime { get; set; }
         public ushort ID = 0;
+        public bool IsOpaque { get; set; }
+
         public AxisAlignedBoundingBox BoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0));
         public GuiBlockModel GuiRenderableBlockModel;
         public static Block LoadFromJson(string fileName)

@@ -265,9 +265,11 @@ namespace Blockgame_OpenTK
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Less);
+            // GL.DepthFunc(DepthFunction.Lequal);
             // GL.Enable(EnableCap.StencilTest);
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Ccw);
+            // GL.FrontFace(FrontFaceDirection.Ccw);
             // GL.Enable(EnableCap.TextureCubeMap);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.Enable(EnableCap.PolygonOffsetFill);
@@ -327,13 +329,15 @@ namespace Blockgame_OpenTK
 
             frameBuffer.Bind();
 
+            GL.PolygonOffset(1, 1);
+
             GL.ClearColor(new OpenTK.Mathematics.Color4<OpenTK.Mathematics.Rgba>(0, 0, 0, 1));
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             GL.Disable(EnableCap.DepthTest);
             Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera, (float)GlobalValues.Time);
 
-            GL.Enable(EnableCap.CullFace);
+            // GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
 
             if (Input.IsKeyDown(Key.LeftControl))
@@ -422,8 +426,10 @@ namespace Blockgame_OpenTK
 
             }
 
+            GL.Disable(EnableCap.CullFace);
             World.Generate(Player.Position);
             World.Draw(Player.Camera);
+            GL.Enable(EnableCap.CullFace);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -435,36 +441,6 @@ namespace Blockgame_OpenTK
             }
 
             Dda.TraceChunks(World.WorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
-
-            if (Dda.hit)
-            {
-
-                float lineThickness = 12.0f;
-
-                GL.FrontFace(FrontFaceDirection.Cw);
-                rmodel.SetScale(1, 1, 1);
-                GL.PolygonOffset(-1, 1);
-                GL.Disable(EnableCap.DepthTest);
-                LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (0, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((1, 0, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 0, 1) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((1, 0, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-
-                LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (1, 0, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 1, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 0, 1) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 1, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-
-                LineRenderer.DrawLine((1, 0, 0) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((1, 1, 0) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (0, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                LineRenderer.DrawLine((0, 1, 0) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
-                GL.Enable(EnableCap.DepthTest);
-
-                GL.FrontFace(FrontFaceDirection.Ccw);
-                GL.PolygonOffset(0, 0);
-
-            }
 
             if (debug)
             {
@@ -484,11 +460,22 @@ namespace Blockgame_OpenTK
             GL.Disable(EnableCap.DepthTest);
             TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
 
+            GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
+            if (GlobalValues.BlockSelectorID > GlobalValues.Register.Blocks.Keys.Last()) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.Register.Blocks.Keys.First() + 1);
+            if (GlobalValues.BlockSelectorID < GlobalValues.Register.Blocks.Keys.First() + 1) GlobalValues.BlockSelectorID = GlobalValues.Register.Blocks.Keys.Last();
+
             GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
             GL.Enable(EnableCap.CullFace);
-            uiTest.Draw(0);
+            // uiTest.Draw(0);
+
+            // GL.Disable(EnableCap.DepthTest);
+
+            // LineRenderer.Draw((0, 0, 0), (0, 1, 0), 1, Player.Camera);
+
+            // GL.Enable(EnableCap.DepthTest);
 
             // FontLoader.RenderLines((0, 240), 48, 1.5f, "Line 0", "Line 1", "Line 2");
+
 
             frameBuffer.Unbind();
 
@@ -496,6 +483,48 @@ namespace Blockgame_OpenTK
             //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             framebufferQuad.Draw(frameBuffer, (float)time);
+
+            if (Dda.hit)
+            {
+
+                float lineThickness = 12.0f;
+
+                GL.FrontFace(FrontFaceDirection.Cw);
+                rmodel.SetScale(1, 1, 1);
+                // GL.PolygonOffset(-1, 1);
+                GL.Disable(EnableCap.DepthTest);
+                // LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (0, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                LineRenderer.Draw(frameBuffer, 4, Vector3.Zero, Player.Camera,
+                    (0, 0, 0) + Dda.PositionAtHit, (0, 1, 0) + Dda.PositionAtHit,
+                    (1, 0, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit,
+                    (0, 0, 1) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit,
+                    (1, 0, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit,
+                    (0, 0, 0) + Dda.PositionAtHit, (1, 0, 0) + Dda.PositionAtHit,
+                    (0, 1, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit,
+                    (0, 0, 1) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit,
+                    (0, 1, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit,
+                    (1, 0, 0) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit,
+                    (1, 1, 0) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit,
+                    (0, 0, 0) + Dda.PositionAtHit, (0, 0, 1) + Dda.PositionAtHit,
+                    (0, 1, 0) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit);
+                // LineRenderer.DrawLine((1, 0, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 0, 1) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((1, 0, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+
+                // LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (1, 0, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 1, 0) + Dda.PositionAtHit, (1, 1, 0) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 0, 1) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 1, 1) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+
+                // LineRenderer.DrawLine((1, 0, 0) + Dda.PositionAtHit, (1, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((1, 1, 0) + Dda.PositionAtHit, (1, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (0, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                // LineRenderer.DrawLine((0, 1, 0) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
+                GL.Enable(EnableCap.DepthTest);
+
+                GL.FrontFace(FrontFaceDirection.Ccw);
+
+            }
 
         }
 

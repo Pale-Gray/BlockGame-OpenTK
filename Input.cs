@@ -43,6 +43,10 @@ namespace Blockgame_OpenTK
         public static Vector2 PreviousMousePosition = Vector2.Zero;
         public static Vector2 MouseDelta = Vector2.Zero;
 
+        public static Vector2 CurrentMouseScroll = Vector2.Zero;
+        public static Vector2 PreviousMouseScroll = Vector2.Zero;
+        public static Vector2 ScrollDelta = Vector2.Zero;
+
         public static Key CurrentKeyDown = Key.Unknown;
         public static Key CurrentKeyPressed = Key.Unknown;
 

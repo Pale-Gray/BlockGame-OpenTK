@@ -92,6 +92,12 @@ void main()
 		Outcolor = vec4(array_texture.rgb * value * (1-ambientFac), a);
 
 	}
+	if (!gl_FrontFacing) 
+	{
+
+		// Outcolor = vec4(1, 0, 0, 1);
+
+	}
 
 	// Outcolor = clamp(vec4(vnormal, 1.0) * inverse(transpose(view)), 0.0, 1.0);
 

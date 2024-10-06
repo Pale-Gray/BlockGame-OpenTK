@@ -44,12 +44,12 @@ namespace Blockgame_OpenTK.Core.Worlds
             foreach (Chunk chunk in WorldChunks.Values)
             {
 
-                if (chunk.QueueType == QueueType.Finish && chunk.ChunkMesh.Length != 0)
+                if (chunk.QueueType == QueueType.Finish && chunk.OpaqueMesh.Length != 0)
                 {
 
-                    GL.PolygonMode(TriangleFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
+                    // GL.PolygonMode(TriangleFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
                     chunk.Draw((0,1,0), playerCamera);
-                    GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+                    // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
                     if (GlobalValues.ShouldRenderBounds)
                     {

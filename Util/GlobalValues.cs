@@ -25,11 +25,12 @@ namespace Blockgame_OpenTK.Util
         public static string ShaderPath = Path.Combine("Resources", "Shaders") + Path.DirectorySeparatorChar;//"Resources/Shaders/";
         public static string MissingTexture = Path.Combine("Resources", "Textures", "missing.png") + Path.DirectorySeparatorChar;//"Resources/Textures/missing.png";
         public static string LocalPath = Path.Combine("Resources", "Textures", "TextureArray") + Path.DirectorySeparatorChar;
-        public static string BlockDataPath = Path.Combine("Resources", "Blocks") + Path.DirectorySeparatorChar;//"Resources/Blocks/";
-        public static string BlockModelPath = Path.Combine("Resources", "Blocks", "Models") + Path.DirectorySeparatorChar;//"Resources/Blocks/Models/";
+        public static string BlockDataPath = Path.Combine("Resources", "Data", "Blocks") + Path.DirectorySeparatorChar;//"Resources/Blocks/";
+        public static string BlockModelPath = Path.Combine("Resources", "Data", "Blocks", "Models") + Path.DirectorySeparatorChar;//"Resources/Blocks/Models/";
 
         public static string Phase = "Pre-Alpha";
-        public static string Version = "0.2.0";
+        private static Version GameVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        public static string Version = $"{GameVersion.Major}.{GameVersion.Minor}.{GameVersion.Build}";
 
         public static List<string> LogMessages = new List<string>();
 

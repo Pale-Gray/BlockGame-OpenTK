@@ -63,6 +63,8 @@ namespace Blockgame_OpenTK
             {
 
                 Toolkit.Mouse.GetPosition(out int x, out int y);
+                Toolkit.Mouse.GetMouseState(out OpenTK.Platform.MouseState state);
+                Input.PreviousMouseScroll = state.Scroll;
                 Input.PreviousMousePosition = (x, y);
 
             }
@@ -73,6 +75,11 @@ namespace Blockgame_OpenTK
                 GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
                 GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
                 GlobalValues.PreviousTime = GlobalValues.CurrentTime;
+
+                Toolkit.Mouse.GetMouseState(out OpenTK.Platform.MouseState state);
+                Input.CurrentMouseScroll = state.Scroll;
+                Input.ScrollDelta = Input.CurrentMouseScroll - Input.PreviousMouseScroll;
+                Input.PreviousMouseScroll = Input.CurrentMouseScroll;
 
                 Input.MouseDelta = Vector2.Zero;
 
@@ -179,7 +186,6 @@ namespace Blockgame_OpenTK
 
             if (args is MouseMoveEventArgs mouseMove)
             {
-
 
                 Input.CurrentMousePosition = mouseMove.Position;
                 Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
