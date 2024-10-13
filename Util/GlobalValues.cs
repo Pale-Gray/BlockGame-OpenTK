@@ -27,6 +27,7 @@ namespace Blockgame_OpenTK.Util
         public static string LocalPath = Path.Combine("Resources", "Textures", "TextureArray") + Path.DirectorySeparatorChar;
         public static string BlockDataPath = Path.Combine("Resources", "Data", "Blocks") + Path.DirectorySeparatorChar;//"Resources/Blocks/";
         public static string BlockModelPath = Path.Combine("Resources", "Data", "Blocks", "Models") + Path.DirectorySeparatorChar;//"Resources/Blocks/Models/";
+        public static string GuiTexturePath = Path.Combine("Gui");
 
         public static string Phase = "Pre-Alpha";
         private static Version GameVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;

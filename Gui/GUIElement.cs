@@ -1,6 +1,11 @@
 ﻿using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Gui
@@ -8,148 +13,208 @@ namespace Blockgame_OpenTK.Gui
     public struct GuiVertex
     {
 
-        public Vector3 Position;
+        public Vector2 Position;
         public Vector2 TextureCoordinates;
+        public int Layer;
 
-        public GuiVertex(Vector3 position, Vector2 textureCoordinates)
+        public GuiVertex(Vector2 position, Vector2 textureCoordinates, int layer)
         {
 
             Position = position;
             TextureCoordinates = textureCoordinates;
+            Layer = layer;
 
         }
+
+    }
+
+    public enum TextureMode
+    {
+
+        Stretch = 0,
+        Tile = 1
 
     }
 
     internal class GuiElement
     {
 
-        public static readonly Vector2 Center = (0.5f, 0.5f);
-        public static readonly Vector2 TopLeft = (0.0f, 0.0f);
-        public static readonly Vector2 TopRight = (1.0f, 0.0f);
-        public static readonly Vector2 BottomLeft = (0.0f, 1.0f);
-        public static readonly Vector2 BottomRight = (1.0f, 1.0f);
+        public List<GuiElement> Children = new List<GuiElement>();
+        public GuiElement Parent = null;
 
-        public int Vao, Vbo;
+        private Vector2 _absolutePosition;
+        private Vector2 _relativePosition;
+        private Vector2 _origin;
+        private Vector2 _dimensions;
 
-        public Vector2 Position;
-        public Vector2 AbsolutePosition;
-        public Vector2 RelativeReference;
-        public Vector2 RelativePosition;
-        public Vector2 Origin;
-        public Vector2 OriginOffset;
-        public Vector2 Dimensions;
-        public GuiVertex[] GuiMesh;
+        private Vector2 _previousPosition;
+        private Vector2 _previousDimensions;
+        private Vector2 _previousOrigin;
 
-        public Matrix4 TranslationMatrix;
-        public Matrix4 RotationMatrix;
-        public Matrix4 ScaleMatrix;
-        public Matrix4 ModelMatrix;
+        private Texture _texture;
+        private string _textureName;
+        private int _vao;
+        private int _vbo;
+        private GuiVertex[] _guiVertices;
 
-        public GuiElement(Vector2 dimensions, Vector2 origin)
+        public Vector2 AbsolutePosition { get { return _absolutePosition; } set { _absolutePosition = value; } }
+        public Vector2 RelativePosition { get { return _relativePosition; } set { _relativePosition = value; } }
+        public Vector2 Position { get; private set; }
+        public Vector2 Dimensions { get { return _dimensions; } set { _dimensions = value; } }
+        public Vector2 Origin { get { return _origin; } set { _origin = value; } }
+
+        public float? TileSize;
+        public int Layer;
+        private TextureMode _textureMode = TextureMode.Stretch;
+        public TextureMode TextureMode { get { return _textureMode; } set { _textureMode = value; GenerateMesh(); } }
+        public string TextureName { get { return _textureName; } set { _textureName = value; if (_texture != null) _texture.Dispose(); _texture = new Texture(Path.Combine(GlobalValues.GuiTexturePath, value)); } }
+        public Color3<Rgb> Color = Color3.White;
+        public GuiElement() { }
+
+        private void CalculatePosition()
         {
 
-            Dimensions = dimensions;
-            Origin = (origin.X, origin.Y);
+            if (Parent == null)
+            {
 
-            ModelMatrix = Matrix4.Identity;
-            OriginOffset = dimensions * origin;
+                Position = AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
 
-            // ModelMatrix = Matrix4.CreateTranslation(((position.X - OriginOffset.X, position.Y - OriginOffset.Y, 0)));
-            TranslationMatrix = Matrix4.Identity;
-            RotationMatrix = Matrix4.Identity;
-            ScaleMatrix = Matrix4.Identity;
-            ModelMatrix = TranslationMatrix * RotationMatrix * ScaleMatrix;
+            }
+            else
+            {
 
-            GenerateMesh();
-            CallOpenGL();
+                Position = (Parent.Position - (Parent.Dimensions * Parent.Origin)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, Parent.Dimensions);
+
+            }
 
         }
-
-        public void SetRelativePosition(float x, float y)
-        {
-
-            RelativeReference = (x, y);
-            RelativePosition = GuiMath.RelativeToAbsolute(RelativeReference.X, RelativeReference.Y);
-
-        }
-
-        public void SetAbsolutePosition(float x, float y)
-        {
-
-            AbsolutePosition = (x, y);
-
-        }
-
-        public void Rotate(float angle)
-        {
-
-            RotationMatrix = Matrix4.CreateRotationZ(Maths.ToRadians(angle));
-
-        }
-
         private void GenerateMesh()
         {
 
-            GuiMesh = new GuiVertex[] {
+            CalculatePosition();
 
-                new GuiVertex((Dimensions.X, Dimensions.Y, 0), (0, 0)),
-                new GuiVertex((Dimensions.X, 0, 0), (0, 0)),
-                new GuiVertex((0, 0, 0), (0, 0)),
-                new GuiVertex((0, 0, 0), (0, 0)),
-                new GuiVertex((0, Dimensions.Y, 0), (0, 0)),
-                new GuiVertex((Dimensions.X, Dimensions.Y, 0), (0, 0))
+            if (_texture == null) _texture = new Texture(Path.Combine(GlobalValues.GuiTexturePath, "Blank.png"));
 
-            };
+            if (TextureMode == TextureMode.Stretch)
+            {
+
+                _guiVertices = new GuiVertex[]
+                {
+
+                    new GuiVertex(Position, (0, 1), 0),
+                    new GuiVertex(Position + (0, Dimensions.Y), (0, 0), 0),
+                    new GuiVertex(Position + Dimensions, (1, 0), 0),
+                    new GuiVertex(Position + Dimensions, (1, 0), 0),
+                    new GuiVertex(Position + (Dimensions.X, 0), (1, 1), 0),
+                    new GuiVertex(Position, (0, 1), 0)
+
+                };
+
+            } else
+            {
+
+                Vector2 textureScale = _dimensions / TileSize ?? (_texture.Width, _texture.Height);
+                // textureScale += textureScale * _origin;
+
+                _guiVertices = new GuiVertex[]
+                {
+
+                    new GuiVertex(Position, (0, 1), 0),
+                    new GuiVertex(Position + (0, Dimensions.Y), (0, 1 - textureScale.Y), 0),
+                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), 0),
+                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), 0),
+                    new GuiVertex(Position + (Dimensions.X, 0), (textureScale.X, 1), 0),
+                    new GuiVertex(Position, (0, 1), 0)
+
+                };
+
+            }
+
+            for (int i = 0; i < _guiVertices.Length; i++)
+            {
+
+                _guiVertices[i].Position -= (Dimensions * Origin);
+
+            }
+
+            GL.DeleteVertexArray(_vao);
+            GL.DeleteBuffer(_vbo);
+
+            // _vao = GL.GenVertexArray();
+            // _vbo = GL.GenBuffer();
+
+            _vao = GL.CreateVertexArray();
+            _vbo = GL.CreateBuffer();
+
+            GL.NamedBufferStorage(_vbo, _guiVertices.Length * Marshal.SizeOf<GuiVertex>(), _guiVertices, BufferStorageMask.DynamicStorageBit);
+
+            GL.VertexArrayVertexBuffer(_vao, 0, _vbo, 0, Marshal.SizeOf<GuiVertex>());
+
+            GL.EnableVertexArrayAttrib(_vao, 0);
+            GL.EnableVertexArrayAttrib(_vao, 1);
+            GL.EnableVertexArrayAttrib(_vao, 2);
+
+            GL.VertexArrayAttribFormat(_vao, 0, 2, VertexAttribType.Float, false, (uint) Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
+            GL.VertexArrayAttribFormat(_vao, 1, 2, VertexAttribType.Float, false, (uint)Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.TextureCoordinates)));
+            GL.VertexArrayAttribFormat(_vao, 2, 1, VertexAttribType.Int, false, (uint)Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Layer)));
+
+            GL.VertexArrayAttribBinding(_vao, 0, 0);
+            GL.VertexArrayAttribBinding(_vao, 1, 0);
+            GL.VertexArrayAttribBinding(_vao, 2, 0);
 
         }
 
-        private void CallOpenGL()
+        public void Draw()
         {
 
-            Vao = GL.GenVertexArray();
-            GL.BindVertexArray(Vao);
-            Vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, GuiMesh.Length * Marshal.SizeOf<GuiVertex>(), GuiMesh, BufferUsage.StaticDraw);
+            if (_previousPosition != Position)
+            {
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.TextureCoordinates)));
-            GL.EnableVertexAttribArray(1);
+                _previousPosition = Position;
+                Recalculate();
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
+            }
+            if (_previousDimensions != Dimensions)
+            {
 
-        }
+                _previousDimensions = Dimensions;
+                Recalculate();
 
-        public virtual void Draw(float time)
-        {
+            }
+            if (_previousOrigin != Origin)
+            {
 
-            Position = (AbsolutePosition + RelativePosition);
-            TranslationMatrix = Matrix4.CreateTranslation(Position.X, Position.Y, 0);
-            ModelMatrix = Matrix4.CreateTranslation(-OriginOffset.X, -OriginOffset.Y, 0) * RotationMatrix * TranslationMatrix * ScaleMatrix;
+                _previousOrigin = Origin;
+                Recalculate();
 
+            }
+
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2d, _texture.GetID());
             GlobalValues.GuiShader.Use();
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiTexture"), 0);
+            GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiSize"), 1, _dimensions);
+            GL.Uniform1i(GL.GetUniformLocation(GlobalValues.GuiShader.id, "textureMode"), 1, (int) TextureMode);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiColor"), 1, (Vector3) Color);
+            GL.BindVertexArray(_vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, _guiVertices.Length);
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "model"), 1, true, ref ModelMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            if (Children.Count > 0)
+            {
 
-            GL.BindVertexArray(Vao);
+                foreach (GuiElement child in Children) child.Draw();
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, GuiMesh.Length);
-
-            GL.BindVertexArray(0);
-
-            GlobalValues.GuiShader.UnUse();
+            }
 
         }
 
-        public void OnScreenResize()
+        public void Recalculate()
         {
 
-            SetRelativePosition(RelativeReference.X, RelativeReference.Y);
+            GenerateMesh();
+            if (Children.Count > 0) { foreach (GuiElement child in Children) { child.Recalculate(); } }
 
         }
 

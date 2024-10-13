@@ -20,58 +20,10 @@ namespace Blockgame_OpenTK.Gui
         public ButtonCallback OnButtonHold;
         public ButtonCallback OnButtonHover = () => { ColorTint *= 0.9f; Console.WriteLine("I'm being hovered over!"); };
 
-        public GuiButton(Vector2 dimensions, Vector2 origin) : base(dimensions, origin)
+        public GuiButton()
         {
 
             
-
-        }
-
-        public override void Draw(float time)
-        {
-
-            base.Draw(0);
-
-            if (IsMoveable && IsGrabbed)
-            {
-
-                Vector2 mouseDelta = Input.MouseDelta;
-
-                AbsolutePosition += Input.MouseDelta;
-
-            }
-
-            if (!Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
-            {
-
-                OnButtonHover();
-
-            }
-
-            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
-            {
-
-                IsGrabbed = true;
-
-                // OnButtonHold();
-
-            }
-
-            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
-            {
-
-                IsGrabbed = false;
-
-                // OnButtonUnclick();
-
-            }
-
-            if (Input.IsMouseButtonDown(MouseButton.Button1) && GuiMaths.DidCollideWithMousePointer(Position, Dimensions, Origin))
-            {
-
-                OnButtonClick();
-
-            }
 
         }
 

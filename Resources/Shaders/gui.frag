@@ -1,16 +1,16 @@
 #version 400 core
 out vec4 FragColor;
 
-in vec2 v_TexCoords;
+in vec2 vTextureCoordinates;
 
-uniform sampler2D tex;
-uniform vec3 colorTint;
+uniform sampler2D guiTexture;
+uniform vec3 guiColor;
 
 void main()
 {
 
-	// FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-	FragColor = vec4(1,1,1,1) * vec4(colorTint, 1);
-	// FragColor = vec4(0,0,0,1);
+	// FragColor = vec4(vTextureCoordinates, 0.0, 1.0);
+	vec4 guiTex = texture(guiTexture, vTextureCoordinates);
+	FragColor = vec4(guiTex.rgb * guiColor, guiTex.a);
 
 }

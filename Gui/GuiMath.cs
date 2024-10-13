@@ -13,5 +13,12 @@ namespace Blockgame_OpenTK.Gui
 
         }
 
+        public static Vector2 RelativeToAbsolute(Vector2 relativePosition, Vector2 referenceDimensions)
+        {
+
+            return relativePosition * referenceDimensions;
+
+        }
+
     }
 }

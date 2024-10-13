@@ -218,6 +218,8 @@ namespace Blockgame_OpenTK
         static GuiElement uiTest;
         static GuiButton GenerateButton;
 
+        static GuiElement TestElement = new GuiElement();
+        static GuiContainer TestContainer = new GuiContainer();
         public static void Load()
         {
 
@@ -289,32 +291,47 @@ namespace Blockgame_OpenTK
             Player.SetHeight(1.8f);
             Player.SetPosition((16, 68, 16));
 
-            uiTest = new GuiElement((8, 8), GuiElement.Center);
-            uiTest.SetRelativePosition(0.5f, 0.5f);
-            uiTest.Rotate(45);
+            // uiTest = new GuiElement((8, 8), GuiElement.Center);
+            // uiTest.SetRelativePosition(0.5f, 0.5f);
+            // uiTest.Rotate(45);
 
-            Element = new GuiElement((50, 50), GuiElement.TopLeft);
-            Element.SetRelativePosition(0, 1);
+            // Element = new GuiElement((50, 50), GuiElement.TopLeft);
+            // Element.SetRelativePosition(0, 1);
 
-            ButtonElement = new GuiButton((75, 75), GuiElement.Center);
-            ButtonElement.SetRelativePosition(0.5f, 0.5f);
-            ButtonElement.OnButtonClick = () => { Console.WriteLine("I was clicked!"); };
-            ButtonElement.IsMoveable = true;
+            // ButtonElement = new GuiButton((75, 75), GuiElement.Center);
+            // ButtonElement.SetRelativePosition(0.5f, 0.5f);
+            // ButtonElement.OnButtonClick = () => { Console.WriteLine("I was clicked!"); };
+            // ButtonElement.IsMoveable = true;
 
-            GWindow = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
-            GWindow.SetRelativePosition(0.5f, 0.5f);
+            // GWindow = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
+            // GWindow.SetRelativePosition(0.5f, 0.5f);
 
-            GuiButton button = new GuiButton((50, 50), GuiElement.BottomLeft);
-            button.SetRelativePosition(0, 1);
-            GWindow.AddElement(button);
+            // GuiButton button = new GuiButton((50, 50), GuiElement.BottomLeft);
+            // button.SetRelativePosition(0, 1);
+            // GWindow.AddElement(button);
 
-            GenerateButton = new GuiButton((100, 20), GuiElement.Center);
-            GenerateButton.SetRelativePosition(0.2f, 0.2f);
+            // GenerateButton = new GuiButton((100, 20), GuiElement.Center);
+            // GenerateButton.SetRelativePosition(0.2f, 0.2f);
 
-            GenerateButton.OnButtonClick = () => { World.DebugReset(); };
+            // GenerateButton.OnButtonClick = () => { World.DebugReset(); };
 
+            // TestElement.AbsolutePosition = (0, 0);
+            Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            TestElement.Dimensions = (12, 12);
+            TestElement.Origin = (0.0f, 0.0f);
+            TestElement.RelativePosition = (0.0f, 0.0f);
+            TestContainer.TextureName = "Test.png";
+            TestContainer.TextureMode = TextureMode.Tile;
+            TestContainer.TileSize = 48;
 
-            Window = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
+            //TestContainer.Dimensions = (120, 80);
+            TestContainer.Origin = (0.5f, 0.5f);
+            TestContainer.Color = Color3.Red;
+            // TestContainer.RelativePosition = (0.5f, 0.5f);
+
+            TestContainer.AddElement(TestElement);
+
+            // Window = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
 
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
 
@@ -476,6 +493,11 @@ namespace Blockgame_OpenTK
 
             // FontLoader.RenderLines((0, 240), 48, 1.5f, "Line 0", "Line 1", "Line 2");
 
+            // TestElement.Draw();
+            // TestContainer.AbsolutePosition = (100 + (float)(100.0f*Math.Sin(GlobalValues.Time)), 240);
+            TestContainer.RelativePosition = (0.5f, 0.5f);
+            TestContainer.Dimensions = (120 + (float)(25.0f*Math.Sin(GlobalValues.Time)), 80+(float)(30.0f*Math.Sin(GlobalValues.Time + 32.0f)));
+            TestContainer.Draw();
 
             frameBuffer.Unbind();
 
@@ -545,12 +567,15 @@ namespace Blockgame_OpenTK
             // GlobalValues.HEIGHT = e.Height;
             GlobalValues.WIDTH = args.NewClientSize.X;
             GlobalValues.HEIGHT = args.NewClientSize.Y;
+            Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
             GlobalValues.Center = (GlobalValues.WIDTH / 2f, GlobalValues.HEIGHT / 2f);
 
             camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
-            uiTest.OnScreenResize();
+            // TestElement.RecalculatePosition();
+            TestContainer.Recalculate();
+            // uiTest.OnScreenResize();
             // TestElement.Update();
             TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
