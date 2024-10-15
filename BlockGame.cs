@@ -15,6 +15,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
+using System.Diagnostics;
 
 namespace Blockgame_OpenTK
 {
@@ -326,10 +327,20 @@ namespace Blockgame_OpenTK
 
             //TestContainer.Dimensions = (120, 80);
             TestContainer.Origin = (0.5f, 0.5f);
+            TestContainer.RelativePosition = (0.5f, 0.5f);
+            TestContainer.Dimensions = (120, 80);
             TestContainer.Color = Color3.Red;
             // TestContainer.RelativePosition = (0.5f, 0.5f);
 
-            TestContainer.AddElement(TestElement);
+            GuiContainer testContainer = new GuiContainer();
+            testContainer.Dimensions = (50, 50);
+            GuiElement testElement = new GuiElement();
+            testElement.Origin = (0.5f, 0.5f);
+            testElement.Dimensions = (25, 25);
+            testElement.RelativePosition = (0.5f, 0.5f);
+            testElement.Color = Color3.Red;
+            testContainer.AddElement(testElement);
+            TestContainer.AddElement(testContainer);
 
             // Window = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
 
@@ -342,11 +353,13 @@ namespace Blockgame_OpenTK
         public static void Render()
         {
 
+            Stopwatch sw = Stopwatch.StartNew();
+
             Player.Update(World);
 
             frameBuffer.Bind();
 
-            GL.PolygonOffset(1, 1);
+            GL.PolygonOffset(0, 0);
 
             GL.ClearColor(new OpenTK.Mathematics.Color4<OpenTK.Mathematics.Rgba>(0, 0, 0, 1));
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -481,7 +494,7 @@ namespace Blockgame_OpenTK
             if (GlobalValues.BlockSelectorID > GlobalValues.Register.Blocks.Keys.Last()) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.Register.Blocks.Keys.First() + 1);
             if (GlobalValues.BlockSelectorID < GlobalValues.Register.Blocks.Keys.First() + 1) GlobalValues.BlockSelectorID = GlobalValues.Register.Blocks.Keys.Last();
 
-            GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
+            // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
             GL.Enable(EnableCap.CullFace);
             // uiTest.Draw(0);
 
@@ -495,9 +508,9 @@ namespace Blockgame_OpenTK
 
             // TestElement.Draw();
             // TestContainer.AbsolutePosition = (100 + (float)(100.0f*Math.Sin(GlobalValues.Time)), 240);
-            TestContainer.RelativePosition = (0.5f, 0.5f);
-            TestContainer.Dimensions = (120 + (float)(25.0f*Math.Sin(GlobalValues.Time)), 80+(float)(30.0f*Math.Sin(GlobalValues.Time + 32.0f)));
-            TestContainer.Draw();
+            // TestContainer.RelativePosition = (0.5f, 0.5f);
+            // TestContainer.Dimensions = (120 + (float)(25.0f*Math.Sin(GlobalValues.Time)), 80+(float)(30.0f*Math.Sin(GlobalValues.Time + 32.0f)));
+            // TestContainer.Draw();
 
             frameBuffer.Unbind();
 
@@ -506,6 +519,12 @@ namespace Blockgame_OpenTK
 
             framebufferQuad.Draw(frameBuffer, (float)time);
 
+            frameBuffer.Bind();
+            GL.PolygonOffset(1, 1);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+            // .Draw(Player.Camera);
+            World.DrawRadius(Player, 1);
+            frameBuffer.Unbind();
             if (Dda.hit)
             {
 
@@ -547,6 +566,8 @@ namespace Blockgame_OpenTK
                 GL.FrontFace(FrontFaceDirection.Ccw);
 
             }
+
+            // Console.WriteLine($"frametime (ms): {sw.ElapsedMilliseconds}");
 
         }
 

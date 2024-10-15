@@ -20,7 +20,6 @@ namespace Blockgame_OpenTK.BlockUtil
         public BlockModel BlockModel { get; set; }
         public string SoundPath { get; set; }
         public ushort ID = 0;
-        public bool IsOpaque { get; set; }
 
         public AxisAlignedBoundingBox BoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0));
         public GuiBlockModel GuiRenderableBlockModel;
@@ -31,7 +30,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             block.BoundingBox.StaticFriction = 0.8f;
             block.BoundingBox.DynamicFriction = 0.8f;
-            block.GuiRenderableBlockModel = new GuiBlockModel(block);
+            // block.GuiRenderableBlockModel = new GuiBlockModel(block);
 
             return block;
 

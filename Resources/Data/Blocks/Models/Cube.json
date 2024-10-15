@@ -4,6 +4,7 @@
 
     {
 
+      "InheritableName": "Up",
       "Texture": "MissingTexture",
       "CullDirection": "Up",
       "Points": [
@@ -18,6 +19,7 @@
     },
     {
 
+      "InheritableName": "Down",
       "Texture": "MissingTexture",
       "CullDirection": "Down",
       "Points": [
@@ -32,6 +34,7 @@
     },
     {
 
+      "InheritableName": "Left",
       "Texture": "MissingTexture",
       "CullDirection": "Left",
       "Points": [
@@ -46,6 +49,7 @@
     },
     {
 
+      "InheritableName": "Right",
       "Texture": "MissingTexture",
       "CullDirection": "Right",
       "Points": [
@@ -60,6 +64,7 @@
     },
     {
 
+      "InheritableName": "Front",
       "Texture": "MissingTexture",
       "CullDirection": "Front",
       "Points": [
@@ -74,6 +79,7 @@
     },
     {
 
+      "InheritableName": "Back",
       "Texture": "MissingTexture",
       "CullDirection": "Back",
       "Points": [

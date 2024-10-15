@@ -1,42 +1,42 @@
 {
 
-  "Reference": "Cube.json",
+  "Inherit": "Cube.json",
   "Faces": [
 
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Up"
+      "Inherit": "Up"
 
     },
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Down"
+      "Inherit": "Down"
 
     },
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Left"
+      "Inherit": "Left"
 
     },
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Right"
+      "Inherit": "Right"
 
     },
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Front"
+      "Inherit": "Front"
 
     },
     {
 
       "Texture": "StoneBlock",
-      "Reference": "Back"
+      "Inherit": "Back"
 
     }
 

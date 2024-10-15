@@ -412,49 +412,43 @@ namespace Blockgame_OpenTK.Core.Chunks
                             if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitY)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitY))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Up, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Up, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Up, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Up, world)));
+                                mesh.AddRange(block.BlockModel.GetFaceWithOffset(BlockModelCullDirection.Up, (x,y,z)));
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Up, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Up, world)));
 
                             }
                             if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitY)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitY))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Down, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Down, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Down, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Down, world)));
+                                
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Down, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Down, world)));
 
                             }
                             if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitX)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitX))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Left, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Left, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Left, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Left, world)));
+                                
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Left, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Left, world)));
 
                             }
                             if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitX)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitX))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Right, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Right, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Right, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Right, world)));
+                                
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Right, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Right, world)));
 
                             }
                             if (world[ChunkUtils.PositionToChunk(globalPosition + Vector3i.UnitZ)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition + Vector3i.UnitZ))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Back, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Back, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Back, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Back, world)));
+                                
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Back, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Back, world)));
 
                             }
                             if (world[ChunkUtils.PositionToChunk(globalPosition - Vector3i.UnitZ)].GetBlockID(ChunkUtils.PositionToBlockLocal((globalPosition - Vector3i.UnitZ))) == Blocks.AirBlock.ID)
                             {
 
-                                // mesh.AddRange(block.BlockModel.ConvertToChunkReadableFaceOffset((x, y, z), BlockModelCullDirection.Front, GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Front, world)));
-
-                                mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Front, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Front, world)));
+                                
+                                // mesh.AddRange(block.BlockModel.GetFaceOffsetted(BlockModelCullDirection.Front, (x, y, z), GenerateAmbientPointsForFace(globalPosition, BlockModelCullDirection.Front, world)));
 
                             }
 

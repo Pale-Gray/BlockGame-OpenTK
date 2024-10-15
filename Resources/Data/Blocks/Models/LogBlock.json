@@ -1,42 +1,42 @@
 {
 
-  "Reference": "Cube.json",
+  "Inherit": "Cube.json",
   "Faces": [
 
     {
 
       "Texture": "LogBlockTop",
-      "Reference": "Up"
+      "Inherit": "Up"
 
     },
     {
 
       "Texture": "LogBlockTop",
-      "Reference": "Down"
+      "Inherit": "Down"
 
     },
     {
 
       "Texture": "LogBlockSide",
-      "Reference": "Left"
+      "Inherit": "Left"
 
     },
     {
 
       "Texture": "LogBlockSide",
-      "Reference": "Right"
+      "Inherit": "Right"
 
     },
     {
 
       "Texture": "LogBlockSide",
-      "Reference": "Front"
+      "Inherit": "Front"
 
     },
     {
 
       "Texture": "LogBlockSide",
-      "Reference": "Back"
+      "Inherit": "Back"
 
     }
 

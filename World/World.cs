@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Blockgame_OpenTK.Core.Chunks;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Security.Cryptography;
+using Blockgame_OpenTK.PlayerUtil;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -59,6 +61,24 @@ namespace Blockgame_OpenTK.Core.Worlds
                         // Game.rmodel.SetScale(1, 1, 1);
 
                     }
+
+                }
+
+            }
+
+        }
+
+        public void DrawRadius(Player player, int radius)
+        {
+
+            Vector3i playerChunkPosition = ChunkUtils.PositionToChunk(player.Position);
+            foreach (Chunk chunk in WorldChunks.Values)
+            {
+
+                if (chunk.QueueType == QueueType.Finish && chunk.OpaqueMesh.Length != 0 && Maths.ChebyshevDistance3D(playerChunkPosition, chunk.ChunkPosition) <= radius)
+                {
+
+                    chunk.Draw((0, 1, 0), player.Camera);
 
                 }
 

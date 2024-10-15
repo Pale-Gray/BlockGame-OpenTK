@@ -50,17 +50,17 @@ namespace Blockgame_OpenTK.BlockUtil
     public struct BlockModelAbstractFaceData
     {
 
+        public string InheritableName { get; set; }
+        public string Inherit { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public BlockModelCullDirection? InheritDirection { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public BlockModelCullDirection? CullDirection { get; set; }
+        public BlockModelCullDirection CullDirection { get; set; }
         [JsonConverter(typeof(JsonTextureIndexConverter))]
-        public int Texture { get; set; }
-        public bool? IsOpaque { get; set; }
+        public int? Texture { get; set; }
+        public bool? ShouldRenderBackface { get; set; }
         [JsonConverter(typeof(JsonVector3Converter))]
         public Vector3? Normal { get; set; }
         [JsonConverter(typeof(JsonVector3ArrayConverter))]
-        public required Vector3[] Points { get; set; }
+        public Vector3[] Points { get; set; }
         [JsonConverter(typeof(JsonVector2ArrayConverter))]
         public Vector2[] UV { get; set; }
         public float[] MovingWeights { get; set; }
@@ -70,15 +70,15 @@ namespace Blockgame_OpenTK.BlockUtil
     public struct BlockModelAbstractData
     {
 
-        [JsonConverter(typeof(JsonBlockModelConverter))]
-        internal BlockModel Inherit { get; set; }
+        public string Inherit { get; set; }
         [JsonConverter(typeof(JsonVector3Converter))]
         public Vector3 ModelRotation { get; set; }
         [JsonConverter(typeof(JsonVector3Converter))]
         public Vector3 ModelScale { get; set; }
         [JsonConverter(typeof(JsonVector3Converter))]
         public Vector3 ModelTranslation { get; set; }
-        public required BlockModelAbstractFaceData[] Faces { get; set; }
+        public int LightLevel { get; set; }
+        public BlockModelAbstractFaceData[] Faces { get; set; }
 
     }
 
@@ -97,47 +97,69 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        private static ChunkVertex[] ConvertFace(BlockModel inheritModel, BlockModelAbstractFaceData face)
+        private static Vector3 DetermineNormal(BlockModelAbstractFaceData face)
         {
 
-            List<ChunkVertex> convertedFaceVertices = new List<ChunkVertex>();
+            return Vector3.Zero;
 
-            if (face.InheritDirection == null)
+        }
+
+        private static Vector2[] DetermineTextureCoordinates(BlockModelAbstractFaceData face)
+        {
+
+            return new Vector2[6];
+
+        }
+        private static ChunkVertex[] ConvertFace(string inheritModelName, BlockModelAbstractFaceData face)
+        {
+
+            ChunkVertex[] vertices = new ChunkVertex[6];
+
+            // BlockModelAbstractData? inheritData = DeserializeData(inheritModelName);
+            BlockModelAbstractData? inheritData = DeserializeInheritData(inheritModelName);
+
+            if (inheritModelName != null && face.Inherit != null)
             {
 
+                foreach (BlockModelAbstractFaceData inheritFace in inheritData?.Faces)
+                {
 
+                    if (inheritFace.InheritableName == face.Inherit)
+                    {
 
-            } else
-            {
+                        Vector2[] textureCoordinates = DetermineTextureCoordinates(inheritFace);
+                        Vector3 normal = DetermineNormal(inheritFace);
 
+                        vertices[0] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[0], (0.0f, 1.0f), normal, 1);
+                        vertices[1] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[1], (0.0f, 0.0f), normal, 1);
+                        vertices[2] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[2], (1.0f, 0.0f), normal, 1);
+                        vertices[3] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[2], (1.0f, 0.0f), normal, 1);
+                        vertices[4] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[3], (1.0f, 1.0f), normal, 1);
+                        vertices[5] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[0], (0.0f, 1.0f), normal, 1);
 
+                    }
+
+                }
 
             }
 
-            return convertedFaceVertices.ToArray();
+            return vertices;
 
         }
         private static Dictionary<BlockModelCullDirection, ChunkVertex[]> Convert(BlockModelAbstractData modelData)
         {
 
             Dictionary<BlockModelCullDirection, ChunkVertex[]> faces = new Dictionary<BlockModelCullDirection, ChunkVertex[]>();
+            Console.WriteLine(modelData.Inherit);
 
             foreach (BlockModelAbstractFaceData face in modelData.Faces)
             {
 
-                ChunkVertex[] convertedFace = ConvertFace(modelData.Inherit, face);
-                BlockModelCullDirection direction = face.CullDirection ?? face.InheritDirection ?? BlockModelCullDirection.None;
-                if (faces.ContainsKey(direction))
+                // Console.WriteLine(face.InheritableName == null ? "null" : face.InheritableName);
+                if (!faces.ContainsKey(face.CullDirection))
                 {
 
-                    List<ChunkVertex> currentFace = faces[direction].ToList();
-                    currentFace.AddRange(convertedFace);
-                    faces[direction] = currentFace.ToArray();
-
-                } else
-                {
-
-                    faces.Add(direction, convertedFace);
+                    faces.Add(face.CullDirection, ConvertFace(modelData.Inherit, face));
 
                 }
 
@@ -147,31 +169,59 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public static BlockModel LoadFromJson(string fileName)
+        private static BlockModelAbstractData? DeserializeInheritData(string fileName)
         {
+
+           //  BlockModelAbstractData? data = JsonSerializer.Deserialize<BlockModelAbstractData?>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
 
             try
             {
 
-                BlockModelAbstractData modelData = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
+                return JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
 
+            } catch { return null; }
 
+            // return data;
 
-            } catch { }
+        }
+        public static BlockModel LoadFromJson(string fileName)
+        {
+
+            BlockModelAbstractData modelData = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
+            Console.WriteLine(fileName);
 
             float[] ambientValues = new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
 
-            BlockModel model = JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
+            // BlockModel model = JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
 
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Up, model.ConvertToChunkReadableFace(BlockModelCullDirection.Up));
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Down, model.ConvertToChunkReadableFace(BlockModelCullDirection.Down));
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Left, model.ConvertToChunkReadableFace(BlockModelCullDirection.Left));
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Right, model.ConvertToChunkReadableFace(BlockModelCullDirection.Right));
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Back, model.ConvertToChunkReadableFace(BlockModelCullDirection.Back));
-            model.ChunkReadableFaces.Add(BlockModelCullDirection.Front, model.ConvertToChunkReadableFace(BlockModelCullDirection.Front));
+            BlockModel model = new BlockModel();
+            model.ChunkReadableFaces = Convert(modelData);
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Up, model.ConvertToChunkReadableFace(BlockModelCullDirection.Up));
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Down, model.ConvertToChunkReadableFace(BlockModelCullDirection.Down));
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Left, model.ConvertToChunkReadableFace(BlockModelCullDirection.Left));
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Right, model.ConvertToChunkReadableFace(BlockModelCullDirection.Right));
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Back, model.ConvertToChunkReadableFace(BlockModelCullDirection.Back));
+            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Front, model.ConvertToChunkReadableFace(BlockModelCullDirection.Front));
             // model.ChunkReadableFaces.Add(BlockModelCullDirection.None, model.ConvertToChunkReadableFace(BlockModelCullDirection.None, ambientValues));
 
             return model;
+
+        }
+
+        public ChunkVertex[] GetFaceWithOffset(BlockModelCullDirection direction, Vector3i offset)
+        {
+
+            ChunkVertex[] face = new ChunkVertex[ChunkReadableFaces[direction].Length];
+
+            for (int i = 0; i < face.Length; i++)
+            {
+
+                face[i] = ChunkReadableFaces[direction][i];
+                face[i].Position += offset;
+
+            }
+
+            return face;
 
         }
 
