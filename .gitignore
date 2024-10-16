@@ -406,4 +406,4 @@ FodyWeavers.xsd
 
 ### Game-specific files
 
-Chunks/*
+Chunks/**
