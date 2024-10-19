@@ -49,11 +49,14 @@ float dist3D(vec3 pos1, vec3 pos2)
 void main()
 {
 	
-	float sunDotProduct = dot(directionalLight, vnormal);
+	vec3 normal = gl_FrontFacing ? vnormal : -vnormal;
 
-	float falloff = dot(vec3(0,1,0), directionalLight);
+	float sunDotProduct = dot(-directionalLight, normal);
+
+	float falloff = dot(vec3(0,1,0), -directionalLight);
 	float ambient = clamp(0.5 * falloff, 0, 1);
 	float value = clamp(ambient + (max(0, sunDotProduct) * falloff), 0.1, 1.0);
+	// float value = sunDotProduct;
 
 	vec4 array_texture = texture(arrays, vec3(vtexcoord, vtexture_index));
 	// float edge = 0;
@@ -65,6 +68,8 @@ void main()
 	float fac = clamp(distFac, 0, 1);
 
 	float a = 1.0;
+	float texelAlpha = texelFetch(arrays, ivec3(vtexcoord*32,vtexture_index), 0).a;
+	if (texelAlpha == 0) discard;
 
 	float ambientIntensity = 0.5;
 	float falloffMultiplier = 0.0;
@@ -81,21 +86,18 @@ void main()
 	float ambientFac = (ambientIntensity + falloffMultiplier) * (ambientIntensity * (1-ambientOcclusion.r)) - (ambientIntensity * falloffMultiplier);
 	ambientFac = clamp(ambientFac, 0, 1);
 
+// 	Outcolor = vec4(array_texture.rgb * (1 - (vambient_value/3)), 1);
+	ambientValue = mix(0.15, 1, (1 - (vambient_value/3)));
+
 	if (shouldRenderFog)
 	{
 
-		Outcolor = vec4(mix(array_texture.rgb * (1-ambientFac) * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
+		Outcolor = vec4(mix(array_texture.rgb * ambientValue * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
 
 	} else 
 	{
 
-		Outcolor = vec4(array_texture.rgb * value * (1-ambientFac), a);
-
-	}
-	if (!gl_FrontFacing) 
-	{
-
-		// Outcolor = vec4(1, 0, 0, 1);
+		Outcolor = vec4(array_texture.rgb * value * ambientValue, a);
 
 	}
 

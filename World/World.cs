@@ -50,7 +50,7 @@ namespace Blockgame_OpenTK.Core.Worlds
                 {
 
                     // GL.PolygonMode(TriangleFace.FrontAndBack, GlobalValues.ShouldRenderWireframe ? PolygonMode.Line : PolygonMode.Fill);
-                    chunk.Draw((0,1,0), playerCamera);
+                    chunk.Draw((0,-1,0), playerCamera);
                     // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
                     if (GlobalValues.ShouldRenderBounds)

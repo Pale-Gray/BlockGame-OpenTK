@@ -1,0 +1,33 @@
+{
+
+  "Inherit": "CrossFoliageVariant2Base.json",
+  "Faces": [
+
+    {
+
+      "Inherit": "XSideOne",
+      "Texture": "TallGrassBlock"
+
+    },
+    {
+
+      "Inherit": "XSideTwo",
+      "Texture": "TallGrassBlock"
+
+    },
+    {
+
+      "Inherit": "ZSideOne",
+      "Texture": "TallGrassBlock"
+
+    },
+    {
+
+      "Inherit": "ZSideTwo",
+      "Texture": "TallGrassBlock"
+
+    }
+
+  ]
+
+}

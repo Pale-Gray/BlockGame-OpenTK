@@ -1,0 +1,64 @@
+{
+
+  "Faces": [
+
+    {
+
+      "InheritableName": "XSideOne",
+      "CullDirection": "None",
+      "Points": [
+
+        [ 32, 32, 10 ],
+        [ 32, 0, 10 ],
+        [ 0, 0, 10 ],
+        [ 0, 32, 10 ]
+
+      ]
+
+    },
+    {
+
+      "InheritableName": "XSideTwo",
+      "CullDirection": "None",
+      "Points": [
+
+        [ 32, 32, 22 ],
+        [ 32, 0, 22 ],
+        [ 0, 0, 22 ],
+        [ 0, 32, 22 ]
+
+      ]
+
+    },
+    {
+
+      "InheritableName": "ZSideOne",
+      "CullDirection": "None",
+      "Points": [
+
+        [ 10, 32, 32 ],
+        [ 10, 0, 32 ],
+        [ 10, 0, 0 ],
+        [ 10, 32, 0 ]
+
+      ]
+
+    },
+    {
+
+      "InheritableName": "ZSideTwo",
+      "CullDirection": "None",
+      "Points": [
+
+        [ 22, 32, 32 ],
+        [ 22, 0, 32 ],
+        [ 22, 0, 0 ],
+        [ 22, 32, 0 ]
+
+      ]
+
+    }
+
+  ]
+
+}

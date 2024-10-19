@@ -542,9 +542,10 @@ namespace Blockgame_OpenTK.PlayerUtil
                             if (world.WorldChunks.ContainsKey(ChunkUtils.PositionToChunk((x,y,z))) && world.WorldChunks[ChunkUtils.PositionToChunk((x,y,z))].GetBlockID(ChunkUtils.PositionToBlockLocal((x,y,z))) != 0)
                             {
 
-                                AxisAlignedBoundingBox blockBoundingBox = world.WorldChunks[ChunkUtils.PositionToChunk((x, y, z))].GetBlock(ChunkUtils.PositionToBlockLocal((x, y, z))).BoundingBox.GetOffsetBoundingBox((x, y, z));
+                                Block sampledBlock = world.WorldChunks[ChunkUtils.PositionToChunk((x, y, z))].GetBlock(ChunkUtils.PositionToBlockLocal((x,y,z)));
+                                AxisAlignedBoundingBox blockBoundingBox = sampledBlock.BoundingBox.GetOffsetBoundingBox((x, y, z));
 
-                                if (playerBoundsOffsetted.CollideWith(blockBoundingBox))
+                                if (playerBoundsOffsetted.CollideWith(blockBoundingBox) && (sampledBlock.HasCollision ?? true))
                                 {
 
                                     boundPriorityQueue.Enqueue(blockBoundingBox, Maths.Dist3D(playerBoundsOffsetted.Position, blockBoundingBox.Position));

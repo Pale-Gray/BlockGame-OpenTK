@@ -1,0 +1,11 @@
+{
+
+  "DataName": "TallGrassTwoBlock",
+  "DisplayName": "Tall Grass 2",
+  "Model": "TallGrassTwoBlock.json",
+  "SoundPath": "TallGrassTwoBlock",
+  "BreakTime": 1000,
+  "IsOpaque": false,
+  "HasCollision": false
+
+}

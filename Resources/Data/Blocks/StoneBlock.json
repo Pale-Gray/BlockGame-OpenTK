@@ -4,6 +4,7 @@
   "DisplayName": "Stone Block",
   "Model": "StoneBlock.json",
   "SoundPath": "StoneBlock",
-  "BreakTime": 1000
+  "BreakTime": 1000,
+  "IsOpaque": true
 
 }

@@ -154,6 +154,12 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static Vector3 ToRadians(Vector3 degrees)
+        {
+
+            return (ToRadians(degrees.X), ToRadians(degrees.Y), ToRadians(degrees.Z));
+
+        }
         public static float ToRadians(float degrees)
         {
 

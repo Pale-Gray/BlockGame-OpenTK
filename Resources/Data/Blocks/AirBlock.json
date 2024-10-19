@@ -1,6 +1,7 @@
 {
 
   "DataName": "AirBlock",
-  "DisplayName": "Air Block"
+  "DisplayName": "Air Block",
+  "IsOpaque": false
 
 }

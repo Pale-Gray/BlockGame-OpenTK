@@ -24,30 +24,17 @@ namespace Blockgame_OpenTK.Gui
             if (block.BlockModel != null)
             {
 
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Up]);
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Down]);
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Left]);
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Right]);
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Back]);
-                vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Front]);
-                // vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.None]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Up)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Up]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Down)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Down]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Left)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Left]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Right)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Right]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Back)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Back]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.Front)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.Front]);
+                if (block.BlockModel.ChunkReadableFaces.ContainsKey(BlockModelCullDirection.None)) vertices.AddRange(block.BlockModel.ChunkReadableFaces[BlockModelCullDirection.None]);
 
             }
 
-            Vertices = vertices.ToArray();
-
-            for (int i = 0; i < Vertices.Length; i++)
-            {
-
-                Vertices[i].Position -= (0.5f, 0.5f, 0.5f);
-
-                Vertices[i].Position.X *= -1;
-                Vertices[i].Position.Y *= -1;
-
-                Vertices[i].Normal.Y *= -1;
-                Vertices[i].Normal.X *= -1;
-
-            }
+            Vertices = ToGuiCoordinateSystem(vertices.ToArray());
 
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
@@ -71,15 +58,39 @@ namespace Blockgame_OpenTK.Gui
 
         }
 
+        private ChunkVertex[] ToGuiCoordinateSystem(ChunkVertex[] face)
+        {
+
+            List<ChunkVertex> vertices = new List<ChunkVertex>();
+
+            for (int i = 0; i < face.Length; i++)
+            {
+
+                ChunkVertex vert = face[i];
+                vert.Position -= (0.5f, 0.5f, 0.5f);
+                vert.Position *= -1;
+                vert.Normal *= -1;
+
+                vertices.Add(vert);
+
+            }
+
+            return vertices.ToArray();
+
+        }
+
         public void Draw(Vector3 pixelPosition, float pixelDimensions, float time)
         {
 
             ModelMatrix = Matrix4.Identity;
             ModelMatrix *= Matrix4.CreateScale(pixelDimensions);
-            ModelMatrix *= Matrix4.CreateRotationY(Maths.ToRadians(time * 45));
-            ModelMatrix *= Matrix4.CreateRotationX(Maths.ToRadians(35));
+            ModelMatrix *= Matrix4.CreateRotationY(Maths.ToRadians(-time * 45));
+            ModelMatrix *= Matrix4.CreateRotationX(Maths.ToRadians(-35));
             ModelMatrix *= Matrix4.CreateTranslation(pixelPosition);
 
+            GL.Disable(EnableCap.CullFace);
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Less);
             GlobalValues.GuiBlockShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -94,6 +105,7 @@ namespace Blockgame_OpenTK.Gui
             GL.BindVertexArray(0);
 
             GlobalValues.GuiBlockShader.UnUse();
+            GL.Enable(EnableCap.CullFace);
 
         }
 

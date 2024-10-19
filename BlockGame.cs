@@ -486,31 +486,18 @@ namespace Blockgame_OpenTK
 
             }
 
-            GL.Disable(EnableCap.CullFace);
-            GL.Disable(EnableCap.DepthTest);
             TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
+            TextRenderer.RenderText((10, 10, -900), TextRenderer.TopLeft, (1,0,0), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
 
+            if (Input.IsKeyPressed(Key.DownArrow)) GlobalValues.BlockSelectorID -= 1;
+            if (Input.IsKeyPressed(Key.UpArrow)) GlobalValues.BlockSelectorID += 1;
             GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
             if (GlobalValues.BlockSelectorID > GlobalValues.Register.Blocks.Keys.Last()) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.Register.Blocks.Keys.First() + 1);
             if (GlobalValues.BlockSelectorID < GlobalValues.Register.Blocks.Keys.First() + 1) GlobalValues.BlockSelectorID = GlobalValues.Register.Blocks.Keys.Last();
 
-            // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
-            GL.Enable(EnableCap.CullFace);
-            // uiTest.Draw(0);
-
-            // GL.Disable(EnableCap.DepthTest);
-
-            // LineRenderer.Draw((0, 0, 0), (0, 1, 0), 1, Player.Camera);
-
             // GL.Enable(EnableCap.DepthTest);
-
-            // FontLoader.RenderLines((0, 240), 48, 1.5f, "Line 0", "Line 1", "Line 2");
-
-            // TestElement.Draw();
-            // TestContainer.AbsolutePosition = (100 + (float)(100.0f*Math.Sin(GlobalValues.Time)), 240);
-            // TestContainer.RelativePosition = (0.5f, 0.5f);
-            // TestContainer.Dimensions = (120 + (float)(25.0f*Math.Sin(GlobalValues.Time)), 80+(float)(30.0f*Math.Sin(GlobalValues.Time + 32.0f)));
-            // TestContainer.Draw();
+            // GL.Disable(EnableCap.DepthTest);
+            GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
 
             frameBuffer.Unbind();
 
@@ -562,11 +549,9 @@ namespace Blockgame_OpenTK
                 // LineRenderer.DrawLine((0, 0, 0) + Dda.PositionAtHit, (0, 0, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
                 // LineRenderer.DrawLine((0, 1, 0) + Dda.PositionAtHit, (0, 1, 1) + Dda.PositionAtHit, lineThickness, (0, 0, 0), Player.Camera);
                 GL.Enable(EnableCap.DepthTest);
-
                 GL.FrontFace(FrontFaceDirection.Ccw);
 
             }
-
             // Console.WriteLine($"frametime (ms): {sw.ElapsedMilliseconds}");
 
         }

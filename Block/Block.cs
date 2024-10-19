@@ -18,6 +18,8 @@ namespace Blockgame_OpenTK.BlockUtil
         [JsonConverter(typeof(JsonBlockModelConverter))]
         [JsonPropertyName("Model")]
         public BlockModel BlockModel { get; set; }
+        public bool? IsOpaque { get; set; }
+        public bool? HasCollision { get; set; }
         public string SoundPath { get; set; }
         public ushort ID = 0;
 
@@ -30,7 +32,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             block.BoundingBox.StaticFriction = 0.8f;
             block.BoundingBox.DynamicFriction = 0.8f;
-            // block.GuiRenderableBlockModel = new GuiBlockModel(block);
+            block.GuiRenderableBlockModel = new GuiBlockModel(block);
 
             return block;
 

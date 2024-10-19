@@ -4,6 +4,7 @@
   "DisplayName": "Dirt Block",
   "Model": "DirtBlock.json",
   "SoundPath": "DirtBlock",
-  "BreakTime": 1000
+  "BreakTime": 1000,
+  "IsOpaque": true
 
 }

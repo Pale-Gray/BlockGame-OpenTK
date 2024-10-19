@@ -6,36 +6,42 @@
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Up",
       "Inherit": "Up"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Down",
       "Inherit": "Down"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Left",
       "Inherit": "Left"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Right",
       "Inherit": "Right"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Front",
       "Inherit": "Front"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Back",
       "Inherit": "Back"
 
     }

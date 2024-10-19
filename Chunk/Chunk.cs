@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Graphics.Vulkan;
+using System;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -186,6 +187,8 @@ namespace Blockgame_OpenTK.Core.Chunks
             // Console.Log(ChunkPosition);
             Lifetime += (float) GlobalValues.DeltaTime;
 
+            Vector3 s = (Vector3) new Vector3d(Math.Cos(Maths.ToRadians((float)GlobalValues.Time * 45.0f)), Math.Sin(Maths.ToRadians((float)GlobalValues.Time * 45.0f)), 0);
+
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), 1, camera.Position);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), 1, sunVec);
@@ -202,7 +205,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), 1, true, camera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), 1, true, camera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
-            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float)0);
+            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float) GlobalValues.Time);
             GL.BindVertexArray(Vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, OpaqueMesh.Length);
             GL.BindVertexArray(0);

@@ -6,36 +6,42 @@
     {
 
       "Texture": "GrassBlockTop",
+      "CullDirection": "Up",
       "Inherit": "Up"
 
     },
     {
 
       "Texture": "DirtBlock",
+      "CullDirection": "Down",
       "Inherit": "Down"
 
     },
     {
 
       "Texture": "GrassBlockSide",
+      "CullDirection": "Left",
       "Inherit": "Left"
 
     },
     {
 
       "Texture": "GrassBlockSide",
+      "CullDirection": "Right",
       "Inherit": "Right"
 
     },
     {
 
       "Texture": "GrassBlockSide",
+      "CullDirection": "Front",
       "Inherit": "Front"
 
     },
     {
 
       "Texture": "GrassBlockSide",
+      "CullDirection": "Back",
       "Inherit": "Back"
 
     }

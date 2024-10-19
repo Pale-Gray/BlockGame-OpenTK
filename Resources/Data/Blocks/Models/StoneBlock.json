@@ -6,36 +6,42 @@
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Up",
       "Inherit": "Up"
 
     },
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Down",
       "Inherit": "Down"
 
     },
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Left",
       "Inherit": "Left"
 
     },
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Right",
       "Inherit": "Right"
 
     },
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Front",
       "Inherit": "Front"
 
     },
     {
 
       "Texture": "StoneBlock",
+      "CullDirection": "Back",
       "Inherit": "Back"
 
     }

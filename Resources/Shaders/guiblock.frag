@@ -46,15 +46,18 @@ float dist3D(vec3 pos1, vec3 pos2)
 void main()
 {
 
-	float sunDotProduct = dot(directionalLight, vnormal);
+	vec3 normal = gl_FrontFacing ? vnormal : -vnormal;
+
+	float sunDotProduct = dot(directionalLight, normal);
 
 	float falloff = dot(vec3(0,1,0), directionalLight);
 	float ambient = clamp(0.5, 0, 1);
 	float value = clamp(ambient + (max(0, sunDotProduct)), 0.1, 1.0);
 
 	vec4 tex = texture(atlas, vtexcoord);
+	float a = texelFetch(arrays, ivec3(vtexcoord * 32.0, vtexture_index), 0).a;
 	vec4 array_texture = texture(arrays, vec3(vtexcoord, vtexture_index));
-
-	Outcolor = vec4(array_texture.rgb * value, 1.0);
+	if (a == 0) discard;
+	Outcolor = vec4(array_texture.rgb * value, 1);
 
 }
