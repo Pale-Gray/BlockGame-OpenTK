@@ -446,7 +446,24 @@
 [INFO] The texture TallGrassBlock exists in TextureNames
 [INFO] The texture TallGrassBlock exists in TextureNames
 [INFO] The texture TallGrassBlock exists in TextureNames
-System.TypeInitializationException: The type initializer for 'Blockgame_OpenTK.BlockUtil.Blocks' threw an exception.
-   at Blockgame_OpenTK.BlockUtil.Blocks.Load() in .\Block\Blocks.cs:line 23
-   at Blockgame_OpenTK.BlockGame.Load() in .\BlockGame.cs:line 241
-   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 49
+[INFO] Registering AirBlock
+[INFO] Registered AirBlock
+[INFO] Registering GrassBlock
+[INFO] Registered GrassBlock
+[INFO] Registering StoneBlock
+[INFO] Registered StoneBlock
+[INFO] Registering DirtBlock
+[INFO] Registered DirtBlock
+[INFO] Registering LogBlock
+[INFO] Registered LogBlock
+[INFO] Registering BrickBlock
+[INFO] Registered BrickBlock
+[INFO] Registering TallGrassBlock
+[INFO] Registered TallGrassBlock
+[INFO] Registering TallGrassTwoBlock
+[INFO] Registered TallGrassTwoBlock
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at Blockgame_OpenTK.Font.CachedFontRenderer.GenerateGlyphData(Char character, Single size, String pathToFont) in .\Font\CachedFontRenderer.cs:line 146
+   at Blockgame_OpenTK.Font.CachedFontRenderer.RenderFont(Vector2 position, Int32 layer, Single size, String text, String fontName) in .\Font\CachedFontRenderer.cs:line 61
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 536
+   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 120

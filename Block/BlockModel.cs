@@ -81,7 +81,6 @@ namespace Blockgame_OpenTK.BlockUtil
         public Vector3? ModelScale { get; set; }
         [JsonConverter(typeof(JsonVector3Converter))]
         public Vector3? ModelTranslation { get; set; }
-        public int LightLevel { get; set; }
         public BlockModelAbstractFaceData[] Faces { get; set; }
 
     }

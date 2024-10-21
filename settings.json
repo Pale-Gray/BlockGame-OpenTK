@@ -14,6 +14,7 @@
     "Jump": "Keydown.Space"
 
   },
-  "MouseSensitivity": 1.0
+  "MouseSensitivity": 1.0,
+  "RenderAo": true
 
 }

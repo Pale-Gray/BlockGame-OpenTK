@@ -18,8 +18,9 @@ namespace Blockgame_OpenTK.BlockUtil
         [JsonConverter(typeof(JsonBlockModelConverter))]
         [JsonPropertyName("Model")]
         public BlockModel BlockModel { get; set; }
-        public bool? IsOpaque { get; set; }
+        public bool? IsSolid { get; set; }
         public bool? HasCollision { get; set; }
+        public ushort LightValue { get; set; }
         public string SoundPath { get; set; }
         public ushort ID = 0;
 

@@ -16,6 +16,9 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 using System.Diagnostics;
+using Blockgame_OpenTK.Font;
+using System.Runtime.InteropServices;
+using System.IO;
 
 namespace Blockgame_OpenTK
 {
@@ -221,8 +224,39 @@ namespace Blockgame_OpenTK
 
         static GuiElement TestElement = new GuiElement();
         static GuiContainer TestContainer = new GuiContainer();
+
+        private static void OnDebugMessage(
+    DebugSource source,     // Source of the debugging message.
+    DebugType type,         // Type of the debugging message.
+    uint id,                 // ID associated with the message.
+    DebugSeverity severity, // Severity of the message.
+    int length,             // Length of the string in pMessage.
+    nint pMessage,        // Pointer to message string.
+    nint pUserParam)      // The pointer you gave to OpenGL, explained later.
+        {
+            // In order to access the string pointed to by pMessage, you can use Marshal
+            // class to copy its contents to a C# string without unsafe code. You can
+            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+            string message = Marshal.PtrToStringAnsi(pMessage, length);
+
+            // The rest of the function is up to you to implement, however a debug output
+            // is always useful.
+            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+            // Potentially, you may want to throw from the function for certain severity
+            // messages.
+            if (type == DebugType.DebugTypeError)
+            {
+                // throw new Exception(message);
+            }
+        }
         public static void Load()
         {
+
+            GLDebugProc debugMessageDel = OnDebugMessage;
+
+            // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
+            // GL.Enable(EnableCap.DebugOutput);
 
             Translator.LoadGameSettings();
             Input.Initialize();
@@ -244,6 +278,7 @@ namespace Blockgame_OpenTK
             GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
             GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
             GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
+            GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
             // GlobalValues.Mouse = MouseState;
             // GlobalValues.Keyboard = KeyboardState;
 
@@ -498,6 +533,7 @@ namespace Blockgame_OpenTK
             // GL.Enable(EnableCap.DepthTest);
             // GL.Disable(EnableCap.DepthTest);
             GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
+            CachedFontRenderer.RenderFont((20, 50), 0, 24, "Multilingual! 英語じゃない！", Path.Combine("Resources", "Fonts", "RobotoCondensed-Regular.ttf"));
 
             frameBuffer.Unbind();
 

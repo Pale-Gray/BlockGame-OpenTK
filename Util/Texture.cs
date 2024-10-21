@@ -116,6 +116,24 @@ namespace Blockgame_OpenTK.Util
             this.Height = height;
 
         }
+
+        public Texture(nint data, int width, int height)
+        {
+
+            Id = GL.GenTexture();
+
+            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
+            GL.BindTexture(TextureTarget.Texture2d, Id);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+
+            GL.BindTexture(TextureTarget.Texture2d, 0);
+
+        }
         // GetPortion takes in six inputs, but the inputs for the dimensions of the texture go from bottom left to top right, not top left to bottom right.
         public static Texture GetPortion(bool flip, Texture t, int xo, int yo, int width, int height)
         {

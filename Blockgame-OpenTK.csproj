@@ -10,7 +10,6 @@
     <BaseOutputPath>bin\</BaseOutputPath>
 	<Deterministic>false</Deterministic>
 	<AssemblyVersion>0.2.2</AssemblyVersion>
-	<EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>

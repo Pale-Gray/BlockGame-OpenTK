@@ -90,6 +90,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize]; 
         public ChunkVertex[] OpaqueMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
         public ChunkVertex[] TransparentMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
         public List<Vector3i> StructurePoints = new List<Vector3i>();
@@ -289,6 +290,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             // BlockData[position.X, position.Y, position.Z] = block.ID;
 
             BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
+            SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
 
         }
 

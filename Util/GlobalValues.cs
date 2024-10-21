@@ -73,6 +73,7 @@ namespace Blockgame_OpenTK.Util
         public static Shader DefaultShader;
         public static Shader GuiShader;
         public static Shader GuiBlockShader;
+        public static Shader CachedFontShader;
 
         public static ushort BlockSelectorID = 1;
 
