@@ -23,6 +23,22 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
+        public static bool TrySafePositionToBlockLocal(Vector3i chunkPosition, Vector3i globalBlockPosition, out Vector3i localBlockPosition)
+        {
+
+            Vector3i currentChunkPosition = PositionToChunk(globalBlockPosition);
+            if (currentChunkPosition != chunkPosition)
+            {
+
+                localBlockPosition = Vector3i.Zero;
+                return false;
+
+            }
+            localBlockPosition = PositionToBlockLocal(globalBlockPosition);
+            return true;
+
+        }
+
         public static Vector3i[] GenerateRingsOfColumnsWithPadding(int radius, int maxHeight, int padding)
         {
 
@@ -596,49 +612,10 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static Vector3i PositionToChunk(Vector3 position)
         {
 
-            Vector3 Position = PositionToBlockGlobal(position);
+            Vector3 globalBlockPosition = VectorMath.Floor(position);
+            Vector3i chunkPosition = VectorMath.Floor(globalBlockPosition / 32.0f);
 
-            Vector3 PositionChunk = Vector3.Zero;
-
-            if (position.X >= 0)
-            {
-
-                PositionChunk.X = (int) Math.Floor(Position.X / GlobalValues.ChunkSize);
-
-            }
-            if (position.Y >= 0)
-            {
-
-                PositionChunk.Y = (float)Math.Floor(Position.Y / GlobalValues.ChunkSize);
-
-            }
-            if (position.Z >= 0)
-            {
-
-                PositionChunk.Z = (float)Math.Floor(Position.Z / GlobalValues.ChunkSize);
-
-            }
-            if (position.X < 0)
-            {
-
-                PositionChunk.X = (float) Math.Floor(position.X / GlobalValues.ChunkSize);
-                // PositionChunk.X = (float) Math.Ceiling(Position.X / Globals.ChunkSize);
-
-            }
-            if (position.Y < 0)
-            {
-
-                PositionChunk.Y = (float)Math.Floor(position.Y / GlobalValues.ChunkSize);
-
-            }
-            if (position.Z < 0)
-            {
-
-                PositionChunk.Z = (float)Math.Floor(position.Z / GlobalValues.ChunkSize);
-
-            }
-
-            return (Vector3i) PositionChunk;
+            return chunkPosition;
 
         }
         

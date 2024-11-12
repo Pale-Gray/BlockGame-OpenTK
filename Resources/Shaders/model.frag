@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 out vec4 FragColor;
 
 in vec3 v_position;
@@ -51,7 +51,9 @@ void main()
 
 	if (tex.a == 0) discard;
 
+	vec3 finalColor = mix(dayColor, mix(sunsetColor, nightColor, (1-fac)/1), (1-fac)/1);
+
 	// clamp(fac, 0, 1))
-	FragColor = vec4(mix(dayColor, mix(sunsetColor, nightColor, (1-fac)/1), (1-fac)/1), tex.a);
+	FragColor = vec4(pow(finalColor, vec3(2.2)), tex.a);
 	// FragColor = vec4(0,0,0,1);
 }

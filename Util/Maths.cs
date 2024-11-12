@@ -6,7 +6,19 @@ namespace Blockgame_OpenTK.Util
 {
     internal class Maths
     {
+        
+        public static int VecToIndex(int x, int z, int size)
+        {
 
+            return x + (z * size);
+
+        }
+        public static int VecToIndex(int x, int y, int z, int size)
+        {
+
+            return x + (y * size) + (z * size * size);
+
+        }
         public static uint Random2(uint seed, int x, int y)
         {
 

@@ -2,6 +2,7 @@
 
   "DataName": "AirBlock",
   "DisplayName": "Air Block",
-  "IsOpaque": false
+  "IsOpaque": false,
+  "IsSolid": false
 
 }

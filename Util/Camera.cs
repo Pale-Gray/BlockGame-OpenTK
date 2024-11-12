@@ -78,6 +78,10 @@ namespace Blockgame_OpenTK.Util
 
             Yaw += MouseDelta.X * GlobalValues.Settings.MouseSensitivity;
             Pitch -= MouseDelta.Y * GlobalValues.Settings.MouseSensitivity;
+
+            // Console.WriteLine(Input.JoystickRightAxis);
+            Yaw += Input.JoystickRightAxis.Y * GlobalValues.Settings.MouseSensitivity;
+            Pitch += Input.JoystickRightAxis.X * GlobalValues.Settings.MouseSensitivity;
             Pitch = Math.Clamp(Pitch, -88, 88);
 
             CalculateFrontFromYawPitch(Yaw, Pitch);

@@ -8,7 +8,6 @@ namespace Blockgame_OpenTK.Gui
 {
     internal interface IContainer
     {
-
         public void AddElement(GuiElement child);
 
     }

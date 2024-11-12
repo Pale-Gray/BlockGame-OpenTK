@@ -9,6 +9,10 @@ using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
+using System.Resources;
+using Blockgame_OpenTK.Font;
+using System.Collections.Generic;
+using Blockgame_OpenTK.BlockUtil;
 
 namespace Blockgame_OpenTK
 {
@@ -18,9 +22,35 @@ namespace Blockgame_OpenTK
         public static void Main(string[] args)
         {
 
+            if (args.Length == 0)
+            {
+
+                Util.Debugger.Log("Starting in client mode.", Severity.Info);
+
+            }
+            if (args.Length == 1)
+            {
+
+                if (args[0].ToLower() == "client") Util.Debugger.Log("Starting in client mode.", Severity.Info);
+
+            }
+            if (args.Length > 1)
+            {
+
+                if (args[0].ToLower() == "server") Util.Debugger.Log("Starting in server mode.", Severity.Info);
+
+            }
+
+            // BlockModel test = BlockModel.LoadFromJson("NewGrassBlock.json");
+
             Console.OutputEncoding = Encoding.Unicode;
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+
+            // ResourceManager rm = new ResourceManager("en_us", typeof(Program).Assembly);
+            // Console.WriteLine(rm.GetString("StartingMenu"));
+            // TextLocalizer.LoadLanguage("en-us.json");
+            // Console.WriteLine(TextLocalizer.GetLocalizedString("Singleplayer");
 
             ThreadPool.SetMaxThreads(8, 8);
             
@@ -51,7 +81,7 @@ namespace Blockgame_OpenTK
             EventQueue.EventRaised += EventRaised;
 
             Toolkit.Window.SetTitle(window, "Game");
-            Toolkit.Window.SetSize(window, 640, 480);
+            Toolkit.Window.SetSize(window, (640, 480));
             Toolkit.Window.SetMode(window, WindowMode.Normal);
             Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
             //Toolkit.Window.GetClientSize(window, out int w, out int h);
@@ -59,24 +89,110 @@ namespace Blockgame_OpenTK
             // CursorHandle invisibleCursor = Toolkit.Cursor.Create(1, 1, new ReadOnlySpan<byte>(new byte[4]), 0, 0);
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
             Toolkit.Window.SetCursor(window, null);
-
             {
 
-                Toolkit.Mouse.GetPosition(out int x, out int y);
-                Toolkit.Mouse.GetMouseState(out OpenTK.Platform.MouseState state);
+                // Toolkit.Mouse.GetPosition();
+                Toolkit.Mouse.GetPosition(window, out Vector2 position);
+                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
                 Input.PreviousMouseScroll = state.Scroll;
-                Input.PreviousMousePosition = (x, y);
+                Input.PreviousMousePosition = position;
 
             }
+
+            Toolkit.Joystick.Initialize(toolkitOptions);
+            Input.CheckForController(0);
+
             GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
+            double secondValue = 0;
+            double frameTimeOverOneSecond = 0;
+            double numTicks = 0;
             while (true)
             {
+
+                if (secondValue >= 1.0)
+                {
+
+                    GlobalValues.AverageFps = (int) Math.Truncate(((frameTimeOverOneSecond / numTicks) * 60) * 100);
+                    secondValue--;
+                    frameTimeOverOneSecond = 0;
+                    numTicks = 0;
+
+                }
+                frameTimeOverOneSecond += GlobalValues.DeltaTime;
+                numTicks++;
+                secondValue += GlobalValues.DeltaTime;
+
+                Stopwatch sw = Stopwatch.StartNew();
+                if (Input.PlayerOneJoystickHandle != null)
+                {
+
+                    float joystickLeftAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftXAxis);
+                    float joystickLeftAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftYAxis);
+                    float joystickRightAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightXAxis);
+                    float joystickRightAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightYAxis);
+
+                    Input.JoystickLeftAxis.X = joystickLeftAxisX;
+                    Input.JoystickLeftAxis.Y = joystickLeftAxisY;
+                    Input.JoystickRightAxis.X = joystickRightAxisX;
+                    Input.JoystickRightAxis.Y = joystickRightAxisY;
+                    if (Math.Abs(joystickLeftAxisX) < Toolkit.Joystick.LeftDeadzone)
+                    {
+
+                        Input.JoystickLeftAxis.X = 0.0f;
+
+                    }
+                    if (Math.Abs(joystickLeftAxisY) < Toolkit.Joystick.LeftDeadzone)
+                    {
+
+                        Input.JoystickLeftAxis.Y = 0.0f;
+
+                    }
+                    if (Math.Abs(joystickRightAxisX) < Toolkit.Joystick.RightDeadzone)
+                    {
+
+                        Input.JoystickRightAxis.X = 0.0f;
+
+                    }
+                    if (Math.Abs(joystickRightAxisY) < Toolkit.Joystick.RightDeadzone)
+                    {
+
+                        Input.JoystickRightAxis.Y = 0.0f;
+
+                    }
+
+                    Input.LeftTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftTrigger);
+                    Input.RightTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightTrigger);
+                    if (Input.LeftTrigger < Toolkit.Joystick.TriggerThreshold)
+                    {
+
+                        Input.LeftTrigger = 0.0f;
+
+                    }
+                    if (Input.RightTrigger < Toolkit.Joystick.TriggerThreshold)
+                    {
+
+                        Input.RightTrigger = 0.0f;
+
+                    }
+
+                    foreach (JoystickButton joystickButton in Input.JoystickStates.Keys)
+                    {
+
+                        JoystickState joystickButtonState = Input.JoystickStates[joystickButton];
+                        bool isJoystickButtonDown = Toolkit.Joystick.GetButton(Input.PlayerOneJoystickHandle, joystickButton);
+                        joystickButtonState.IsJoystickButtonDown = isJoystickButtonDown;
+                        if (!joystickButtonState.AllowJoystickButtonPress && !isJoystickButtonDown) joystickButtonState.AllowJoystickButtonPress = true;
+                        Input.JoystickStates[joystickButton] = joystickButtonState;
+
+                    }
+
+                }
 
                 GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
                 GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
                 GlobalValues.PreviousTime = GlobalValues.CurrentTime;
 
-                Toolkit.Mouse.GetMouseState(out OpenTK.Platform.MouseState state);
+                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
                 Input.CurrentMouseScroll = state.Scroll;
                 Input.ScrollDelta = Input.CurrentMouseScroll - Input.PreviousMouseScroll;
                 Input.PreviousMouseScroll = Input.CurrentMouseScroll;
@@ -120,6 +236,9 @@ namespace Blockgame_OpenTK
                 BlockGame.Render();
 
                 Toolkit.OpenGL.SwapBuffers(glContext);
+
+                sw.Stop();
+                // Util.Debugger.Log($"Rendering took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
 
             }
 
@@ -187,7 +306,7 @@ namespace Blockgame_OpenTK
             if (args is MouseMoveEventArgs mouseMove)
             {
 
-                Input.CurrentMousePosition = mouseMove.Position;
+                Input.CurrentMousePosition = mouseMove.ClientPosition;
                 Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
                 Input.PreviousMousePosition = Input.CurrentMousePosition;
 
@@ -276,7 +395,7 @@ namespace Blockgame_OpenTK
 
                 float yOffset = 2;
                 float lineSpacing = 8;
-                int fontSize = 16;
+                int _fontSize = 16;
 
                 TextRenderer.RenderLines((0, 2, 0), TextRenderer.TopLeft, (1, 1, 1), 18, 2, new string[]
                 {
@@ -286,14 +405,14 @@ namespace Blockgame_OpenTK
 
                 }.Concat(stackTrace).ToArray());
 
-                // TextRenderer.RenderText((2, yOffset, 0), (1, 1, 1), fontSize, TextRenderer.FilterText("<0xF00000>Encountered an error.</0xF00000>"));
+                // TextRenderer.RenderText((2, yOffset, 0), (1, 1, 1), _fontSize, TextRenderer.FilterText("<0xF00000>Encountered an error.</0xF00000>"));
 
-                // TextRenderer.RenderText((2, yOffset + fontSize + lineSpacing, 0), (1, 1, 1), fontSize, e.GetType() + ": " + message);
+                // TextRenderer.RenderText((2, yOffset + _fontSize + lineSpacing, 0), (1, 1, 1), _fontSize, e.GetType() + ": " + message);
 
                 // for (int i = 0; i < stackTrace.Length; i++)
                 // {
 
-                //      TextRenderer.RenderText((0, 2*(fontSize + lineSpacing) + yOffset + ( (fontSize + lineSpacing) * i), 0), (1, 1, 1), 16, stackTrace[i]);
+                //      TextRenderer.RenderText((0, 2*(_fontSize + lineSpacing) + yOffset + ( (_fontSize + lineSpacing) * i), 0), (1, 1, 1), 16, stackTrace[i]);
 
                 // }
 

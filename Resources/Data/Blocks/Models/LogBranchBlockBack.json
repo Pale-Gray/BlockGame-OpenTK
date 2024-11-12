@@ -1,0 +1,31 @@
+{
+
+	"Inherit": "BranchBlockBackBase.json",
+	"Textures": {
+		"$sides": "LogBlockSide",
+		"$back": "LogBlockTop"
+	},
+	"Faces": [
+		{
+			"Inherit": "Back",
+			"Texture": "$back"
+		},
+		{
+			"Inherit": "Left",
+			"Texture": "$sides"
+		},
+		{
+			"Inherit": "Right",
+			"Texture": "$sides"
+		},
+		{
+			"Inherit": "Top",
+			"Texture": "$sides"
+		},
+		{
+			"Inherit": "Bottom",
+			"Texture": "$sides"
+		}
+	]
+
+}

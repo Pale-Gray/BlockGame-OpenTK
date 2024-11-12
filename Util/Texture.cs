@@ -124,12 +124,12 @@ namespace Blockgame_OpenTK.Util
 
             GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
             GL.BindTexture(TextureTarget.Texture2d, Id);
-            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.R8, width < 1 ? 1 : width, height < 1 ? 1 : height, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
 
             GL.BindTexture(TextureTarget.Texture2d, 0);
 

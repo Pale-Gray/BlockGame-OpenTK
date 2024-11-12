@@ -7,18 +7,14 @@ using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Mathematics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 using System.Diagnostics;
 using Blockgame_OpenTK.Font;
 using System.Runtime.InteropServices;
 using System.IO;
+using Blockgame_OpenTK.ChunkUtil;
 
 namespace Blockgame_OpenTK
 {
@@ -224,6 +220,7 @@ namespace Blockgame_OpenTK
 
         static GuiElement TestElement = new GuiElement();
         static GuiContainer TestContainer = new GuiContainer();
+        static double TickTime = 0;
 
         private static void OnDebugMessage(
     DebugSource source,     // Source of the debugging message.
@@ -255,11 +252,30 @@ namespace Blockgame_OpenTK
 
             GLDebugProc debugMessageDel = OnDebugMessage;
 
-            // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
+            Util.Debugger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
+            Util.Debugger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
+            Util.Debugger.Log(RuntimeInformation.FrameworkDescription, Severity.Info);
+            Util.Debugger.Log(GL.GetString(StringName.Vendor), Severity.Info);
+            Util.Debugger.Log(GL.GetString(StringName.Renderer), Severity.Info); // gpu specs
+            Util.Debugger.Log(GL.GetString(StringName.Version), Severity.Info); 
+            
+
+            if (!Directory.Exists("Chunks"))
+            {
+
+                Util.Debugger.Log("Created Chunks folder because it did not exist.", Severity.Info);
+                Directory.CreateDirectory("Chunks");
+
+            }
+
+            //  GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
             // GL.Enable(EnableCap.DebugOutput);
+            // GL.Enable(EnableCap.DebugOutputSynchronous);
+            // Console.WriteLine(GL.GetInteger(GetPName.MaxVaryingVectors));
 
             Translator.LoadGameSettings();
             Input.Initialize();
+            CachedFontRenderer.Init();
 
             // GL.Viewport(0, 0, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT);
 
@@ -307,6 +323,7 @@ namespace Blockgame_OpenTK
             // GL.DepthFunc(DepthFunction.Lequal);
             // GL.Enable(EnableCap.StencilTest);
             GL.Enable(EnableCap.CullFace);
+            // GL.Enable(EnableCap.FramebufferSrgb);
             // GL.FrontFace(FrontFaceDirection.Ccw);
             // GL.Enable(EnableCap.TextureCubeMap);
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -352,30 +369,49 @@ namespace Blockgame_OpenTK
             // GenerateButton.OnButtonClick = () => { World.DebugReset(); };
 
             // TestElement.AbsolutePosition = (0, 0);
-            Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
-            TestElement.Dimensions = (12, 12);
-            TestElement.Origin = (0.0f, 0.0f);
-            TestElement.RelativePosition = (0.0f, 0.0f);
-            TestContainer.TextureName = "Test.png";
-            TestContainer.TextureMode = TextureMode.Tile;
-            TestContainer.TileSize = 48;
+            // Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            // TestElement.Dimensions = (12, 12);
+            // TestElement.Origin = (0.0f, 0.0f);
+            // TestElement.RelativePosition = (0.0f, 0.0f);
+            // TestContainer.TextureName = "Test.png";
+            // TestContainer.TextureMode = TextureMode.Tile;
+            // TestContainer.TileSize = 48;
 
             //TestContainer.Dimensions = (120, 80);
-            TestContainer.Origin = (0.5f, 0.5f);
-            TestContainer.RelativePosition = (0.5f, 0.5f);
-            TestContainer.Dimensions = (120, 80);
-            TestContainer.Color = Color3.Red;
+            // TestContainer.Origin = (0.5f, 0.5f);
             // TestContainer.RelativePosition = (0.5f, 0.5f);
+            // TestContainer.Dimensions = (120, 80);
+            // TestContainer.Color = Color3.Red;
+            // TestContainer.IsVisible = true;
+            // TestContainer.RelativePosition = (0.5f, 0.5f);
+            GuiContainer container = new GuiContainer();
+            container.Dimensions = (120, 120);
+            container.RelativePosition = (0.5f, 0.5f);
+            container.Origin = (0.5f, 0.5f);
+            container.Color = Color3.White;
 
-            GuiContainer testContainer = new GuiContainer();
-            testContainer.Dimensions = (50, 50);
-            GuiElement testElement = new GuiElement();
-            testElement.Origin = (0.5f, 0.5f);
-            testElement.Dimensions = (25, 25);
-            testElement.RelativePosition = (0.5f, 0.5f);
-            testElement.Color = Color3.Red;
-            testContainer.AddElement(testElement);
-            TestContainer.AddElement(testContainer);
+            GuiElement element = new GuiElement();
+            element.Dimensions = (25, 25);
+            element.Origin = (0, 0);
+            element.RelativePosition = (0, 0);
+            element.Color = Color3.Red;
+            // element.IsVisible = true;
+
+            container.AddElement(element);
+
+            // container.IsVisible = true;
+
+            // GuiContainer testContainer = new GuiContainer();
+            // testContainer.Dimensions = (50, 50);
+            // GuiElement testElement = new GuiElement();
+            // testElement.Origin = (0.5f, 0.5f);
+            // testElement.Dimensions = (25, 25);
+            // testElement.RelativePosition = (0.5f, 0.5f);
+            // testElement.Color = Color3.Red;
+            // testContainer.AddElement(testElement);
+            // TestContainer.AddElement(testContainer);
+
+            // TestContainer.IsVisible = true;
 
             // Window = new GuiWindow((100, 80), GuiWindow.DecorationMode.Decorated);
 
@@ -390,7 +426,19 @@ namespace Blockgame_OpenTK
 
             Stopwatch sw = Stopwatch.StartNew();
 
+            double frames = 60.0;
+            if (TickTime >= 1 / frames)
+            {
+
+                TickTime -= 1 / frames;
+                // Player.PhysicsUpdate(World);
+                // tick
+                // Console.WriteLine("tick");
+
+                // Player.Update(World);
+            }
             Player.Update(World);
+            TickTime += GlobalValues.DeltaTime;
 
             frameBuffer.Bind();
 
@@ -411,19 +459,19 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.R))
                 {
 
-                    Console.WriteLine("forcing a crash");
-                    // throw new BlockNotFoundException("Forced a crash");
-                    Chunk.Throw();
+                    Input.CheckForController(0);
 
                 }
 
                 if (Input.IsKeyPressed(Key.S))
                 {
 
-                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Finish)
+                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Done)
                     {
 
-                        World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].SaveToFile();
+                        // World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].SaveToFile();
+                        ChunkSerializer.Serialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
+                        ChunkSerializer.Deserialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
 
                     }
                     else
@@ -438,7 +486,7 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.W))
                 {
 
-                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Finish)
+                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Done)
                     {
 
                         World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].TryLoad();
@@ -491,10 +539,8 @@ namespace Blockgame_OpenTK
 
             }
 
-            GL.Disable(EnableCap.CullFace);
             World.Generate(Player.Position);
             World.Draw(Player.Camera);
-            GL.Enable(EnableCap.CullFace);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -524,8 +570,10 @@ namespace Blockgame_OpenTK
             TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
             TextRenderer.RenderText((10, 10, -900), TextRenderer.TopLeft, (1,0,0), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
 
-            if (Input.IsKeyPressed(Key.DownArrow)) GlobalValues.BlockSelectorID -= 1;
-            if (Input.IsKeyPressed(Key.UpArrow)) GlobalValues.BlockSelectorID += 1;
+            if (Input.IsKeyPressed(Key.DownArrow)) GlobalValues.BlockSelectorID--;
+            if (Input.IsKeyPressed(Key.UpArrow)) GlobalValues.BlockSelectorID++;
+            if (Input.IsJoystickButtonPressed(JoystickButton.RightShoulder)) GlobalValues.BlockSelectorID++;
+            if (Input.IsJoystickButtonPressed(JoystickButton.LeftShoulder)) GlobalValues.BlockSelectorID--;
             GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
             if (GlobalValues.BlockSelectorID > GlobalValues.Register.Blocks.Keys.Last()) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.Register.Blocks.Keys.First() + 1);
             if (GlobalValues.BlockSelectorID < GlobalValues.Register.Blocks.Keys.First() + 1) GlobalValues.BlockSelectorID = GlobalValues.Register.Blocks.Keys.Last();
@@ -533,7 +581,17 @@ namespace Blockgame_OpenTK
             // GL.Enable(EnableCap.DepthTest);
             // GL.Disable(EnableCap.DepthTest);
             GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
-            CachedFontRenderer.RenderFont((20, 50), 0, 24, "Multilingual! 英語じゃない！", Path.Combine("Resources", "Fonts", "RobotoCondensed-Regular.ttf"));
+            // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48.0f + (float)(30.0 * Math.Sin(GlobalValues.Time)), "", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Darkred);
+            // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48, "Hello World!", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
+            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 0, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
+            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 0, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
+
+            foreach (GuiElement element in GlobalValues.GlobalGuiElements)
+            {
+
+                element.Draw();
+
+            }
 
             frameBuffer.Unbind();
 
@@ -603,8 +661,8 @@ namespace Blockgame_OpenTK
 
             // GL.Viewport(0, 0, fw, fh);
             // GL.Viewport(0, 0, args.NewClientSize.X, args.NewClientSize.Y);
-            Toolkit.Window.GetFramebufferSize(args.Window, out int w, out int h);
-            GL.Viewport(0, 0, w, h);
+            Toolkit.Window.GetFramebufferSize(args.Window, out Vector2i framebufferSize);
+            GL.Viewport(0, 0, framebufferSize.X, framebufferSize.Y);
             // GlobalValues.WIDTH = e.Width;
             // GlobalValues.HEIGHT = e.Height;
             GlobalValues.WIDTH = args.NewClientSize.X;
@@ -615,8 +673,16 @@ namespace Blockgame_OpenTK
             camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
+
+            foreach (GuiElement element in GlobalValues.GlobalGuiElements)
+            {
+
+                element.Recalculate();
+
+            }
+
             // TestElement.RecalculatePosition();
-            TestContainer.Recalculate();
+            // TestContainer.Recalculate();
             // uiTest.OnScreenResize();
             // TestElement.Update();
             TextRenderer.Camera.UpdateProjectionMatrix();

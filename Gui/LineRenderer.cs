@@ -89,7 +89,7 @@ namespace Blockgame_OpenTK.Gui
             // GL.Uniform3f(GL.GetUniformLocation(SdfShader.id, "pointB"), 1, pointB);
             GL.Uniform2f(GL.GetUniformLocation(SdfShader.id, "screenSize"), 1, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
 
-            GL.Uniform1f(GL.GetUniformLocation(SdfShader.id, "sceneDepth"), 0);
+            GL.Uniform1i(GL.GetUniformLocation(SdfShader.id, "sceneDepth"), 0);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2d, scene.textureDepthStencilBufferId);
 
@@ -99,9 +99,9 @@ namespace Blockgame_OpenTK.Gui
 
             GL.Enable(EnableCap.CullFace);
 
-            GL.BindVertexArray(0);
+            // GL.BindVertexArray(0);
 
-            SdfShader.UnUse();
+            // SdfShader.UnUse();
 
         }
         public static void DrawLine(Vector3 pointA, Vector3 pointB, float thickness, Vector3 color, Camera camera)
@@ -156,9 +156,9 @@ namespace Blockgame_OpenTK.Gui
 
             GL.Enable(EnableCap.CullFace);
 
-            GL.BindVertexArray(0);
+            // GL.BindVertexArray(0);
 
-            LineShader.UnUse();
+            // LineShader.UnUse();
 
         }
 

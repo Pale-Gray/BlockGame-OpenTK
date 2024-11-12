@@ -1,16 +1,30 @@
-#version 400 core
+#version 460 core
 
-precision mediump float;
+struct PackedVec3
+{
+	float x, y, z;
+};
 
-layout (location=0) in int texture_index;
-layout (location=1) in vec3 position;
-layout (location=2) in vec2 texcoord;
-layout (location=3) in vec3 normal;
-layout (location=4) in float ambient_value;
-// layout (location=0) in float blocktype;
-// layout (location=1) in vec3 position;
-// layout (location=2) in vec3 normal;
-// layout (location=3) in vec2 texcoord;
+struct PackedVec2
+{
+	float x, y;
+};
+
+struct ChunkVertex
+{
+	PackedVec3 position;
+	int ID;
+	float ambientValue;
+	int textureIndex;
+	uint lightData;
+	PackedVec2 texcoords;
+	PackedVec3 normal;
+};
+
+layout (std430, binding=3) readonly buffer chunkData
+{
+	ChunkVertex vertexData[];
+};
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -28,18 +42,13 @@ flat out int vtexture_index;
 out vec3 vnormal;
 out float vtime;
 out float vambient_value;
+out uint vlight_data;
 
 out float distFac;
-
 uniform float chunkLifetime;
-// out float vambientValue;
-
 out vec3 directionalLight;
-
 uniform float radius;
-
 out vec3 vPositionOffset;
-
 out vec4 ambientValues;
 
 float dist3D(vec3 pos1, vec3 pos2) 
@@ -52,8 +61,25 @@ float dist3D(vec3 pos1, vec3 pos2)
 
 }
 
+vec3 unpack(PackedVec3 vector)
+{
+	return vec3(vector.x, vector.y, vector.z);
+}
+
+vec2 unpack(PackedVec2 vector) 
+{
+	return vec2(vector.x, vector.y);
+}
+
 void main()
 {
+
+	vec3 position = unpack(vertexData[gl_VertexID].position);
+	vec2 texcoord = unpack(vertexData[gl_VertexID].texcoords);
+	int texture_index = vertexData[gl_VertexID].textureIndex;
+	vec3 normal = unpack(vertexData[gl_VertexID].normal);
+	float ambient_value = vertexData[gl_VertexID].ambientValue;
+	uint light_data = vertexData[gl_VertexID].lightData;
 	
 	vposition = position;
 	vtexcoord = texcoord;
@@ -66,7 +92,9 @@ void main()
 	ambientValues = vec4(ambient_value, ambient_value, ambient_value, 1.0);
 	// if (ambient_value == 0.0) ambientValues.rgb = vec3(0.65);
 
-	directionalLight = sunDirection;
+	// directionalLight = sunDirection;
+	directionalLight = vec3(0, -1, 0);
+	vlight_data = light_data;
 
 	distFac = clamp(dist3D(vPositionOffset, cameraPosition) / (radius*32), 0, 1);
 
@@ -81,6 +109,11 @@ void main()
 	// clamp(displace, 0, displace);
 	// float displace = min(32 * (chunkLifetime/5), 0);
 
-	gl_Position = vec4(vec3(position.x, position.y, position.z) + (vec3(chunkpos.x, chunkpos.y - displace, chunkpos.z) * 32), 1.0) * view * projection;
+	gl_Position = vec4(vec3(position.x, position.y, position.z) + (vec3(chunkpos.x, chunkpos.y, chunkpos.z) * 32), 1.0) * view * projection;
+	// gl_Position = vec4(vertexData[gl_VertexID].position, 1.0) * view * projection;
+	// vec3 pos = vec3(vertexData[gl_VertexID].position[0], vertexData[gl_VertexID].position[1], vertexData[gl_VertexID].position[2]);
+	// vec3 pos = vec3(vertexData[gl_VertexID].position.x, vertexData[gl_VertexID].position.y, vertexData[gl_VertexID].position.z);
+
+	// gl_Position = vec4(pos + (vec3(chunkpos) * 32), 1.0) * view * projection;
 
 }

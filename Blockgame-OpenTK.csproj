@@ -14,9 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="FreeTypeSharp" Version="3.0.0" />
-    <PackageReference Include="OpenTK" Version="5.0.0-pre.11" />
+    <PackageReference Include="OpenTK" Version="5.0.0-pre.13" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
     <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Folder Include="Resources/" />
   </ItemGroup>
 
 </Project>

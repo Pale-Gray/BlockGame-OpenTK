@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK.Util
         public static void Log(string message, Severity type)
         {
 
-            String infoType = EvaluateDebugMessageType(type);
+            string infoType = EvaluateDebugMessageType(type);
 
             string log = $"[{infoType}] {message}";
 
@@ -26,20 +26,20 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static String EvaluateDebugMessageType(Severity type)
+        private static string EvaluateDebugMessageType(Severity type)
         {
 
             switch (type) 
             { 
             
                 case Severity.Info:
-                    return "INFO";
+                    return "Info";
                 case Severity.Warning:
-                    return "WARNING";
+                    return "Warning";
                 case Severity.Error:
-                    return "ERROR";
+                    return "Error";
                 default:
-                    return "INFO";
+                    return "Info";
             
             }
 

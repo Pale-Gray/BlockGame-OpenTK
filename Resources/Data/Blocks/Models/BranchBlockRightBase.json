@@ -1,0 +1,64 @@
+{
+
+	"Textures": {
+		"$sides": null,
+		"$right": null
+	},
+	"Faces": [
+		{
+			"Name": "Right",
+			"Texture": "$right",
+			"Points": [
+				[0, 20, 12],
+				[0, 12, 12],
+				[0, 12, 20],
+				[0, 20, 20]
+			]
+		},
+		{
+			"Name": "Top",
+			"Texture": "$sides",
+			"CullDirection": "None",
+			"Points": [
+				[12, 20, 20],
+				[12, 20, 12],
+				[0, 20, 12],
+				[0, 20, 20]
+			]
+		},
+		{
+			"Name": "Bottom",
+			"Texture": "$sides",
+			"CullDirection": "None",
+			"Points": [
+				[12, 12, 12],
+				[12, 12, 20],
+				[0, 12, 20],
+				[0, 12, 12]
+			]
+		},
+		{
+			"Name": "Front",
+			"Texture": "$sides",
+			"CullDirection": "None",
+			"Points": [
+				[12, 20, 12],
+				[12, 12, 12],
+				[0, 12, 12],
+				[0, 20, 12]
+			]
+		},
+		{
+			"Name": "Back",
+			"Texture": "$sides",
+			"CullDirection": "None",
+			"Points": [
+				[0, 20, 20],
+				[0, 12, 20],
+				[12, 12, 20],
+				[12, 20, 20]
+			]
+		}
+	]
+
+}

@@ -8,19 +8,21 @@ using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Graphics.Vulkan;
 using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
-
     public struct ChunkVertex
     {
 
+        public Vector3 Position = (0, 0, 0);
         public int ID = 0;
         public float AmbientValue = 1.0f;
-        public int TextureIndex;
-        public Vector3 Position;
-        public Vector3 Normal;
-        public Vector2 TextureCoordinates;
+        public int TextureIndex = 0;
+        public uint LightData = 0;
+        public Vector2 TextureCoordinates = (0, 0);
+        public Vector3 Normal = (0, 0, 0);
 
         public ChunkVertex(int textureIndex, Vector3 position, Vector2 textureCoordinate, Vector3 normal, float ambientValue)
         {
@@ -78,21 +80,57 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         None,
         PassOne,
-        PassTwo,
+        SunlightGeneration,
+        LightPropagation,
         Mesh,
-        Final,
-        Finish,
+        Upload,
+        Done,
+        Remesh,
         Remove
 
     }
+
+    public struct LightProperties
+    {
+
+        public uint PackedLightData;
+        public Vector3i GlobalBlockPosition;
+
+        public LightProperties(Vector3i globalBlockPosition, uint packedLightData)
+        {
+
+            PackedLightData = packedLightData;
+            GlobalBlockPosition = globalBlockPosition;
+
+        }
+
+    }
+
+    public struct LightData
+    {
+
+        uint[] LightValues = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        Vector3i[] BlockLightPositions;
+
+        public LightData() { }
+
+    }
+
     internal class Chunk
     {
 
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize]; 
-        public ChunkVertex[] OpaqueMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
-        public ChunkVertex[] TransparentMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
+        public BlockProperties[] BlockPropertyData = new BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        // public BlockProperties[] BlockPropertyData = Enumerable.Repeat(new BlockProperties(), GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize).ToArray();
+        public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public uint[] PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public int[] MeshIndices;
+        public Dictionary<Vector3i, Vector3i> GlobalBlockLightPositions = new Dictionary<Vector3i, Vector3i>();
+        public ChunkVertex[] SolidMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
+        public ChunkVertex[] NonSolidMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
+        public List<ChunkVertex> OpaqueMeshList = new List<ChunkVertex>();
+        public List<int> IndicesList = new List<int>();
         public List<Vector3i> StructurePoints = new List<Vector3i>();
         public GenerationState GenerationState = GenerationState.NotGenerated;
         public MeshState MeshState = MeshState.NotMeshed;
@@ -103,6 +141,10 @@ namespace Blockgame_OpenTK.Core.Chunks
         // public int Vao, Vbo;
         public int Vao = 0;
         public int Vbo = 0;
+        public int Ibo = 0;
+        public int Ssbo = 0;
+        public int BlockDataSsbo = 0;
+        public int LightSsbo = 0;
         public bool IsEmpty = true;
         public bool IsFull = false;
         public bool IsExposed = false;
@@ -113,6 +155,10 @@ namespace Blockgame_OpenTK.Core.Chunks
         public bool NeedsToRequeue = true;
         public bool CallForRemesh = false;
         public bool ForceAborted = false;
+        public bool ShouldRemesh = false;
+        public bool IsMeshEditable = false;
+        public bool IsRenderable = false;
+        public string FileName { get { return $"{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat"; } }
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -130,7 +176,6 @@ namespace Blockgame_OpenTK.Core.Chunks
             {
 
                 SaveToFile();
-                // WorldGenerator.ChunkRemoveQueue.Enqueue(ChunkPosition);
             
             });
 
@@ -190,7 +235,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             Vector3 s = (Vector3) new Vector3d(Math.Cos(Maths.ToRadians((float)GlobalValues.Time * 45.0f)), Math.Sin(Maths.ToRadians((float)GlobalValues.Time * 45.0f)), 0);
 
-            GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
+            // GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "arrays"), 0);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "cameraPosition"), 1, camera.Position);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "sunDirection"), 1, sunVec);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkLifetime"), Lifetime);
@@ -207,9 +252,17 @@ namespace Blockgame_OpenTK.Core.Chunks
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), 1, true, camera.ProjectionMatrix);
             // GL.Uniform3(GL.GetUniformLocation(shader.getID(), "cpos"), ref ChunkPosition);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "time"), (float) GlobalValues.Time);
+            // GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 3, Ssbo);
+            // GL.DrawArrays(PrimitiveType.Triangles, 0, SolidMesh.Length);
             GL.BindVertexArray(Vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, OpaqueMesh.Length);
+            // GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Ssbo);
+            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 3, Ssbo);
+            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 2, BlockDataSsbo);
+            // GL.BindBuffer(BufferTarget.ElementArrayBuffer, Ibo);
+            GL.DrawElements(PrimitiveType.Triangles, MeshIndices.Length, DrawElementsType.UnsignedInt, 0);
+            // GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
             GL.BindVertexArray(0);
+            // GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
             GlobalValues.ChunkShader.UnUse();
 
@@ -284,11 +337,18 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public void SetBlock(Vector3i position, Block block)
+        public void SetBlockLight(Vector3i localLightPosition, Vector3i lightColor)
         {
 
-            // BlockData[position.X, position.Y, position.Z] = block.ID;
+            Vector3i globalLightPosition = localLightPosition + (ChunkPosition * GlobalValues.ChunkSize);
 
+            GlobalBlockLightPositions.Add(globalLightPosition, lightColor);
+
+        } 
+
+        public void SetBlock(Vector3i position, Block block)
+        {
+    
             BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
             SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
 
@@ -312,6 +372,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             {
 
                 BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(position))] = block.ID;
+                SolidMask[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(position))] = block.IsSolid ?? true;
 
             }
 
@@ -439,14 +500,14 @@ namespace Blockgame_OpenTK.Core.Chunks
         public ChunkVertex[] GetChunkMesh()
         {
 
-            return OpaqueMesh;
+            return SolidMesh;
 
         }
 
         public void SetChunkMesh(ChunkVertex[] mesh)
         {
 
-            OpaqueMesh = mesh;
+            SolidMesh = mesh;
 
         }
 

@@ -344,7 +344,7 @@ namespace Blockgame_OpenTK.Font
             for (int i = 0; i < lines.Length; i++)
             {
 
-                // RenderText(position + (0, fontSize * i), fontSize, lines[i]);
+                // RenderText(position + (0, _fontSize * i), _fontSize, lines[i]);
 
                 vertices.AddRange(GenerateLine(position + (0, (fontSize + (fontSize * (lineSpacing - 1.0f))) * i), fontSize, lines[i]));
 

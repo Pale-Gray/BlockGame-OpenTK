@@ -1,4 +1,4 @@
-#version 400 core
+#version 460 core
 
 precision mediump float;
 precision mediump sampler2DArray;
@@ -31,7 +31,7 @@ uniform float fogOffset;
 
 uniform float chunkLifetime;
 uniform bool shouldRenderAmbientOcclusion;
-
+flat in uint vlight_data;
 in vec4 ambientValues;
 
 vec2[] texcoord = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
@@ -87,20 +87,15 @@ void main()
 	ambientFac = clamp(ambientFac, 0, 1);
 
 // 	Outcolor = vec4(array_texture.rgb * (1 - (vambient_value/3)), 1);
-	ambientValue = mix(0.15, 1, (1 - (vambient_value/3)));
+	ambientValue = mix(0.15, 1.0, (1 - (vambient_value/3)));
 
-	if (shouldRenderFog)
-	{
+	vec3 lightColor = vec3((vlight_data >> 12) & 15,(vlight_data >> 8) & 15,(vlight_data >> 4) & 15) / 15.0;
+	vec3 lightValue = lightColor;
+	vec3 sunLight = vec3(vlight_data & 15) / 15.0;
 
-		Outcolor = vec4(mix(array_texture.rgb * ambientValue * value, fogColor, pow(clamp(distFac + fogOffset + 0.1, 0, 1), 2.7)), a);
+	vec3 col = vec3((array_texture.rgb * pow(ambientValue, 2.2) * value) * (pow(1 + lightValue, vec3(2))));
 
-	} else 
-	{
-
-		Outcolor = vec4(array_texture.rgb * value * ambientValue, a);
-
-	}
-
+	Outcolor = vec4(col, a);
 	// Outcolor = clamp(vec4(vnormal, 1.0) * inverse(transpose(view)), 0.0, 1.0);
 
 }

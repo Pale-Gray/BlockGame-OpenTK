@@ -80,7 +80,7 @@ namespace Blockgame_OpenTK.Util
         public void UnUse()
         {
 
-            GL.UseProgram(0);
+            // GL.UseProgram(0);
 
         }
 

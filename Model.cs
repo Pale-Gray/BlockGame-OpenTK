@@ -69,11 +69,11 @@ namespace Blockgame_OpenTK
             GL.Uniform3f(GL.GetUniformLocation(shader.getID(), "cameraPosition"), 1, camera.Position);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
-            GL.BindVertexArray(0);
+            // GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2d, 0);
+            // GL.BindTexture(TextureTarget.Texture2d, 0);
 
-            shader.UnUse();
+            // shader.UnUse();
 
         }
 

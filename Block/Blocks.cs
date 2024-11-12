@@ -14,8 +14,9 @@ namespace Blockgame_OpenTK.BlockUtil
         public static readonly Block DirtBlock = Block.LoadFromJson("DirtBlock.json");
         public static readonly Block LogBlock = Block.LoadFromJson("LogBlock.json");
         public static readonly Block BrickBlock = Block.LoadFromJson("BrickBlock.json");
-        public static readonly Block TallGrassBlock = Block.LoadFromJson("TallGrassBlock.json");
-        public static readonly Block TallGrassTwoBlock = Block.LoadFromJson("TallGrassTwoBlock.json");
+        public static readonly Block TallGrassBlock = new TallGrassBlock();
+        public static readonly Block LightBlock = new LightBlock();
+        public static readonly Block LogBranchBlock = new LogBranchBlock();
         public static void Load()
         {
             // Block b = Block.LoadFromJson("GrassBlockNew.json");
@@ -27,7 +28,11 @@ namespace Blockgame_OpenTK.BlockUtil
             GlobalValues.Register.AddBlock(4, LogBlock);
             GlobalValues.Register.AddBlock(5, BrickBlock);
             GlobalValues.Register.AddBlock(6, TallGrassBlock);
-            GlobalValues.Register.AddBlock(7, TallGrassTwoBlock);
+            GlobalValues.Register.AddBlock(7, LightBlock);
+            GlobalValues.Register.AddBlock(8, new RedLightBlock());
+            GlobalValues.Register.AddBlock(9, new GreenLightBlock());
+            GlobalValues.Register.AddBlock(10, new BlueLightBlock());
+            GlobalValues.Register.AddBlock(11, LogBranchBlock);
 
             for (int i = 0; i < 5; i++)
             {

@@ -1,0 +1,12 @@
+{
+
+  "DataName": "LogBranchBlock",
+  "DisplayName": "Branch",
+  "Model": null,
+  "SoundPath": "LogBranchBlock",
+  "BreakTime": 1000,
+  "IsOpaque": false,
+  "IsSolid": false,
+  "HasCollision": false
+
+}

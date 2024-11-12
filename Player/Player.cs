@@ -9,6 +9,8 @@ using OpenTK.Windowing.Common;
 using Blockgame_OpenTK.Core.Worlds;
 using System.Collections.Generic;
 using System.Globalization;
+using OpenTK.Platform;
+using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.PlayerUtil
 {
@@ -56,7 +58,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                if (Translator.ResolveKeymap("DestroyBlock"))
+                if (Translator.ResolveKeymap("DestroyBlock") || Input.IsLeftTriggerDown())
                 {
 
                     RemoveDelay += (float)GlobalValues.DeltaTime;
@@ -69,165 +71,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                         {
 
                             Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit);
-
-                            world.WorldChunks[Dda.ChunkAtHit].SetBlock(HitPositionLocal, Blocks.AirBlock);
-                            world.WorldChunks[Dda.ChunkAtHit].CallForRemesh = true;
-                            WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit);
-
-                            if (HitPositionLocal.X == 0)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitY);
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX);
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitY);
-
-                                if (HitPositionLocal.Z == 0)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                }
-
-                                if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                }
-
-                            }
-                            if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitY);
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX);
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitY);
-
-                                if (HitPositionLocal.Z == 0)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ);
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                }
-
-                                if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ);
-                                    world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                }
-
-                            }
-                            if (HitPositionLocal.Z == 0)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitY);
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ);
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                if (HitPositionLocal.X == 0)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY);
-
-                                }
-
-                                if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY);
-
-                                }
-
-                            }
-                            if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ + Vector3i.UnitY);
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitZ].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ);
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                if (HitPositionLocal.X == 0)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY);
-
-                                }
-
-                                if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX);
-                                    world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY);
-
-                                }
-
-                            }
-                            if (HitPositionLocal.Y == 0)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit - Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit - Vector3i.UnitY);
-
-                            }
-                            if (HitPositionLocal.Y == GlobalValues.ChunkSize - 1)
-                            {
-
-                                world.WorldChunks[Dda.ChunkAtHit + Vector3i.UnitY].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(Dda.ChunkAtHit + Vector3i.UnitY);
-
-                            }
+                            world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].GetBlock(HitPositionLocal).OnBlockDestroy(world, Dda.PositionAtHit);
 
                             RemoveDelay = 0;
 
@@ -238,7 +82,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                 }
                 else { RemoveDelay = 1; }
 
-                if (Translator.ResolveKeymap("PlaceBlock"))
+                if (Translator.ResolveKeymap("PlaceBlock") || Input.IsRightTriggerDown())
                 {
 
                     PlaceDelay += (float)GlobalValues.DeltaTime;
@@ -259,164 +103,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit);
 
-                                world.WorldChunks[previousPositionChunkHit].SetBlock(HitPositionLocal, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID));
-                                world.WorldChunks[previousPositionChunkHit].CallForRemesh = true;
-                                WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit);
-
-                                if (HitPositionLocal.X == 0)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX);
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitY);
-
-                                    if (HitPositionLocal.Z == 0)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    }
-
-                                    if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    }
-
-                                }
-                                if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitY);
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX);
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitY);
-
-                                    if (HitPositionLocal.Z == 0)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ);
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    }
-
-                                    if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ);
-                                        world.WorldChunks[previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitX + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    }
-
-                                }
-                                if (HitPositionLocal.Z == 0)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ);
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    if (HitPositionLocal.X == 0)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY);
-
-                                    }
-
-                                    if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY);
-
-                                    }
-
-                                }
-                                if (HitPositionLocal.Z == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitZ + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitZ + Vector3i.UnitY);
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitZ].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitZ);
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitZ - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitZ - Vector3i.UnitY);
-
-                                    if (HitPositionLocal.X == 0)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ - Vector3i.UnitX - Vector3i.UnitY);
-
-                                    }
-
-                                    if (HitPositionLocal.X == GlobalValues.ChunkSize - 1)
-                                    {
-
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX + Vector3i.UnitY);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX);
-                                        world.WorldChunks[previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY].CallForRemesh = true;
-                                        WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitZ + Vector3i.UnitX - Vector3i.UnitY);
-
-                                    }
-
-                                }
-                                if (HitPositionLocal.Y == 0)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit - Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit - Vector3i.UnitY);
-
-                                }
-                                if (HitPositionLocal.Y == GlobalValues.ChunkSize - 1)
-                                {
-
-                                    world.WorldChunks[previousPositionChunkHit + Vector3i.UnitY].CallForRemesh = true;
-                                    WorldGenerator.ChunkAlterUpdateQueue.Enqueue(previousPositionChunkHit + Vector3i.UnitY);
-
-                                }
+                                GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PreviousPositionAtHit))] ?? new BlockProperties(), Dda.PreviousPositionAtHit);
 
                             }
 
@@ -430,7 +117,17 @@ namespace Blockgame_OpenTK.PlayerUtil
                 else { PlaceDelay = 1; }
 
                 Vector3 positionAlter = Vector3.Zero;
+                // Console.WriteLine(Camera.Yaw);
 
+                if (Input.JoystickLeftAxis != Vector2.Zero)
+                {
+
+                    float xValue = ((float) (Math.Cos(Maths.ToRadians(Camera.Yaw))) * Input.JoystickLeftAxis.Y) + ((float)(Math.Sin(Maths.ToRadians(Camera.Yaw))) * -Input.JoystickLeftAxis.X);
+                    float zValue = ((float) (Math.Sin(Maths.ToRadians(Camera.Yaw))) * Input.JoystickLeftAxis.Y) + ((float)(Math.Cos(Maths.ToRadians(Camera.Yaw))) * Input.JoystickLeftAxis.X);
+
+                    positionAlter += new Vector3(xValue, 0.0f, zValue) * Speed;
+
+                }
                 if (Translator.ResolveKeymap("Forwards"))
                 {
 
@@ -624,7 +321,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 }
 
-                if (Translator.ResolveKeymap("Jump"))
+                if (Translator.ResolveKeymap("Jump") || Input.IsJoystickButtonDown(JoystickButton.A))
                 {
 
                     if (IsGrounded)

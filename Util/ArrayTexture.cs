@@ -13,6 +13,9 @@ namespace Blockgame_OpenTK.Util
         int Width, Height, Depth;
         public int TextureID = 0;
         public List<string> TextureNames = new List<string>();
+        private List<byte> _arrayData = new List<byte>();
+        private int _currentDepth = 1;
+        private int _currentEmptyIndex = 0;
 
         public ArrayTexture()
         {
@@ -20,6 +23,41 @@ namespace Blockgame_OpenTK.Util
             Width = 32;
             Height = 32;
             PathToTextures = GlobalValues.LocalPath;
+
+        }
+
+        public ArrayTexture(int width, int height)
+        {
+
+            Width = width;
+            Height = height;
+
+        }
+
+        public void Init()
+        {
+
+            TextureID = GL.GenTexture();
+            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
+            GL.BindTexture(TextureTarget.Texture2dArray, TextureID);
+            GL.TexStorage3D(TextureTarget.Texture2dArray, 1, SizedInternalFormat.Srgb8, Width, Height, GL.GetInteger(GetPName.MaxArrayTextureLayers));
+            GL.TexParameteri(TextureTarget.Texture2dArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameteri(TextureTarget.Texture2dArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameteri(TextureTarget.Texture2dArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameteri(TextureTarget.Texture2dArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.BindTexture(TextureTarget.Texture2dArray, 0);
+
+        }
+
+        public void AddTexture(nint data, int width, int height, out float index)
+        {
+
+            GL.BindTexture(TextureTarget.Texture2dArray, TextureID);
+            GL.TexSubImage3D(TextureTarget.Texture2dArray, 0, 0, 0, _currentEmptyIndex, width, height, 1, PixelFormat.Red, PixelType.UnsignedByte, data);
+            GL.BindTexture(TextureTarget.Texture2dArray, 0);
+
+            index = _currentEmptyIndex;
+            _currentEmptyIndex++;
 
         }
 
@@ -35,7 +73,7 @@ namespace Blockgame_OpenTK.Util
 
             TextureID = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2dArray, TextureID);
-            GL.TexStorage3D(TextureTarget.Texture2dArray, 4, SizedInternalFormat.Rgba8, Width, Height, Depth);
+            GL.TexStorage3D(TextureTarget.Texture2dArray, 4, SizedInternalFormat.Srgb8Alpha8, Width, Height, Depth);
             List<byte> ImageBytes = new List<byte>();
 
             foreach (string FileName in TextureNamesInDirectory)
@@ -67,16 +105,10 @@ namespace Blockgame_OpenTK.Util
         public int GetTextureIndex(string textureName)
         {
 
-            if (TextureNames.Contains(textureName))
+            if (!TextureNames.Contains(textureName))
             {
 
-                Debugger.Log($"The texture {textureName} exists in TextureNames", Severity.Info);
-
-            }
-            else
-            {
-
-                Debugger.Log($"{textureName} does not exist in TextureNames", Severity.Error);
+                return TextureNames.IndexOf("MissingTexture");
 
             }
             return TextureNames.IndexOf(textureName);

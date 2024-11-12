@@ -1,0 +1,75 @@
+{
+
+	"Textures": {
+		"$all": null
+	},
+	"Faces": [
+		{
+			"Name": "Top",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[20, 20, 20],
+				[20, 20, 12],
+				[12, 20, 12],
+				[12, 20, 20]
+			]
+		},
+		{
+			"Name": "Bottom",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[12, 12, 20],
+				[12, 12, 12],
+				[20, 12, 12],
+				[20, 12, 20]
+			]
+		},
+		{
+			"Name": "Left",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[20, 20, 20],
+				[20, 12, 20],
+				[20, 12, 12],
+				[20, 20, 12]
+			]
+		},
+		{
+			"Name": "Right",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[12, 20, 12],
+				[12, 12, 12],
+				[12, 12, 20],
+				[12, 20, 20]
+			]
+		},
+		{
+			"Name": "Back",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[12, 20, 20],
+				[12, 12, 20],
+				[20, 12, 20],
+				[20, 20, 20]
+			]
+		},
+		{
+			"Name": "Front",
+			"Texture": "$all",
+			"CullDirection": "None",
+			"Points": [
+				[20, 20, 12],
+				[20, 12, 12],
+				[12, 12, 12],
+				[12, 20, 12]
+			]
+		}
+	]
+
+}

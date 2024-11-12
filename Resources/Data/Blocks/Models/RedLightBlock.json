@@ -1,0 +1,32 @@
+{
+    "Inherit": "Cube.json",
+    "Textures": {
+        "$all": "RedLightBlock"
+    },
+    "Faces": [
+        {
+            "Inherit": "Top",
+            "Texture": "$all"
+        },
+        {
+            "Inherit": "Bottom",
+            "Texture": "$all"
+        },
+        {
+            "Inherit": "Left",
+            "Texture": "$all"
+        },
+        {
+            "Inherit": "Right",
+            "Texture": "$all"
+        },
+        {
+            "Inherit": "Front",
+            "Texture": "$all"
+        },
+        {
+            "Inherit": "Back",
+			"Texture": "$all"
+        }
+    ]
+}

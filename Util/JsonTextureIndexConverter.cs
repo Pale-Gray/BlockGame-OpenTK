@@ -13,7 +13,7 @@ namespace Blockgame_OpenTK.Util
         public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
 
-            Console.WriteLine($"Converting texture name {reader.GetString()} to index");
+            // Console.WriteLine($"Converting texture name {reader.GetString()} to index");
             return GlobalValues.ArrayTexture.GetTextureIndex(reader.GetString());
 
         }

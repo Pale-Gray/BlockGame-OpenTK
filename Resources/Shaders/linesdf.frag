@@ -12,8 +12,9 @@ uniform vec2 screenSize;
 uniform sampler2D sceneDepth;
 
 uniform int lineSegmentsLength;
-uniform vec3[28] lineSegments;
-in vec2[28] lineSegmentsPixelPositions;
+uniform vec3[30] lineSegments;
+
+in vec3[30] lineSegmentsParameters;
 
 uniform float thickness;
 uniform vec3 color;
@@ -54,25 +55,14 @@ void main()
 	for (int i = 0; i < lineSegmentsLength; i+=2)
 	{
 
-		vec4 pointAClip = vec4(lineSegments[i], 1.0) * view * projection;
-		vec3 pointANdc = pointAClip.xyz / pointAClip.w;
-		vec2 pointAScreen = ((pointANdc.xy + 1.0) / 2.0) * resolution;
-
-		vec4 pointBClip = vec4(lineSegments[i+1], 1.0) * view * projection;
-		vec3 pointBNdc = pointBClip.xyz / pointBClip.w;
-		vec2 pointBScreen = ((pointBNdc.xy + 1.0) / 2.0) * resolution;
-
 		float t = 0;
-		float d = sdfLine(lineSegmentsPixelPositions[i], lineSegmentsPixelPositions[i+1], pixelCoordinates, t) - thickness/2;
+		float d = sdfLine(lineSegmentsParameters[i].xy, lineSegmentsParameters[i+1].xy, pixelCoordinates, t) - thickness/2;
 
-		// float lineDepth = mix((pointANdc.z), (pointBNdc.z), t);
-		float worldDepth = (texelFetch(sceneDepth, ivec2(mix(pointAScreen, pointBScreen, t)), 0).r * 2.0) - 1.0;
+		float worldDepth = (texelFetch(sceneDepth, ivec2(mix(lineSegmentsParameters[i].xy, lineSegmentsParameters[i+1].xy, t)), 0).r * 2.0) - 1.0;
 
-		// float lineLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - lineDepth * (zFar - zNear));
-
-		float lineALinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - pointANdc.z * (zFar - zNear));
-		float lineBLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - pointBNdc.z * (zFar - zNear));
-		float lineLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - mix(pointANdc.z, pointBNdc.z, t) * (zFar - zNear));
+		float lineALinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - lineSegmentsParameters[i].z * (zFar - zNear));
+		float lineBLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - lineSegmentsParameters[i+1].z * (zFar - zNear));
+		float lineLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - mix(lineSegmentsParameters[i].z, lineSegmentsParameters[i+1].z, t) * (zFar - zNear));
 		float worldLinearizedDepth = (2.0 * zNear * zFar) / (zFar + zNear - worldDepth * (zFar - zNear));
 
 		if (d <= 0 && lineLinearizedDepth < worldLinearizedDepth) 

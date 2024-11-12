@@ -16,7 +16,9 @@ namespace Blockgame_OpenTK.Util
         {
 
             // Console.Log($"Loading {reader.GetString()}");
-            return BlockModel.LoadFromJson(Path.Combine(reader.GetString()));
+            if (reader.GetString() == null) return null;
+            BlockModel model = BlockModel.LoadFromJson(reader.GetString());
+            return model;
 
         }
 

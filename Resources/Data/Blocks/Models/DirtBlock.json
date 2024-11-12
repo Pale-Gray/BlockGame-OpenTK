@@ -1,51 +1,48 @@
 {
 
-  "Inherit": "Cube.json",
-  "Faces": [
+	"Inherit": "Cube.json",
+	"Textures": {
+	  "$all": "DirtBlock"
+	},
+	"Faces": [
 
-    {
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Up",
-      "Inherit": "Up"
+			"Inherit": "Top",
+			"Texture": "$all"
 
-    },
-    {
+		},
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Down",
-      "Inherit": "Down"
+			"Inherit": "Bottom",
+			"Texture": "$all"
 
-    },
-    {
+		},
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Left",
-      "Inherit": "Left"
+			"Inherit": "Left",
+			"Texture": "$all"
 
-    },
-    {
+		},
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Right",
-      "Inherit": "Right"
+			"Inherit": "Right",
+			"Texture": "$all"
 
-    },
-    {
+		},
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Front",
-      "Inherit": "Front"
+			"Inherit": "Front",
+			"Texture": "$all"
 
-    },
-    {
+		},
+		{
 
-      "Texture": "DirtBlock",
-      "CullDirection": "Back",
-      "Inherit": "Back"
+			"Inherit": "Back",
+			"Texture": "$all"
 
-    }
+		}
 
-  ]
+	]
 
 }

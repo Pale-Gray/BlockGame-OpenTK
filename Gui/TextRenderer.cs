@@ -353,7 +353,7 @@ namespace Blockgame_OpenTK.Gui
             GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
             GL.Uniform3f(GL.GetUniformLocation(FontShader.id, "textPosition"), 1, position);
-            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
+            GL.Uniform1i(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
             // Console.Log(Globals.Time);
             GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "time"), (float) GlobalValues.Time);
 
@@ -365,11 +365,11 @@ namespace Blockgame_OpenTK.Gui
 
             GL.Enable(EnableCap.CullFace);
 
-            GL.BindVertexArray(0);
+            // GL.BindVertexArray(0);
 
-            GL.BindTexture(TextureTarget.Texture2d, 0);
+            // GL.BindTexture(TextureTarget.Texture2d, 0);
 
-            FontShader.UnUse();
+            // FontShader.UnUse();
 
         }
 

@@ -3,8 +3,10 @@
 layout (location=0) in vec3 position;
 
 uniform int lineSegmentsLength;
-uniform vec3[28] lineSegments;
-out vec2[28] lineSegmentsPixelPositions;
+uniform vec3[30] lineSegments;
+
+// x and y are screenspace, z is NDC
+out vec3[30] lineSegmentsParameters;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -21,9 +23,11 @@ void main()
 	{
 
 		vec4 pointAClip = vec4(lineSegments[i], 1.0) * view * projection;
-		vec3 pointANdc = pointAClip.xyz / max(pointAClip.w, 0);
+		vec3 pointANdc = pointAClip.xyz / pointAClip.w;
 		vec2 pointAScreen = ((pointANdc.xy + 1.0) / 2.0) * resolution;
-		lineSegmentsPixelPositions[i] = pointAScreen;
+
+		lineSegmentsParameters[i].xy = pointAScreen;
+		lineSegmentsParameters[i].z = pointANdc.z;
 
 	}
 

@@ -1,0 +1,28 @@
+{
+	
+	"Inherit": "BranchBlockCenterBase.json",
+	"Textures": {
+		"$all": "LogBlockSide"
+	},
+	"Faces": [
+		{
+			"Inherit": "Top"
+		},
+		{
+			"Inherit": "Bottom"
+		},
+		{
+			"Inherit": "Left"
+		},
+		{
+			"Inherit": "Right"
+		},
+		{
+			"Inherit": "Back"
+		},
+		{
+			"Inherit": "Front"
+		}
+	]
+	
+}

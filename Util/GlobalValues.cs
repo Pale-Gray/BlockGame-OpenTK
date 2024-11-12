@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Collections;
+using Blockgame_OpenTK.Gui;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -47,6 +48,10 @@ namespace Blockgame_OpenTK.Util
         public static double CurrentTime = 0;
         public static double DeltaTime = 0;
         public static double Time = 0;
+
+        public static int AverageFps = 0;
+
+        public static List<GuiElement> GlobalGuiElements = new List<GuiElement>();
         // public static MouseState Mouse = null;
         public static KeyboardState Keyboard = null;
         public static CursorState CursorState = CursorState.Normal;

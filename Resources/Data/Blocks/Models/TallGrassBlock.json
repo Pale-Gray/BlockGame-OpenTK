@@ -1,18 +1,21 @@
 {
 
   "Inherit": "CrossFoliageVariant1Base.json",
+  "Textures": {
+	  "$sides": "TallGrassBlock"
+  },
   "Faces": [
 
     {
 
-      "Texture": "TallGrassBlock",
-      "Inherit": "CrossOne"
+      "Inherit": "CrossOne",
+	  "Texture": "$sides"
 
     },
     {
-
-      "Texture": "TallGrassBlock",
-      "Inherit": "CrossTwo"
+		
+      "Inherit": "CrossTwo",
+	  "Texture": "$sides"
 
     }
 

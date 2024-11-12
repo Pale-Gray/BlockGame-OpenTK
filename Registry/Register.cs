@@ -1,5 +1,6 @@
 ﻿
 using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.Server;
 using Blockgame_OpenTK.Util;
 using System;
 using System.Collections.Generic;
@@ -30,17 +31,26 @@ namespace Blockgame_OpenTK.Registry
         public Block GetBlockFromID(ushort id)
         {
 
-            try
+            if (Blocks.ContainsKey(id))
             {
 
                 return Blocks[id];
 
-            } catch
+            }
+            return Blocks[0];
+
+        }
+
+        public Block GetBlockFromName(string dataName)
+        {
+
+            foreach (Block block in Blocks.Values)
             {
 
-                throw new BlockNotFoundException($"The block with ID {id} was not found or does not exist");
+                if (block.DataName == dataName) return block;
 
             }
+            return null;
 
         }
 
@@ -60,7 +70,7 @@ namespace Blockgame_OpenTK.Registry
                 if (b.DataName == name) return b.ID;
 
             }
-            throw new BlockNotFoundException($"The block with name {name} was not found or does not exist");
+            return Blocks[0].ID;
 
         }
 

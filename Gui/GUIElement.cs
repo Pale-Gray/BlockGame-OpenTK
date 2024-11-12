@@ -42,6 +42,42 @@ namespace Blockgame_OpenTK.Gui
         public List<GuiElement> Children = new List<GuiElement>();
         public GuiElement Parent = null;
 
+        private bool _isVisible = false;
+        public bool IsVisible
+        {
+
+            get { return _isVisible; }
+
+            set
+            {
+
+                _isVisible = value;
+                if (value)
+                {
+
+                    if (!GlobalValues.GlobalGuiElements.Contains(this))
+                    {
+
+                        GlobalValues.GlobalGuiElements.Add(this);
+
+                    }
+
+                } else
+                {
+
+                    if (GlobalValues.GlobalGuiElements.Contains(this))
+                    {
+
+                        GlobalValues.GlobalGuiElements.Remove(this);
+
+                    }
+
+                }
+
+            }
+
+        }
+
         private Vector2 _absolutePosition;
         private Vector2 _relativePosition;
         private Vector2 _origin;
@@ -164,7 +200,7 @@ namespace Blockgame_OpenTK.Gui
 
         }
 
-        public void Draw()
+        public virtual void Draw()
         {
 
             if (_previousPosition != Position)
@@ -204,6 +240,7 @@ namespace Blockgame_OpenTK.Gui
             if (Children.Count > 0)
             {
 
+                // Console.WriteLine("yes");
                 foreach (GuiElement child in Children) child.Draw();
 
             }

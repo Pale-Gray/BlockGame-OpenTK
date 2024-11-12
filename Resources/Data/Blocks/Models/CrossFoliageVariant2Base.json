@@ -4,7 +4,7 @@
 
     {
 
-      "InheritableName": "XSideOne",
+      "Name": "XSideOne",
       "CullDirection": "None",
       "Points": [
 
@@ -18,7 +18,7 @@
     },
     {
 
-      "InheritableName": "XSideTwo",
+      "Name": "XSideTwo",
       "CullDirection": "None",
       "Points": [
 
@@ -32,7 +32,7 @@
     },
     {
 
-      "InheritableName": "ZSideOne",
+      "Name": "ZSideOne",
       "CullDirection": "None",
       "Points": [
 
@@ -46,7 +46,7 @@
     },
     {
 
-      "InheritableName": "ZSideTwo",
+      "Name": "ZSideTwo",
       "CullDirection": "None",
       "Points": [
 

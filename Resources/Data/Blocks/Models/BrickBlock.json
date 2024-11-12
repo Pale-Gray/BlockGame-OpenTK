@@ -1,51 +1,46 @@
 {
-
-  "Inherit": "Cube.json",
-  "Faces": [
-
-    {
-
-      "Texture": "BrickBlock",
-      "CullDirection": "Up",
-      "Inherit": "Up"
-
+    "Inherit": "Cube.json",
+    "Textures": {
+        "$all": "BrickBlock"
     },
-    {
+    "Faces": [
 
-      "Texture": "BrickBlock",
-      "CullDirection": "Down",
-      "Inherit": "Down"
+		{
 
-    },
-    {
+			"Inherit": "Top",
+			"Texture": "$all"
 
-      "Texture": "BrickBlock",
-      "CullDirection": "Left",
-      "Inherit": "Left"
+		},
+		{
 
-    },
-    {
+			"Inherit": "Bottom",
+			"Texture": "$all"
 
-      "Texture": "BrickBlock",
-      "CullDirection": "Right",
-      "Inherit": "Right"
+		},
+		{
 
-    },
-    {
+			"Inherit": "Left",
+			"Texture": "$all"
 
-      "Texture": "BrickBlock",
-      "CullDirection": "Front",
-      "Inherit": "Front"
+		},
+		{
 
-    },
-    {
+			"Inherit": "Right",
+			"Texture": "$all"
 
-      "Texture": "BrickBlock",
-      "CullDirection": "Back",
-      "Inherit": "Back"
+		},
+		{
 
-    }
+			"Inherit": "Front",
+			"Texture": "$all"
 
-  ]
+		},
+		{
 
+			"Inherit": "Back",
+			"Texture": "$all"
+
+		}
+
+	]
 }

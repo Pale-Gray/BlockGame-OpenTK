@@ -1,98 +1,76 @@
 {
-
-  "Faces": [
-
-    {
-
-      "InheritableName": "Up",
-      "Texture": "MissingTexture",
-      "CullDirection": "Up",
-      "Points": [
-
-        [ 32, 32, 32 ],
-        [ 32, 32, 0 ],
-        [ 0, 32, 0 ],
-        [ 0, 32, 32 ]
-
-      ]
-
-    },
-    {
-
-      "InheritableName": "Down",
-      "Texture": "MissingTexture",
-      "CullDirection": "Down",
-      "Points": [
-
-        [ 32, 0, 0 ],
-        [ 32, 0, 32 ],
-        [ 0, 0, 32 ],
-        [ 0, 0, 0 ]
-
-      ]
-
-    },
-    {
-
-      "InheritableName": "Left",
-      "Texture": "MissingTexture",
-      "CullDirection": "Left",
-      "Points": [
-
-        [ 32, 32, 32 ],
-        [ 32, 0, 32 ],
-        [ 32, 0, 0 ],
-        [ 32, 32, 0 ]
-
-      ]
-
-    },
-    {
-
-      "InheritableName": "Right",
-      "Texture": "MissingTexture",
-      "CullDirection": "Right",
-      "Points": [
-
-        [ 0, 32, 0 ],
-        [ 0, 0, 0 ],
-        [ 0, 0, 32 ],
-        [ 0, 32, 32 ]
-
-      ]
-
-    },
-    {
-
-      "InheritableName": "Front",
-      "Texture": "MissingTexture",
-      "CullDirection": "Front",
-      "Points": [
-
-        [ 32, 32, 0 ],
-        [ 32, 0, 0 ],
-        [ 0, 0, 0 ],
-        [ 0, 32, 0 ]
-
-      ]
-
-    },
-    {
-
-      "InheritableName": "Back",
-      "Texture": "MissingTexture",
-      "CullDirection": "Back",
-      "Points": [
-
-        [ 0, 32, 32 ],
-        [ 0, 0, 32 ],
-        [ 32, 0, 32 ],
-        [ 32, 32, 32 ]
-
-      ]
-
-    }
-
-  ]
-
+	
+	"Textures": {
+		"$top": null,
+		"$bottom": null,
+		"$left": null,
+		"$right": null,
+		"$front": null,
+		"$back": null
+	},
+	"Faces": [
+	
+		{
+			"Name": "Top",
+			"Texture": "$top",
+			"Points": [
+				[32, 32, 32],
+				[32, 32, 0],
+				[0, 32, 0],
+				[0, 32, 32]
+			]
+		},
+		{
+			"Name": "Bottom",
+			"Texture": "$bottom",
+			"Points": [
+				[0, 0, 32],
+				[0, 0, 0],
+				[32, 0, 0],
+				[32, 0, 32]
+			]
+		},
+		{
+			"Name": "Left",
+			"Texture": "$left",
+			"Points": [
+				[32, 32, 32],
+				[32, 0, 32],
+				[32, 0, 0],
+				[32, 32, 0]
+			]
+		},
+		{
+			"Name": "Right",
+			"Texture": "$right",
+			"Points": [
+				[0, 32, 0],
+				[0, 0, 0],
+				[0, 0, 32],
+				[0, 32, 32]
+			]
+		},
+		{
+			"Name": "Front",
+			"Texture": "$front",
+			"Points": [
+				[32, 32, 0],
+				[32, 0, 0],
+				[0, 0, 0],
+				[0, 32, 0]
+			]
+		},
+		{
+			"Name": "Back",
+			"Texture": "$back",
+			"Points": [
+				[0, 32, 32],
+				[0, 0, 32],
+				[32, 0, 32],
+				[32, 32, 32]
+			]
+		}
+		
+	]
+	
 }

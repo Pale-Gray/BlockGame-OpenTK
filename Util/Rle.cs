@@ -23,7 +23,7 @@ namespace Blockgame_OpenTK.Util
             }
 
         }
-
+        
         public static byte[] Compress(ushort[] blockData)
         {
 

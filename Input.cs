@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenTK.Platform.Native.Windows;
+using System.Reflection;
 
 namespace Blockgame_OpenTK
 {
@@ -23,6 +24,16 @@ namespace Blockgame_OpenTK
         public bool AllowButtonPress = true;
 
         public MouseState() { }
+
+    }
+
+    struct JoystickState
+    {
+
+        public bool IsJoystickButtonDown = false;
+        public bool AllowJoystickButtonPress = true;
+
+        public JoystickState() { }
 
     }
 
@@ -53,6 +64,15 @@ namespace Blockgame_OpenTK
 
         public static Dictionary<Key, KeyState> KeyStates = new Dictionary<Key, KeyState>();
         public static Dictionary<MouseButton, MouseState> MouseStates = new Dictionary<MouseButton, MouseState>();
+        public static Dictionary<JoystickButton, JoystickState> JoystickStates = new Dictionary<JoystickButton, JoystickState>();
+
+        public static Vector2 JoystickLeftAxis = Vector2.Zero;
+        public static Vector2 JoystickRightAxis = Vector2.Zero;
+
+        public static float LeftTrigger = 0.0f;
+        public static float RightTrigger = 0.0f;
+
+        public static JoystickHandle PlayerOneJoystickHandle;
 
         public static void Initialize()
         {
@@ -70,6 +90,78 @@ namespace Blockgame_OpenTK
                 MouseStates.Add(button, new MouseState());
 
             }
+
+            foreach (JoystickButton joystickButton in Enum.GetValues(typeof(JoystickButton)))
+            {
+
+                JoystickStates.Add(joystickButton, new JoystickState());
+
+            }
+
+        }
+
+        public static void CheckForController(int joystickIndex)
+        {
+
+            Console.WriteLine($"Checking for controller at index {joystickIndex}");
+            if (Toolkit.Joystick.IsConnected(joystickIndex))
+            {
+
+                PlayerOneJoystickHandle = Toolkit.Joystick.Open(joystickIndex); // first connected controller
+                Console.WriteLine("A controller is connected");
+                Console.WriteLine(Toolkit.Joystick.GetName(PlayerOneJoystickHandle) ?? "null");
+                Toolkit.Joystick.TryGetBatteryInfo(PlayerOneJoystickHandle, out GamepadBatteryInfo batteryInfo);
+                Console.WriteLine($"Charge level: {batteryInfo.ChargeLevel} ({batteryInfo.ChargeLevel * 100.0f})");
+                Console.WriteLine($"Battery type: {batteryInfo.BatteryType.ToString()}");
+                // Toolkit.Joystick.SetVibration(PlayerOneJoystickHandle, 0.0f, 0.0f);
+
+            }
+            else
+            {
+
+                Console.WriteLine($"There is no controller currently connected at index {joystickIndex}");
+
+            }
+
+        }
+
+        public static bool IsLeftTriggerDown(float threshhold = 0.5f)
+        {
+
+            if (LeftTrigger > 0.0f) { Console.WriteLine(LeftTrigger); }
+            return LeftTrigger >= threshhold;
+
+        }
+
+        public static bool IsRightTriggerDown(float threshhold = 0.5f)
+        {
+
+            if (RightTrigger > 0.0f) { Console.WriteLine(RightTrigger); }
+            return RightTrigger >= threshhold;
+
+        }
+
+        public static bool IsJoystickButtonDown(JoystickButton joystickButton)
+        {
+
+            return JoystickStates[joystickButton].IsJoystickButtonDown;
+
+        }
+
+        public static bool IsJoystickButtonPressed(JoystickButton joystickButton)
+        {
+
+            if (JoystickStates[joystickButton].IsJoystickButtonDown && JoystickStates[joystickButton].AllowJoystickButtonPress)
+            {
+
+                JoystickState state = JoystickStates[joystickButton];
+                state.AllowJoystickButtonPress = false;
+                JoystickStates[joystickButton] = state;
+                return true;
+
+            }
+
+            return false;
 
         }
 

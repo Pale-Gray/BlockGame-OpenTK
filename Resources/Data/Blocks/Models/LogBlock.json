@@ -1,45 +1,33 @@
 {
-
-  "Inherit": "Cube.json",
-  "Faces": [
-
-    {
-
-      "Texture": "LogBlockTop",
-      "Inherit": "Up"
-
+    "Inherit": "Cube.json",
+    "Textures": {
+        "$sides": "LogBlockSide",
+		"$tops": "LogBlockTop"
     },
-    {
-
-      "Texture": "LogBlockTop",
-      "Inherit": "Down"
-
-    },
-    {
-
-      "Texture": "LogBlockSide",
-      "Inherit": "Left"
-
-    },
-    {
-
-      "Texture": "LogBlockSide",
-      "Inherit": "Right"
-
-    },
-    {
-
-      "Texture": "LogBlockSide",
-      "Inherit": "Front"
-
-    },
-    {
-
-      "Texture": "LogBlockSide",
-      "Inherit": "Back"
-
-    }
-
-  ]
-
+    "Faces": [
+        {
+            "Inherit": "Top",
+            "Texture": "$tops"
+        },
+        {
+            "Inherit": "Bottom",
+            "Texture": "$tops"
+        },
+        {
+            "Inherit": "Left",
+            "Texture": "$sides"
+        },
+        {
+            "Inherit": "Right",
+            "Texture": "$sides"
+        },
+        {
+            "Inherit": "Front",
+            "Texture": "$sides"
+        },
+        {
+            "Inherit": "Back",
+			"Texture": "$sides"
+        }
+    ]
 }

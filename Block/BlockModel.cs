@@ -5,6 +5,7 @@ using OpenTK.Graphics.Vulkan;
 using OpenTK.Graphics.Vulkan.VulkanVideoCodecAv1std;
 using OpenTK.Mathematics;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -101,6 +102,36 @@ namespace Blockgame_OpenTK.BlockUtil
 
     }
 
+    public struct BlockModelNewAbstractFaceData
+    {
+
+        public string Name { get; set; }
+        public string Inherit { get; set; }
+        public string Texture { get; set; }
+        [JsonConverter(typeof(JsonVector3ArrayConverter))]
+        public Vector3[] Points { get; set; }
+        [JsonConverter(typeof(JsonVector2ArrayConverter))]
+        public Vector2[] Uvs { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter<BlockModelCullDirection>))]
+        public BlockModelCullDirection? CullDirection { get; set; }
+
+    }
+
+    public struct BlockModelNewAbstractData
+    {
+
+        public string Inherit { get; set; }
+        [JsonConverter(typeof(JsonVector3Converter))]
+        public Vector3? Translation { get; set; }
+        [JsonConverter(typeof(JsonVector3Converter))]
+        public Vector3? Rotation { get; set; }
+        [JsonConverter(typeof(JsonVector3Converter))]
+        public Vector3? Scale { get; set; }
+        public Dictionary<string, string> Textures { get; set; }
+        public BlockModelNewAbstractFaceData[] Faces { get; set; }
+
+    }
+
     internal class BlockModel
     {
 
@@ -116,406 +147,295 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        private static void PerformTransformations(BlockModelAbstractData modelData, Dictionary<BlockModelCullDirection, ChunkVertex[]> convertedFaces)
+        public static Vector3[] ApplyTransformations(Vector3[] originalPoints, Vector3 translation, Vector3 rotation, Vector3 scale)
         {
 
-            BlockModelAbstractData? inheritData = DeserializeInheritData(modelData.Inherit);
-            Vector3 modelTranslation = inheritData?.ModelTranslation ?? modelData.ModelTranslation ?? Vector3.Zero;
-            Vector3 modelRotation = inheritData?.ModelRotation ?? modelData.ModelRotation ?? Vector3.Zero;
-            Vector3 modelScale = inheritData?.ModelScale ?? modelData.ModelScale ?? Vector3.One;
-
-            if (modelScale != Vector3.One)
+            Vector3[] facePoints = originalPoints;
+            for (int i = 0; i < facePoints.Length; i++)
             {
 
-                foreach (ChunkVertex[] convertedFace in convertedFaces.Values)
-                {
-
-                    for (int i = 0; i < convertedFace.Length; i++)
-                    {
-
-                        convertedFace[i].Position -= (0.5f, 0.5f, 0.5f);
-                        convertedFace[i].Position *= modelScale;
-                        convertedFace[i].Position += (0.5f, 0.5f, 0.5f);
-
-                    }
-
-                }
+                facePoints[i] /= 32.0f;
+                facePoints[i] -= (0.5f, 0.5f, 0.5f);
+                if (rotation.X != 0) facePoints[i] *= Matrix3.CreateRotationX(Maths.ToRadians(rotation.X));
+                if (rotation.Y != 0) facePoints[i] *= Matrix3.CreateRotationY(Maths.ToRadians(rotation.Y));
+                if (rotation.Z != 0) facePoints[i] *= Matrix3.CreateRotationZ(Maths.ToRadians(rotation.Z));
+                if (scale != Vector3.One) facePoints[i] *= scale;
+                if (translation != Vector3.Zero) facePoints[i] += translation;
+                facePoints[i] += (0.5f, 0.5f, 0.5f);
 
             }
-            if (modelRotation != Vector3.Zero)
-            {
-
-                Matrix3 rotationMatrix = Matrix3.CreateFromQuaternion(Quaternion.FromEulerAngles(Maths.ToRadians(modelRotation)));
-                foreach (ChunkVertex[] convertedFace in convertedFaces.Values)
-                {
-
-                    for (int i = 0; i < convertedFace.Length; i++)
-                    {
-
-                        convertedFace[i].Position -= (0.5f, 0.5f, 0.5f);
-                        convertedFace[i].Position *= rotationMatrix;
-                        convertedFace[i].Normal *= rotationMatrix;
-                        convertedFace[i].Position += (0.5f, 0.5f, 0.5f);
-
-                    }
-
-                }
-
-            }
-            if (modelTranslation != Vector3.Zero)
-            {
-
-                foreach (ChunkVertex[] convertedFace in convertedFaces.Values)
-                {
-
-                    for (int i = 0; i < convertedFace.Length; i++)
-                    {
-
-                        convertedFace[i].Position -= (0.5f, 0.5f, 0.5f);
-                        convertedFace[i].Position += modelTranslation / 32.0f;
-                        convertedFace[i].Position += (0.5f, 0.5f, 0.5f);
-
-                    }
-
-                }
-
-            }
+            return facePoints;
 
         }
 
-        private static Vector3 DetermineNormal(BlockModelAbstractFaceData face)
+        public static Vector3 CalculateNormal(Vector3[] points)
         {
 
-            Vector3 tangent = face.Points[2] - face.Points[1];
-            Vector3 bitangent = face.Points[0] - face.Points[1];
-                
-            return Vector3.Cross(tangent, bitangent).Normalized();
+            Vector3[] transformedFace = points;
+            Vector3 tangent = transformedFace[0] - transformedFace[1];
+            Vector3 bitangent = transformedFace[1] - transformedFace[2];
+            Console.WriteLine($"tangent {tangent}, bitangent {bitangent}");
+            Vector3 normal = Vector3.Cross(tangent, bitangent);
+            Console.WriteLine($"noraml {normal}");
+            return normal;
 
         }
 
-        private static Vector2[] DetermineTextureCoordinates(BlockModelAbstractFaceData face)
+        public static Vector2[] CalculateTextureCoordinates(Vector3[] points)
         {
-            
-            if (face.TextureCoordinates == null)
+
+            Vector2[] autoUvs = new Vector2[4];
+
+            float xLength = (points[0] - points[1]).Length;
+            float yLength = (points[1] - points[2]).Length;
+
+            autoUvs[0] = (0, yLength);
+            autoUvs[1] = (0, 0);
+            autoUvs[2] = (xLength, 0);
+            autoUvs[3] = (xLength, yLength);
+
+            return autoUvs;
+
+        }
+
+        public static BlockModelCullDirection DetermineCullDirection(Vector3 normal)
+        {
+
+            switch (normal)
             {
 
-                Vector3 localRight = face.Points[2] - face.Points[1];
-                Vector3 localUp = face.Points[0] - face.Points[1];
-
-                Vector2[] coordinates =
-                {
-
-                    new Vector2(0, localUp.Length) / 32.0f,
-                    new Vector2(0, 0) / 32.0f,
-                    new Vector2(localRight.Length, 0) / 32.0f,
-                    new Vector2(localRight.Length, localUp.Length) / 32.0f
-
-                };
-
-                return coordinates;
-
-            } else
-            {
-
-                Vector2[] coordinates = face.TextureCoordinates;
-
-                for (int i = 0; i < coordinates.Length; i++)
-                {
-
-                    coordinates[i] /= 32.0f;
-
-                }
-
-                return coordinates;
+                case (0, 1, 0):
+                    return BlockModelCullDirection.Up;
+                case (0, -1, 0):
+                    return BlockModelCullDirection.Down;
+                case (1, 0, 0):
+                    return BlockModelCullDirection.Left;
+                case (-1, 0, 0):
+                    return BlockModelCullDirection.Right;
+                case (0, 0, 1):
+                    return BlockModelCullDirection.Back;
+                case (0, 0, -1):
+                    return BlockModelCullDirection.Front;
 
             }
 
+            return BlockModelCullDirection.None;
+
         }
-        private static ChunkVertex[] ConvertFace(string inheritModelName, BlockModelAbstractFaceData face)
+
+        public static int DetermineTextureIndex(BlockModelNewAbstractData modelData, BlockModelNewAbstractData? inheritModelData, string textureReference)
         {
 
-            ChunkVertex[] vertices = new ChunkVertex[6];
-
-            // BlockModelAbstractData? inheritData = DeserializeData(inheritModelName);
-            BlockModelAbstractData? inheritData = DeserializeInheritData(inheritModelName);
-
-            if (face.Inherit != null)
+            if (modelData.Textures.ContainsKey(textureReference))
             {
 
-                foreach (BlockModelAbstractFaceData inheritFace in inheritData?.Faces)
-                {
-
-                    if (inheritFace.InheritableName == face.Inherit)
-                    {
-
-                        Vector2[] textureCoordinates = DetermineTextureCoordinates(inheritFace);
-                        if (face.TextureOffset != null || inheritFace.TextureOffset != null)
-                        {
-
-                            for (int i = 0; i < textureCoordinates.Length; i++)
-                            {
-
-                                textureCoordinates[i] += (face.TextureOffset / 32.0f) ?? (inheritFace.TextureOffset / 32.0f) ?? Vector2.Zero;
-
-                            }
-
-                        }
-                        Vector3 normal = DetermineNormal(inheritFace);
-
-                        vertices[0] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[0] / 32.0f, textureCoordinates[0], normal, 1);
-                        vertices[1] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[1] / 32.0f, textureCoordinates[1], normal, 1);
-                        vertices[2] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[2] / 32.0f, textureCoordinates[2], normal, 1);
-                        vertices[3] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[2] / 32.0f, textureCoordinates[2], normal, 1);
-                        vertices[4] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[3] / 32.0f, textureCoordinates[3], normal, 1);
-                        vertices[5] = new ChunkVertex(face.Texture ?? inheritFace.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), inheritFace.Points[0] / 32.0f, textureCoordinates[0], normal, 1);
-
-                    }
-
-                }
-
-            } else
-            {
-
-                Console.WriteLine("no inherit for this face!");
-
-                Vector2[] textureCoordinates = DetermineTextureCoordinates(face);
-                for (int i = 0; i < textureCoordinates.Length; i++)
-                {
-
-                    textureCoordinates[i] += (face.TextureOffset / 32.0f) ?? Vector2.Zero;
-
-                }
-                Vector3 normal = DetermineNormal(face);
-
-                vertices[0] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[0] / 32.0f, textureCoordinates[0], normal, 1);
-                vertices[1] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[1] / 32.0f, textureCoordinates[1], normal, 1);
-                vertices[2] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[2] / 32.0f, textureCoordinates[2], normal, 1);
-                vertices[3] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[2] / 32.0f, textureCoordinates[2], normal, 1);
-                vertices[4] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[3] / 32.0f, textureCoordinates[3], normal, 1);
-                vertices[5] = new ChunkVertex(face.Texture ?? GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture"), face.Points[0] / 32.0f, textureCoordinates[0], normal, 1);
+                return GlobalValues.ArrayTexture.GetTextureIndex(modelData.Textures[textureReference]);
 
             }
-
-            return vertices;
-
-        }
-        private static Dictionary<BlockModelCullDirection, ChunkVertex[]> Convert(BlockModelAbstractData modelData, BlockModel model)
-        {
-
-            Dictionary<BlockModelCullDirection, ChunkVertex[]> faces = new Dictionary<BlockModelCullDirection, ChunkVertex[]>();
-
-            foreach (BlockModelAbstractFaceData face in modelData.Faces)
+            if (inheritModelData != null)
             {
 
-                BlockModelCullDirection cullDirection = BlockModelCullDirection.None;
+                if ((bool) inheritModelData?.Textures.ContainsKey(textureReference))
+                {
+
+                    return GlobalValues.ArrayTexture.GetTextureIndex(inheritModelData?.Textures[textureReference]);
+
+                }
+
+            }
+            return GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture");
+
+        }
+
+        public static Dictionary<BlockModelCullDirection, ChunkVertex[]> Parse(BlockModelNewAbstractData abstractBlockModelData, BlockModel model)
+        {
+
+            Dictionary<BlockModelCullDirection, ChunkVertex[]> parsedFaces = new Dictionary<BlockModelCullDirection, ChunkVertex[]>();
+
+            BlockModelNewAbstractData? inheritModel = null;
+            if (abstractBlockModelData.Inherit != null) inheritModel = JsonSerializer.Deserialize<BlockModelNewAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, abstractBlockModelData.Inherit)));
+
+            foreach (BlockModelNewAbstractFaceData face in abstractBlockModelData.Faces)
+            {
+
+                ChunkVertex[] parsedVertices = new ChunkVertex[4];
+                BlockModelNewAbstractFaceData? inheritedFaceData = null;
                 if (face.Inherit != null)
                 {
 
-                    BlockModelAbstractData? inheritModel = DeserializeInheritData(modelData.Inherit);
-                    Console.WriteLine(inheritModel == null ? "no" : "yes");
-                    foreach (BlockModelAbstractFaceData inheritFace in inheritModel?.Faces)
+                    for (int i = 0; i < inheritModel?.Faces.Length; i++)
                     {
 
-                        if (inheritFace.InheritableName == face.Inherit)
+                        if (inheritModel?.Faces[i].Name == face.Inherit)
                         {
 
-                            cullDirection = inheritFace.CullDirection;
+                            inheritedFaceData = inheritModel?.Faces[i];
 
                         }
 
                     }
+
+                }
+
+                Vector3[] points = face.Points ?? inheritedFaceData?.Points ?? new Vector3[4];
+                Vector3[] transformedPoints = ApplyTransformations(points, abstractBlockModelData.Translation ?? inheritModel?.Translation ?? Vector3.Zero, abstractBlockModelData.Rotation ?? inheritModel?.Rotation ?? Vector3.Zero, abstractBlockModelData.Scale ?? inheritModel?.Scale ?? Vector3.One);
+                Vector3 normal = CalculateNormal(transformedPoints);
+                // Console.WriteLine(face.Inherit);
+                Vector2[] textureCoordinates = face.Uvs ?? inheritedFaceData?.Uvs ?? CalculateTextureCoordinates(points);
+                BlockModelCullDirection faceCullDirection = face.CullDirection ?? inheritedFaceData?.CullDirection ?? DetermineCullDirection(normal);
+                int textureIndex = DetermineTextureIndex(abstractBlockModelData, inheritModel, face.Texture ?? inheritedFaceData?.Texture ?? null);
+
+                for (int i = 0; i < parsedVertices.Length; i++)
+                {
+
+                    parsedVertices[i].Position = transformedPoints[i];
+                    parsedVertices[i].Normal = normal;
+                    parsedVertices[i].TextureCoordinates = textureCoordinates[i];
+                    parsedVertices[i].TextureIndex = textureIndex;
+
+                }
+
+                for (int i = 0; i < parsedVertices.Length; i++)
+                {
+
+                    Console.WriteLine($"{parsedVertices[i].Position}, {parsedVertices[i].Normal}, {parsedVertices[i].TextureCoordinates}, {parsedVertices[i].TextureIndex}");
+
+                }
+
+                if (!parsedFaces.ContainsKey(faceCullDirection))
+                {
+
+                    parsedFaces.Add(faceCullDirection, parsedVertices);
 
                 } else
                 {
 
-                    cullDirection = face.CullDirection;
-
-                }
-                // Console.WriteLine(face.InheritableName == null ? "null" : face.InheritableName);
-                if (!faces.ContainsKey(cullDirection))
-                {
-
-                    faces.Add(cullDirection, ConvertFace(modelData.Inherit, face));
-
-                }
-                else
-                {
-
-                    List<ChunkVertex> current = faces[cullDirection].ToList();
-                    current.AddRange(ConvertFace(modelData.Inherit, face));
-                    faces[cullDirection] = current.ToArray();
+                    List<ChunkVertex> currentVertices = parsedFaces[faceCullDirection].ToList();
+                    currentVertices.AddRange(parsedVertices);
+                    parsedFaces[faceCullDirection] = currentVertices.ToArray();
 
                 }
 
             }
 
-            model.UntransformedChunkReadableFaces = faces;
-            PerformTransformations(modelData, faces);
-
-            return faces;
+            return parsedFaces;
 
         }
 
-        private static BlockModelAbstractData? DeserializeInheritData(string fileName)
+        public static BlockModel LoadFromJson(string jsonFileName)
         {
 
-            //  BlockModelAbstractData? data = JsonSerializer.Deserialize<BlockModelAbstractData?>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
-
-            Console.WriteLine(fileName);
-            try
-            {
-
-                return JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
-
-            } catch (Exception e) { Console.WriteLine(e.Message + e.StackTrace); return null; }
-
-        }
-        public static BlockModel LoadFromJson(string fileName)
-        {
-
-            BlockModelAbstractData modelData = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
-
-            float[] ambientValues = new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
-
-            // BlockModel model = JsonSerializer.Deserialize<BlockModel>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)));
+            Console.WriteLine(Path.Combine(GlobalValues.BlockModelPath, jsonFileName));
+            BlockModelNewAbstractData data = JsonSerializer.Deserialize<BlockModelNewAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, jsonFileName)));
 
             BlockModel model = new BlockModel();
-            Console.WriteLine(fileName);
-            model.ChunkReadableFaces = Convert(modelData, model);
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Up, model.ConvertToChunkReadableFace(BlockModelCullDirection.Up));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Down, model.ConvertToChunkReadableFace(BlockModelCullDirection.Down));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Left, model.ConvertToChunkReadableFace(BlockModelCullDirection.Left));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Right, model.ConvertToChunkReadableFace(BlockModelCullDirection.Right));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Back, model.ConvertToChunkReadableFace(BlockModelCullDirection.Back));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.Front, model.ConvertToChunkReadableFace(BlockModelCullDirection.Front));
-            // model.ChunkReadableFaces.Add(BlockModelCullDirection.None, model.ConvertToChunkReadableFace(BlockModelCullDirection.None, ambientValues));
+
+            model.ChunkReadableFaces = Parse(data, model);
+            // Console.WriteLine(model.ChunkReadableFaces.Count);
 
             return model;
 
         }
 
-        public float[] CalculateAmbientPoints(Dictionary<Vector3i, Chunk> worldChunks, Vector3i chunkPosition, BlockModelCullDirection direction, Vector3i blockPosition)
+        public float[] DetermineAmbientValues(ConcurrentDictionary<Vector3i, Chunk> worldChunks, Vector3i chunkPosition, BlockModelCullDirection direction, Vector3i blockPosition)
         {
 
-            ChunkVertex[] face = UntransformedChunkReadableFaces[direction];
-            float[] ambientPointData = { 0, 0, 0, 0 };
+            float[] ambientValues = new float[4];
 
-            Vector3 normal = face[0].Normal;
-            if (normal == Vector3.UnitY || normal == -Vector3.UnitY || normal == Vector3.UnitX || normal == -Vector3.UnitX || normal == Vector3.UnitZ || normal == -Vector3.UnitZ)
+            Vector3i[] sampleDirections = new Vector3i[8];
+            switch (direction)
             {
 
-                Vector3i[] samplePoints = new Vector3i[8];
-                bool[] sampleData = new bool[8];
-                switch (normal)
-                {
-
-                    case (1, 0, 0):
-                        samplePoints = [(1, 1, 1), (1, 0, 1), (1, -1, 1), (1, 1, 0), (1, -1, 0), (1, 1, -1), (1, 0, -1), (1, -1, -1)];
-                        break;
-                    case (-1, 0, 0):
-                        samplePoints = [(-1, 1, -1), (-1, 0, -1), (-1, -1, -1), (-1, 1, 0), (-1, -1, 0), (-1, 1, 1), (-1, 0, 1), (-1, -1, 1)];
-                        break;
-                    case (0, 1, 0):
-                        samplePoints = [(1, 1, 1), (1, 1, 0), (1, 1, -1), (0, 1, 1), (0, 1, -1), (-1, 1, 1), (-1, 1, 0), (-1, 1, -1)];
-                        break;
-                    case (0, -1, 0):
-                        samplePoints = [(1, -1, -1), (1, -1, 0), (1, -1, 1), (0, -1, -1), (0, -1, 1), (-1, -1, -1), (-1, -1, 0), (-1, -1, 1)];
-                        break;
-                    case (0, 0, 1):
-                        samplePoints = [(-1, 1, 1), (-1, 0, 1), (-1, -1, 1), (0, 1, 1), (0, -1, 1), (1, 1, 1), (1, 0, 1), (1, -1, 1)];
-                        break;
-                    case (0, 0, -1):
-                        samplePoints = [(1, 1, -1), (1, 0, -1), (1, -1, -1), (0, 1, -1), (0, -1, -1), (-1, 1, -1), (-1, 0, -1), (-1, -1, -1)];
-                        break;
-
-                }
-
-                for (int i = 0; i < 8; i++)
-                {
-
-                    Vector3i chunkPos = ChunkUtils.PositionToChunk((blockPosition + (32 * chunkPosition)) + samplePoints[i]);
-                    Vector3i blockPos = ChunkUtils.PositionToBlockLocal((blockPosition + (32 * chunkPosition)) + samplePoints[i]);
-                    if (worldChunks[chunkPos].GetBlockID(blockPos) != 0) sampleData[i] = true;
-
-                }
-
-                if (sampleData[0]) ambientPointData[0]++;
-                if (sampleData[1]) { ambientPointData[0]++; ambientPointData[1]++; }
-                if (sampleData[2]) ambientPointData[1]++;
-                if (sampleData[3]) { ambientPointData[0]++; ambientPointData[3]++; }
-                if (sampleData[4]) { ambientPointData[1]++; ambientPointData[2]++; }
-                if (sampleData[5]) ambientPointData[3]++;
-                if (sampleData[6]) { ambientPointData[2]++; ambientPointData[3]++; }
-                if (sampleData[7]) ambientPointData[2]++;
+                case BlockModelCullDirection.Up:
+                    sampleDirections = [ (1, 1, 1), (1, 1, 0), (1, 1, -1), (0, 1, 1), (0, 1, -1), (-1, 1, 1), (-1, 1, 0), (-1, 1, -1) ];
+                    break;
+                case BlockModelCullDirection.Down:
+                    sampleDirections = [ (-1, -1, 1), (-1, -1, 0), (-1, -1, -1), (0, -1, 1), (0, -1, -1), (1, -1, 1), (1, -1, 0), (1, -1, -1) ];
+                    break;
+                case BlockModelCullDirection.Left:
+                    sampleDirections = [ (1, 1, 1), (1, 0, 1), (1, -1, 1), (1, 1, 0), (1, -1, 0), (1, 1, -1), (1, 0, -1), (1, -1, -1) ];
+                    break;
+                case BlockModelCullDirection.Right:
+                    sampleDirections = [ (-1, 1, -1), (-1, 0, -1), (-1, -1, -1), (-1, 1, 0), (-1, -1, 0), (-1, 1, 1), (-1, 0, 1), (-1, -1, 1) ];
+                    break;
+                case BlockModelCullDirection.Back:
+                    sampleDirections = [ (-1, 1, 1), (-1, 0, 1), (-1, -1, 1), (0, 1, 1), (0, -1, 1), (1, 1, 1), (1, 0, 1), (1, -1, 1) ];
+                    break;
+                case BlockModelCullDirection.Front:
+                    sampleDirections = [ (1, 1, -1), (1, 0, -1), (1, -1, -1), (0, 1, -1), (0, -1, -1), (-1, 1, -1), (-1, 0, -1), (-1, -1, -1) ];
+                    break;
 
             }
 
-            return ambientPointData;
+            bool[] ambientBools = new bool[8];
+            for (int i = 0; i < ambientBools.Length; i++)
+            {
+
+                if (worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].SolidMask[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i]))]) ambientBools[i] = true;
+
+            }
+
+            if (ambientBools[0]) ambientValues[0]++;
+            if (ambientBools[1]) { ambientValues[0]++; ambientValues[1]++; }
+            if (ambientBools[2]) { ambientValues[1]++; }
+            if (ambientBools[3]) { ambientValues[0]++; ambientValues[3]++; }
+            if (ambientBools[4]) { ambientValues[1]++; ambientValues[2]++; }
+            if (ambientBools[5]) ambientValues[3]++;
+            if (ambientBools[6]) { ambientValues[2]++; ambientValues[3]++; }
+            if (ambientBools[7]) ambientValues[2]++;
+
+            return ambientValues;
 
         }
-        public ChunkVertex[] GetFaceWithOffsetAO(Dictionary<Vector3i, Chunk> worldChunks, Vector3i chunkPosition, BlockModelCullDirection direction, Vector3i offset)
+        public ChunkVertex[] GetFaceWithOffsetAO(ConcurrentDictionary<Vector3i, Chunk> worldChunks, Vector3i chunkPosition, BlockModelCullDirection direction, Vector3i offset)
         {
 
-            ChunkVertex[] face = new ChunkVertex[ChunkReadableFaces[direction].Length];
-
-            for (int i = 0; i < face.Length; i++)
+            ChunkVertex[] vertices = new ChunkVertex[ChunkReadableFaces[direction].Length];
+            for (int i = 0; i < vertices.Length; i++)
             {
 
-                face[i] = ChunkReadableFaces[direction][i];
-                face[i].Position += offset;
+                vertices[i] = ChunkReadableFaces[direction][i];
+                vertices[i].Position += offset;
 
             }
 
-            float[] ambientPointData = CalculateAmbientPoints(worldChunks, chunkPosition, direction, offset);
-            face[0].AmbientValue = ambientPointData[0];
-            face[1].AmbientValue = ambientPointData[1];
-            face[2].AmbientValue = ambientPointData[2];
-            face[3].AmbientValue = ambientPointData[2];
-            face[4].AmbientValue = ambientPointData[3];
-            face[5].AmbientValue = ambientPointData[0];
+            float[] ambientValues = DetermineAmbientValues(worldChunks, chunkPosition, direction, offset + (chunkPosition * 32));
 
-            if (ambientPointData[0] != 0 || ambientPointData[2] != 0)
+            vertices[0].AmbientValue = ambientValues[0];
+            vertices[1].AmbientValue = ambientValues[1];
+            vertices[2].AmbientValue = ambientValues[2];
+            vertices[3].AmbientValue = ambientValues[3];
+            if ((ambientValues[0] != 0 && ambientValues[1] == 0 && ambientValues[2] == 0 && ambientValues[3] == 0) || (ambientValues[0] == 0 && ambientValues[1] == 0 && ambientValues[2] != 0 && ambientValues[3] == 0))
             {
 
-                ChunkVertex[] vertices = new ChunkVertex[face.Length];
-                for (int i = 0; i < face.Length; i++)
+                ChunkVertex[] originalVertices = new ChunkVertex[vertices.Length];
+                for (int i = 0; i < originalVertices.Length; i++)
                 {
 
-                    vertices[i].Position = face[i].Position;
-                    vertices[i].TextureCoordinates = face[i].TextureCoordinates;
-                    vertices[i].AmbientValue = face[i].AmbientValue;
+                    originalVertices[i] = vertices[i];
 
                 }
-
-                for (int i = 0; i < face.Length; i+=6)
-                {
-
-                    face[0].Position = vertices[i+1].Position;
-                    face[1].Position = vertices[i+2].Position;
-                    face[2].Position = vertices[i+4].Position;
-                    face[3].Position = vertices[i+4].Position;
-                    face[4].Position = vertices[i+5].Position;
-                    face[5].Position = vertices[i+1].Position;
-
-                    face[0].TextureCoordinates = vertices[i+1].TextureCoordinates;
-                    face[1].TextureCoordinates = vertices[i + 2].TextureCoordinates;
-                    face[2].TextureCoordinates = vertices[i + 4].TextureCoordinates;
-                    face[3].TextureCoordinates = vertices[i + 4].TextureCoordinates;
-                    face[4].TextureCoordinates = vertices[i + 5].TextureCoordinates;
-                    face[5].TextureCoordinates = vertices[i + 1].TextureCoordinates;
-
-                    face[0].AmbientValue = vertices[i+1].AmbientValue;
-                    face[1].AmbientValue = vertices[i+2].AmbientValue;
-                    face[2].AmbientValue = vertices[i+4].AmbientValue;
-                    face[3].AmbientValue = vertices[i+4].AmbientValue;
-                    face[4].AmbientValue = vertices[i+5].AmbientValue;
-                    face[5].AmbientValue = vertices[i+1].AmbientValue;
-
-                }
+                vertices[0] = originalVertices[3];
+                vertices[1] = originalVertices[0];
+                vertices[2] = originalVertices[1];
+                vertices[3] = originalVertices[2];
 
             }
 
-            return face;
+            for (int i = 0; i < vertices.Length / 4; i++)
+            {
+
+                int currentCount = (worldChunks[chunkPosition].IndicesList.Count / 6) * 4;
+                int[] indices =
+                {
+
+                    0+currentCount,1+currentCount,2+currentCount,2+currentCount,3+currentCount,0+currentCount
+
+                };
+                worldChunks[chunkPosition].IndicesList.AddRange(indices);
+
+            }
+            return vertices;
 
         }
 
