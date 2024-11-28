@@ -103,7 +103,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit);
 
-                                GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PreviousPositionAtHit))] ?? new BlockProperties(), Dda.PreviousPositionAtHit);
+                                GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, Dda.PreviousPositionAtHit);
 
                             }
 
@@ -269,7 +269,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                         {
 
                             Vector3 depthVector = playerBoundsOffsetted.GetDepthVector(bound);
-                            // Velocity.Y = 0.0f;
+
                             Vector3 normal = Vector3.Zero;
                             if (depthVector.X != 0) normal.X = 1 * float.Sign(depthVector.X);
                             if (depthVector.Y != 0) normal.Y = 1 * float.Sign(depthVector.Y);

@@ -24,6 +24,13 @@ namespace Blockgame_OpenTK.Util
 
         }
         
+        public static byte[] Compress<TSize, TData>(TData[] blockData)
+        {
+
+            return Array.Empty<byte>();
+
+        }
+
         public static byte[] Compress(ushort[] blockData)
         {
 

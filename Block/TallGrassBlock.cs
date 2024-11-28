@@ -29,11 +29,11 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public override void OnBlockPlace(World world, BlockProperties blockProperties, Vector3i globalBlockPosition)
+        public override void OnBlockPlace(World world, Vector3i globalBlockPosition)
         {
 
             world.AddBlockLight(globalBlockPosition, (7, 7, 7));
-            base.OnBlockPlace(world, blockProperties, globalBlockPosition);
+            base.OnBlockPlace(world, globalBlockPosition);
 
         }
 
@@ -45,10 +45,10 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public override void OnBlockMesh(World world, BlockProperties blockProperties, Vector3i globalBlockPosition)
+        public override void OnBlockMesh(World world, Dictionary<Vector3i, bool[]> mask, BlockProperty.BlockProperties blockProperties, Vector3i globalBlockPosition)
         {
 
-            base.OnBlockMesh(world, blockProperties, globalBlockPosition);
+            base.OnBlockMesh(world, mask, blockProperties, globalBlockPosition);
 
         }
 

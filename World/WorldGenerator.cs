@@ -17,10 +17,11 @@ namespace Blockgame_OpenTK.Core.Worlds
         public static int MaxRadius = 8;
         static int CurrentRadius = 0;
         static int MaxChunkUpdates = 1000;
-        static int MaxUploads = 10;
+        static int MaxUploads = 25;
         private static Vector3i[] ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius);
         private static int _totalQueued = 0;
 
+        public static ConcurrentQueue<Vector2i> ConcurrentSunlightColumnUpdateQueue = new ConcurrentQueue<Vector2i>();
         public static ConcurrentQueue<Vector3i> ConcurrentChunkUpdateQueue = new ConcurrentQueue<Vector3i>();
         public static ConcurrentQueue<Vector3i> ConcurrentChunkUploadQueue = new ConcurrentQueue<Vector3i>();
 
@@ -42,6 +43,35 @@ namespace Blockgame_OpenTK.Core.Worlds
             }
 
         }
+
+        private static void UpdateSunlightQueue(World world)
+        {
+
+            int amountUpdated = 0;
+            while (ConcurrentSunlightColumnUpdateQueue.Count > 0 && amountUpdated < MaxChunkUpdates)
+            {
+
+                if (ConcurrentSunlightColumnUpdateQueue.TryDequeue(out Vector2i columnPosition))
+                {
+
+                    if (IsColumnTheSameQueueType(world, columnPosition, QueueType.SunlightGeneration))
+                    {
+                        
+                        ChunkBuilder.CalculateSunlightColumnThreaded(world, columnPosition, 0);
+
+                    } else
+                    {
+
+                        ConcurrentSunlightColumnUpdateQueue.Enqueue(columnPosition);
+
+                    }
+
+                }
+                amountUpdated++;
+
+            } 
+
+        }
         private static void UpdateConcurrentQueue(World world)
         {
 
@@ -52,52 +82,38 @@ namespace Blockgame_OpenTK.Core.Worlds
                 if (ConcurrentChunkUpdateQueue.TryDequeue(out Vector3i chunkPosition))
                 {
 
-                    switch (world.WorldChunks[chunkPosition].QueueType)
+                    if (!world.WorldChunks[chunkPosition].IsUpdating)
                     {
 
-                        case QueueType.PassOne:
-                            ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[chunkPosition]);
-                            break;
-                        case QueueType.LightPropagation:
-                            if (Maths.ChebyshevDistance3D(chunkPosition, Vector3i.Zero) < MaxRadius)
-                            {
+                        switch (world.WorldChunks[chunkPosition].QueueType)
+                        {
 
-                                if (AreNeighborsTheSameQueueType(world, chunkPosition, QueueType.LightPropagation))
+                            case QueueType.PassOne:
+                                ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[chunkPosition]);
+                                break;
+                            case QueueType.Mesh:
+                                if (Maths.ChebyshevDistance3D(chunkPosition, Vector3i.Zero) < MaxRadius)
                                 {
 
-                                    ChunkBuilder.PropagateBlockLightsThreaded(world, world.WorldChunks[chunkPosition]);
+                                    if (AreNeighborsTheSameQueueType(world, chunkPosition, QueueType.Mesh))
+                                    {
+
+                                        ChunkBuilder.MeshThreaded(world.WorldChunks[chunkPosition], world, Vector3i.Zero);
+
+                                    }
+                                    else
+                                    {
+
+                                        ConcurrentChunkUpdateQueue.Enqueue(chunkPosition);
+
+                                    }
 
                                 }
-                                else
-                                {
+                                break;
 
-                                    ConcurrentChunkUpdateQueue.Enqueue(chunkPosition);
+                        }
 
-                                }
-
-                            }
-                            break;
-                        case QueueType.Mesh:
-                            if (Maths.ChebyshevDistance3D(chunkPosition, Vector3i.Zero) < MaxRadius)
-                            {
-
-                                if (AreNeighborsTheSameQueueType(world, chunkPosition, QueueType.Mesh))
-                                {
-
-                                    ChunkBuilder.MeshThreaded(world.WorldChunks[chunkPosition], world, Vector3i.Zero);
-
-                                }
-                                else
-                                {
-
-                                    ConcurrentChunkUpdateQueue.Enqueue(chunkPosition);
-
-                                }
-
-                            }
-                            break;
-
-                    }
+                    } else { ConcurrentChunkUpdateQueue.Enqueue(chunkPosition); }
 
                 }
                 amountUpdated++;
@@ -113,27 +129,21 @@ namespace Blockgame_OpenTK.Core.Worlds
 
         }
 
-        private static bool IsColumnTheSameQueueType(World world, Vector3i startPosition, QueueType queueType)
+        private static bool IsColumnTheSameQueueType(World world, Vector2i columnPosition, QueueType queueType)
         {
 
-            Vector3i chunkStartColumn = (startPosition.X, 0, startPosition.Z);
-
-            int down = 0;
             int count = 0;
-            while (world.WorldChunks.ContainsKey(startPosition + (0, down, 0)))
+            for (int chunkY = MaxRadius; chunkY >= -MaxRadius; chunkY--)
             {
 
-                if (world.WorldChunks[startPosition + (0, down, 0)].QueueType >= queueType)
+                if (world.WorldChunks.ContainsKey((columnPosition.X, chunkY, columnPosition.Y)) && world.WorldChunks[(columnPosition.X, chunkY, columnPosition.Y)].QueueType >= queueType)
                 {
 
                     count++;
 
                 }
 
-                down--;
-
             }
-            Console.WriteLine(count);
 
             return count == (MaxRadius + MaxRadius + 1);
 
@@ -253,6 +263,7 @@ namespace Blockgame_OpenTK.Core.Worlds
             // UpdateOpenglCallQueue(world);
             // UpdateQueue(world, PreviousChunkPosition);
             UpdateConcurrentQueue(world);
+            UpdateSunlightQueue(world);
             UpdateConcurrentUploadQueue(world);
 
             if (CurrentRadius <= MaxRadius)

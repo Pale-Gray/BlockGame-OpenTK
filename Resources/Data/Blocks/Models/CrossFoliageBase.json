@@ -1,0 +1,59 @@
+{
+
+	"Textures": {
+		"$all": null
+	},
+	"Objects": [
+		{
+			"Rotation": [0, 45, 0],
+			"Start": [16, 0, 0],
+			"End": [16, 32, 32],
+			"Properties": {
+				"Top": {
+					"Texture": "$all"
+				},
+				"Bottom": {
+					"Texture": "$all"
+				},
+				"Front": {
+					"Texture": "$all"
+				},
+				"Left": {
+					"Texture": "$all"
+				},
+				"Back": {
+					"Texture": "$all"
+				},
+				"Right": {
+					"Texture": "$all"
+				}
+			}
+		},
+		{
+			"Rotation": [0, -45, 0],
+			"Start": [16, 0, 0],
+			"End": [16, 32, 32],
+			"Properties": {
+				"Top": {
+					"Texture": "$all"
+				},
+				"Bottom": {
+					"Texture": "$all"
+				},
+				"Front": {
+					"Texture": "$all"
+				},
+				"Left": {
+					"Texture": "$all"
+				},
+				"Back": {
+					"Texture": "$all"
+				},
+				"Right": {
+					"Texture": "$all"
+				}
+			}
+		}
+	]
+
+}

@@ -8,6 +8,8 @@ in float v_time;
 
 uniform sampler2D tex;
 
+uniform float time;
+
 in vec3 vCameraPosition;
 in vec4 worldPosition;
 in vec3 cameraEye;
@@ -20,6 +22,8 @@ in vec4 viewPosition;
 
 in vec3 vNormal;
 in vec3 viewNormal;
+
+in float distanceToCenter;
 
 vec2 rotate(in vec2 coordinates, in float rotationDegrees)
 {
@@ -58,11 +62,13 @@ void main()
 	}
 	// vec4 image = texture(tex, v_texcoord - (cameraTangentSpaceViewDirection.xy / cameraTangentSpaceViewDirection.z)).rgba;
 	
-	FragColor = vec4(image.rgb, image.a);
+	// FragColor = vec4(image.rgb, image.a);
 
 	vec4 img = texture(tex, v_texcoord);
 	if (img.a == 0.0) discard;
 
-	FragColor = vec4(img.rgba);
+	// FragColor = vec4(img.rgb * (vec3(0)), img.a - (abs(sin(time*2.0)) / 8.0));
+
+	FragColor = vec4(img.rgb * 0.0, 0.9);
 
 }

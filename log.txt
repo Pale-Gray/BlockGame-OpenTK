@@ -1,11 +1,17 @@
 [Info] Starting in client mode.
 [Info] Platform: Microsoft Windows 10.0.22631
 [Info] Architecture: x64
-[Info] .NET 8.0.8
+[Info] .NET 8.0.11
 [Info] ATI Technologies Inc.
 [Info] AMD Radeon (TM) Graphics
 [Info] 4.6.0 Core Profile Context 23.19.12.03.240603
 [Info] Loading Textures
+[Info] Loading File Resources\Textures\TextureArray\AspenLeafBlock.png
+[Info] Added AspenLeafBlock to TextureNames
+[Info] Loading File Resources\Textures\TextureArray\AspenLogBlockSide.png
+[Info] Added AspenLogBlockSide to TextureNames
+[Info] Loading File Resources\Textures\TextureArray\AspenLogBlockTop.png
+[Info] Added AspenLogBlockTop to TextureNames
 [Info] Loading File Resources\Textures\TextureArray\BlueLightBlock.png
 [Info] Added BlueLightBlock to TextureNames
 [Info] Loading File Resources\Textures\TextureArray\BrickBlock.png
@@ -24,6 +30,10 @@
 [Info] Added LogBlockSide to TextureNames
 [Info] Loading File Resources\Textures\TextureArray\LogBlockTop.png
 [Info] Added LogBlockTop to TextureNames
+[Info] Loading File Resources\Textures\TextureArray\MissingBlock.png
+[Info] Added MissingBlock to TextureNames
+[Info] Loading File Resources\Textures\TextureArray\MissingModel.png
+[Info] Added MissingModel to TextureNames
 [Info] Loading File Resources\Textures\TextureArray\MissingTexture.png
 [Info] Added MissingTexture to TextureNames
 [Info] Loading File Resources\Textures\TextureArray\RedLightBlock.png
@@ -39,7 +49,60 @@
 [Info] Loading File Resources\Textures\TextureArray\X.png
 [Info] Added X to TextureNames
 [Info] Finished Loading Textures
-System.TypeInitializationException: The type initializer for 'Blockgame_OpenTK.BlockUtil.Blocks' threw an exception.
-   at Blockgame_OpenTK.BlockUtil.Blocks.Load() in .\Block\Blocks.cs:line 24
-   at Blockgame_OpenTK.BlockGame.Load() in .\BlockGame.cs:line 291
-   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 79
+[Info] Parsing GrassBlock.json
+[Info] The model has inherited model CubeDifferentSideTextures.json
+[Info] Parsing StoneBlock.json
+[Info] The model has inherited model CubeSameTexture.json
+[Info] Parsing DirtBlock.json
+[Info] The model has inherited model CubeSameTexture.json
+[Info] Parsing LogBlock.json
+[Info] Parsing BrickBlock.json
+[Info] The model has inherited model CubeSameTexture.json
+[Info] Parsing MissingBlock.json
+[Info] The model has inherited model CubeSameTexture.json
+[Info] Parsing Foliage.json
+[Info] The model has inherited model CrossFoliageBase.json
+[Info] Registering AirBlock
+[Info] Registered AirBlock
+[Info] Registering GrassBlock
+[Info] Registered GrassBlock
+[Info] Registering StoneBlock
+[Info] Registered StoneBlock
+[Info] Registering DirtBlock
+[Info] Registered DirtBlock
+[Info] Registering LogBlock
+[Info] Registered LogBlock
+[Info] Registering BrickBlock
+[Info] Registered BrickBlock
+[Info] Registering MissingBlock
+[Info] Registered MissingBlock
+[Info] Registering FoliageBlock
+[Info] Registered FoliageBlock
+[Info] Parsing AspenTree\AspenTree28DiameterCenter.json
+[Info] The model has inherited model Tree/Tree28DiameterCenter.json
+[Info] Parsing AspenTree\AspenTree28DiameterTop.json
+[Info] The model has inherited model Tree/Tree28DiameterTop.json
+[Info] Parsing AspenTree\AspenTree28DiameterBottom.json
+[Info] The model has inherited model Tree/Tree28DiameterBottom.json
+[Info] Parsing AspenTree\AspenTree28DiameterFront.json
+[Info] The model has inherited model Tree/Tree28DiameterFront.json
+[Info] Parsing AspenTree\AspenTree28DiameterLeft.json
+[Info] The model has inherited model Tree/Tree28DiameterLeft.json
+[Info] Parsing AspenTree\AspenTree28DiameterBack.json
+[Info] The model has inherited model Tree/Tree28DiameterBack.json
+[Info] Parsing AspenTree\AspenTree28DiameterRight.json
+[Info] The model has inherited model Tree/Tree28DiameterRight.json
+[Info] Parsing AspenTree\AspenTree16DiameterCenter.json
+[Info] The model has inherited model Tree/Tree16DiameterCenter.json
+[Info] Parsing AspenTree\AspenTree12DiameterCenter.json
+[Info] The model has inherited model Tree/Tree12DiameterCenter.json
+[Info] Registering AspenTreeBlock
+[Info] Registered AspenTreeBlock
+[Info] Parsing MissingModel.json
+[Info] The model has inherited model CubeSameTexture.json
+System.InvalidCastException: Unable to cast object of type 'Blockgame_OpenTK.BlockProperty.BlockProperties' to type 'Blockgame_OpenTK.BlockProperty.AspenTreeBlockProperties'.
+   at Blockgame_OpenTK.BlockUtil.AspenTreeBlock.OnBlockMesh(World world, Dictionary`2 mask, BlockProperties properties, Vector3i globalBlockPosition) in .\Block\AspenTreeBlock.cs:line 48
+   at Blockgame_OpenTK.Core.Chunks.ChunkBuilder.Mesh(Chunk chunk, World world, Vector3i cameraPosition) in .\Chunk\ChunkBuilder.cs:line 177
+   at Blockgame_OpenTK.Core.Chunks.ChunkBuilder.<>c__DisplayClass5_0.<MeshThreaded>b__0(Object _) in .\Chunk\ChunkBuilder.cs:line 167
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()
+   at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()

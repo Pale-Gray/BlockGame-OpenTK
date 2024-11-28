@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Collections;
 using Blockgame_OpenTK.Gui;
+using Blockgame_OpenTK.BlockUtil;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -49,7 +50,29 @@ namespace Blockgame_OpenTK.Util
         public static double DeltaTime = 0;
         public static double Time = 0;
 
+        public static bool ShouldHideHud = false;
+        public static bool Toggle = false;
+
+        public static JsonSerializerOptions DefaultJsonOptions = new JsonSerializerOptions() 
+        { 
+            PropertyNameCaseInsensitive = true,  
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            Converters = 
+            { 
+                new JsonBlockModelConverter(), 
+                new JsonBlockPropertiesConverter(), 
+                new JsonTextureIndexConverter(), 
+                new JsonVector2Converter(), 
+                new JsonVector2ArrayConverter(),
+                new JsonVector3Converter(),
+                new JsonVector3ArrayConverter()
+            }
+            
+        };
+
         public static int AverageFps = 0;
+        public static BlockModel MissingBlockModel;// = BlockModel.LoadFromJson("MissingBlock.json");
 
         public static List<GuiElement> GlobalGuiElements = new List<GuiElement>();
         // public static MouseState Mouse = null;

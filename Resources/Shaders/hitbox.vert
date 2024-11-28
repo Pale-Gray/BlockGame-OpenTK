@@ -28,6 +28,8 @@ out mat4 modelMatrix;
 out mat4 viewMatrix;
 out mat4 projectionMatrix;
 
+out float distToCenter;
+
 void main()
 {
 
@@ -35,6 +37,8 @@ void main()
 	v_texcoord = texcoord;
 	v_time = time;
 	vCameraPosition = cameraPosition;
+
+	distToCenter = distance(position + vec3(0.5, 0.5, 0.5), vec3(0));
 
 	modelMatrix = model;
 

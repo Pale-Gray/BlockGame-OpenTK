@@ -15,6 +15,8 @@ namespace Blockgame_OpenTK.Registry
 
         public Dictionary<ushort, Block> Blocks = new Dictionary<ushort, Block>();
 
+        public Dictionary<(string, ushort), Block> BlockDictionary = new Dictionary<(string, ushort), Block>();
+
         public Register() { }
 
         public void AddBlock(ushort id, Block block)
@@ -25,6 +27,20 @@ namespace Blockgame_OpenTK.Registry
             //BlockList.Add(block);
             Blocks.Add(block.ID, block);
             Debugger.Log($"Registered {block.DataName}", Severity.Info);
+
+        }
+
+        public void AddBlock(string _namespace, ushort id, Block block)
+        {
+
+            BlockDictionary.Add((_namespace, id), block);
+
+        }
+
+        public Block GetBlockFromId(string _namespace, ushort id)
+        {
+
+            return BlockDictionary[(_namespace, id)];
 
         }
 

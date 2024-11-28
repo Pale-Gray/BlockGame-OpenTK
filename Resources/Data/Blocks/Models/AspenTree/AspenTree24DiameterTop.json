@@ -1,0 +1,9 @@
+{
+	
+	"inherit": "Tree/Tree24DiameterTop.json",
+	"textures": {
+		"$all": "AspenLogBlockSide"
+	},
+	"objects": []
+	
+}

@@ -1,0 +1,14 @@
+{
+
+  "dataName": "AspenTreeBlock",
+  "displayName": "Aspen Tree Piece",
+  "model": null,
+  "soundPath": "AspenTreeBlock",
+  "breakTime": 1000,
+  "isOpaque": false,
+  "isSolid": false,
+  "blockProperties": {
+	  "thickness": 16
+  }
+
+}

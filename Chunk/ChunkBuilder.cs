@@ -12,7 +12,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +28,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static void GeneratePassOneThreaded(Chunk chunk)
         {
 
-            // Task.Run(() => { GeneratePassOne(chunk); });
+            chunk.IsUpdating = true;
             ThreadPool.QueueUserWorkItem(_ => GeneratePassOne(chunk));
 
         }
@@ -47,7 +49,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                         Vector3 globalBlockPosition = (x, 0, z) + (chunkPosition * 32);
                         int height = (int)Math.Floor(0.0f * Maths.ValueNoise2Octaves(121312321, globalBlockPosition.X / 64.0f, globalBlockPosition.Z / 38.0f, 3));
-                        // chunk.StructurePoints.Add((x, height, y));
+                        // chunk.StructurePoints.Add((x, height, chunkY));
                         for (int y = 0; y < GlobalValues.ChunkSize; y++)
                         {
 
@@ -58,6 +60,22 @@ namespace Blockgame_OpenTK.Core.Chunks
                                 Blocks.GrassBlock.OnBlockSet(chunk, (x, y, z));
 
                             }
+
+                            if (globalBlockPosition.Y == 16 && x > 4 && x < 28 && z > 4 && z < 24)
+                            {
+
+                                Blocks.BrickBlock.OnBlockSet(chunk, (x, y, z));
+
+                            }
+
+                            int currentMaxPos = chunk.GlobalBlockMaxHeight[ChunkUtils.VecToIndex((x,z))];
+                            if (chunk.GetBlock((x,y,z)).IsSolid ?? true)
+                            {
+
+                                chunk.GlobalBlockMaxHeight[ChunkUtils.VecToIndex((x, z))] = (int)Math.Max(currentMaxPos, globalBlockPosition.Y);
+
+                            }
+
                         }
 
                     }
@@ -66,18 +84,86 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
 
-            chunk.QueueType = QueueType.LightPropagation;
+            chunk.QueueType = QueueType.Mesh;
             WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
-            // WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
+            chunk.IsUpdating = false;
+
+        }
+
+        public static void CalculateSunlightColumnThreaded(World world, Vector2i columnPosition, int currentChunkHeight)
+        {
+
+            ThreadPool.QueueUserWorkItem(_ => CalculateSunlightColumn(world, columnPosition, currentChunkHeight));
+
+        }
+
+        public static void CalculateSunlightColumn(World world, Vector2i columnPosition, int currentChunkHeight)
+        {
+
+            int[] columnMaxBlockHeight = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+            for (int chunkY = WorldGenerator.MaxRadius; chunkY >= -WorldGenerator.MaxRadius; chunkY--)
+            {
+
+                for (int x = 0; x < GlobalValues.ChunkSize; x++)
+                {
+
+                    for (int z = 0; z < GlobalValues.ChunkSize; z++)
+                    {
+
+                        int currentColumnMaxBlockHeight = columnMaxBlockHeight[ChunkUtils.VecToIndex((x, z))];
+                        columnMaxBlockHeight[ChunkUtils.VecToIndex((x, z))] = (int)Math.Max(currentColumnMaxBlockHeight, world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].GlobalBlockMaxHeight[ChunkUtils.VecToIndex((x,z))]);
+
+                    }
+
+                }
+
+            }
+
+            // now we do the lighting columns
+            for (int chunkY = WorldGenerator.MaxRadius; chunkY >= -WorldGenerator.MaxRadius; chunkY--)
+            {
+
+                for (int x = 0; x < GlobalValues.ChunkSize; x++)
+                {
+
+                    for (int z = 0; z < GlobalValues.ChunkSize; z++)
+                    {
+
+                        for (int y = 0; y < GlobalValues.ChunkSize; y++)
+                        {
+
+                            Vector3i globalBlockPosition = (x, y, z) + (new Vector3i(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y) * GlobalValues.ChunkSize);
+                            uint currentLightData = world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))];
+
+                            if (globalBlockPosition.Y >= columnMaxBlockHeight[ChunkUtils.VecToIndex((x,z))])
+                            {
+
+                                world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData | 0x0000000F;
+
+                            } else
+                            {
+
+                                world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData & 0xFFFFFFF0;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                world.WorldChunks[(columnPosition.X, chunkY, columnPosition.Y)].QueueType = QueueType.LightPropagation;
+                WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue((columnPosition.X, chunkY, columnPosition.Y));
+
+            }
 
         }
 
         public static void MeshThreaded(Chunk chunk, World world, Vector3i cameraPosition)
         {
 
-            // chunk.QueueMode = QueueMode.Queued;
-            // chunk.SetMeshState(MeshState.Meshing);
-            // .Run(() => { Mesh(chunk, world, cameraPosition); });
+            chunk.IsUpdating = true;
             ThreadPool.QueueUserWorkItem(_ => Mesh(chunk, world, cameraPosition));
 
         }
@@ -85,11 +171,14 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static void Mesh(Chunk chunk, World world, Vector3i cameraPosition)
         {
 
+            // chunk.ConcurrentOpaqueMesh.Clear();
+            // chunk.ConcurrentMeshIndices.Clear();
+
             chunk.OpaqueMeshList.Clear();
             chunk.IndicesList.Clear();
             Vector3i chunkPosition = chunk.ChunkPosition;
 
-            // List<ChunkVertex> mesh = new List<ChunkVertex>();
+            Dictionary<Vector3i, bool[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
             {
@@ -105,7 +194,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
 
-                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, chunk.BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))] ?? new BlockProperties(), globalBlockPosition);
+                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyNewData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
 
                         }
 
@@ -115,11 +204,21 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
 
+            for (int i = 0; i < chunk.OpaqueMeshList.Count / 4; i++) // amount of faces (quads) existent in the chunk
+            {
+
+                int currentIndexCount = (chunk.IndicesList.Count / 6) * 4;
+                int[] indices = { 0+currentIndexCount, 1+currentIndexCount, 2+currentIndexCount, 2+ currentIndexCount, 3 + currentIndexCount, 0 + currentIndexCount };
+                chunk.IndicesList.AddRange(indices);
+
+            }
+
             chunk.MeshIndices = chunk.IndicesList.ToArray();
             chunk.SolidMesh = chunk.OpaqueMeshList.ToArray();
             chunk.QueueType = QueueType.Upload;
             // WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
             WorldGenerator.ConcurrentChunkUploadQueue.Enqueue(chunk.ChunkPosition);
+            chunk.IsUpdating = false;
 
         }
 
@@ -141,12 +240,61 @@ namespace Blockgame_OpenTK.Core.Chunks
         private static void PropagateBlockLights(World world, Chunk chunk)
         {
 
-            chunk.PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-
-            foreach (Vector3i lightPosition in chunk.GlobalBlockLightPositions.Keys)
+            // chunk.PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+            // insures sun lighting isnt reset
+            for (int i = 0; i < chunk.PackedLightData.Length; i++)
             {
 
-                Dda.ComputeVisibility(world, chunk, lightPosition, chunk.GlobalBlockLightPositions[lightPosition]);
+                chunk.PackedLightData[i] = chunk.PackedLightData[i] & 0x0000000F;
+
+            }
+
+            List<Vector3i> sunlightPositions = new List<Vector3i>();
+
+            for (int x = 0; x < GlobalValues.ChunkSize; x++)
+            {
+
+                for (int y = 0; y < GlobalValues.ChunkSize; y++)
+                {
+
+                    for (int z = 0; z < GlobalValues.ChunkSize; z++)
+                    {
+
+                        Vector3i globalBlockPosition = (x, y, z) + (chunk.ChunkPosition * GlobalValues.ChunkSize);
+
+                        if ((chunk.PackedLightData[ChunkUtils.VecToIndex((x,y,z))] & 15) == 15)
+                        {
+
+                            if ((world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitX)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitX))] & 15) != 15 ||
+                                (world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition - Vector3i.UnitX)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition - Vector3i.UnitX))] & 15) != 15 ||
+                                (world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitZ)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitZ))] & 15) != 15 ||
+                                (world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition - Vector3i.UnitZ)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition - Vector3i.UnitZ))] & 15) != 15)
+                            {
+
+                                sunlightPositions.Add(globalBlockPosition);
+                                // Dda.ComputeSunlightVisibility(world, chunk, globalBlockPosition);
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            foreach (Vector3i sunlightPosition in sunlightPositions)
+            {
+
+                Dda.ComputeSunlightVisibility(world, chunk, sunlightPosition);
+
+            }
+
+            foreach (KeyValuePair<Vector3i, Vector3i> pair in chunk.GlobalBlockLightPositions)
+            {
+
+                Dda.ComputeVisibility(world, chunk, pair.Key, pair.Value);
 
             }
 
@@ -157,11 +305,12 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static void Remesh(Chunk chunk, World world, Vector3i cameraPosition)
         {
 
-            chunk.PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+            // chunk.PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
             // PropagateBlockLights(world, chunk);
-            chunk.IndicesList.Clear();
             chunk.OpaqueMeshList.Clear();
+            chunk.IndicesList.Clear();
 
+            Dictionary<Vector3i, bool[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
             Vector3i chunkPosition = chunk.ChunkPosition;
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
@@ -177,13 +326,22 @@ namespace Blockgame_OpenTK.Core.Chunks
                         {
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
-                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))] ?? new BlockProperties(), globalBlockPosition);
+                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyNewData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
 
                         }
 
                     }
 
                 }
+
+            }
+
+            for (int i = 0; i < chunk.OpaqueMeshList.Count / 4; i++) // amount of faces (quads) existent in the chunk
+            {
+
+                int currentIndexCount = (chunk.IndicesList.Count / 6) * 4;
+                int[] indices = { 0 + currentIndexCount, 1 + currentIndexCount, 2 + currentIndexCount, 2 + currentIndexCount, 3 + currentIndexCount, 0 + currentIndexCount };
+                chunk.IndicesList.AddRange(indices);
 
             }
 

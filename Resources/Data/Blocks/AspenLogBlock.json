@@ -1,0 +1,10 @@
+{
+
+  "DataName": "AspenLogBlock",
+  "DisplayName": "Aspen Log",
+  "Model": "AspenLogBlock.json",
+  "SoundPath": "AspenLogBlock",
+  "BreakTime": 1000,
+  "IsOpaque": true
+
+}

@@ -1,46 +1,9 @@
 {
-    "Inherit": "Cube.json",
-    "Textures": {
-        "$all": "BrickBlock"
-    },
-    "Faces": [
 
-		{
+	"Inherit": "CubeSameTexture.json",
+	"Textures": {
+		"$all": "BrickBlock"
+	},
+	"Objects": []
 
-			"Inherit": "Top",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Bottom",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Left",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Right",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Front",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Back",
-			"Texture": "$all"
-
-		}
-
-	]
 }

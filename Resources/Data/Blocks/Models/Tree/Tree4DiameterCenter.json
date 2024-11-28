@@ -1,0 +1,39 @@
+{
+
+	"Textures": {
+		"$all": null
+	},
+	"Objects": [
+		{
+			"Start": [14, 14, 14],
+			"End": [18, 18, 18],
+			"Properties": {
+				"Top": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				},
+				"Bottom": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				},
+				"Front": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				},
+				"Left": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				},
+				"Back": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				},
+				"Right": {
+					"Texture": "$all",
+					"ShouldRenderAO": false
+				}
+			}
+		}
+	]
+
+}

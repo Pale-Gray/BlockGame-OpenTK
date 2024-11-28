@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
-    internal class BlockProperties
+    internal struct BlockProperties
     {
 
         private Dictionary<string, object> _properties;
-
         public BlockProperties() { _properties = new Dictionary<string, object>(); }
+        public BlockProperties(Dictionary<string, object> properties) { _properties = properties; }
 
         public void AddProperty<T>(string propertyName, T value)
         {
@@ -35,7 +35,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public bool TryGetProperty<T>(string propertyName, out T value)
         {
 
-            if (_properties.TryGetValue(propertyName, out object val))
+            if (_properties.TryGetValue(propertyName, out object val) && val != null)
             {
 
                 value = (T) val;
@@ -43,8 +43,24 @@ namespace Blockgame_OpenTK.BlockUtil
 
             }
 
-            value = default(T);
+            value = default;
             return false;
+
+        }
+
+        public BlockProperties Extract()
+        {
+
+            BlockProperties properties = new BlockProperties();
+
+            foreach (KeyValuePair<string, object> property in _properties)
+            {
+
+                properties.AddProperty(property.Key, property.Value);
+
+            }
+
+            return properties;
 
         }
 

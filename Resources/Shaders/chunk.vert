@@ -15,11 +15,12 @@ struct ChunkVertex
 	PackedVec3 position;
 	int ID;
 	float ambientValue;
+	bool shouldRenderAO;
 	int textureIndex;
 	uint lightData;
 	PackedVec2 texcoords;
 	PackedVec3 normal;
-};
+}; 
 
 layout (std430, binding=3) readonly buffer chunkData
 {
@@ -93,7 +94,7 @@ void main()
 	// if (ambient_value == 0.0) ambientValues.rgb = vec3(0.65);
 
 	// directionalLight = sunDirection;
-	directionalLight = vec3(0, -1, 0);
+	directionalLight = vec3(-0.5, -1, 0.25);
 	vlight_data = light_data;
 
 	distFac = clamp(dist3D(vPositionOffset, cameraPosition) / (radius*32), 0, 1);

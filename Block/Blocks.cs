@@ -14,25 +14,26 @@ namespace Blockgame_OpenTK.BlockUtil
         public static readonly Block DirtBlock = Block.LoadFromJson("DirtBlock.json");
         public static readonly Block LogBlock = Block.LoadFromJson("LogBlock.json");
         public static readonly Block BrickBlock = Block.LoadFromJson("BrickBlock.json");
-        public static readonly Block TallGrassBlock = new TallGrassBlock();
-        public static readonly Block LightBlock = new LightBlock();
-        public static readonly Block LogBranchBlock = new LogBranchBlock();
+        public static readonly Block MissingBlock = Block.LoadFromJson("MissingBlock.json");
+        public static readonly Block FoliageBlock = Block.LoadFromJson("FoliageBlock.json");
+        //  public static readonly Block TallGrassBlock = new TallGrassBlock();
+        // public static readonly Block LightBlock = new LightBlock();
+        // public static readonly Block LogBranchBlock = new LogBranchBlock();
+        // public static readonly Block AspenLogBlock = Block.LoadFromJson("AspenLogBlock.json");
+        // public static readonly Block AspenLeafBlock = Block.LoadFromJson("AspenLeafBlock.json");
+        // public static readonly Block LogFenceBlock = Block.LoadFromJson("LogFenceBlock.json");
         public static void Load()
         {
-            // Block b = Block.LoadFromJson("GrassBlockNew.json");
-            // Globals.Register.AddBlock(AirBlock);
+            
             GlobalValues.Register.AddBlock(0, AirBlock);
             GlobalValues.Register.AddBlock(1, GrassBlock);
             GlobalValues.Register.AddBlock(2, StoneBlock);
             GlobalValues.Register.AddBlock(3, DirtBlock);
             GlobalValues.Register.AddBlock(4, LogBlock);
             GlobalValues.Register.AddBlock(5, BrickBlock);
-            GlobalValues.Register.AddBlock(6, TallGrassBlock);
-            GlobalValues.Register.AddBlock(7, LightBlock);
-            GlobalValues.Register.AddBlock(8, new RedLightBlock());
-            GlobalValues.Register.AddBlock(9, new GreenLightBlock());
-            GlobalValues.Register.AddBlock(10, new BlueLightBlock());
-            GlobalValues.Register.AddBlock(11, LogBranchBlock);
+            GlobalValues.Register.AddBlock(6, MissingBlock);
+            GlobalValues.Register.AddBlock(7, FoliageBlock);
+            GlobalValues.Register.AddBlock(8, new AspenTreeBlock());
 
             for (int i = 0; i < 5; i++)
             {

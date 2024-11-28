@@ -87,13 +87,16 @@ void main()
 	ambientFac = clamp(ambientFac, 0, 1);
 
 // 	Outcolor = vec4(array_texture.rgb * (1 - (vambient_value/3)), 1);
-	ambientValue = mix(0.15, 1.0, (1 - (vambient_value/3)));
+	// ambientValue = mix(-0.1, 1.0, (1 - (vambient_value/4)));
+	ambientValue = 1.0 - (vambient_value / 4.0);
 
 	vec3 lightColor = vec3((vlight_data >> 12) & 15,(vlight_data >> 8) & 15,(vlight_data >> 4) & 15) / 15.0;
 	vec3 lightValue = lightColor;
 	vec3 sunLight = vec3(vlight_data & 15) / 15.0;
 
-	vec3 col = vec3((array_texture.rgb * pow(ambientValue, 2.2) * value) * (pow(1 + lightValue, vec3(2))));
+	// vec3 col = vec3((array_texture.rgb * ambientValue * value) * (pow(1 + lightValue, vec3(2))));
+	
+	vec3 col = vec3((array_texture.rgb * pow(1 + lightValue, vec3(2)))) * value * (pow(ambientValue, 1.2));
 
 	Outcolor = vec4(col, a);
 	// Outcolor = clamp(vec4(vnormal, 1.0) * inverse(transpose(view)), 0.0, 1.0);

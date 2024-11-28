@@ -19,8 +19,6 @@ namespace Blockgame_OpenTK.Gui
 
             List<ChunkVertex> vertices = new List<ChunkVertex>();
 
-            // Console.Log(block.BlockModel == null);
-
             if (block != null)
             {
 

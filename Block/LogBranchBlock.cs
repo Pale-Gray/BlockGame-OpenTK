@@ -21,6 +21,7 @@ namespace Blockgame_OpenTK.BlockUtil
         private BlockModel _rightPiece = BlockModel.LoadFromJson("LogBranchBlockRight.json");
         private BlockModel _frontPiece = BlockModel.LoadFromJson("LogBranchBlockFront.json");
         private BlockModel _backPiece = BlockModel.LoadFromJson("LogBranchBlockBack.json");
+        // private BlockModel _test = BlockModel.LoadFromNewJson("MockupModel.json");
 
         public LogBranchBlock()
         {
@@ -30,9 +31,18 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public override void OnBlockMesh(World world, BlockProperties properties, Vector3i globalBlockPosition)
+        public override void OnBlockPlace(World world, Vector3i globalBlockPosition)
         {
 
+            base.OnBlockPlace(world, globalBlockPosition);
+
+        }
+        public override void OnBlockMesh(World world, Dictionary<Vector3i, bool[]> mask, BlockProperty.BlockProperties properties, Vector3i globalBlockPosition)
+        {
+
+            // world.AppendModel(_test, globalBlockPosition, mask);
+
+            /*
             ChunkMeshHandler.AddModel(world, globalBlockPosition, _centerPiece);
 
             if (world.GetBlock(globalBlockPosition + Vector3i.UnitY) == Blocks.LogBranchBlock)
@@ -71,6 +81,7 @@ namespace Blockgame_OpenTK.BlockUtil
                 ChunkMeshHandler.AddModel(world, globalBlockPosition, _frontPiece);
 
             }
+            */
 
         }
 

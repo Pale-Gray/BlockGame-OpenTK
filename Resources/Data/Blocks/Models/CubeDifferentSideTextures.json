@@ -1,0 +1,44 @@
+{
+
+	"Textures": {
+		"$top": null,
+		"$bottom": null,
+		"$left": null,
+		"$right": null,
+		"$back": null,
+		"$front": null
+	},
+	"Objects": [
+		{
+			"Start": [0, 0, 0],
+			"End": [32, 32, 32],
+			"Properties": {
+				"Top": {
+					"IsVisible": true,
+					"Texture": "$top"
+				},
+				"Bottom": {
+					"IsVisible": true,
+					"Texture": "$bottom"
+				},
+				"Left": {
+					"IsVisible": true,
+					"Texture": "$left"
+				},
+				"Right": {
+					"IsVisible": true,
+					"Texture": "$right"
+				},
+				"Back": {
+					"IsVisible": true,
+					"Texture": "$back"
+				},
+				"Front": {
+					"IsVisible": true,
+					"Texture": "$front"
+				}
+			}
+		}
+	]
+
+}

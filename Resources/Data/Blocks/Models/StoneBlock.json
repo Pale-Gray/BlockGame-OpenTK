@@ -1,32 +1,9 @@
 {
-    "Inherit": "Cube.json",
-    "Textures": {
-        "$all": "StoneBlock"
-    },
-    "Faces": [
-        {
-            "Inherit": "Up",
-            "Texture": "$all"
-        },
-        {
-            "Inherit": "Down",
-            "Texture": "$all"
-        },
-        {
-            "Inherit": "Left",
-            "Texture": "$all"
-        },
-        {
-            "Inherit": "Right",
-            "Texture": "$all"
-        },
-        {
-            "Inherit": "Front",
-            "Texture": "$all"
-        },
-        {
-            "Inherit": "Back",
-			"Texture": "$all"
-        }
-    ]
+
+	"Inherit": "CubeSameTexture.json",
+	"Textures": {
+		"$all": "StoneBlock"
+	},
+	"Objects": []
+
 }

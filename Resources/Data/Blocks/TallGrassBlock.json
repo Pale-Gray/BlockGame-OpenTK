@@ -7,6 +7,7 @@
   "BreakTime": 1000,
   "IsOpaque": false, 
   "IsSolid": false,
-  "HasCollision": false
+  "HasCollision": false,
+  "RenderAo": false
 
 }

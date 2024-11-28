@@ -1,0 +1,89 @@
+{
+
+	"Textures": {
+		
+	},
+	"Faces": [
+		{
+			"Name": "Top",
+			"CullDirection": "None",
+			"Points": [
+				[0, 28, 19],
+				[12, 28, 19],
+				[12, 28, 13],
+				[0, 28, 13]
+			]
+		},
+		{
+			"Name": "Bottom",
+			"CullDirection": "None",
+			"Points": [
+				[0, 20, 13],
+				[12, 20, 13],
+				[12, 20, 19],
+				[0, 20, 19]
+			]
+		},
+		{
+			"Name": "Front",
+			"CullDirection": "None",
+			"Points": [
+				[0, 28, 13],
+				[12, 28, 13],
+				[12, 20, 13],
+				[0, 20, 13]
+			]
+		},
+		{
+			"Name": "Back",
+			"CullDirection": "None",
+			"Points": [
+				[0, 20, 19],
+				[12, 20, 19],
+				[12, 28, 19],
+				[0, 28, 19]
+			]
+		},
+		{
+			"Name": "Top2",
+			"CullDirection": "None",
+			"Points": [
+				[0, 12, 19],
+				[12, 12, 19],
+				[12, 12, 13],
+				[0, 12, 13]
+			]
+		},
+		{
+			"Name": "Bottom2",
+			"CullDirection": "None",
+			"Points": [
+				[0, 4, 13],
+				[12, 4, 13],
+				[12, 4, 19],
+				[0, 4, 19]
+			]
+		},
+		{
+			"Name": "Front2",
+			"CullDirection": "None",
+			"Points": [
+				[0, 12, 13],
+				[12, 12, 13],
+				[12, 4, 13],
+				[0, 4, 13]
+			]
+		},
+		{
+			"Name": "Back2",
+			"CullDirection": "None",
+			"Points": [
+				[0, 4, 19],
+				[12, 4, 19],
+				[12, 12, 19],
+				[0, 12, 19]
+			]
+		}
+	]
+	
+}

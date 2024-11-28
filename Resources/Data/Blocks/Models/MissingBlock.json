@@ -1,0 +1,9 @@
+{
+
+	"Inherit": "CubeSameTexture.json",
+	"Textures": {
+		"$all": "MissingBlock"
+	},
+	"Objects": []
+
+}
