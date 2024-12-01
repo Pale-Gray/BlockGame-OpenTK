@@ -2,6 +2,7 @@
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Gui;
+using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System;
@@ -92,6 +93,13 @@ namespace Blockgame_OpenTK.BlockUtil
 
             BoundingBox.StaticFriction = block.BoundingBox.StaticFriction;
             BoundingBox.DynamicFriction = block.BoundingBox.DynamicFriction;
+
+        }
+
+        public BlockProperty.BlockProperties OnBlockPropertiesCreate(Player player, World world, Vector3i globalBlockPosition)
+        {
+
+            return new BlockProperty.BlockProperties();
 
         }
 

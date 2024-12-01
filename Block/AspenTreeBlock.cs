@@ -35,15 +35,6 @@ namespace Blockgame_OpenTK.BlockUtil
             
         }
 
-        public BlockProperty.BlockProperties CreateNewProperties(int thickness, int maxGrowthHeight)
-        {
-
-            AspenTreeBlockProperties properties = new AspenTreeBlockProperties();
-
-            return properties;
-
-        }
-
         public override void OnBlockPlace(World world, Vector3i globalBlockPosition)
         {
 

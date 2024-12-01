@@ -1163,14 +1163,14 @@ namespace Blockgame_OpenTK.BlockUtil
             for (int i = 0; i < vertices.Length / 4; i++)
             {
 
-                int currentCount = (worldChunks[chunkPosition].ConcurrentMeshIndices.Count / 6) * 4;
+                /// int currentCount = (worldChunks[chunkPosition].ConcurrentMeshIndices.Count / 6) * 4;
                 int[] indices =
                 {
 
-                0+currentCount,1+currentCount,2+currentCount,2+currentCount,3+currentCount,0+currentCount
+                //  0+currentCount,1+currentCount,2+currentCount,2+currentCount,3+currentCount,0+currentCount
 
             };
-                worldChunks[chunkPosition].AddIndices(indices);
+                // worldChunks[chunkPosition].AddIndices(indices);
 
             }
             return vertices;

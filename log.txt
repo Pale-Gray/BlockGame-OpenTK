@@ -1,10 +1,10 @@
 [Info] Starting in client mode.
-[Info] Platform: Microsoft Windows 10.0.22631
+[Info] Platform: Microsoft Windows 10.0.19045
 [Info] Architecture: x64
 [Info] .NET 8.0.11
-[Info] ATI Technologies Inc.
-[Info] AMD Radeon (TM) Graphics
-[Info] 4.6.0 Core Profile Context 23.19.12.03.240603
+[Info] NVIDIA Corporation
+[Info] NVIDIA GeForce RTX 3060/PCIe/SSE2
+[Info] 4.6.0 NVIDIA 546.33
 [Info] Loading Textures
 [Info] Loading File Resources\Textures\TextureArray\AspenLeafBlock.png
 [Info] Added AspenLeafBlock to TextureNames
@@ -101,8 +101,7 @@
 [Info] Parsing MissingModel.json
 [Info] The model has inherited model CubeSameTexture.json
 System.InvalidCastException: Unable to cast object of type 'Blockgame_OpenTK.BlockProperty.BlockProperties' to type 'Blockgame_OpenTK.BlockProperty.AspenTreeBlockProperties'.
-   at Blockgame_OpenTK.BlockUtil.AspenTreeBlock.OnBlockMesh(World world, Dictionary`2 mask, BlockProperties properties, Vector3i globalBlockPosition) in .\Block\AspenTreeBlock.cs:line 48
-   at Blockgame_OpenTK.Core.Chunks.ChunkBuilder.Mesh(Chunk chunk, World world, Vector3i cameraPosition) in .\Chunk\ChunkBuilder.cs:line 177
-   at Blockgame_OpenTK.Core.Chunks.ChunkBuilder.<>c__DisplayClass5_0.<MeshThreaded>b__0(Object _) in .\Chunk\ChunkBuilder.cs:line 167
-   at System.Threading.ThreadPoolWorkQueue.Dispatch()
-   at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()
+   at Blockgame_OpenTK.BlockUtil.AspenTreeBlock.OnRandomTickUpdate(World world, Vector3i globalBlockPosition, BlockProperties blockProperties) in .\Block\AspenTreeBlock.cs:line 78
+   at Blockgame_OpenTK.Core.Worlds.World.Tick(Vector3 playerPosition) in .\World\World.cs:line 71
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 450
+   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 236

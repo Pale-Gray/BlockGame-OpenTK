@@ -62,7 +62,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public int[] GlobalBlockMaxHeight = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public BlockUtil.BlockProperties[] BlockPropertyData = new BlockUtil.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        // public BlockUtil.BlockProperties[] BlockPropertyData = new BlockUtil.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         // public BlockProperties[]
         public BlockProperty.BlockProperties[] BlockPropertyNewData = new BlockProperty.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         // public BlockProperties[] BlockPropertyData = Enumerable.Repeat(new BlockProperties(), GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize).ToArray();
@@ -73,8 +73,6 @@ namespace Blockgame_OpenTK.Core.Chunks
         public ChunkVertex[] SolidMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
         public ChunkVertex[] NonSolidMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
         public List<ChunkVertex> OpaqueMeshList = new List<ChunkVertex>();
-        public ConcurrentBag<ChunkVertex> ConcurrentOpaqueMesh = new ConcurrentBag<ChunkVertex>();
-        public ConcurrentBag<int> ConcurrentMeshIndices = new ConcurrentBag<int>();
         public List<int> IndicesList = new List<int>();
         public List<Vector3i> StructurePoints = new List<Vector3i>();
         public QueueType QueueType = QueueType.PassOne;
@@ -159,30 +157,6 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
             return false;
-
-        }
-
-        public void AddBlockModelFace(ChunkVertex[] face)
-        {
-
-            for (int i = 0; i < face.Length; i++)
-            {
-
-                ConcurrentOpaqueMesh.Add(face[i]);
-
-            }
-
-        }
-
-        public void AddIndices(int[] indices)
-        {
-
-            for (int i = 0; i < indices.Length; i++)
-            {
-
-                ConcurrentMeshIndices.Add(indices[i]);
-
-            }
 
         }
 
