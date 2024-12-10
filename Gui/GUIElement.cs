@@ -36,6 +36,14 @@ namespace Blockgame_OpenTK.Gui
 
     }
 
+    public enum RadiusType
+    {
+
+        Rounded = 0,
+        Beveled = 1
+
+    }
+
     internal class GuiElement
     {
 
@@ -81,7 +89,10 @@ namespace Blockgame_OpenTK.Gui
         private Vector2 _absolutePosition;
         private Vector2 _relativePosition;
         private Vector2 _origin;
-        private Vector2 _dimensions;
+
+        private Vector2 _absoluteDimensions;
+        private Vector2 _relativeDimensions;
+        // private Vector2 _dimensions;
 
         private Vector2 _previousPosition;
         private Vector2 _previousDimensions;
@@ -96,16 +107,39 @@ namespace Blockgame_OpenTK.Gui
         public Vector2 AbsolutePosition { get { return _absolutePosition; } set { _absolutePosition = value; } }
         public Vector2 RelativePosition { get { return _relativePosition; } set { _relativePosition = value; } }
         public Vector2 Position { get; private set; }
-        public Vector2 Dimensions { get { return _dimensions; } set { _dimensions = value; } }
+        public Vector2 AbsoluteDimensions { get { return _absoluteDimensions; } set { _absoluteDimensions = value; } }
+        public Vector2 RelativeDimensions { get { return _relativeDimensions; } set { _relativeDimensions = value; } }
+        public Vector2 Dimensions { get; private set; }
         public Vector2 Origin { get { return _origin; } set { _origin = value; } }
 
         public float? TileSize;
-        public int Layer;
+        private int _layer = 0;
+        public int Layer { get { return _layer; } set { _layer = value; GenerateMesh(); } }
         private TextureMode _textureMode = TextureMode.Stretch;
         public TextureMode TextureMode { get { return _textureMode; } set { _textureMode = value; GenerateMesh(); } }
-        public string TextureName { get { return _textureName; } set { _textureName = value; if (_texture != null) _texture.Dispose(); _texture = new Texture(Path.Combine(GlobalValues.GuiTexturePath, value)); } }
-        public Color3<Rgb> Color = Color3.White;
+        public Texture Texture { get { return _texture; } set { if (_texture == null) _texture.Dispose(); _texture = value; } }
+        public Color3<Rgb> Tint = Color3.White;
+
+        public int BorderRadius = 0;
+        public RadiusType BorderRadiusType = RadiusType.Rounded;
         public GuiElement() { }
+
+        private void CalculateDimensions()
+        {
+
+            if (Parent == null)
+            {
+
+                Dimensions = AbsoluteDimensions + GuiMath.RelativeToAbsolute(RelativeDimensions, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
+
+            } else
+            {
+
+                Dimensions = AbsoluteDimensions + GuiMath.RelativeToAbsolute(RelativeDimensions, Parent.Dimensions);
+
+            }
+
+        }
 
         private void CalculatePosition()
         {
@@ -119,7 +153,7 @@ namespace Blockgame_OpenTK.Gui
             else
             {
 
-                Position = (Parent.Position - (Parent.Dimensions * Parent.Origin)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, Parent.Dimensions);
+                Position = (Parent.Position - (Parent.AbsoluteDimensions * Parent.Origin)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, Parent.AbsoluteDimensions);
 
             }
 
@@ -128,6 +162,7 @@ namespace Blockgame_OpenTK.Gui
         {
 
             CalculatePosition();
+            CalculateDimensions();
 
             if (_texture == null) _texture = new Texture(Path.Combine(GlobalValues.GuiTexturePath, "Blank.png"));
 
@@ -137,30 +172,30 @@ namespace Blockgame_OpenTK.Gui
                 _guiVertices = new GuiVertex[]
                 {
 
-                    new GuiVertex(Position, (0, 1), 0),
-                    new GuiVertex(Position + (0, Dimensions.Y), (0, 0), 0),
-                    new GuiVertex(Position + Dimensions, (1, 0), 0),
-                    new GuiVertex(Position + Dimensions, (1, 0), 0),
-                    new GuiVertex(Position + (Dimensions.X, 0), (1, 1), 0),
-                    new GuiVertex(Position, (0, 1), 0)
+                    new GuiVertex(Position, (0, 1), -Layer),
+                    new GuiVertex(Position + (0, Dimensions.Y), (0, 0), -Layer),
+                    new GuiVertex(Position + Dimensions, (1, 0), -Layer),
+                    new GuiVertex(Position + Dimensions, (1, 0), -Layer),
+                    new GuiVertex(Position + (Dimensions.X, 0), (1, 1), -Layer),
+                    new GuiVertex(Position, (0, 1), -Layer)
 
                 };
 
             } else
             {
 
-                Vector2 textureScale = _dimensions / TileSize ?? (_texture.Width, _texture.Height);
+                Vector2 textureScale = Dimensions / TileSize ?? (_texture.Width, _texture.Height);
                 // textureScale += textureScale * _origin;
 
                 _guiVertices = new GuiVertex[]
                 {
 
-                    new GuiVertex(Position, (0, 1), 0),
-                    new GuiVertex(Position + (0, Dimensions.Y), (0, 1 - textureScale.Y), 0),
-                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), 0),
-                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), 0),
-                    new GuiVertex(Position + (Dimensions.X, 0), (textureScale.X, 1), 0),
-                    new GuiVertex(Position, (0, 1), 0)
+                    new GuiVertex(Position, (0, 1), -Layer),
+                    new GuiVertex(Position + (0, Dimensions.Y), (0, 1 - textureScale.Y), -Layer),
+                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), -Layer),
+                    new GuiVertex(Position + Dimensions, (textureScale.X, 1 - textureScale.Y), -Layer),
+                    new GuiVertex(Position + (Dimensions.X, 0), (textureScale.X, 1), -Layer),
+                    new GuiVertex(Position, (0, 1), -Layer)
 
                 };
 
@@ -176,9 +211,6 @@ namespace Blockgame_OpenTK.Gui
             GL.DeleteVertexArray(_vao);
             GL.DeleteBuffer(_vbo);
 
-            // _vao = GL.GenVertexArray();
-            // _vbo = GL.GenBuffer();
-
             _vao = GL.CreateVertexArray();
             _vbo = GL.CreateBuffer();
 
@@ -192,7 +224,7 @@ namespace Blockgame_OpenTK.Gui
 
             GL.VertexArrayAttribFormat(_vao, 0, 2, VertexAttribType.Float, false, (uint) Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
             GL.VertexArrayAttribFormat(_vao, 1, 2, VertexAttribType.Float, false, (uint)Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.TextureCoordinates)));
-            GL.VertexArrayAttribFormat(_vao, 2, 1, VertexAttribType.Int, false, (uint)Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Layer)));
+            GL.VertexArrayAttribIFormat(_vao, 2, 1, VertexAttribIType.Int, (uint)Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Layer)));
 
             GL.VertexArrayAttribBinding(_vao, 0, 0);
             GL.VertexArrayAttribBinding(_vao, 1, 0);
@@ -202,6 +234,14 @@ namespace Blockgame_OpenTK.Gui
 
         public virtual void Draw()
         {
+
+            Vector2 bottomLeftPosition = Position - (Dimensions * Origin) + (0, Dimensions.Y);
+
+            bottomLeftPosition.Y = GlobalValues.HEIGHT - bottomLeftPosition.Y;
+
+            Vector2 topLeft = Position - (Dimensions * Origin);
+
+            GL.Scissor((int)bottomLeftPosition.X, (int)bottomLeftPosition.Y, (int)Dimensions.X, (int)Dimensions.Y);
 
             if (_previousPosition != Position)
             {
@@ -228,20 +268,30 @@ namespace Blockgame_OpenTK.Gui
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2d, _texture.GetID());
             GlobalValues.GuiShader.Use();
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiTexture"), 0);
-            GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiSize"), 1, _dimensions);
+            GL.Uniform1i(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiBorderRadius"), BorderRadius);
+            GL.Uniform1i(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiBorderRadiusType"), (int)BorderRadiusType);
+            // GL.Uniform1f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiBorderRadius"), BorderRadius);
+            GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiPosition"), topLeft.X, topLeft.Y);
+            Vector2 dim = Dimensions;
+            GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiSize"), 1, ref dim);
             GL.Uniform1i(GL.GetUniformLocation(GlobalValues.GuiShader.id, "textureMode"), 1, (int) TextureMode);
-            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiColor"), 1, (Vector3) Color);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.GuiShader.id, "guiColor"), 1, (Vector3) Tint);
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, _guiVertices.Length);
 
             if (Children.Count > 0)
             {
 
-                // Console.WriteLine("yes");
-                foreach (GuiElement child in Children) child.Draw();
+                foreach (GuiElement child in Children)
+                {
+
+                    child.Layer = Layer - 1;
+                    child.Draw();
+
+                }
 
             }
 

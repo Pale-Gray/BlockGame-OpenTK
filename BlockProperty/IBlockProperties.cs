@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.BlockProperty
 {
-    internal class BlockProperties
+    internal interface IBlockProperties
     {
+
+        public abstract byte[] ToBytes();
 
     }
 }

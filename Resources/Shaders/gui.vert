@@ -11,11 +11,14 @@ uniform vec2 guiSize;
 uniform int textureMode;
 
 out vec2 vTextureCoordinates;
+out vec2 vGuiSpacePosition;
 
 void main()
 {
 
-	gl_Position = vec4(position.xy, 0.0, 1.0) * view * projection;
+	vGuiSpacePosition = position;
+
+	gl_Position = vec4(position, layer, 1.0) * view * projection;
 
 	vTextureCoordinates = textureCoordinates;
 

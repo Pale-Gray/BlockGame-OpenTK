@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Collections;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.PlayerUtil;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -40,6 +41,9 @@ namespace Blockgame_OpenTK.Util
         public static GameSettings Settings;// JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("settings.json"));
 
         public const string PATH = "hello";
+
+        public static AbstractAccountInfo AbstractCurrentUser = new AbstractAccountInfo();
+        public static AccountInfo CurrentUser = new AccountInfo();
 
         public static float WIDTH = 640f;
         public static float HEIGHT = 480f;

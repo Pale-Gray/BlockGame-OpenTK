@@ -5,12 +5,7 @@ using OpenTK.Graphics.OpenGL;
 using Blockgame_OpenTK.BlockUtil;
 using System.IO;
 using System.Threading.Tasks;
-using Blockgame_OpenTK.Core.Worlds;
-using OpenTK.Graphics.Vulkan;
 using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Collections.Concurrent;
 using Blockgame_OpenTK.BlockProperty;
 
 namespace Blockgame_OpenTK.Core.Chunks
@@ -59,13 +54,10 @@ namespace Blockgame_OpenTK.Core.Chunks
     internal class Chunk
     {
 
-        // public ushort[,,] BlockData = new ushort[Globals.ChunkSize, Globals.ChunkSize, Globals.ChunkSize];
         public int[] GlobalBlockMaxHeight = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        // public BlockUtil.BlockProperties[] BlockPropertyData = new BlockUtil.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        // public BlockProperties[]
-        public BlockProperty.BlockProperties[] BlockPropertyNewData = new BlockProperty.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        // public BlockProperties[] BlockPropertyData = Enumerable.Repeat(new BlockProperties(), GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize).ToArray();
+        public IBlockProperties[] BlockPropertyData = new IBlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        // public BlockProperty.BlockProperties[] BlockPropertyNewData = new BlockProperty.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public uint[] PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public int[] MeshIndices;
@@ -74,7 +66,6 @@ namespace Blockgame_OpenTK.Core.Chunks
         public ChunkVertex[] NonSolidMesh; // for things that are totally transparent/cutaway blocks ie tree leaves, grass foliage, flowers, etc
         public List<ChunkVertex> OpaqueMeshList = new List<ChunkVertex>();
         public List<int> IndicesList = new List<int>();
-        public List<Vector3i> StructurePoints = new List<Vector3i>();
         public QueueType QueueType = QueueType.PassOne;
         public Vector3i ChunkPosition;
         // public int Vao, Vbo;
@@ -85,18 +76,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public int BlockDataSsbo = 0;
         public int LightSsbo = 0;
         public bool IsUpdating = false;
-        public bool IsEmpty = true;
-        public bool IsFull = false;
-        public bool IsExposed = false;
-        public bool ShouldRender = false;
-        public bool IsQueuedForRemesh = false;
         public float Lifetime = 0;
-        public readonly object ChunkLock = new();
-        public bool NeedsToRequeue = true;
-        public bool CallForRemesh = false;
-        public bool ForceAborted = false;
-        public bool ShouldRemesh = false;
-        public bool IsMeshEditable = false;
         public bool IsRenderable = false;
         public string FileName { get { return $"{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat"; } }
         public Chunk(Vector3i chunkPosition)
@@ -230,7 +210,6 @@ namespace Blockgame_OpenTK.Core.Chunks
         {
 
             return GlobalValues.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
-            // return Globals.Register.GetBlockFromID(BlockData[position.X, position.Y, position.Z]);
 
         }
 
@@ -243,40 +222,12 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         } 
 
-        public void SetBlock(Vector3i position, BlockProperty.BlockProperties blockProperties, Block block)
+        public void SetBlock(Vector3i position, IBlockProperties blockProperties, Block block)
         {
 
-            BlockPropertyNewData[ChunkUtils.VecToIndex(position)] = blockProperties;
+            BlockPropertyData[ChunkUtils.VecToIndex(position)] = blockProperties;
             BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
             SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
-
-        }
-
-        public Block GetBlockSafe(Vector3i position)
-        {
-
-            Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize-1, GlobalValues.ChunkSize-1, GlobalValues.ChunkSize-1));
-
-            return GlobalValues.Register.GetBlockFromID(BlockData[ChunkUtils.VecToIndex(position)]);
-
-        }
-        public void SetBlockSafe(Vector3i position, Block block)
-        {
-
-            Vector3i min = ChunkPosition * GlobalValues.ChunkSize;
-            Vector3i max = min + (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize);
-
-            if (position.X >= min.X && position.X < max.X && position.Y >= min.Y && position.Y < max.Y && position.Z >= min.Z && position.Z < max.Z) 
-            {
-
-                BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(position))] = block.ID;
-                SolidMask[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(position))] = block.IsSolid ?? true;
-
-            }
-
-            // Vector3i clampedPosition = Vector3i.Clamp(position, (0, 0, 0), (GlobalValues.ChunkSize, GlobalValues.ChunkSize, GlobalValues.ChunkSize));
-
-            // BlockData[clampedPosition.X, clampedPosition.Y, clampedPosition.Z] = (ushort)Globals.Register.GetIDFromBlock(block);
 
         }
 

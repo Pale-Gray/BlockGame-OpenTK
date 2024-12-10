@@ -67,7 +67,6 @@ namespace Blockgame_OpenTK.Util
             float yPart = y % 1;
             if (xPart < 0) xPart += 1;
             if (yPart < 0) yPart += 1;
-            // Console.Log($"{xPart}, {yPart}");
 
             float topLerp = Slerp(topLeft, topRight, xPart);
             float bottomLerp = Slerp(bottomLeft, bottomRight, xPart);

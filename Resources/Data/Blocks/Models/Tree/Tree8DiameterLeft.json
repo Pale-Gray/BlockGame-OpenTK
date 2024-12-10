@@ -6,7 +6,7 @@
 	"Objects": [
 		{
 			"Start": [20, 12, 12],
-			"End": [36, 20, 20],
+			"End": [32, 20, 20],
 			"Properties": {
 				"Top": {
 					"Texture": "$all",

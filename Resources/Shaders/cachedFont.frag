@@ -48,6 +48,7 @@ vec3 toRgb(float hue, float saturation, float value)
 void main()
 {
 
+	// float alpha = texelFetch(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
 	float alpha = texture(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
 	if (alpha == 0.0) discard;
 	OutColor = vec4(vGlyphColor, alpha);

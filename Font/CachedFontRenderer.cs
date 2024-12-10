@@ -46,16 +46,10 @@ namespace Blockgame_OpenTK.Font
 
         private static Dictionary<char, CachedGlyphData> _glyphData = new Dictionary<char, CachedGlyphData>();
         private static int _vao, _vbo;
-        private static float _fontSize = 48.0f;
+        private static float _fontSize = 16.0f;
+        private static float _textureClearanceScale = 1.25f;
 
         private static ArrayTexture _glyphArrays;
-        public static void Init()
-        {
-
-            _glyphArrays = new ArrayTexture((int)_fontSize, (int)_fontSize);
-            _glyphArrays.Init();
-
-        }
 
         struct CharFormatData
         {
@@ -175,6 +169,25 @@ namespace Blockgame_OpenTK.Font
 
         }
 
+        public static void Init()
+        {
+
+            _glyphArrays = new ArrayTexture((int)(_fontSize * _textureClearanceScale), (int) (_fontSize*_textureClearanceScale));
+            _glyphArrays.Init();
+
+        }
+
+        private static unsafe FT_LibraryRec_* _library;
+        private static unsafe FT_FaceRec_* _face;
+        private static FT_Error _error;
+
+        public static unsafe void Initialize(string pathToFont)
+        {
+
+
+
+        }
+
         public static void RenderFont(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color3<Rgb> color)
         {
 
@@ -196,7 +209,7 @@ namespace Blockgame_OpenTK.Font
                 {
 
                     CachedGlyphData data = _glyphData[text[i]];
-                    Vector2 texCoordOffset = Vector2.One - (data.Size / _fontSize);
+                    Vector2 texCoordOffset = Vector2.One - (data.Size / (_fontSize * _textureClearanceScale));
                     CachedFontVertex[] currentGlyphVertices =
                     {
 
@@ -221,12 +234,12 @@ namespace Blockgame_OpenTK.Font
 
             }
             float width = 0;
-            float height = 0;
+            float height = size;
             for (int i = 0; i < textVertices.Count; i++)
             {
 
                 width = Math.Max(width, textVertices[i].Position.X - p.X);
-                height = Math.Abs(Math.Min(height, textVertices[i].Position.Y - p.Y));
+                // height = Math.Abs(Math.Min(height, textVertices[i].Position.Y - p.Y));
 
             }
 
@@ -268,23 +281,15 @@ namespace Blockgame_OpenTK.Font
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2dArray, _glyphArrays.TextureID);
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "color"), 1, (Vector3)color);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "time"), 1, (float) GlobalValues.Time);
-            // GL.ARB.UniformHandleui64vARB(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "glyphSamplers"), textSamplers.Count, textSamplers.ToArray());
-
             GL.BindVertexArray(_vao);
 
             // GL.Disable(EnableCap.CullFace);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, textVerticesArray.Length);
-
-            // GL.Enable(EnableCap.CullFace);
-
-            // GL.BindVertexArray(0);
-
-            // GlobalValues.CachedFontShader.UnUse();
 
         }
 
@@ -295,17 +300,24 @@ namespace Blockgame_OpenTK.Font
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
 
+            Console.WriteLine($"trying to render {character}");
+
             error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(pathToFont), 0, &face);
+            Console.WriteLine(error.ToString());
             error = FT_Set_Pixel_Sizes(face, 0, (uint)_fontSize);
+            Console.WriteLine(error.ToString());
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
+            Console.WriteLine(error.ToString());
 
             CachedGlyphData glyphData = new CachedGlyphData();
+            // Console.WriteLine(_glyphArrays==null);
+
             _glyphArrays.AddTexture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, out float index);
-            Console.WriteLine($"character {character} has a texture index of {index}");
+            Console.WriteLine($"character {character} has a texture index of {index}, dimensions {face->glyph->bitmap.width}, {face->glyph->bitmap.rows} with error of {error.ToString()}");
             // glyphData.GlyphTexture = new Texture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows);
             glyphData.TextureIndex = index;
             glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);
+            // glyphData.Size = (face->glyph->bitmap.width * (uint)_textureClearanceScale, face->glyph->bitmap.rows * (uint)_textureClearanceScale);
             glyphData.Bearing = (face->glyph->bitmap_left, face->glyph->bitmap_top);
             glyphData.Advance = (face->glyph->advance.x, face->glyph->advance.y);
             _glyphData.Add(character, glyphData);

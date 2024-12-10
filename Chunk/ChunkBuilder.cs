@@ -57,14 +57,14 @@ namespace Blockgame_OpenTK.Core.Chunks
                             if (globalBlockPosition.Y < height)
                             {
 
-                                Blocks.GrassBlock.OnBlockSet(chunk, (x, y, z));
+                                Blocks.GrassBlock.OnBlockLoad(chunk, (x, y, z));
 
                             }
 
                             if (globalBlockPosition.Y == 16 && x > 4 && x < 28 && z > 4 && z < 24)
                             {
 
-                                Blocks.BrickBlock.OnBlockSet(chunk, (x, y, z));
+                                Blocks.BrickBlock.OnBlockLoad(chunk, (x, y, z));
 
                             }
 
@@ -194,7 +194,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
 
-                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyNewData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
+                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
 
                         }
 
@@ -240,8 +240,6 @@ namespace Blockgame_OpenTK.Core.Chunks
         private static void PropagateBlockLights(World world, Chunk chunk)
         {
 
-            // chunk.PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-            // insures sun lighting isnt reset
             for (int i = 0; i < chunk.PackedLightData.Length; i++)
             {
 
@@ -326,7 +324,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                         {
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
-                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyNewData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
+                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
 
                         }
 

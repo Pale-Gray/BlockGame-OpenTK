@@ -465,7 +465,15 @@ namespace Blockgame_OpenTK.BlockUtil
                 (1 - end.X, start.Y),
                 (1 - start.X, start.Y),
                 (1 - start.X, end.Y)
+
             };
+
+            Console.WriteLine($"end x {end.X}");
+
+            Console.WriteLine($"texcoord 0 {frontFaceTextureCoordinates[0]}");
+            Console.WriteLine($"texcoord 1 {frontFaceTextureCoordinates[1]}");
+            Console.WriteLine($"texcoord 2 {frontFaceTextureCoordinates[2]}");
+            Console.WriteLine($"texcoord 3 {frontFaceTextureCoordinates[3]}");
 
             frontFace = TransformFace(frontFace, cube.Scale ?? Vector3.One, cube.Rotation ?? Vector3.Zero, cube.Translation ?? Vector3.Zero);
 
@@ -518,6 +526,8 @@ namespace Blockgame_OpenTK.BlockUtil
                 (1 - start.Z, start.Y),
                 (1 - start.Z, end.Y)
             };
+
+
 
             leftFace = TransformFace(leftFace, cube.Scale ?? Vector3.One, cube.Rotation ?? Vector3.Zero, cube.Translation ?? Vector3.Zero);
 

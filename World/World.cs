@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Collections.Concurrent;
 using System.Linq;
+using Blockgame_OpenTK.BlockProperty;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -83,7 +84,7 @@ namespace Blockgame_OpenTK.Core.Worlds
 
                     Vector3i globalBlockPosition = (randomX, randomY, randomZ) + (playerChunkPosition * 32);
 
-                    WorldChunks[playerChunkPosition].GetBlock((randomX, randomY, randomZ)).OnRandomTickUpdate(this, globalBlockPosition, WorldChunks[playerChunkPosition].BlockPropertyNewData[ChunkUtils.VecToIndex((randomX, randomY, randomZ))]);
+                    WorldChunks[playerChunkPosition].GetBlock((randomX, randomY, randomZ)).OnRandomTickUpdate(this, globalBlockPosition, WorldChunks[playerChunkPosition].BlockPropertyData[ChunkUtils.VecToIndex((randomX, randomY, randomZ))]);
 
                 }
 
@@ -161,33 +162,36 @@ namespace Blockgame_OpenTK.Core.Worlds
 
         }
 
-        public void SetBlock(Vector3i globalBlockPosition, BlockProperty.BlockProperties blockProperties, ushort blockId)
+        public void SetBlock(Vector3i globalBlockPosition, IBlockProperties blockProperties, Block block, bool shouldRemesh = true)
         {
 
             Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
             Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
 
-            WorldChunks[chunkPosition].SetBlock(localBlockPosition, blockProperties, GlobalValues.Register.GetBlockFromID(blockId));
-            WorldChunks[chunkPosition].QueueType = QueueType.Mesh;
-            WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunkPosition);
+            WorldChunks[chunkPosition].SetBlock(localBlockPosition, blockProperties, block);
 
-            Vector3i componentMin = Vector3i.ComponentMin(localBlockPosition, (-1, -1, -1));
-            Vector3i componentMax = Vector3i.ComponentMax(localBlockPosition, Vector3i.Zero);
-
-            for (int x = -1; x <= 1; x++)
+            if (shouldRemesh)
             {
 
-                for (int y = -1; y <= 1; y++)
+                WorldChunks[chunkPosition].QueueType = QueueType.Mesh;
+                WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunkPosition);
+
+                for (int x = -1; x <= 1; x++)
                 {
 
-                    for (int z = -1; z <= 1; z++)
+                    for (int y = -1; y <= 1; y++)
                     {
 
-                        if ((x, y, z) != Vector3i.Zero)
+                        for (int z = -1; z <= 1; z++)
                         {
 
-                            WorldChunks[chunkPosition + (x, y, z)].QueueType = QueueType.Mesh;
-                            WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunkPosition + (x, y, z));
+                            if ((x, y, z) != Vector3i.Zero)
+                            {
+
+                                WorldChunks[chunkPosition + (x, y, z)].QueueType = QueueType.Mesh;
+                                WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunkPosition + (x, y, z));
+
+                            }
 
                         }
 
@@ -206,12 +210,12 @@ namespace Blockgame_OpenTK.Core.Worlds
 
         }
 
-        public BlockProperty.BlockProperties GetBlockProperties(Vector3i globalBlockPosition)
+        public IBlockProperties GetBlockProperties(Vector3i globalBlockPosition)
         {
 
             // return WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))];
 
-            return WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyNewData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))] ?? new BlockProperty.BlockProperties();
+            return WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))];
 
         }
 

@@ -72,6 +72,8 @@ namespace Blockgame_OpenTK
         public static float LeftTrigger = 0.0f;
         public static float RightTrigger = 0.0f;
 
+        public static List<string> CurrentTypedStrings = new List<string>();
+
         public static JoystickHandle PlayerOneJoystickHandle;
 
         public static void Initialize()

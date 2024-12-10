@@ -1,33 +1,14 @@
 {
-    "Inherit": "Cube.json",
-    "Textures": {
-        "$sides": "AspenLogBlockSide",
-		"$tops": "AspenLogBlockTop"
-    },
-    "Faces": [
-        {
-            "Inherit": "Top",
-            "Texture": "$tops"
-        },
-        {
-            "Inherit": "Bottom",
-            "Texture": "$tops"
-        },
-        {
-            "Inherit": "Left",
-            "Texture": "$sides"
-        },
-        {
-            "Inherit": "Right",
-            "Texture": "$sides"
-        },
-        {
-            "Inherit": "Front",
-            "Texture": "$sides"
-        },
-        {
-            "Inherit": "Back",
-			"Texture": "$sides"
-        }
-    ]
+
+	"Inherit": "CubeDifferentSideTextures.json",
+	"Textures": {
+		"$top": "AspenLogBlockTop",
+		"$front": "AspenLogBlockSide",
+		"$left": "AspenLogBlockSide",
+		"$back": "AspenLogBlockSide",
+		"$right": "AspenLogBlockSide",
+		"$bottom": "AspenLogBlockTop"
+	},
+	"Objects": []
+
 }

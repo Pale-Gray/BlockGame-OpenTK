@@ -1,10 +1,10 @@
 [Info] Starting in client mode.
-[Info] Platform: Microsoft Windows 10.0.19045
+[Info] Platform: Microsoft Windows 10.0.22631
 [Info] Architecture: x64
 [Info] .NET 8.0.11
-[Info] NVIDIA Corporation
-[Info] NVIDIA GeForce RTX 3060/PCIe/SSE2
-[Info] 4.6.0 NVIDIA 546.33
+[Info] ATI Technologies Inc.
+[Info] AMD Radeon (TM) Graphics
+[Info] 4.6.0 Core Profile Context 23.19.12.03.240603
 [Info] Loading Textures
 [Info] Loading File Resources\Textures\TextureArray\AspenLeafBlock.png
 [Info] Added AspenLeafBlock to TextureNames
@@ -62,6 +62,9 @@
 [Info] The model has inherited model CubeSameTexture.json
 [Info] Parsing Foliage.json
 [Info] The model has inherited model CrossFoliageBase.json
+[Info] Parsing AspenLogBlock.json
+[Info] The model has inherited model CubeDifferentSideTextures.json
+[Info] Parsing AspenLeafBlock.json
 [Info] Registering AirBlock
 [Info] Registered AirBlock
 [Info] Registering GrassBlock
@@ -94,14 +97,46 @@
 [Info] The model has inherited model Tree/Tree28DiameterRight.json
 [Info] Parsing AspenTree\AspenTree16DiameterCenter.json
 [Info] The model has inherited model Tree/Tree16DiameterCenter.json
+[Info] Parsing AspenTree\AspenTree16DiameterTop.json
+[Info] The model has inherited model Tree/Tree16DiameterTop.json
+[Info] Parsing AspenTree\AspenTree16DiameterBottom.json
+[Info] The model has inherited model Tree/Tree16DiameterBottom.json
+[Info] Parsing AspenTree\AspenTree16DiameterLeft.json
+[Info] The model has inherited model Tree/Tree16DiameterLeft.json
+[Info] Parsing AspenTree\AspenTree16DiameterRight.json
+[Info] The model has inherited model Tree/Tree16DiameterRight.json
+[Info] Parsing AspenTree\AspenTree16DiameterFront.json
+[Info] The model has inherited model Tree/Tree16DiameterFront.json
+[Info] Parsing AspenTree\AspenTree16DiameterBack.json
+[Info] The model has inherited model Tree/Tree16DiameterBack.json
 [Info] Parsing AspenTree\AspenTree12DiameterCenter.json
 [Info] The model has inherited model Tree/Tree12DiameterCenter.json
+[Info] Parsing AspenTree\AspenTree12DiameterTop.json
+[Info] The model has inherited model Tree/Tree12DiameterTop.json
+[Info] Parsing AspenTree\AspenTree12DiameterBottom.json
+[Info] The model has inherited model Tree/Tree12DiameterBottom.json
+[Info] Parsing AspenTree\AspenTree12DiameterLeft.json
+[Info] The model has inherited model Tree/Tree12DiameterLeft.json
+[Info] Parsing AspenTree\AspenTree12DiameterRight.json
+[Info] The model has inherited model Tree/Tree12DiameterRight.json
+[Info] Parsing AspenTree\AspenTree12DiameterFront.json
+[Info] The model has inherited model Tree/Tree12DiameterFront.json
+[Info] Parsing AspenTree\AspenTree12DiameterBack.json
+[Info] The model has inherited model Tree/Tree12DiameterBack.json
 [Info] Registering AspenTreeBlock
 [Info] Registered AspenTreeBlock
+[Info] Registering AspenLeafBlock
+[Info] Registered AspenLeafBlock
+[Info] Registering AspenLogBlock
+[Info] Registered AspenLogBlock
 [Info] Parsing MissingModel.json
 [Info] The model has inherited model CubeSameTexture.json
-System.InvalidCastException: Unable to cast object of type 'Blockgame_OpenTK.BlockProperty.BlockProperties' to type 'Blockgame_OpenTK.BlockProperty.AspenTreeBlockProperties'.
-   at Blockgame_OpenTK.BlockUtil.AspenTreeBlock.OnRandomTickUpdate(World world, Vector3i globalBlockPosition, BlockProperties blockProperties) in .\Block\AspenTreeBlock.cs:line 78
-   at Blockgame_OpenTK.Core.Worlds.World.Tick(Vector3 playerPosition) in .\World\World.cs:line 71
-   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 450
-   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 236
+System.Collections.Generic.KeyNotFoundException: The given key '(-1, -2, 9)' was not present in the dictionary.
+   at System.Collections.Concurrent.ConcurrentDictionary`2.ThrowKeyNotFoundException(TKey key)
+   at System.Collections.Concurrent.ConcurrentDictionary`2.get_Item(TKey key)
+   at Blockgame_OpenTK.Core.Worlds.World.SetBlock(Vector3i globalBlockPosition, BlockProperties blockProperties, Block block, Boolean shouldRemesh) in .\World\World.cs:line 190
+   at Blockgame_OpenTK.BlockUtil.Block.OnBlockPlace(World world, Vector3i globalBlockPosition) in .\Block\Block.cs:line 115
+   at Blockgame_OpenTK.PlayerUtil.Player.Update(World world) in .\Player\Player.cs:line 106
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 409
+   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 293
+   at Blockgame_OpenTK.Program.<Main>(String[] args)
