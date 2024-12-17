@@ -21,7 +21,7 @@ namespace Blockgame_OpenTK.Font
             public Vector3 Position;
             public Vector2 TextureCoordinate;
             public float TextureIndex = 0;
-            public Vector3 Color;
+            public Vector4 Color = Vector4.One;
 
             public CachedFontVertex(Vector3 position, Vector2 textureCoordinate, float textureIndex)
             {
@@ -61,7 +61,7 @@ namespace Blockgame_OpenTK.Font
             public int Length;
 
         }
-        public static void RenderFontSpecialText(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color3<Rgb> color)
+        public static void RenderFontSpecialText(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color4<Rgba> color)
         {
 
             List<CharFormatData> charData = new List<CharFormatData>();
@@ -188,10 +188,10 @@ namespace Blockgame_OpenTK.Font
 
         }
 
-        public static void RenderFont(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color3<Rgb> color)
+        public static void RenderFont(Vector2 position, Vector2 origin, float layer, float size, string text, string fontName, Color4<Rgba> color)
         {
 
-            Vector3 p = (position.X, position.Y, -layer);
+            Vector3 p = (position.X, position.Y, layer);
             List<CachedFontVertex> textVertices = new List<CachedFontVertex>();
             List<ulong> textSamplers = new List<ulong>();
             Vector3 currentGlyphPosition = Vector3.Zero;
@@ -253,6 +253,7 @@ namespace Blockgame_OpenTK.Font
             {
 
                 textVerticesArray[i].Position -= (width * origin.X, -height * origin.Y, 0.0f);
+                textVerticesArray[i].Color = (Vector4) color;
 
             }
             GL.DeleteVertexArray(_vao);
@@ -283,7 +284,7 @@ namespace Blockgame_OpenTK.Font
 
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "color"), 1, (Vector3)color);
+            GL.Uniform4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "color"), 1, (Vector4)color);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "time"), 1, (float) GlobalValues.Time);
             GL.BindVertexArray(_vao);
 
@@ -300,20 +301,17 @@ namespace Blockgame_OpenTK.Font
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
 
-            Console.WriteLine($"trying to render {character}");
+            // Console.WriteLine($"trying to render {character}");
 
             error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(pathToFont), 0, &face);
-            Console.WriteLine(error.ToString());
             error = FT_Set_Pixel_Sizes(face, 0, (uint)_fontSize);
-            Console.WriteLine(error.ToString());
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
-            Console.WriteLine(error.ToString());
 
             CachedGlyphData glyphData = new CachedGlyphData();
             // Console.WriteLine(_glyphArrays==null);
 
             _glyphArrays.AddTexture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, out float index);
-            Console.WriteLine($"character {character} has a texture index of {index}, dimensions {face->glyph->bitmap.width}, {face->glyph->bitmap.rows} with error of {error.ToString()}");
+            // Console.WriteLine($"character {character} has a texture index of {index}, dimensions {face->glyph->bitmap.width}, {face->glyph->bitmap.rows} with error of {error.ToString()}");
             // glyphData.GlyphTexture = new Texture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows);
             glyphData.TextureIndex = index;
             glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);

@@ -184,7 +184,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             normal = Vector3.Cross(bitangent, tangent).Normalized();
 
-            Console.WriteLine($"bitangent: {bitangent}, tangent: {tangent}, normal: {normal}");
+            // Console.WriteLine($"bitangent: {bitangent}, tangent: {tangent}, normal: {normal}");
 
             return normal;
 
@@ -468,13 +468,6 @@ namespace Blockgame_OpenTK.BlockUtil
 
             };
 
-            Console.WriteLine($"end x {end.X}");
-
-            Console.WriteLine($"texcoord 0 {frontFaceTextureCoordinates[0]}");
-            Console.WriteLine($"texcoord 1 {frontFaceTextureCoordinates[1]}");
-            Console.WriteLine($"texcoord 2 {frontFaceTextureCoordinates[2]}");
-            Console.WriteLine($"texcoord 3 {frontFaceTextureCoordinates[3]}");
-
             frontFace = TransformFace(frontFace, cube.Scale ?? Vector3.One, cube.Rotation ?? Vector3.Zero, cube.Translation ?? Vector3.Zero);
 
             int frontTextureIndex = GetTextureIndexFromCube(textures, cube, "Front");
@@ -688,7 +681,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
                 BlockModelAbstractData inheritModel = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(path.ToArray())), GlobalValues.DefaultJsonOptions);
 
-                Debugger.Log($"The model has inherited model {abstractModelData.Inherit}", Severity.Info);
+                // Debugger.Log($"The model has inherited model {abstractModelData.Inherit}", Severity.Info);
 
                 for (int i = 0; i < inheritModel.Objects.Count(); i++)
                 {
@@ -720,7 +713,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             BlockModelAbstractData abstractModelData = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)), GlobalValues.DefaultJsonOptions);
 
-            Debugger.Log($"Parsing {fileName}", Severity.Info);
+            // Debugger.Log($"Parsing {fileName}", Severity.Info);
             Parse(abstractModelData, model);
 
             return model;

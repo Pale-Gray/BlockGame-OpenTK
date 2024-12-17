@@ -14,5 +14,12 @@ namespace Blockgame_OpenTK.BlockProperty
 
             return Array.Empty<byte>();
         }
+
+        public IBlockProperties FromBytes()
+        {
+
+            return new NewProperties();
+
+        }
     }
 }

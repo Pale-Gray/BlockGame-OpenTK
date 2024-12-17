@@ -43,6 +43,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public AspenTreeBlock()
         {
 
+            BlockPropertiesType = typeof(AspenTreeBlockProperties);
             SetProperties(_blockProperties);
             BlockProperties = new AspenTreeBlockProperties();
             

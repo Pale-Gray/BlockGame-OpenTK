@@ -51,6 +51,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public string SoundPath { get; set; }
         public ushort ID = 0;
         public IBlockProperties BlockProperties;
+        public Type BlockPropertiesType = null;
         // public BlockProperties BlockProperties { get; set; }
 
         public AxisAlignedBoundingBox BoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0));

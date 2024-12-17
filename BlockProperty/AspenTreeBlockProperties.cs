@@ -45,5 +45,16 @@ namespace Blockgame_OpenTK.BlockProperty
 
         }
 
+        public IBlockProperties FromBytes()
+        {
+
+            AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
+
+            // somewhere in here, deserialize the bits and set them in the prop fields
+
+            return prop;
+            
+        }
+
     }
 }

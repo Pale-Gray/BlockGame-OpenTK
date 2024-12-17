@@ -19,6 +19,7 @@ using System.Net;
 using System.Text.Json;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.BlockProperty;
+using System.Diagnostics.Contracts;
 
 namespace Blockgame_OpenTK
 {
@@ -48,8 +49,6 @@ namespace Blockgame_OpenTK
 
             }
 
-            Console.WriteLine(Type.GetType("Blockgame_OpenTK.BlockProperty.AspenTreeBlockProperties"));
-
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;
             prop2.ToBytes();
@@ -64,8 +63,8 @@ namespace Blockgame_OpenTK
 
             Console.WriteLine(propser is null);
 
-            // Console.WriteLine(props[0] == null);
-
+            // account stuff
+            /* 
             Console.WriteLine("Please specify a username");
             string username = Console.ReadLine();
             Console.WriteLine("Please specify a password");
@@ -97,9 +96,7 @@ namespace Blockgame_OpenTK
                 }
 
             }
-
-
-            // BlockModel test = BlockModel.LoadFromJson("NewGrassBlock.json");
+            */
 
             Console.OutputEncoding = Encoding.Unicode;
 
@@ -122,7 +119,7 @@ namespace Blockgame_OpenTK
 
                 Version = new Version(4, 6),
                 Profile = OpenGLProfile.Core,
-                DebugFlag = true,
+                DebugFlag = false,
                 DepthBits = ContextDepthBits.Depth24,
                 StencilBits = ContextStencilBits.Stencil8
 
@@ -299,7 +296,6 @@ namespace Blockgame_OpenTK
                 Toolkit.OpenGL.SwapBuffers(glContext);
 
                 sw.Stop();
-                // Util.Debugger.Log($"Rendering took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
 
             }
 
@@ -319,6 +315,8 @@ namespace Blockgame_OpenTK
             { 
 
                 BlockGame.UpdateScreenSize(windowResizeEventArgs);
+
+                Toolkit.OpenGL.SwapBuffers(glContext);
 
             }
 

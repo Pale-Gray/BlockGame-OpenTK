@@ -34,5 +34,20 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static Vector2 CosLerp(Vector2 a, Vector2 b, float t)
+        {
+
+            return (Maths.CosLerp(a.X, b.X, t), Maths.CosLerp(a.Y, b.Y, t));
+
+        }
+
+        public static Vector2 EaseOutCubic(Vector2 a, Vector2 b, float t)
+        {
+
+            t = Maths.EaseOutCubic(t);
+            return Vector2.Lerp(a, b, t);
+
+        }
+
     }
 }

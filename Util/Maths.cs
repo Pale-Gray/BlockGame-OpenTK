@@ -1,5 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System;
+using System.IO;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
@@ -90,6 +92,15 @@ namespace Blockgame_OpenTK.Util
             // val /= (octaves);
 
             return val;
+
+        }
+
+        // from https://easings.net/#easeOutCubic
+        // transforms t value into eased value.
+        public static float EaseOutCubic(float t)
+        {   
+
+            return (float)(1.0 - Math.Pow(1.0 - t, 3));
 
         }
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System;
 using Blockgame_OpenTK.BlockProperty;
+using System.Text;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -104,14 +105,19 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             byte[] rleData = Rle.Compress(BlockData);
 
-            // byte[] destination = new byte[BrotliEncoder.GetMaxCompressedLength(BlockData.Length * 2)];
-            // BrotliEncoder.TryCompress(MemoryMarshal.AsBytes<ushort>(BlockData), destination, out int amtWritten);
-            // Array.Resize(ref destination, amtWritten);
-
-            using (FileStream fs = new FileStream($"Chunks/{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat", FileMode.Create, FileAccess.Write))
+            using (FileStream stream = new FileStream(Path.Combine("Chunks", FileName), FileMode.Create, FileAccess.Write))
             {
 
-                fs.Write(rleData);
+                // default header
+                stream.Write(Encoding.UTF8.GetBytes("CDAT"));
+                stream.Write(BitConverter.GetBytes((uint)0));
+
+                // begin rle chunk
+                // the first chunk inside the data
+                // every other chunk after this depends on this so that's why this is first
+                stream.Write(Encoding.UTF8.GetBytes("BLOK")); // each chunk contains a header name
+                stream.Write(BitConverter.GetBytes(rleData.Length)); // each chunk contains a header length
+                stream.Write(rleData);
 
             }
             
