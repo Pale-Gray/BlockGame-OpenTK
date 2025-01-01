@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-	<PathMap>$(MSBuildThisFileDirectory)=.\</PathMap>
-    <TargetFramework>net8.0</TargetFramework>
+	<PathMap>$(MSBuildThisFileDirectory)=.</PathMap>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>Blockgame_OpenTK</RootNamespace>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

@@ -68,7 +68,8 @@ void main()
 	float fac = clamp(distFac, 0, 1);
 
 	float a = 1.0;
-	float texelAlpha = texelFetch(arrays, ivec3(vtexcoord*32,vtexture_index), 0).a;
+	// float texelAlpha = texelFetch(arrays, ivec3(vtexcoord*32,vtexture_index), 0).a;
+	float texelAlpha = array_texture.a;
 	if (texelAlpha == 0) discard;
 
 	float ambientIntensity = 0.5;

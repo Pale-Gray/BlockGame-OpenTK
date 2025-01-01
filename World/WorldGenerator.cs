@@ -16,8 +16,8 @@ namespace Blockgame_OpenTK.Core.Worlds
 
         public static int MaxRadius = 8;
         static int CurrentRadius = 0;
-        static int MaxChunkUpdates = 1000;
-        static int MaxUploads = 25;
+        static int MaxChunkUpdates = 100;
+        static int MaxUploads = 10;
         private static Vector3i[] ChunksToAdd = ChunkUtils.GenerateRingsOfColumns(CurrentRadius, MaxRadius);
         private static int _totalQueued = 0;
 

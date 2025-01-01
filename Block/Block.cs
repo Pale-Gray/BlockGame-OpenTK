@@ -50,7 +50,8 @@ namespace Blockgame_OpenTK.BlockUtil
         public ushort LightValue { get; set; }
         public string SoundPath { get; set; }
         public ushort ID = 0;
-        public BlockProperty.BlockProperties BlockProperties;
+        public IBlockProperties BlockProperties;
+        public Type BlockPropertiesType = null;
         // public BlockProperties BlockProperties { get; set; }
 
         public AxisAlignedBoundingBox BoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0));
@@ -68,12 +69,10 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public virtual BlockProperty.BlockProperties CreateNewProperties()
+        public virtual IBlockProperties CreateNewProperties()
         {
 
-            BlockProperty.BlockProperties properties = new BlockProperty.BlockProperties();
-
-            return properties;
+            return null;
 
         }
 
@@ -89,35 +88,34 @@ namespace Blockgame_OpenTK.BlockUtil
             SoundPath = block.SoundPath;
             ID = block.ID;
             GuiRenderableBlockModel = block.GuiRenderableBlockModel;
-            // BlockProperties = block.BlockProperties;
 
             BoundingBox.StaticFriction = block.BoundingBox.StaticFriction;
             BoundingBox.DynamicFriction = block.BoundingBox.DynamicFriction;
 
         }
 
-        public BlockProperty.BlockProperties OnBlockPropertiesCreate(Player player, World world, Vector3i globalBlockPosition)
+        public IBlockProperties OnBlockPropertiesCreate(Player player, World world, Vector3i globalBlockPosition)
         {
 
-            return new BlockProperty.BlockProperties();
+            return null;
 
         }
 
-        public virtual void OnBlockSet(Chunk chunk, Vector3i localBlockPosition)
+        public virtual void OnBlockLoad(Chunk chunk, Vector3i localBlockPosition)
         {
 
-            // chunk.BlockPropertyNewData[ChunkUtils.VecToIndex(localBlockPosition)] = CreateNewProperties();
-            chunk.SetBlock(localBlockPosition, CreateNewProperties(), this);
+            chunk.SetBlock(localBlockPosition, null, this);
 
         }
+
         public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition)
         {
 
-            world.SetBlock(globalBlockPosition, CreateNewProperties(), ID);
+            world.SetBlock(globalBlockPosition, null, this);
 
         }
 
-        public virtual void OnBlockMesh(World world, Dictionary<Vector3i, bool[]> mask, BlockProperty.BlockProperties properties, Vector3i globalBlockPosition)
+        public virtual void OnBlockMesh(World world, Dictionary<Vector3i, bool[]> mask, IBlockProperties properties, Vector3i globalBlockPosition)
         {
 
             world.AppendModel(BlockModel, globalBlockPosition, mask);
@@ -128,11 +126,11 @@ namespace Blockgame_OpenTK.BlockUtil
         public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition)
         {
 
-            world.SetBlock(globalBlockPosition, new BlockProperty.BlockProperties(), 0);
+            world.SetBlock(globalBlockPosition, null, Blocks.AirBlock);
 
         }
         public virtual void OnTickUpdate() { }
-        public virtual void OnRandomTickUpdate(World world, Vector3i globalBlockPosition, BlockProperty.BlockProperties blockProperties)
+        public virtual void OnRandomTickUpdate(World world, Vector3i globalBlockPosition, IBlockProperties blockProperties)
         {
         
             

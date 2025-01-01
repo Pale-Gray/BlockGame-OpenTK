@@ -21,7 +21,7 @@ namespace Blockgame_OpenTK.Font
             public Vector3 Position;
             public Vector2 TextureCoordinate;
             public float TextureIndex = 0;
-            public Vector3 Color;
+            public Vector4 Color = Vector4.One;
 
             public CachedFontVertex(Vector3 position, Vector2 textureCoordinate, float textureIndex)
             {
@@ -44,18 +44,18 @@ namespace Blockgame_OpenTK.Font
 
         }
 
-        private static Dictionary<char, CachedGlyphData> _glyphData = new Dictionary<char, CachedGlyphData>();
+        // private static Dictionary<char, CachedGlyphData> _glyphData = new Dictionary<char, CachedGlyphData>();
         private static int _vao, _vbo;
-        private static float _fontSize = 48.0f;
+        // private static float _fontSize = 16.0f;
+        // private static float _textureClearanceScale = 2.0f;
 
-        private static ArrayTexture _glyphArrays;
-        public static void Init()
-        {
+        private static Dictionary<(char, int), CachedGlyphData> _variableSizedGlyphData = new();
+        private static Dictionary<int, ArrayTexture> _variabledSizedArrayTexture = new();
 
-            _glyphArrays = new ArrayTexture((int)_fontSize, (int)_fontSize);
-            _glyphArrays.Init();
+        private static float _ascent = 0.0f;
+        private static float _descent = 0.0f;
 
-        }
+        // private static ArrayTexture _glyphArrays;
 
         struct CharFormatData
         {
@@ -67,145 +67,65 @@ namespace Blockgame_OpenTK.Font
             public int Length;
 
         }
-        public static void RenderFontSpecialText(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color3<Rgb> color)
+
+        public static void Init()
         {
 
-            List<CharFormatData> charData = new List<CharFormatData>();
-            for (int i = 0; i < text.Length; i++)
-            {
-
-                if (text[i] == '[')
-                {
-
-                    CharFormatData formatData = new CharFormatData();
-                    int start = i;
-                    int end = i;
-                    for (int startIndex = i+1; startIndex < text.Length; startIndex++)
-                    {
-
-                        if (text[startIndex] == ']')
-                        {
-
-                            end = startIndex;
-                            int startingString = startIndex+1;
-                            for (int stringStartingIndex = i+1;  stringStartingIndex < text.Length; stringStartingIndex++)
-                            {
-
-                                if (text[stringStartingIndex] == '[' || stringStartingIndex == text.Length - 1)
-                                {
-
-                                    formatData.Start = startingString;
-                                    formatData.Length = stringStartingIndex - startingString + 1;
-
-                                }
-
-                            }
-
-                        }
-
-                    }
-                    string data = text.Substring(start+1, (end - start - 1)).ToLower().Replace(" ", "");
-                    string formatText = text.Substring(formatData.Start, formatData.Length);
-
-                    string[] parameters = data.Split(',');
-                    for (int c = 0; c < parameters.Length; c++)
-                    {
-
-                        switch (parameters[c])
-                        {
-
-                            case "wavy":
-                                formatData.IsWavy = true;
-                                break;
-                            case "italics":
-                                formatData.IsItalics = true;
-                                break;
-                            case "red":
-                                formatData.Color = Color3.Red;
-                                break;
-                            case "blue":
-                                formatData.Color = Color3.Blue;
-                                break;
-                            case "green":
-                                formatData.Color = Color3.Green;
-                                break;
-                            case "yellow":
-                                formatData.Color = Color3.Yellow;
-                                break;
-                            case "orange":
-                                formatData.Color = Color3.Orange;
-                                break;
-                            case "purple":
-                                formatData.Color = Color3.Purple;
-                                break;
-                            default:
-                                if (parameters[i].StartsWith("0x"))
-                                {
-
-                                    byte r = byte.Parse(parameters[i].Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-                                    byte g = byte.Parse(parameters[i].Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-                                    byte b = byte.Parse(parameters[i].Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
-
-                                    float rFloat = r / (float)255;
-                                    float gFloat = g / (float)255;
-                                    float bFloat = b / (float)255;
-
-                                    formatData.Color = new Color3<Rgb>(rFloat,gFloat,bFloat);
-
-                                }
-                                break;
-
-                        }
-
-                    }
-                    charData.Add(formatData);
-
-                }
-
-            }
-
-            foreach (CharFormatData data in charData)
-            {
-
-                Console.WriteLine($"{data.Color}, {data.Start}, {data.Length}, {data.IsWavy}, {data.IsItalics}");
-
-            }
-
-            RenderFont(position, origin, layer, size, text, fontName, color);
+            // _glyphArrays = new ArrayTexture((int)(_fontSize * _textureClearanceScale), (int) (_fontSize*_textureClearanceScale));
+            // _glyphArrays.Init();
 
         }
 
-        public static void RenderFont(Vector2 position, Vector2 origin, int layer, float size, string text, string fontName, Color3<Rgb> color)
+        private static unsafe FT_LibraryRec_* _library;
+        private static unsafe FT_FaceRec_* _face;
+        private static FT_Error _error;
+
+        public static unsafe void Initialize(string pathToFont)
         {
 
-            Vector3 p = (position.X, position.Y, -layer);
+
+
+        }
+
+        public static void RenderFont(Vector2 position, Vector2 origin, float layer, int size, string text, string fontName, Color4<Rgba> color, Vector2? bounds = null)
+        {
+
+            if (!_variabledSizedArrayTexture.ContainsKey(size))
+            {
+
+                _variabledSizedArrayTexture.Add(size, new ArrayTexture(size * 2, size * 2));
+                _variabledSizedArrayTexture[size].Init();
+
+            }
+
+            Vector3 p = (position.X, position.Y, layer);
             List<CachedFontVertex> textVertices = new List<CachedFontVertex>();
             List<ulong> textSamplers = new List<ulong>();
             Vector3 currentGlyphPosition = Vector3.Zero;
-            float aspect = size / _fontSize;
+            float aspect = 1.0f;
             for (int i = 0; i < text.Length; i++)
             {
 
-                if (!_glyphData.ContainsKey(text[i]))
+                if (!_variableSizedGlyphData.ContainsKey((text[i], size)))
                 {
 
                     GenerateGlyphData(text[i], size, fontName);
 
                 }
-                if (_glyphData[text[i]].Size != Vector2.Zero)
+                if (_variableSizedGlyphData[(text[i], size)].Size != Vector2.Zero)
                 {
 
-                    CachedGlyphData data = _glyphData[text[i]];
-                    Vector2 texCoordOffset = Vector2.One - (data.Size / _fontSize);
+                    CachedGlyphData data = _variableSizedGlyphData[(text[i], size)];
+                    Vector2 texCoordOffset = Vector2.One - (data.Size / (size * 2));// Vector2.One - (data.Size / data.Size); //Vector2.One;// - (data.Size / (size * 2));
                     CachedFontVertex[] currentGlyphVertices =
                     {
 
-                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (0, 0), _glyphData[text[i]].TextureIndex),
-                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (0, 1 - texCoordOffset.Y), _glyphData[text[i]].TextureIndex),
-                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (1 - texCoordOffset.X, 1 - texCoordOffset.Y), _glyphData[text[i]].TextureIndex),
-                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (1 - texCoordOffset.X, 1 - texCoordOffset.Y), _glyphData[text[i]].TextureIndex),
-                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (1 - texCoordOffset.X, 0), _glyphData[text[i]].TextureIndex),
-                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (0, 0), _glyphData[text[i]].TextureIndex)
+                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (0, 0), data.TextureIndex),
+                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (0, 1 - texCoordOffset.Y), data.TextureIndex),
+                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (1 - texCoordOffset.X, 1 - texCoordOffset.Y), data.TextureIndex),
+                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (data.Size.Y - data.Bearing.Y) * aspect, 0), (1 - texCoordOffset.X, 1 - texCoordOffset.Y), data.TextureIndex),
+                        new CachedFontVertex(currentGlyphPosition + ((data.Bearing.X + data.Size.X) * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (1 - texCoordOffset.X, 0), data.TextureIndex),
+                        new CachedFontVertex(currentGlyphPosition + (data.Bearing.X * aspect, (-data.Size.Y + (data.Size.Y - data.Bearing.Y)) * aspect, 0), (0, 0), data.TextureIndex)
 
                     };
                     for (int v = 0; v < currentGlyphVertices.Length; v++)
@@ -217,16 +137,16 @@ namespace Blockgame_OpenTK.Font
                     textVertices.AddRange(currentGlyphVertices);
 
                 }
-                currentGlyphPosition.X += ((int)_glyphData[text[i]].Advance.X >> 6) * aspect;
+                currentGlyphPosition.X += ((int)_variableSizedGlyphData[(text[i], size)].Advance.X >> 6) * aspect;
 
             }
             float width = 0;
-            float height = 0;
+            float height = size;
             for (int i = 0; i < textVertices.Count; i++)
             {
 
                 width = Math.Max(width, textVertices[i].Position.X - p.X);
-                height = Math.Abs(Math.Min(height, textVertices[i].Position.Y - p.Y));
+                // height = Math.Abs(Math.Min(height, textVertices[i].Position.Y - p.Y));
 
             }
 
@@ -240,6 +160,7 @@ namespace Blockgame_OpenTK.Font
             {
 
                 textVerticesArray[i].Position -= (width * origin.X, -height * origin.Y, 0.0f);
+                textVerticesArray[i].Color = (Vector4) color;
 
             }
             GL.DeleteVertexArray(_vao);
@@ -266,49 +187,50 @@ namespace Blockgame_OpenTK.Font
 
             GlobalValues.CachedFontShader.Use();
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2dArray, _glyphArrays.TextureID);
+            GL.BindTexture(TextureTarget.Texture2dArray, _variabledSizedArrayTexture[size].TextureID);
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "color"), 1, (Vector3)color);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "color"), 1, (Vector4)color);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "time"), 1, (float) GlobalValues.Time);
-            // GL.ARB.UniformHandleui64vARB(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "glyphSamplers"), textSamplers.Count, textSamplers.ToArray());
-
             GL.BindVertexArray(_vao);
-
-            // GL.Disable(EnableCap.CullFace);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, textVerticesArray.Length);
 
-            // GL.Enable(EnableCap.CullFace);
-
-            // GL.BindVertexArray(0);
-
-            // GlobalValues.CachedFontShader.UnUse();
-
         }
 
-        private unsafe static void GenerateGlyphData(char character, float size, string pathToFont)
+        private unsafe static void GenerateGlyphData(char character, int size, string pathToFont)
         {
 
             FT_LibraryRec_* library;
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
 
+            // _ascent = face->ascender;
+            // _descent = face->descender;
+
+            // Console.WriteLine($"trying to render {character}");
+
             error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(pathToFont), 0, &face);
-            error = FT_Set_Pixel_Sizes(face, 0, (uint)_fontSize);
+            error = FT_Set_Pixel_Sizes(face, 0, (uint)size);
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
 
+            _ascent = face->ascender;
+            _descent = face->descender;
+
             CachedGlyphData glyphData = new CachedGlyphData();
-            _glyphArrays.AddTexture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, out float index);
-            Console.WriteLine($"character {character} has a texture index of {index}");
+            // Console.WriteLine(_glyphArrays==null);
+
+            _variabledSizedArrayTexture[size].AddTexture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, out float index);
+            // Console.WriteLine($"character {character} has a texture index of {index}, dimensions {face->glyph->bitmap.width}, {face->glyph->bitmap.rows} with error of {error.ToString()}");
             // glyphData.GlyphTexture = new Texture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows);
             glyphData.TextureIndex = index;
             glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);
+            // glyphData.Size = (face->glyph->bitmap.width * (uint)_textureClearanceScale, face->glyph->bitmap.rows * (uint)_textureClearanceScale);
             glyphData.Bearing = (face->glyph->bitmap_left, face->glyph->bitmap_top);
             glyphData.Advance = (face->glyph->advance.x, face->glyph->advance.y);
-            _glyphData.Add(character, glyphData);
+
+            _variableSizedGlyphData.Add((character, size), glyphData);
 
         }
 

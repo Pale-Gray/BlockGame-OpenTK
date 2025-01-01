@@ -13,13 +13,21 @@ using System.Resources;
 using Blockgame_OpenTK.Font;
 using System.Collections.Generic;
 using Blockgame_OpenTK.BlockUtil;
+using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net;
+using System.Text.Json;
+using Blockgame_OpenTK.PlayerUtil;
+using Blockgame_OpenTK.BlockProperty;
+using System.Diagnostics.Contracts;
 
 namespace Blockgame_OpenTK
 {
-    internal unsafe class Program
-    { 
+    internal class Program
+    {
 
-        public static void Main(string[] args)
+        public static OpenGLContextHandle glContext;
+        public static async Task Main(string[] args)
         {
 
             if (args.Length == 0)
@@ -41,7 +49,54 @@ namespace Blockgame_OpenTK
 
             }
 
-            // BlockModel test = BlockModel.LoadFromJson("NewGrassBlock.json");
+            AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
+            IBlockProperties prop2 = prop;
+            prop2.ToBytes();
+
+            NewProperties prop3 = new NewProperties();
+            IBlockProperties prop4 = prop3;
+            prop4.ToBytes();
+
+            IBlockProperties[] props = new IBlockProperties[50];
+
+            IBlockProperties propser = null;
+
+            Console.WriteLine(propser is null);
+
+            // account stuff
+            /* 
+            Console.WriteLine("Please specify a username");
+            string username = Console.ReadLine();
+            Console.WriteLine("Please specify a password");
+            string password = Console.ReadLine();
+
+            using (HttpClient client = new HttpClient())
+            {
+
+                Dictionary<string, string> loginInfo = new()
+                {
+
+                    {"username", username},
+                    {"password", password}
+
+                };
+
+                FormUrlEncodedContent content = new FormUrlEncodedContent(loginInfo);
+
+                HttpResponseMessage response = await client.PostAsync("https://palegray.blog/logingame.php", content);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+
+                    string jsonData = await response.Content.ReadAsStringAsync();
+                    AbstractAccountInfo accountInfo = JsonSerializer.Deserialize<AbstractAccountInfo>(jsonData);
+
+                    GlobalValues.AbstractCurrentUser = accountInfo;
+
+                }
+
+            }
+            */
 
             Console.OutputEncoding = Encoding.Unicode;
 
@@ -64,14 +119,14 @@ namespace Blockgame_OpenTK
 
                 Version = new Version(4, 6),
                 Profile = OpenGLProfile.Core,
-                DebugFlag = true,
+                DebugFlag = false,
                 DepthBits = ContextDepthBits.Depth24,
                 StencilBits = ContextStencilBits.Stencil8
 
             };
 
             WindowHandle window = Toolkit.Window.Create(contextSettings);
-            OpenGLContextHandle glContext = Toolkit.OpenGL.CreateFromWindow(window);
+            glContext = Toolkit.OpenGL.CreateFromWindow(window);
 
             Toolkit.OpenGL.SetCurrentContext(glContext);
             GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(glContext));
@@ -84,6 +139,7 @@ namespace Blockgame_OpenTK
             Toolkit.Window.SetSize(window, (640, 480));
             Toolkit.Window.SetMode(window, WindowMode.Normal);
             Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
+
             //Toolkit.Window.GetClientSize(window, out int w, out int h);
             //Console.WriteLine($"{w}, {h}");
             // CursorHandle invisibleCursor = Toolkit.Cursor.Create(1, 1, new ReadOnlySpan<byte>(new byte[4]), 0, 0);
@@ -235,10 +291,11 @@ namespace Blockgame_OpenTK
 
                 BlockGame.Render();
 
+                if (Input.CurrentTypedStrings.Count > 0) Input.CurrentTypedStrings.Clear();
+
                 Toolkit.OpenGL.SwapBuffers(glContext);
 
                 sw.Stop();
-                // Util.Debugger.Log($"Rendering took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
 
             }
 
@@ -255,9 +312,11 @@ namespace Blockgame_OpenTK
             }
 
             if (args is WindowResizeEventArgs windowResizeEventArgs)
-            {
-                
+            { 
+
                 BlockGame.UpdateScreenSize(windowResizeEventArgs);
+
+                Toolkit.OpenGL.SwapBuffers(glContext);
 
             }
 
@@ -309,6 +368,13 @@ namespace Blockgame_OpenTK
                 Input.CurrentMousePosition = mouseMove.ClientPosition;
                 Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
                 Input.PreviousMousePosition = Input.CurrentMousePosition;
+
+            }
+
+            if (args is TextInputEventArgs textInput)
+            {
+
+                Input.CurrentTypedStrings.Add(textInput.Text);
 
             }
 

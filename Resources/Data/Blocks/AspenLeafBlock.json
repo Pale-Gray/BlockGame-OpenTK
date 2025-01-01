@@ -6,6 +6,7 @@
   "SoundPath": "AspenLeafBlock",
   "BreakTime": 1000,
   "IsOpaque": false,
-  "IsCullable": false
+  "IsCullable": false,
+  "IsSolid": false
 
 }

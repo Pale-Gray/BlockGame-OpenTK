@@ -1,48 +1,37 @@
 {
-
-	"Inherit": "Cube.json",
 	"Textures": {
-	  "$all": "AspenLeafBlock"
+		"$all": "AspenLeafBlock"
 	},
-	"Faces": [
-
+	"Objects": [
 		{
-
-			"Inherit": "Top",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Bottom",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Left",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Right",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Front",
-			"Texture": "$all"
-
-		},
-		{
-
-			"Inherit": "Back",
-			"Texture": "$all"
-
+			"Start": [0, 0, 0],
+			"End": [32, 32, 32],
+			"Properties": {
+				"Top": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				},
+				"Bottom": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				},
+				"Front": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				},
+				"Back": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				},
+				"Left": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				},
+				"Right": {
+					"Texture": "$all",
+					"CullDirection": "None"
+				}				
+			}
 		}
-
 	]
-
 }

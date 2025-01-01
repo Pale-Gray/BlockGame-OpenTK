@@ -184,7 +184,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             normal = Vector3.Cross(bitangent, tangent).Normalized();
 
-            Console.WriteLine($"bitangent: {bitangent}, tangent: {tangent}, normal: {normal}");
+            // Console.WriteLine($"bitangent: {bitangent}, tangent: {tangent}, normal: {normal}");
 
             return normal;
 
@@ -465,6 +465,7 @@ namespace Blockgame_OpenTK.BlockUtil
                 (1 - end.X, start.Y),
                 (1 - start.X, start.Y),
                 (1 - start.X, end.Y)
+
             };
 
             frontFace = TransformFace(frontFace, cube.Scale ?? Vector3.One, cube.Rotation ?? Vector3.Zero, cube.Translation ?? Vector3.Zero);
@@ -518,6 +519,8 @@ namespace Blockgame_OpenTK.BlockUtil
                 (1 - start.Z, start.Y),
                 (1 - start.Z, end.Y)
             };
+
+
 
             leftFace = TransformFace(leftFace, cube.Scale ?? Vector3.One, cube.Rotation ?? Vector3.Zero, cube.Translation ?? Vector3.Zero);
 
@@ -678,7 +681,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
                 BlockModelAbstractData inheritModel = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(path.ToArray())), GlobalValues.DefaultJsonOptions);
 
-                Debugger.Log($"The model has inherited model {abstractModelData.Inherit}", Severity.Info);
+                // Debugger.Log($"The model has inherited model {abstractModelData.Inherit}", Severity.Info);
 
                 for (int i = 0; i < inheritModel.Objects.Count(); i++)
                 {
@@ -710,7 +713,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
             BlockModelAbstractData abstractModelData = JsonSerializer.Deserialize<BlockModelAbstractData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, fileName)), GlobalValues.DefaultJsonOptions);
 
-            Debugger.Log($"Parsing {fileName}", Severity.Info);
+            // Debugger.Log($"Parsing {fileName}", Severity.Info);
             Parse(abstractModelData, model);
 
             return model;

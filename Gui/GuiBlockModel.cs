@@ -87,8 +87,8 @@ namespace Blockgame_OpenTK.Gui
             ModelMatrix *= Matrix4.CreateTranslation(pixelPosition);
 
             GL.Disable(EnableCap.CullFace);
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
+            // GL.Enable(EnableCap.DepthTest);
+            // GL.DepthFunc(DepthFunction.Less);
             GlobalValues.GuiBlockShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);

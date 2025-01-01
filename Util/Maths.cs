@@ -1,5 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System;
+using System.IO;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
@@ -67,7 +69,6 @@ namespace Blockgame_OpenTK.Util
             float yPart = y % 1;
             if (xPart < 0) xPart += 1;
             if (yPart < 0) yPart += 1;
-            // Console.Log($"{xPart}, {yPart}");
 
             float topLerp = Slerp(topLeft, topRight, xPart);
             float bottomLerp = Slerp(bottomLeft, bottomRight, xPart);
@@ -91,6 +92,15 @@ namespace Blockgame_OpenTK.Util
             // val /= (octaves);
 
             return val;
+
+        }
+
+        // from https://easings.net/#easeOutCubic
+        // transforms t value into eased value.
+        public static float EaseOutCubic(float t)
+        {   
+
+            return (float)(1.0 - Math.Pow(1.0 - t, 3));
 
         }
 

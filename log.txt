@@ -1,10 +1,10 @@
 [Info] Starting in client mode.
 [Info] Platform: Microsoft Windows 10.0.19045
 [Info] Architecture: x64
-[Info] .NET 8.0.11
-[Info] NVIDIA Corporation
-[Info] NVIDIA GeForce RTX 3060/PCIe/SSE2
-[Info] 4.6.0 NVIDIA 546.33
+[Info] Runtime: .NET 9.0.0
+[Info] Gpu Vendor: NVIDIA Corporation
+[Info] Gpu Renderer: NVIDIA GeForce RTX 3060/PCIe/SSE2
+[Info] OpenGL Version: 4.6.0 NVIDIA 566.36
 [Info] Loading Textures
 [Info] Loading File Resources\Textures\TextureArray\AspenLeafBlock.png
 [Info] Added AspenLeafBlock to TextureNames
@@ -49,19 +49,6 @@
 [Info] Loading File Resources\Textures\TextureArray\X.png
 [Info] Added X to TextureNames
 [Info] Finished Loading Textures
-[Info] Parsing GrassBlock.json
-[Info] The model has inherited model CubeDifferentSideTextures.json
-[Info] Parsing StoneBlock.json
-[Info] The model has inherited model CubeSameTexture.json
-[Info] Parsing DirtBlock.json
-[Info] The model has inherited model CubeSameTexture.json
-[Info] Parsing LogBlock.json
-[Info] Parsing BrickBlock.json
-[Info] The model has inherited model CubeSameTexture.json
-[Info] Parsing MissingBlock.json
-[Info] The model has inherited model CubeSameTexture.json
-[Info] Parsing Foliage.json
-[Info] The model has inherited model CrossFoliageBase.json
 [Info] Registering AirBlock
 [Info] Registered AirBlock
 [Info] Registering GrassBlock
@@ -78,30 +65,18 @@
 [Info] Registered MissingBlock
 [Info] Registering FoliageBlock
 [Info] Registered FoliageBlock
-[Info] Parsing AspenTree\AspenTree28DiameterCenter.json
-[Info] The model has inherited model Tree/Tree28DiameterCenter.json
-[Info] Parsing AspenTree\AspenTree28DiameterTop.json
-[Info] The model has inherited model Tree/Tree28DiameterTop.json
-[Info] Parsing AspenTree\AspenTree28DiameterBottom.json
-[Info] The model has inherited model Tree/Tree28DiameterBottom.json
-[Info] Parsing AspenTree\AspenTree28DiameterFront.json
-[Info] The model has inherited model Tree/Tree28DiameterFront.json
-[Info] Parsing AspenTree\AspenTree28DiameterLeft.json
-[Info] The model has inherited model Tree/Tree28DiameterLeft.json
-[Info] Parsing AspenTree\AspenTree28DiameterBack.json
-[Info] The model has inherited model Tree/Tree28DiameterBack.json
-[Info] Parsing AspenTree\AspenTree28DiameterRight.json
-[Info] The model has inherited model Tree/Tree28DiameterRight.json
-[Info] Parsing AspenTree\AspenTree16DiameterCenter.json
-[Info] The model has inherited model Tree/Tree16DiameterCenter.json
-[Info] Parsing AspenTree\AspenTree12DiameterCenter.json
-[Info] The model has inherited model Tree/Tree12DiameterCenter.json
 [Info] Registering AspenTreeBlock
 [Info] Registered AspenTreeBlock
-[Info] Parsing MissingModel.json
-[Info] The model has inherited model CubeSameTexture.json
-System.InvalidCastException: Unable to cast object of type 'Blockgame_OpenTK.BlockProperty.BlockProperties' to type 'Blockgame_OpenTK.BlockProperty.AspenTreeBlockProperties'.
-   at Blockgame_OpenTK.BlockUtil.AspenTreeBlock.OnRandomTickUpdate(World world, Vector3i globalBlockPosition, BlockProperties blockProperties) in .\Block\AspenTreeBlock.cs:line 78
-   at Blockgame_OpenTK.Core.Worlds.World.Tick(Vector3 playerPosition) in .\World\World.cs:line 71
-   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 450
-   at Blockgame_OpenTK.Program.Main(String[] args) in .\Program.cs:line 236
+[Info] Registering AspenLeafBlock
+[Info] Registered AspenLeafBlock
+[Info] Registering AspenLogBlock
+[Info] Registered AspenLogBlock
+System.Collections.Generic.KeyNotFoundException: The given key '24' was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at Blockgame_OpenTK.Font.CachedFontRenderer.GenerateGlyphData(Char character, Int32 size, String pathToFont) in .\Font\CachedFontRenderer.cs:line 207
+   at Blockgame_OpenTK.Font.CachedFontRenderer.RenderFont(Vector2 position, Vector2 origin, Single layer, Int32 size, String text, String fontName, Color4`1 color, Nullable`1 bounds) in .\Font\CachedFontRenderer.cs:line 101
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 526
+   at Blockgame_OpenTK.BlockGame.UpdateScreenSize(WindowResizeEventArgs args) in .\BlockGame.cs:line 587
+   at Blockgame_OpenTK.Program.EventRaised(PalHandle handle, PlatformEventType type, EventArgs args) in .\Program.cs:line 317
+   at OpenTK.Platform.EventQueue.OnEventRaised(EventInstance& instance)
+   at OpenTK.Platform.Native.Windows.WindowComponent.Win32WindowProc(IntPtr hWnd, WM uMsg, UIntPtr wParam, IntPtr lParam)

@@ -1,16 +1,20 @@
-#version 400 core
+#version 460 core
 out vec4 FragColor;
 
-in vec2 vTextureCoordinates;
+float manhattan_distance(vec2 a, vec2 b) {
 
-uniform sampler2D guiTexture;
-uniform vec3 guiColor;
+	return abs(a.x-b.x) + abs(a.y-b.y);
+
+}
+
+layout (location=2) uniform vec4 color;
 
 void main()
 {
 
-	// FragColor = vec4(vTextureCoordinates, 0.0, 1.0);
-	vec4 guiTex = texture(guiTexture, vTextureCoordinates);
-	FragColor = vec4(guiTex.rgb * guiColor, guiTex.a);
+	// vec4 guiTex = texture(guiTexture, vTextureCoordinates);
+	// FragColor = vec4(guiTex.rgb * guiColor, guiTex.a);
 
+	FragColor = vec4(color);
+	
 }

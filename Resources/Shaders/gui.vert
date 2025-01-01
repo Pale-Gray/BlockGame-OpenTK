@@ -1,22 +1,15 @@
-#version 400 core
+#version 460 core
+
 layout (location=0) in vec2 position;
 layout (location=1) in vec2 textureCoordinates;
-layout (location=2) in int layer;
+layout (location=2) in float layer;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-uniform vec2 guiSize;
-uniform int textureMode;
-
-out vec2 vTextureCoordinates;
+layout (location=0) uniform mat4 view;
+layout (location=1) uniform mat4 projection;
 
 void main()
 {
 
-	gl_Position = vec4(position.xy, 0.0, 1.0) * view * projection;
-
-	vTextureCoordinates = textureCoordinates;
+	gl_Position = vec4(position, -1.0 + -((10000.0 - layer) / 10000.0), 1.0) * view * projection;
 
 }

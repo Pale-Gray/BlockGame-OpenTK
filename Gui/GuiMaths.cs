@@ -80,7 +80,7 @@ namespace Blockgame_OpenTK.Gui
 
             if (mousePosition.X >= position.X && mousePosition.X <= position.X + dimension.X && mousePosition.Y >= position.Y && mousePosition.Y <= position.Y + dimension.Y) return true;
 
-            return false; 
+            return false;
 
         }
 

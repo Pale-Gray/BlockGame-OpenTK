@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Blockgame_OpenTK.Util
@@ -35,16 +33,7 @@ namespace Blockgame_OpenTK.Util
 
                 }
 
-                // Console.Log(reader.TokenType);
-
             }
-
-            /* foreach (float point in positions)
-            {
-
-                Console.Log(point);
-
-            } */
 
             return (positions[0], positions[1], positions[2]);
 
@@ -62,7 +51,6 @@ namespace Blockgame_OpenTK.Util
             writer.WriteNumberValue(vertex[2]);
             writer.WriteEndArray();
 
-            // throw new NotImplementedException();
         }
     }
 }

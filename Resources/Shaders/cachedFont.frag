@@ -3,7 +3,7 @@
 out vec4 OutColor;
 
 in vec2 vTextureCoordinate;
-in vec3 vGlyphColor;
+in vec4 vGlyphColor;
 in float vGlyphTextureIndex;
 
 uniform sampler2DArray glyphTextureArray;
@@ -48,8 +48,10 @@ vec3 toRgb(float hue, float saturation, float value)
 void main()
 {
 
+	// float alpha = texelFetch(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
 	float alpha = texture(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
 	if (alpha == 0.0) discard;
-	OutColor = vec4(vGlyphColor, alpha);
+	OutColor = vec4(vGlyphColor.rgb, alpha * vGlyphColor.a);
+	// OutColor = vec4(1);
 
 }
