@@ -103,6 +103,7 @@ namespace Blockgame_OpenTK.Font
             List<ulong> textSamplers = new List<ulong>();
             Vector3 currentGlyphPosition = Vector3.Zero;
             float aspect = 1.0f;
+
             for (int i = 0; i < text.Length; i++)
             {
 
@@ -112,6 +113,12 @@ namespace Blockgame_OpenTK.Font
                     GenerateGlyphData(text[i], size, fontName);
 
                 }
+
+            }
+
+            for (int i = 0; i < text.Length; i++)
+            {
+
                 if (_variableSizedGlyphData[(text[i], size)].Size != Vector2.Zero)
                 {
 
@@ -137,6 +144,25 @@ namespace Blockgame_OpenTK.Font
                     textVertices.AddRange(currentGlyphVertices);
 
                 }
+
+                if (bounds != null)
+                {
+
+                    if (i + 1 < text.Length)
+                    {
+
+                        if (currentGlyphPosition.X + ((int)_variableSizedGlyphData[(text[i+1], size)].Advance.X >> 6) > bounds?.X)
+                        {
+
+                            currentGlyphPosition.X = 0;
+                            currentGlyphPosition.Y += _ascent - _descent;
+
+                        }
+
+                    }
+
+                }
+
                 currentGlyphPosition.X += ((int)_variableSizedGlyphData[(text[i], size)].Advance.X >> 6) * aspect;
 
             }
