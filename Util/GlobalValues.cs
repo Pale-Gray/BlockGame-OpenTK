@@ -54,6 +54,8 @@ namespace Blockgame_OpenTK.Util
         public static double DeltaTime = 0;
         public static double Time = 0;
 
+        public static bool IsRunning = true;
+
         public static bool ShouldHideHud = false;
         public static bool Toggle = false;
 

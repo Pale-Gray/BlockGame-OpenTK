@@ -951,7 +951,7 @@ namespace Blockgame_OpenTK.BlockUtil
                         if ((x,y,z) != Vector3i.Zero)
                         {
 
-                            if (worldChunks[ChunkUtils.PositionToChunk(blockPosition + (x, y, z))].SolidMask[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(blockPosition + (x, y, z)))]) amountSolid++;
+                            if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + (x, y, z))].BitSolidMask, ChunkUtils.PositionToBlockLocal(blockPosition + (x, y, z)))) amountSolid++;
 
                         }
 
@@ -998,7 +998,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
                     // if (worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].GetBlock(ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i])) != Blocks.AirBlock) ambientBools[i] = true;
 
-                    if (worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].SolidMask[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i]))]) ambientBools[i] = true;
+                    if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].BitSolidMask, ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i]))) ambientBools[i] = true;
 
                 }
 
@@ -1018,7 +1018,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public ChunkVertex[] GetOffsettedFace(BlockModelCullDirection direction, Vector3i localOffset, Dictionary<Vector3i, bool[]> mask)
+        public ChunkVertex[] GetOffsettedFace(BlockModelCullDirection direction, Vector3i localOffset, Dictionary<Vector3i, uint[]> mask)
         {
 
             ChunkVertex[] vertices = new ChunkVertex[ChunkReadableFaces[direction].Length];
@@ -1072,7 +1072,7 @@ namespace Blockgame_OpenTK.BlockUtil
                         for (int a = 0; a < samplePoints.Length; a++)
                         {
 
-                            if (mask[ChunkUtils.PositionToChunk(localOffset + samplePoints[a])][ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset + samplePoints[a]))]) ambientMask[a] = true;
+                            if (ChunkUtils.GetSolidBlock(mask[ChunkUtils.PositionToChunk(localOffset + samplePoints[a])], ChunkUtils.PositionToBlockLocal(localOffset + samplePoints[a]))) ambientMask[a] = true;
 
                         }
 

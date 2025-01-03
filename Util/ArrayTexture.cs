@@ -103,6 +103,12 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public void Dispose()
+        {
+
+            GL.DeleteTexture(TextureID);
+
+        }
         public int GetTextureIndex(string textureName)
         {
 

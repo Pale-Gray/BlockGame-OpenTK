@@ -99,7 +99,7 @@ namespace Blockgame_OpenTK.Gui
             // Dimensions = AbsoluteDimensions + GuiMath.RelativeToAbsolute(RelativeDimensions, Parent?.Dimensions ?? (GlobalValues.WIDTH, GlobalValues.HEIGHT));
             // Position = ((Parent?.Position - (Parent?.Dimensions * Parent?.Origin)) ?? (0, 0)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, (Parent?.Dimensions) ?? (GlobalValues.WIDTH, GlobalValues.HEIGHT));
             CalculateDimensionsAndPosition();
-            CachedFontRenderer.RenderFont(Position, Origin, 24, (int) Dimensions.Y, "Hello World", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color);
+            CachedFontRenderer.RenderFont(Position, Origin, 24, (int) Dimensions.Y, "Hello World", Color);
 
         }
 

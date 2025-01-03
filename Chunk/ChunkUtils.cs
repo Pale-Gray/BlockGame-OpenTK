@@ -17,6 +17,30 @@ namespace Blockgame_OpenTK.Core.Chunks
         static Vector3 SpiralOrigin = Vector3.Zero;
         static Vector3 SpiralPosition = SpiralOrigin;
 
+        public static bool GetSolidBlock(uint[] solidMask, Vector3i blockPosition)
+        {
+
+            return (solidMask[VecToIndex((blockPosition.X, blockPosition.Z))] >> blockPosition.Y & 1u) == 1;
+
+        }
+
+        public static void SetSolidBlock(uint[] solidMask, Vector3i blockPosition, bool isSolid)
+        {
+
+            if (isSolid)
+            {
+
+                solidMask[VecToIndex((blockPosition.X, blockPosition.Z))] |= (1u << blockPosition.Y);
+
+            } else
+            {
+
+                solidMask[VecToIndex((blockPosition.X, blockPosition.Z))] &= ~(1u << blockPosition.Y);
+
+            }
+
+        }
+
         public static int VecToIndex(Vector2i position)
         {
 
@@ -31,10 +55,10 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static Dictionary<Vector3i, bool[]> GetChunkNeighborsSolidMaskDictionary(World world, Vector3i chunkPosition)
+        public static Dictionary<Vector3i, uint[]> GetChunkNeighborsSolidMaskDictionary(World world, Vector3i chunkPosition)
         {
 
-            Dictionary<Vector3i, bool[]> neighborMasks = new Dictionary<Vector3i, bool[]>();
+            Dictionary<Vector3i, uint[]> neighborMasks = new();
 
             for (int x = -1; x <= 1; x++)
             {
@@ -45,7 +69,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                     for (int z  = -1; z <= 1; z++)
                     {
 
-                        neighborMasks.Add((x, y, z), world.WorldChunks[(x, y, z) + chunkPosition].SolidMask);
+                        neighborMasks.Add((x, y, z), world.WorldChunks[(x, y, z) + chunkPosition].BitSolidMask);
 
                     }
 
@@ -54,73 +78,6 @@ namespace Blockgame_OpenTK.Core.Chunks
             }
 
             return neighborMasks;
-
-        }
-
-        public static bool[,,,] GetChunkNeighborMasks(World world, Vector3i chunkPosition)
-        {
-
-            bool[,,,] bools = new bool[3, 3, 3, GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-
-            for (int x = 0; x < 3; x++)
-            {
-
-                for (int y = 0; y < 3; y++)
-                {
-
-                    for (int z = 0; z < 3; z++)
-                    {
-
-                        for (int i = 0; i < GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize; i++)
-                        {
-
-                            bools[x, y, z, i] = world.WorldChunks[(x, y, z) + chunkPosition].SolidMask[i];
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            return bools;
-
-        }
-
-        public static bool[] GetChunkNeighborsSolidMask(World world, Vector3i chunkPosition)
-        {
-
-            bool[] bools = new bool[27 * (GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize)];
-
-            for (int i = 0; i < 27; i++)
-            {
-
-                for (int x = -1; x <= 1; x++)
-                {
-
-                    for (int y = -1; y <= 1; y++)
-                    {
-
-                        for (int z = -1; z <= 1; z++)
-                        {
-
-                            for (int b = 0; b < GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize; b++)
-                            {
-
-                                bools[(i * (GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize)) + b] = world.WorldChunks[(x, y, z) + chunkPosition].SolidMask[b];
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-            return bools;
 
         }
 

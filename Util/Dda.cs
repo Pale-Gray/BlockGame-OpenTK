@@ -98,9 +98,9 @@ namespace Blockgame_OpenTK.Util
                         uint leftActualSunlightData = 0;
                         uint forwardActualSunlightData = 0;
 
-                        if (Math.Abs(x) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) leftActualSunlightData = actualSunlightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(z), 15)];
+                        // if (Math.Abs(x) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) leftActualSunlightData = actualSunlightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(z), 15)];
                         // if (Math.Abs(y) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) upActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y) - 1, Math.Abs(z), max)];
-                        if (Math.Abs(z) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) forwardActualSunlightData = actualSunlightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(z) - 1, 15)];
+                        // if (Math.Abs(z) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) forwardActualSunlightData = actualSunlightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(z) - 1, 15)];
 
                         if (Math.Abs(x) - 1 >= 0) leftExpectedSunlightData = expectedSunlightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(z), 15)];
                         // if (Math.Abs(y) - 1 >= 0) upExpectedLightData = expectedLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y) - 1, Math.Abs(z), max)];
@@ -200,9 +200,9 @@ namespace Blockgame_OpenTK.Util
                             Vector3 forwardActualLightData = Vector3.Zero;
                             Vector3 upActualLightData = Vector3.Zero;
 
-                            if (Math.Abs(x) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) leftActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(y), Math.Abs(z), max)];
-                            if (Math.Abs(y) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) upActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y) - 1, Math.Abs(z), max)];
-                            if (Math.Abs(z) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) forwardActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y), Math.Abs(z) - 1, max)];
+                            // if (Math.Abs(x) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) leftActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(y), Math.Abs(z), max)];
+                            // if (Math.Abs(y) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) upActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y) - 1, Math.Abs(z), max)];
+                            // if (Math.Abs(z) - 1 >= 0 && !world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)]) forwardActualLightData = actualLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y), Math.Abs(z) - 1, max)];
 
                             if (Math.Abs(x) - 1 >= 0) leftExpectedLightData = expectedLightValues[Maths.VecToIndex(Math.Abs(x) - 1, Math.Abs(y), Math.Abs(z), max)];
                             if (Math.Abs(y) - 1 >= 0) upExpectedLightData = expectedLightValues[Maths.VecToIndex(Math.Abs(x), Math.Abs(y) - 1, Math.Abs(z), max)];
@@ -281,7 +281,7 @@ namespace Blockgame_OpenTK.Util
                     if (ChunkUtils.TrySafePositionToBlockLocal(chunkPosition, lightPosition, out Vector3i localLightPosition))
                     {
 
-                        if (!world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)])
+                        // if (!world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)])
                         {
 
                             Vector3i previousLightColor = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)]);
@@ -415,7 +415,7 @@ namespace Blockgame_OpenTK.Util
                 Vector3i lightChunkPosition = ChunkUtils.PositionToChunk(currentGlobalBlockPosition);
                 Vector3i localLightPosition = ChunkUtils.PositionToBlockLocal(currentGlobalBlockPosition);
 
-                if (world.WorldChunks[lightChunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)])
+                // if (world.WorldChunks[lightChunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)])
                 {
 
                     if (globalLightPosition - currentGlobalBlockPosition != Vector3i.Zero)

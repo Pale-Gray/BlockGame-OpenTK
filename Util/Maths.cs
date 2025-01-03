@@ -1,5 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,40 @@ namespace Blockgame_OpenTK.Util
     internal class Maths
     {
         
+        public static bool TryStringHexColorToColor4(string hexColor, out Color4<Rgba> color)
+        {
+
+            try
+            {
+                string hexBytes = hexColor.Substring(2, 8);
+
+                if (byte.TryParse(hexBytes.Substring(0, 2), NumberStyles.HexNumber, null, out byte r) &&
+                                                byte.TryParse(hexBytes.Substring(2, 2), NumberStyles.HexNumber, null, out byte g) &&
+                                                byte.TryParse(hexBytes.Substring(4, 2), NumberStyles.HexNumber, null, out byte b) &&
+                                                byte.TryParse(hexBytes.Substring(6, 2), NumberStyles.HexNumber, null, out byte a))
+                {
+
+                    color = new Color4<Rgba>(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+                    return true;
+
+                }
+
+                color = Color4.Black;
+                return false;
+            } catch
+            {
+                color = Color4.Black;
+                return false;
+            }
+
+        }
+
+        public static Color4<Rgba> Mix(Color4<Rgba> a, Color4<Rgba> b, float mixValue)
+        {
+
+            return new Color4<Rgba>(Lerp(a.X, b.X, mixValue), Lerp(a.Y, b.Y, mixValue), Lerp(a.Z, b.Z, mixValue), Lerp(a.W, b.W, mixValue));
+
+        }
         public static int VecToIndex(int x, int z, int size)
         {
 

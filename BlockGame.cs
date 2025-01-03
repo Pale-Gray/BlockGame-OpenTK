@@ -350,9 +350,14 @@ namespace Blockgame_OpenTK
             textDisplay.TickDelayInSeconds = 0.0f;
             textDisplay.TimeInSeconds = 2.0f;
             textDisplay.Text = "Pale_Gray";
-            textDisplay.IsVisible = true;
+            // textDisplay.IsVisible = true;
 
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
+
+            CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "NotoSansKR-Regular.ttf");
+
+            WorldGenerator.InitThreads();
+            WorldGenerator.StartThreads(World);
 
         }
 
@@ -392,7 +397,8 @@ namespace Blockgame_OpenTK
                 {
 
                     // Input.CheckForController(0);
-                    GlobalValues.Toggle = !GlobalValues.Toggle;
+                    // GlobalValues.Toggle = !GlobalValues.Toggle;
+                    CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "JetBrainsMono-Bold.ttf");
 
                 }
 
@@ -479,8 +485,8 @@ namespace Blockgame_OpenTK
 
             }
 
-            // World.Generate(Player.Position);
-            // World.Draw(Player.Camera);
+            World.Generate(Player.Position);
+            World.Draw(Player.Camera);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -523,17 +529,6 @@ namespace Blockgame_OpenTK
             GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
             // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48.0f + (float)(30.0 * Math.Sin(GlobalValues.Time)), "", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Darkred);
             // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48, "Hello World!", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
-            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color4.Black);
-            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color4.Black);
-
-            // GL.Disable(EnableCap.DepthTest);
-            // GL.Enable(EnableCap.ScissorTest);
-            foreach (GuiElement element in GuiRenderer.Elements)
-            {
-
-                element.Draw();
-
-            }
             // GL.Disable(EnableCap.ScissorTest);
             // GL.Enable(EnableCap.DepthTest);
 
@@ -556,6 +551,29 @@ namespace Blockgame_OpenTK
             frameBuffer.Unbind();
 
             framebufferQuad.Draw(frameBuffer, (float)time);
+
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Color4.Black);
+            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Color4.Black);
+
+            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f) - (0, 80), (0.5f, 0.5f), 1, 24, """
+                This is
+                A raw string literal.
+                Which means I don't have to 
+                ![i]worry about adding any newline![d]
+                ![g,20,0xFFFFFFFF,0xAA00FFFF]![w,0,0,2,4,0.5]This!! is a gradient![d]
+                characters!!
+                    This is a tab
+                """);
+            // GL.Disable(EnableCap.DepthTest);
+            // GL.Enable(EnableCap.ScissorTest);
+            foreach (GuiElement element in GuiRenderer.Elements)
+            {
+
+                element.Draw();
+
+            }
 
         }
 

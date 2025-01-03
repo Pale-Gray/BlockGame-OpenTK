@@ -56,7 +56,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public override void OnBlockMesh(World world, Dictionary<Vector3i, bool[]> mask, IBlockProperties properties, Vector3i globalBlockPosition)
+        public override void OnBlockMesh(World world, Dictionary<Vector3i, uint[]> mask, IBlockProperties properties, Vector3i globalBlockPosition)
         {
 
             AspenTreeBlockProperties blockProperties = (AspenTreeBlockProperties) properties;

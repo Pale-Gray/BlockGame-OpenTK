@@ -178,7 +178,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.IndicesList.Clear();
             Vector3i chunkPosition = chunk.ChunkPosition;
 
-            Dictionary<Vector3i, bool[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
+            Dictionary<Vector3i, uint[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
             {
@@ -194,7 +194,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
 
-                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
+                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? chunk.BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
 
                         }
 
@@ -308,7 +308,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.OpaqueMeshList.Clear();
             chunk.IndicesList.Clear();
 
-            Dictionary<Vector3i, bool[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
+            Dictionary<Vector3i, uint[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
             Vector3i chunkPosition = chunk.ChunkPosition;
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
@@ -324,7 +324,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                         {
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
-                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))], globalBlockPosition);
+                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
 
                         }
 

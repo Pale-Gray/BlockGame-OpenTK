@@ -71,12 +71,5 @@
 [Info] Registered AspenLeafBlock
 [Info] Registering AspenLogBlock
 [Info] Registered AspenLogBlock
-System.Collections.Generic.KeyNotFoundException: The given key '24' was not present in the dictionary.
-   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
-   at Blockgame_OpenTK.Font.CachedFontRenderer.GenerateGlyphData(Char character, Int32 size, String pathToFont) in .\Font\CachedFontRenderer.cs:line 207
-   at Blockgame_OpenTK.Font.CachedFontRenderer.RenderFont(Vector2 position, Vector2 origin, Single layer, Int32 size, String text, String fontName, Color4`1 color, Nullable`1 bounds) in .\Font\CachedFontRenderer.cs:line 101
-   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 526
-   at Blockgame_OpenTK.BlockGame.UpdateScreenSize(WindowResizeEventArgs args) in .\BlockGame.cs:line 587
-   at Blockgame_OpenTK.Program.EventRaised(PalHandle handle, PlatformEventType type, EventArgs args) in .\Program.cs:line 317
-   at OpenTK.Platform.EventQueue.OnEventRaised(EventInstance& instance)
-   at OpenTK.Platform.Native.Windows.WindowComponent.Win32WindowProc(IntPtr hWnd, WM uMsg, UIntPtr wParam, IntPtr lParam)
+System.InvalidCastException: Unable to cast object of type 'System.ValueTuple`2[Blockgame_OpenTK.Core.Worlds.World,System.Threading.AutoResetEvent]' to type 'System.Tuple`2[Blockgame_OpenTK.Core.Worlds.World,System.Threading.AutoResetEvent]'.
+   at Blockgame_OpenTK.Core.Worlds.WorldGenerator.<>c.<InitThreads>b__14_0(Object arguments) in .\World\WorldGenerator.cs:line 68

@@ -57,9 +57,11 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         public int[] GlobalBlockMaxHeight = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public IBlockProperties[] BlockPropertyData = new IBlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        // public IBlockProperties[] BlockPropertyData = new IBlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public Dictionary<Vector3i, IBlockProperties> BlockPropertyData = new();
         // public BlockProperty.BlockProperties[] BlockPropertyNewData = new BlockProperty.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        // public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public uint[] BitSolidMask = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public uint[] PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public int[] MeshIndices;
         public Dictionary<Vector3i, Vector3i> GlobalBlockLightPositions = new Dictionary<Vector3i, Vector3i>();
@@ -231,9 +233,23 @@ namespace Blockgame_OpenTK.Core.Chunks
         public void SetBlock(Vector3i position, IBlockProperties blockProperties, Block block)
         {
 
-            BlockPropertyData[ChunkUtils.VecToIndex(position)] = blockProperties;
+            // BlockPropertyData[ChunkUtils.VecToIndex(position)] = blockProperties;
+            if (blockProperties == null)
+            {
+                if (BlockPropertyData.ContainsKey(position)) BlockPropertyData.Remove(position);
+            } else
+            {
+                if (BlockPropertyData.ContainsKey(position))
+                {
+                    BlockPropertyData[position] = blockProperties;
+                } else
+                {
+                    BlockPropertyData.Add(position, blockProperties);
+                }
+            }
             BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
-            SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
+            // SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
+            ChunkUtils.SetSolidBlock(BitSolidMask, position, block.IsSolid ?? true);
 
         }
 

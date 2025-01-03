@@ -162,7 +162,7 @@ namespace Blockgame_OpenTK
             double secondValue = 0;
             double frameTimeOverOneSecond = 0;
             double numTicks = 0;
-            while (true)
+            while (GlobalValues.IsRunning)
             {
 
                 if (secondValue >= 1.0)
@@ -263,7 +263,8 @@ namespace Blockgame_OpenTK
                 {
 
                     BlockGame.Unload();
-                    break;
+                    GlobalValues.IsRunning = false;
+                    // break;
 
                 }
 

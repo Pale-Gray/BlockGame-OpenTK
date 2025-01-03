@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Threading;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
@@ -25,13 +26,77 @@ namespace Blockgame_OpenTK.Core.Worlds
         public static ConcurrentQueue<Vector3i> ConcurrentChunkUpdateQueue = new ConcurrentQueue<Vector3i>();
         public static ConcurrentQueue<Vector3i> ConcurrentChunkUploadQueue = new ConcurrentQueue<Vector3i>();
 
+        public static ConcurrentQueue<Vector3i> ConcurrentChunkThreadQueue = new();
+
+        private static List<Thread> _threads = new();
+        private static List<AutoResetEvent> _autoResetEvents = new();
+        private static Thread _worldGenerationThread = new Thread(arguments => _manageChunkQueue(((Tuple<World, AutoResetEvent>)arguments).Item1, ((Tuple<World, AutoResetEvent>)arguments).Item2));
+
+        private static void _manageChunkQueue(World world, AutoResetEvent resetEvent)
+        {
+
+            while (GlobalValues.IsRunning)
+            {
+
+                resetEvent.WaitOne();
+                while (ConcurrentChunkThreadQueue.Count > 0)
+                {
+
+                    if (ConcurrentChunkThreadQueue.TryDequeue(out Vector3i c))
+                    {
+
+                        switch (world.WorldChunks[c].QueueType)
+                        {
+
+                            case QueueType.PassOne:
+                                ChunkBuilder.GeneratePassOne(world.WorldChunks[c]);
+                                break;
+                            case QueueType.Mesh:
+                                ChunkBuilder.Mesh(world.WorldChunks[c], world, Vector3i.Zero);
+                                break;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        public static void InitThreads()
+        {
+
+            for (int i = 0; i < 10; i++)
+            {
+
+                _threads.Add(new Thread(arguments => _manageChunkQueue(((ValueTuple<World, AutoResetEvent>)arguments).Item1, ((ValueTuple<World, AutoResetEvent>)arguments).Item2)));
+                _autoResetEvents.Add(new AutoResetEvent(true));
+
+            }
+
+        }
+
+        public static void StartThreads(World world)
+        {
+
+            for (int i = 0; i < _threads.Count; i++)
+            {
+
+                _threads[i].Start((world, _autoResetEvents[i]));
+
+            }
+
+        }
+
         private static void UpdateConcurrentUploadQueue(World world)
         {
 
             int amountUpdated = 0;
             while (ConcurrentChunkUploadQueue.Count > 0 && amountUpdated < MaxUploads)
             {
-
+                
                 if (ConcurrentChunkUploadQueue.TryDequeue(out Vector3i chunkPosition))
                 {
 
@@ -89,7 +154,8 @@ namespace Blockgame_OpenTK.Core.Worlds
                         {
 
                             case QueueType.PassOne:
-                                ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[chunkPosition]);
+                                // ChunkBuilder.GeneratePassOneThreaded(world.WorldChunks[chunkPosition]);
+                                ConcurrentChunkThreadQueue.Enqueue(chunkPosition);
                                 break;
                             case QueueType.Mesh:
                                 if (Maths.ChebyshevDistance3D(chunkPosition, Vector3i.Zero) < MaxRadius)
@@ -98,7 +164,8 @@ namespace Blockgame_OpenTK.Core.Worlds
                                     if (AreNeighborsTheSameQueueType(world, chunkPosition, QueueType.Mesh))
                                     {
 
-                                        ChunkBuilder.MeshThreaded(world.WorldChunks[chunkPosition], world, Vector3i.Zero);
+                                        // ChunkBuilder.MeshThreaded(world.WorldChunks[chunkPosition], world, Vector3i.Zero);
+                                        ConcurrentChunkThreadQueue.Enqueue(chunkPosition);
 
                                     }
                                     else
@@ -262,6 +329,19 @@ namespace Blockgame_OpenTK.Core.Worlds
             // UpdateAlterQueue(world);
             // UpdateOpenglCallQueue(world);
             // UpdateQueue(world, PreviousChunkPosition);
+
+            if (ConcurrentChunkThreadQueue.Count > 0)
+            {
+
+                for (int i = 0; i < _autoResetEvents.Count; i++)
+                {
+
+                    _autoResetEvents[i].Set();
+
+                }
+
+            }
+
             UpdateConcurrentQueue(world);
             UpdateSunlightQueue(world);
             UpdateConcurrentUploadQueue(world);
