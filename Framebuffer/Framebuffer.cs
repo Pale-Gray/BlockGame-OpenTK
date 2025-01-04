@@ -41,8 +41,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
 
                 // Debugger.Log("Something went wrong creating the Framebuffer.", Severity.Error);
                 FramebufferStatus framebufferStatus = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-
-                Debugger.Log($"Something went wrong with the framebuffer: {framebufferStatus.ToString()}", Severity.Error);
+                Debugger.Log($"Something went wrong with the framebuffer: {framebufferStatus}", Severity.Error);
 
             }
 
