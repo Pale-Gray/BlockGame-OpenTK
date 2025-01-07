@@ -30,7 +30,7 @@ namespace Blockgame_OpenTK.Core.Worlds
 
         private static List<Thread> _threads = new();
         private static List<AutoResetEvent> _autoResetEvents = new();
-        private static Thread _worldGenerationThread = new Thread(arguments => _manageChunkQueue(((Tuple<World, AutoResetEvent>)arguments).Item1, ((Tuple<World, AutoResetEvent>)arguments).Item2));
+        // private static Thread _worldGenerationThread = new Thread(arguments => _manageChunkQueue(((Tuple<World, AutoResetEvent>)arguments).Item1, ((Tuple<World, AutoResetEvent>)arguments).Item2));
 
         private static void _manageChunkQueue(World world, AutoResetEvent resetEvent)
         {
@@ -38,24 +38,20 @@ namespace Blockgame_OpenTK.Core.Worlds
             while (GlobalValues.IsRunning)
             {
 
+                // resetEvent.WaitOne();
                 resetEvent.WaitOne();
-                while (ConcurrentChunkThreadQueue.Count > 0)
+                if (ConcurrentChunkThreadQueue.TryDequeue(out Vector3i c))
                 {
 
-                    if (ConcurrentChunkThreadQueue.TryDequeue(out Vector3i c))
+                    switch (world.WorldChunks[c].QueueType)
                     {
 
-                        switch (world.WorldChunks[c].QueueType)
-                        {
-
-                            case QueueType.PassOne:
-                                ChunkBuilder.GeneratePassOne(world.WorldChunks[c]);
-                                break;
-                            case QueueType.Mesh:
-                                ChunkBuilder.Mesh(world.WorldChunks[c], world, Vector3i.Zero);
-                                break;
-
-                        }
+                        case QueueType.PassOne:
+                            ChunkBuilder.GeneratePassOne(world.WorldChunks[c]);
+                            break;
+                        case QueueType.Mesh:
+                            ChunkBuilder.Mesh(world.WorldChunks[c], world, Vector3i.Zero);
+                            break;
 
                     }
 

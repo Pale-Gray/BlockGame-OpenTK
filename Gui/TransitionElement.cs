@@ -32,6 +32,7 @@ namespace Blockgame_OpenTK.Gui
         public float Length = 1.0f;
         public bool IsRunning = false;
         public bool ShouldLoop = false;
+        public bool IsPingPong = false;
         public PlaybackMode PlaybackMode = PlaybackMode.Forward;
         public InterpolationMode InterpolationMode = InterpolationMode.Linear;
 
@@ -90,6 +91,14 @@ namespace Blockgame_OpenTK.Gui
 
             if (IsRunning)
             {
+
+                if (IsPingPong)
+                {
+
+                    if (_time > Length) PlaybackMode = PlaybackMode.Reverse;
+                    if (_time < 0) PlaybackMode = PlaybackMode.Forward;
+
+                }
 
                 if (ShouldLoop)
                 {

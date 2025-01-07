@@ -3,6 +3,7 @@ using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
+using System.Linq;
 namespace Blockgame_OpenTK.Gui
 {
     internal class GuiElement
@@ -21,7 +22,7 @@ namespace Blockgame_OpenTK.Gui
         private Texture _texture;
         public Texture Texture { get { return _texture; } set { if (_texture != null) { _texture.Dispose(); } _texture = value; } }
         private bool _isVisible = false;
-        public bool IsVisible { get { return _isVisible; } set { _isVisible = value; if (_isVisible) { GuiRenderer.Elements.Add(this); } else { GuiRenderer.Elements.Remove(this); } } }
+        public bool IsVisible { get { return _isVisible; } set { _isVisible = value; if (_isVisible) { GuiRenderer.Elements.Add(this); GuiRenderer.Elements.Sort((a,b) => a.Layer.CompareTo(b.Layer)); } else { GuiRenderer.Elements.Remove(this); } } }
         public TransitionElement TransitionElement = null;
         public virtual void Draw()
         {

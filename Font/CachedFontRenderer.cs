@@ -10,6 +10,8 @@ using System.IO;
 using OpenTK.Graphics.Vulkan;
 using System.Runtime.CompilerServices;
 using System.Globalization;
+using Blockgame_OpenTK.Gui;
+using System.Text;
 
 namespace Blockgame_OpenTK.Font
 {
@@ -80,6 +82,7 @@ namespace Blockgame_OpenTK.Font
         private static Dictionary<(char, int), CachedGlyphData> _variableSizedGlyphData = new();
         private static Dictionary<int, ArrayTexture> _variabledSizedArrayTexture = new();
         private static Dictionary<int, (float, float, float)> _variableSizedUnderlineAndLinegap = new();
+        private static Dictionary<int, (float, float)> _variableSizedCursorParameters = new();
 
         private static float _ascent = 0.0f;
         private static float _descent = 0.0f;
@@ -119,11 +122,13 @@ namespace Blockgame_OpenTK.Font
         private static FT_Error _error;
         private static List<CharFormattingData> _currentTextFormattingData = new();
 
-        public static void RenderFont(Vector2 position, Vector2 origin, float layer, int size, string text, Color4<Rgba>? color = null, Vector2? bounds = null, float lineSpacing = 1.0f)
+        public static void RenderFont(out (Vector2, float, float) cursorParameters, Vector2 position, Vector2 origin, float layer, int size, string text, Color4<Rgba>? color = null, Vector2? bounds = null, float lineSpacing = 1.0f, int? cursorIndex = null)
         {
 
+            // Console.WriteLine(text.Length);
             if (color == null) color = Color4.Black;
 
+            cursorParameters = (position, 0, 0);
             if (_fontPath == null || _fontPath == string.Empty)
             {
 
@@ -144,7 +149,24 @@ namespace Blockgame_OpenTK.Font
             List<CachedFontVertex> textVertices = new List<CachedFontVertex>();
             List<ulong> textSamplers = new List<ulong>();
             Vector3 currentGlyphPosition = Vector3.Zero;
-            float aspect = 1.0f;
+
+            bool shouldBeHidden = false;
+            CharFormattingData charFormatData = new CharFormattingData(color ?? Color4.Black);
+            _currentTextFormattingData.Clear();
+            bool hasGradient = false;
+            bool startGradient = false;
+            Color4<Rgba> gradientStart = Color4.Black;
+            Color4<Rgba> gradientEnd = Color4.Black;
+            float gradientTextLength = 0;
+            float currentCount = 0;
+            int currentIndex = 0;
+
+            if (text.Length == 0 && !_variableSizedGlyphData.ContainsKey(('A', size)))
+            {
+
+                GenerateGlyphData('A', size);
+
+            }
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -157,17 +179,14 @@ namespace Blockgame_OpenTK.Font
                 }
 
             }
+            if (_variableSizedCursorParameters.TryGetValue(size, out (float, float) cs) &&
+                _variableSizedUnderlineAndLinegap.TryGetValue(size, out (float, float, float) ual))
+            {
 
-            bool shouldBeHidden = false;
-            CharFormattingData charFormatData = new CharFormattingData(color ?? Color4.Black);
-            _currentTextFormattingData.Clear();
-            bool hasGradient = false;
-            bool startGradient = false;
-            Color4<Rgba> gradientStart = Color4.Black;
-            Color4<Rgba> gradientEnd = Color4.Black;
-            float gradientTextLength = 0;
-            float currentCount = 0;
-            int currentIndex = 0;
+                cursorParameters = ((position.X, position.Y - cs.Item1), ual.Item2 * 2.0f, ual.Item3);
+
+            }
+            float aspect = 1.0f;
             for (int i = 0; i < text.Length; i++)
             {
                 
@@ -377,6 +396,7 @@ namespace Blockgame_OpenTK.Font
 
             }
 
+            int positionIndex = 0;
             for (int i = 0; i < text.Length; i++)
             {
 
@@ -407,10 +427,10 @@ namespace Blockgame_OpenTK.Font
                             // new CachedFontVertex(currentGlyphPosition + (0, _variableSizedUnderlineAndLinegap[size].Item1, 0) - (0, _variableSizedUnderlineAndLinegap[size].Item2, 0), (0, 0), 0, _currentTextFormattingData[i])
                             
                         };
-                        for (int v = 0; v < currentGlyphVertices.Length; v++)
+                        for (int x = 0; x < currentGlyphVertices.Length; x++)
                         {
 
-                            currentGlyphVertices[v].Position += p;
+                            currentGlyphVertices[x].Position += p;
 
                         }
                         textVertices.AddRange(currentGlyphVertices);
@@ -418,6 +438,7 @@ namespace Blockgame_OpenTK.Font
                     }
                     currentGlyphPosition.X += ((int)_variableSizedGlyphData[(text[i], size)].Advance.X >> 6) * aspect;
                     // _currentTextFormattingData[i].CharIndex++;
+                    // positionIndex++;
 
                 }
 
@@ -437,14 +458,13 @@ namespace Blockgame_OpenTK.Font
                 if (bounds != null)
                 {
 
-                    if (i + 1 < text.Length)
+                    if (i < text.Length)
                     {
 
-                        if (currentGlyphPosition.X + ((int)_variableSizedGlyphData[(text[i + 1], size)].Advance.X >> 6) + _variableSizedGlyphData[(text[i + 1], size)].Size.X > bounds?.X)
+                        if (currentGlyphPosition.X + ((int)_variableSizedGlyphData[(text[i], size)].Advance.X >> 6) + _variableSizedGlyphData[(text[i], size)].Size.X > bounds?.X)
                         {
 
                             currentGlyphPosition.X = 0;
-                            // currentGlyphPosition.Y += _ascent - _descent + (_linegap);
                             currentGlyphPosition.Y += _variableSizedUnderlineAndLinegap[size].Item3;
 
                         }
@@ -457,7 +477,25 @@ namespace Blockgame_OpenTK.Font
 
                 }
 
+                if (cursorIndex != null)
+                {
+
+                    if (positionIndex == cursorIndex)
+                    {
+
+                        cursorParameters = ((currentGlyphPosition.X + p.X, currentGlyphPosition.Y + p.Y - _variableSizedCursorParameters[size].Item1), _variableSizedUnderlineAndLinegap[size].Item2 * 2.0f, _variableSizedUnderlineAndLinegap[size].Item3);
+
+                    } else
+                    {
+
+                        positionIndex++;
+
+                    }
+
+                }
+
             }
+            
             float width = 0;
             float height = size;
             for (int i = 0; i < textVertices.Count; i++)
@@ -530,6 +568,9 @@ namespace Blockgame_OpenTK.Font
         private unsafe static void GenerateGlyphData(char character, int size)
         {
 
+            // Console.WriteLine(char.GetNumericValue(character));      
+
+
             FT_LibraryRec_* library;
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
@@ -538,21 +579,24 @@ namespace Blockgame_OpenTK.Font
             error = FT_Set_Pixel_Sizes(face, 0, (uint)size);
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
 
-            // _ascent = face->size->metrics.ascender >> 6;
-            // _descent = face->size->metrics.descender >> 6;
-            // _linegap = face->size->metrics.height >> 6;
+            float thisSizeCursorHeight = FT_MulFix(face->bbox.yMax - face->bbox.yMin, face->size->metrics.y_scale) >> 6;
+            float thisSizeCursorStartingPositionRelativeToBaseline = FT_MulFix(face->bbox.yMin, face->size->metrics.y_scale) >> 6;
 
-            // float yScale = face->size->metrics.p
-            // float yScale = face->size->metrics.pixel
-            float xScale = face->size->metrics.x_scale >> 6;
-            float yScale = face->size->metrics.y_scale >> 6;
-
+            float ascender = face->size->metrics.ascender;
+            float descender = face->size->metrics.descender;
             // Console.WriteLine(FT_MulFix(face->underline_thickness, face->size->metrics.y_scale) >> 6);
 
             if (!_variableSizedUnderlineAndLinegap.ContainsKey(size))
             {
 
                 _variableSizedUnderlineAndLinegap.Add(size, (-1 * (FT_MulFix(face->underline_position, face->size->metrics.y_scale) >> 6), FT_MulFix(face->underline_thickness, face->size->metrics.y_scale) >> 6, (face->size->metrics.height >> 6)));
+
+            }
+
+            if (!_variableSizedCursorParameters.ContainsKey(size))
+            {
+
+                _variableSizedCursorParameters.Add(size, (face->size->metrics.descender >> 6, 0));
 
             }
 

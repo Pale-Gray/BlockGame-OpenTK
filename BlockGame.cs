@@ -330,7 +330,7 @@ namespace Blockgame_OpenTK
             element.Color = Color4.White;
             element.AbsoluteDimensions = (50, 50);
             element.Layer = 10;
-            element.IsVisible = true;
+            // element.IsVisible = true;
 
             TransitionElement transition = new TransitionElement(element);
             transition.Length = 2.0f;
@@ -341,7 +341,7 @@ namespace Blockgame_OpenTK
             transition.StartingColor = Color4.White;
             transition.EndingColor = new Color4<Rgba>(1,1,1, 0);
             transition.InterpolationMode = InterpolationMode.EaseOutCubic;
-            transition.IsRunning = true;
+            // transition.IsRunning = true;
             transition.ShouldLoop = true;
 
             GuiRandomTextDisplay textDisplay = new GuiRandomTextDisplay();
@@ -358,6 +358,14 @@ namespace Blockgame_OpenTK
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
 
             CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "NotoSansKR-Regular.ttf");
+
+            GuiTextbox box = new GuiTextbox();
+            box.AbsoluteDimensions = (500, 400);
+            box.Origin = (0.5f, 0.5f);
+            box.RelativePosition = (0.5f, 0.5f);
+            box.IsVisible = true;
+            box.Text = "";
+            box.Color = Color4.White;
 
             WorldGenerator.InitThreads();
             WorldGenerator.StartThreads(World);
@@ -557,10 +565,17 @@ namespace Blockgame_OpenTK
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Color4.Black);
-            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Color4.Black);
+            foreach (GuiElement element in GuiRenderer.Elements)
+            {
 
-            CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f) - (0, 80), (0.5f, 0.5f), 1, 24, """
+                element.Draw();
+
+            }
+
+            // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams1, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Color4.Black);
+            // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams2, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Color4.Black);
+
+            /*CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f) - (0, 80), (0.5f, 0.5f), 1, 24, """
                 This is
                 A raw string literal.
                 Which means I don't have to 
@@ -569,15 +584,9 @@ namespace Blockgame_OpenTK
                 characters!!
                     This is a tab
                 """);
-
+            */
             // GL.Disable(EnableCap.DepthTest);
             // GL.Enable(EnableCap.ScissorTest);
-            foreach (GuiElement element in GuiRenderer.Elements)
-            {
-
-                element.Draw();
-
-            }
 
         }
 

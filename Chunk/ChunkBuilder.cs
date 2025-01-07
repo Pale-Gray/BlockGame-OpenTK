@@ -48,7 +48,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                     {
 
                         Vector3 globalBlockPosition = (x, 0, z) + (chunkPosition * 32);
-                        int height = (int)Math.Floor(0.0f * Maths.ValueNoise2Octaves(121312321, globalBlockPosition.X / 64.0f, globalBlockPosition.Z / 38.0f, 3));
+                        int height = 0;// (int)Math.Floor(0.0f * Maths.ValueNoise2Octaves(121312321, globalBlockPosition.X / 64.0f, globalBlockPosition.Z / 38.0f, 3));
                         // chunk.StructurePoints.Add((x, height, chunkY));
                         for (int y = 0; y < GlobalValues.ChunkSize; y++)
                         {

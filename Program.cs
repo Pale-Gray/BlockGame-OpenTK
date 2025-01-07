@@ -102,11 +102,6 @@ namespace Blockgame_OpenTK
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            // ResourceManager rm = new ResourceManager("en_us", typeof(Program).Assembly);
-            // Console.WriteLine(rm.GetString("StartingMenu"));
-            // TextLocalizer.LoadLanguage("en-us.json");
-            // Console.WriteLine(TextLocalizer.GetLocalizedString("Singleplayer");
-
             ThreadPool.SetMaxThreads(8, 8);
             
             ToolkitOptions toolkitOptions = new ToolkitOptions();
@@ -292,7 +287,17 @@ namespace Blockgame_OpenTK
 
                 BlockGame.Render();
 
-                if (Input.CurrentTypedStrings.Count > 0) Input.CurrentTypedStrings.Clear();
+                if (Input.CurrentTypedChars.Count > 0)
+                {
+
+                    foreach (char c in Input.CurrentTypedChars)
+                    {
+                        Console.Write(c);
+                    }
+                    Console.WriteLine();
+                    Input.CurrentTypedChars.Clear();
+
+                }
 
                 Toolkit.OpenGL.SwapBuffers(glContext);
 
@@ -375,7 +380,17 @@ namespace Blockgame_OpenTK
             if (args is TextInputEventArgs textInput)
             {
 
-                Input.CurrentTypedStrings.Add(textInput.Text);
+                // Console.WriteLine(textInput.Text);
+                // char[] chars = textInput.Text.ToCharArray();
+                Input.CurrentTypedChars.AddRange(textInput.Text);
+
+                // for (int i = 0; i < chars.Length; i++)
+                // {
+                //     Console.Write(chars[i]);
+                // }
+                // Console.WriteLine();
+
+                // Input.CurrentTypedStrings.Add(textInput.Text);
 
             }
 

@@ -1,10 +1,10 @@
 [Info] Starting in client mode.
-[Info] Platform: Microsoft Windows 10.0.19045
+[Info] Platform: Microsoft Windows 10.0.22631
 [Info] Architecture: x64
 [Info] Runtime: .NET 9.0.0
-[Info] Gpu Vendor: NVIDIA Corporation
-[Info] Gpu Renderer: NVIDIA GeForce RTX 3060/PCIe/SSE2
-[Info] OpenGL Version: 4.6.0 NVIDIA 566.36
+[Info] Gpu Vendor: ATI Technologies Inc.
+[Info] Gpu Renderer: AMD Radeon (TM) Graphics
+[Info] OpenGL Version: 4.6.0 Core Profile Context 23.19.12.03.240603
 [Info] Loading Textures
 [Info] Loading File Resources\Textures\TextureArray\AspenLeafBlock.png
 [Info] Added AspenLeafBlock to TextureNames
@@ -71,5 +71,11 @@
 [Info] Registered AspenLeafBlock
 [Info] Registering AspenLogBlock
 [Info] Registered AspenLogBlock
-System.InvalidCastException: Unable to cast object of type 'System.ValueTuple`2[Blockgame_OpenTK.Core.Worlds.World,System.Threading.AutoResetEvent]' to type 'System.Tuple`2[Blockgame_OpenTK.Core.Worlds.World,System.Threading.AutoResetEvent]'.
-   at Blockgame_OpenTK.Core.Worlds.WorldGenerator.<>c.<InitThreads>b__14_0(Object arguments) in .\World\WorldGenerator.cs:line 68
+System.ArgumentException: '0' cannot be greater than -1.
+   at System.Math.ThrowMinMaxException[T](T min, T max)
+   at Blockgame_OpenTK.Gui.GuiTextbox.Draw() in .\Gui\GuiTextbox.cs:line 114
+   at Blockgame_OpenTK.BlockGame.Render() in .\BlockGame.cs:line 568
+   at Blockgame_OpenTK.BlockGame.UpdateScreenSize(WindowResizeEventArgs args) in .\BlockGame.cs:line 618
+   at Blockgame_OpenTK.Program.EventRaised(PalHandle handle, PlatformEventType type, EventArgs args) in .\Program.cs:line 323
+   at OpenTK.Platform.EventQueue.OnEventRaised(EventInstance& instance)
+   at OpenTK.Platform.Native.Windows.WindowComponent.Win32WindowProc(IntPtr hWnd, WM uMsg, UIntPtr wParam, IntPtr lParam)
