@@ -26,7 +26,7 @@ namespace Blockgame_OpenTK
     internal class Program
     {
 
-        public static OpenGLContextHandle glContext;
+        private static OpenGLContextHandle _glContext;
         public static async Task Main(string[] args)
         {
 
@@ -121,10 +121,10 @@ namespace Blockgame_OpenTK
             };
 
             WindowHandle window = Toolkit.Window.Create(contextSettings);
-            glContext = Toolkit.OpenGL.CreateFromWindow(window);
+            _glContext = Toolkit.OpenGL.CreateFromWindow(window);
 
-            Toolkit.OpenGL.SetCurrentContext(glContext);
-            GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(glContext));
+            Toolkit.OpenGL.SetCurrentContext(_glContext);
+            GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(_glContext));
 
             BlockGame.Load();
 
@@ -139,7 +139,11 @@ namespace Blockgame_OpenTK
             //Console.WriteLine($"{w}, {h}");
             // CursorHandle invisibleCursor = Toolkit.Cursor.Create(1, 1, new ReadOnlySpan<byte>(new byte[4]), 0, 0);
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
-            Toolkit.Window.SetCursor(window, null);
+            
+            ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
+            CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);
+            Toolkit.Window.SetCursor(window, c1);
+            // Toolkit.Window.SetCursor(window, null);
             {
 
                 // Toolkit.Mouse.GetPosition();
@@ -150,8 +154,8 @@ namespace Blockgame_OpenTK
 
             }
 
-            Toolkit.Joystick.Initialize(toolkitOptions);
-            Input.CheckForController(0);
+            // Toolkit.Joystick.Initialize(toolkitOptions);
+            // Input.CheckForController(0);
 
             GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
             double secondValue = 0;
@@ -266,7 +270,7 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.Escape))
                 {
 
-                    Console.WriteLine("yes");
+                    // Console.WriteLine("yes");
                     if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
                     {
 
@@ -278,7 +282,9 @@ namespace Blockgame_OpenTK
                     {
 
                         Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-                        Toolkit.Window.SetCursor(window, null);
+                        ReadOnlySpan<byte> hiddenCursor = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
+                        CursorHandle cursor = Toolkit.Cursor.Create(1, 1, hiddenCursor, 0, 0);
+                        Toolkit.Window.SetCursor(window, cursor);
                         GlobalValues.IsCursorLocked = true;
 
                     }
@@ -299,7 +305,7 @@ namespace Blockgame_OpenTK
 
                 }
 
-                Toolkit.OpenGL.SwapBuffers(glContext);
+                Toolkit.OpenGL.SwapBuffers(_glContext);
 
                 sw.Stop();
 
@@ -322,7 +328,7 @@ namespace Blockgame_OpenTK
 
                 BlockGame.UpdateScreenSize(windowResizeEventArgs);
 
-                Toolkit.OpenGL.SwapBuffers(glContext);
+                Toolkit.OpenGL.SwapBuffers(_glContext);
 
             }
 

@@ -250,8 +250,8 @@ namespace Blockgame_OpenTK
             GLDebugProc debugMessageDel = OnDebugMessage;
             GuiRenderer.Init();
 
-            GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
-            GL.Enable(EnableCap.DebugOutput);
+            // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
+            // GL.Enable(EnableCap.DebugOutput);
 
             Util.Debugger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
             Util.Debugger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);

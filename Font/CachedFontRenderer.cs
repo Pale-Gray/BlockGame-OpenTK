@@ -502,8 +502,7 @@ namespace Blockgame_OpenTK.Font
             {
 
                 width = Math.Max(width, textVertices[i].Position.X - p.X);
-                // height = Math.Abs(Math.Min(height, textVertices[i].Position.Y - p.Y));
-
+                
             }
 
             Color3<Hsv> hsv = new Color3<Hsv>();
@@ -565,27 +564,24 @@ namespace Blockgame_OpenTK.Font
 
         }
 
-        private unsafe static void GenerateGlyphData(char character, int size)
+        private static unsafe void GenerateGlyphData(char character, int size)
         {
-
-            // Console.WriteLine(char.GetNumericValue(character));      
-
 
             FT_LibraryRec_* library;
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
-
+            
             error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(_fontPath), 0, &face);
             error = FT_Set_Pixel_Sizes(face, 0, (uint)size);
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
+            Console.WriteLine(Marshal.PtrToStringAnsi(face->style_flags));
 
             float thisSizeCursorHeight = FT_MulFix(face->bbox.yMax - face->bbox.yMin, face->size->metrics.y_scale) >> 6;
             float thisSizeCursorStartingPositionRelativeToBaseline = FT_MulFix(face->bbox.yMin, face->size->metrics.y_scale) >> 6;
 
             float ascender = face->size->metrics.ascender;
             float descender = face->size->metrics.descender;
-            // Console.WriteLine(FT_MulFix(face->underline_thickness, face->size->metrics.y_scale) >> 6);
-
+            
             if (!_variableSizedUnderlineAndLinegap.ContainsKey(size))
             {
 
@@ -601,14 +597,10 @@ namespace Blockgame_OpenTK.Font
             }
 
             CachedGlyphData glyphData = new CachedGlyphData();
-            // Console.WriteLine(_glyphArrays==null);
-
+            
             _variabledSizedArrayTexture[size].AddTexture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows, out float index);
-            // Console.WriteLine($"character {character} has a texture index of {index}, dimensions {face->glyph->bitmap.width}, {face->glyph->bitmap.rows} with error of {error.ToString()}");
-            // glyphData.GlyphTexture = new Texture((nint)face->glyph->bitmap.buffer, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows);
             glyphData.TextureIndex = index;
             glyphData.Size = (face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            // glyphData.Size = (face->glyph->bitmap.width * (uint)_textureClearanceScale, face->glyph->bitmap.rows * (uint)_textureClearanceScale);
             glyphData.Bearing = (face->glyph->bitmap_left, face->glyph->bitmap_top);
             glyphData.Advance = (face->glyph->advance.x, face->glyph->advance.y);
 
