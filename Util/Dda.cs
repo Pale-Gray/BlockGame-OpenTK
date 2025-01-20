@@ -136,7 +136,7 @@ namespace Blockgame_OpenTK.Util
                     finalSunlightValue = Math.Clamp(finalSunlightValue, 0, 15);
                     // Vector3i final = Vector3i.Clamp(VectorMath.Floor(value * lightColor), Vector3i.Zero, (15, 15, 15));
                     // final = Vector3i.Clamp(final, Vector3i.Zero, (15, 15, 15));
-                    uint previousSunlightValue = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 15;
+                    // uint previousSunlightValue = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 15;
                     // Console.WriteLine(previousSunlightValue);
 
                     Vector3i previousUnpackedLightValue = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)]);
@@ -144,9 +144,9 @@ namespace Blockgame_OpenTK.Util
 
                     // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
                     // Console.WriteLine(finalSunlightValue);
-                    uint maxSunlight = Math.Max(previousSunlightValue, finalSunlightValue);
+                    // uint maxSunlight = Math.Max(previousSunlightValue, finalSunlightValue);
                     // Console.WriteLine($"prev: {previousSunlightValue}, current: {finalSunlightValue}, finish: {maxSunlight}");
-                    world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0xFFFFFFF0) | maxSunlight;
+                    // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0xFFFFFFF0) | maxSunlight;
                     // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = 
                     //  = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
 
@@ -233,7 +233,7 @@ namespace Blockgame_OpenTK.Util
                         ushort currentSunLight = (ushort)(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0b0000000000001111);
 
                         // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
-                        world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] | BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final));
+                        // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] | BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final));
                         //  = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
 
                     }
@@ -264,7 +264,7 @@ namespace Blockgame_OpenTK.Util
             if (ChunkUtils.TrySafePositionToBlockLocal(chunkPosition, globalLightPosition, out Vector3i lightPos))
             {
 
-                world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(lightPos)] = BlockLightColorConverter.Pack(currentLightColor);
+                // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(lightPos)] = BlockLightColorConverter.Pack(currentLightColor);
 
             }
             
@@ -285,7 +285,7 @@ namespace Blockgame_OpenTK.Util
                         {
 
                             Vector3i previousLightColor = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)]);
-                            world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)] = BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousLightColor, currentLightColor));
+                            // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)] = BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousLightColor, currentLightColor));
 
                             _newLightPropagationPositions.Add(lightPosition + (0, 0, 1));
                             _newLightPropagationPositions.Add(lightPosition + (0, 0, -1));
@@ -1057,134 +1057,6 @@ namespace Blockgame_OpenTK.Util
 
 
             // Console.Log("end");
-
-        }
-
-        public static void Trace(Dictionary<Vector3, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
-        {
-
-            Vector3i Step = Vector3i.Zero;
-            Vector3 SideDistance = Vector3.Zero;
-            Vector3i BlockPositionGlobal = (Vector3i)ChunkUtils.PositionToBlockGlobal(position);
-            Vector3i BlockPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal((Vector3i)position);
-            Vector3i ChunkPosition = (Vector3i)ChunkUtils.PositionToChunk(position);
-            Vector3 ChunkPositionBounds = ChunkUtils.PositionToChunkBounds(position);
-            // Console.Log(ChunkPositionBounds);
-            Vector3 DeltaDistance = (Math.Abs(1 / direction.X), Math.Abs(1 / direction.Y), Math.Abs(1 / direction.Z));
-            // float Distance = 0;
-
-            if (direction.X < 0)
-            {
-
-                Step.X = -1;
-                SideDistance.X = (ChunkPositionBounds.X - BlockPositionLocal.X) * DeltaDistance.X;
-
-            }
-            if (direction.X >= 0)
-            {
-
-                Step.X = 1;
-                SideDistance.X = (BlockPositionLocal.X + 1f - ChunkPositionBounds.X) * DeltaDistance.X;
-
-            }
-            if (direction.Y < 0)
-            {
-
-                Step.Y = -1;
-                SideDistance.Y = (ChunkPositionBounds.Y - BlockPositionLocal.Y) * DeltaDistance.Y;
-
-            }
-            if (direction.Y >= 0)
-            {
-
-                Step.Y = 1;
-                SideDistance.Y = (BlockPositionLocal.Y + 1f - ChunkPositionBounds.Y) * DeltaDistance.Y;
-
-            }
-            if (direction.Z < 0)
-            {
-
-                Step.Z = -1;
-                SideDistance.Z = (ChunkPositionBounds.Z - BlockPositionLocal.Z) * DeltaDistance.Z;
-
-            }
-            if (direction.Z >= 0)
-            {
-
-                Step.Z = 1;
-                SideDistance.Z = (BlockPositionLocal.Z + 1f - ChunkPositionBounds.Z) * DeltaDistance.Z;
-
-            }
-
-            HitLocal = Vector3.Zero;
-            HitGlobal = Vector3.Zero;
-            SmoothHit = Vector3.Zero;
-            SmoothPosition = Vector3.Zero;
-
-            // Console.Log("{0}, {1}, {2}", BlockPositionLocal, ChunkPosition, ChunkPositionBounds);
-
-            for (int i = 0; i < maxSteps; i++)
-            {
-
-                /* if (ChunkLoader.GetChunk(ChunkPosition).GetBlock(BlockPositionLocal) != Blocks.Air)
-                {
-
-                    HitLocal = BlockPositionLocal;
-                    HitGlobal = BlockPositionLocal + (ChunkPosition * Globals.ChunkSize);
-                    SmoothHit = SideDistance;
-                    SmoothPosition = position + direction * Distance;
-
-                } else
-                {
-
-                    if (SideDistance.X < SideDistance.Y)
-                    {
-
-                        if (SideDistance.X < SideDistance.Z)
-                        {
-
-                            Distance = SideDistance.X;
-                            SideDistance.X += DeltaDistance.X;
-                            BlockPositionLocal.X += Step.X;
-
-                        }
-                        else
-                        {
-
-                            Distance = SideDistance.Z;
-                            SideDistance.Z += DeltaDistance.Z;
-                            BlockPositionLocal.Z += Step.Z;
-
-                        }
-
-                    }
-                    else
-                    {
-
-                        if (SideDistance.Y < SideDistance.Z)
-                        {
-
-                            Distance = SideDistance.Y;
-                            SideDistance.Y += DeltaDistance.Y;
-                            BlockPositionLocal.Y += Step.Y;
-
-                        }
-                        else
-                        {
-
-                            Distance = SideDistance.Z;
-                            SideDistance.Z += DeltaDistance.Z;
-                            BlockPositionLocal.Z += Step.Z;
-
-                        }
-
-                    }
-
-                } */
-
-                // Console.Log(ChunkUtils.PositionToBlockLocal(BlockPositionLocal));
-
-            }
 
         }
 

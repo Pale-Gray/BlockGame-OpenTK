@@ -115,10 +115,10 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public virtual void OnBlockMesh(World world, Dictionary<Vector3i, uint[]> mask, IBlockProperties properties, Vector3i globalBlockPosition)
+        public virtual void OnBlockMesh(World world, Dictionary<Vector3i, Chunk> neighbors, IBlockProperties properties, Vector3i globalBlockPosition)
         {
 
-            world.AppendModel(BlockModel, globalBlockPosition, mask);
+            world.AppendModel(BlockModel, globalBlockPosition, neighbors);
 
         }
         public virtual void OnBlockInteract() { }

@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Collections;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.PlayerUtil;
 
 namespace Blockgame_OpenTK.Util
@@ -53,6 +54,8 @@ namespace Blockgame_OpenTK.Util
         public static double CurrentTime = 0;
         public static double DeltaTime = 0;
         public static double Time = 0;
+
+        public static World World = new World();
 
         public static bool IsRunning = true;
 

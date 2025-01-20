@@ -4,6 +4,9 @@ using OpenTK.Mathematics;
 using System;
 using System.Formats.Tar;
 using System.Linq;
+using System.Net.Mime;
+using OpenTK.Platform;
+using OpenTK.Platform.Native.Windows;
 
 namespace Blockgame_OpenTK.Gui
 {
@@ -54,12 +57,12 @@ namespace Blockgame_OpenTK.Gui
                     if (char.IsControl(c))
                     {
 
-                        if (c != '\b')
+                        if (Input.IsKeyDown(Key.LeftControl) || Input.IsKeyDown(Key.RightControl))
                         {
 
-                            if (Input.IsKeyDown(OpenTK.Platform.Key.Backspace))
+                            if (Input.IsKeyDown(Key.Backspace))
                             {
-
+                                
                                 for (int i = Text.Length - 1; i >= 0; i--)
                                 {
 
@@ -73,30 +76,31 @@ namespace Blockgame_OpenTK.Gui
 
                                 }
                                 break;
-
+                                
                             }
-
+                            
                         }
+                        else
+                        {
 
+                            switch (c)
+                            {
+                                case '\b':
+                                    Text = Text.Substring(0, Text.Length-1<0 ? 0: Text.Length-1);
+                                    break;
+                                case '\t':
+                                case '\n':
+                                    Text += c;
+                                    break;
+                            }
+                            
+                        }
+                        
                     }
-
-                    switch (c)
+                    else
                     {
 
-                        case '\e':
-                            break;
-                        case '\b':
-                            if (Text.Length > 0)
-                            {
-                                Text = Text.Remove(Text.Length - 1);
-                            }
-                            break;
-                        case '\t':
-                            Text += "    ";
-                            break;
-                        default:
-                            Text += c;
-                            break;
+                        Text += c;
 
                     }
 
@@ -109,7 +113,6 @@ namespace Blockgame_OpenTK.Gui
 
             if (Text.Length - 1 - idxOffset < 0) idxOffset++;
             if (Text.Length - 1 - idxOffset > Text.Length - 1) idxOffset--;
-
 
             CachedFontRenderer.RenderFont(out (Vector2, float, float) curParam, Position - (Dimensions * Origin) + (0, 20), (0, 0), Layer + 1, 24, Text, TextColor, Dimensions, cursorIndex: Math.Clamp(Text.Length-1-idxOffset, 0, Text.Length-1 < 0 ? 0 : Text.Length-1));
             if (previousCursorPos == Vector2.PositiveInfinity) previousCursorPos = curParam.Item1;

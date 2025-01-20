@@ -355,9 +355,14 @@ namespace Blockgame_OpenTK
             textDisplay.Text = "Pale_Gray";
             // textDisplay.IsVisible = true;
 
+
+            FontFamily font = new FontFamily();
+            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
+            CachedFontRenderer.FontFamily = font;
+            
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
 
-            CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "NotoSansKR-Regular.ttf");
+            // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
 
             GuiTextbox box = new GuiTextbox();
             box.AbsoluteDimensions = (500, 400);
@@ -622,12 +627,14 @@ namespace Blockgame_OpenTK
         public static void Unload()
         {
 
+            /*
             foreach (Chunk c in World.WorldChunks.Values)
             {
 
                 c.SaveToFile();
 
             }
+            */
 
             // this portion is not required
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);

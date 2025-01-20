@@ -51,19 +51,28 @@ namespace Blockgame_OpenTK.BlockUtil
 
         public override void OnBlockPlace(World world, Vector3i globalBlockPosition)
         {
-
+            
+            world.AddBlockLight(globalBlockPosition, 15,0,15);
             world.SetBlock(globalBlockPosition, new AspenTreeBlockProperties(), this);
 
         }
 
-        public override void OnBlockMesh(World world, Dictionary<Vector3i, uint[]> mask, IBlockProperties properties, Vector3i globalBlockPosition)
+        public override void OnBlockDestroy(World world, Vector3i globalBlockPosition)
+        {
+            
+            world.RemoveBlockLight(globalBlockPosition, 15, 0, 15);
+            base.OnBlockDestroy(world, globalBlockPosition);
+            
+        }
+
+        public override void OnBlockMesh(World world, Dictionary<Vector3i, Chunk> neighbors, IBlockProperties properties, Vector3i globalBlockPosition)
         {
 
             AspenTreeBlockProperties blockProperties = (AspenTreeBlockProperties) properties;
 
             // world.AppendModel(_topPiece12, globalBlockPosition, mask);
             // world.AppendModel(_bottomPiece12, globalBlockPosition, mask);
-            world.AppendModel(_leftPiece16, globalBlockPosition, mask);
+            world.AppendModel(_centerPiece28, globalBlockPosition, neighbors);
             // world.AppendModel(_rightPiece12, globalBlockPosition, mask);
             // world.AppendModel(_backPiece12, globalBlockPosition, mask);
             // world.AppendModel(_frontPiece12, globalBlockPosition, mask);
@@ -101,6 +110,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public override void OnRandomTickUpdate(World world, Vector3i globalBlockPosition, IBlockProperties blockProperties)
         {
 
+            /*
             AspenTreeBlockProperties properties = (AspenTreeBlockProperties)blockProperties;
             AspenTreeBlockProperties sendBlockProperties = new AspenTreeBlockProperties();
             sendBlockProperties.Thickness = properties.Thickness;
@@ -115,6 +125,8 @@ namespace Blockgame_OpenTK.BlockUtil
                     break;
 
             }
+            
+            */
             
         }
 

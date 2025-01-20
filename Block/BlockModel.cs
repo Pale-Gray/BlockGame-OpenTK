@@ -951,7 +951,7 @@ namespace Blockgame_OpenTK.BlockUtil
                         if ((x,y,z) != Vector3i.Zero)
                         {
 
-                            if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + (x, y, z))].BitSolidMask, ChunkUtils.PositionToBlockLocal(blockPosition + (x, y, z)))) amountSolid++;
+                            if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + (x, y, z))], ChunkUtils.PositionToBlockLocal(blockPosition + (x, y, z)))) amountSolid++;
 
                         }
 
@@ -998,7 +998,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
                     // if (worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].GetBlock(ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i])) != Blocks.AirBlock) ambientBools[i] = true;
 
-                    if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])].BitSolidMask, ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i]))) ambientBools[i] = true;
+                    if (ChunkUtils.GetSolidBlock(worldChunks[ChunkUtils.PositionToChunk(blockPosition + sampleDirections[i])], ChunkUtils.PositionToBlockLocal(blockPosition + sampleDirections[i]))) ambientBools[i] = true;
 
                 }
 
@@ -1018,7 +1018,8 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public ChunkVertex[] GetOffsettedFace(BlockModelCullDirection direction, Vector3i localOffset, Dictionary<Vector3i, uint[]> mask)
+        public ChunkVertex[] GetOffsettedFace(BlockModelCullDirection direction, Vector3i localOffset,
+            Dictionary<Vector3i, Chunk> neighbors)
         {
 
             ChunkVertex[] vertices = new ChunkVertex[ChunkReadableFaces[direction].Length];
@@ -1028,11 +1029,47 @@ namespace Blockgame_OpenTK.BlockUtil
                 vertices[i] = ChunkReadableFaces[direction][i];
                 vertices[i].Position += localOffset;
 
+                switch (vertices[i].Normal)
+                {
+                    case (0, 1, 0):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset + Vector3i.UnitY)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset + Vector3i.UnitY))];
+                        break;
+                    case (0, -1, 0):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset - Vector3i.UnitY)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset - Vector3i.UnitY))];
+                        break;
+                    case (1, 0, 0):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset + Vector3i.UnitX)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset + Vector3i.UnitX))];
+                        break;
+                    case (-1, 0, 0):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset - Vector3i.UnitX)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset - Vector3i.UnitX))];
+                        break;
+                    case (0, 0, 1):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset + Vector3i.UnitZ)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset + Vector3i.UnitZ))];
+                        break;
+                    case (0, 0, -1):
+                        vertices[i].LightData = neighbors[ChunkUtils.PositionToChunk(localOffset - Vector3i.UnitZ)]
+                            .PackedLightData[
+                                ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(localOffset - Vector3i.UnitZ))];
+                        break;
+                }
+
             }
 
-            for (int i = 0; i < vertices.Length; i+=4)
+            
+            for (int i = 0; i < vertices.Length; i += 4)
             {
 
+                /*
                 if (vertices[i].ShouldRenderAO)
                 {
 
@@ -1045,22 +1082,46 @@ namespace Blockgame_OpenTK.BlockUtil
                     {
 
                         case (0, 1, 0):
-                            samplePoints = [(1, 1, 1), (1, 1, 0), (1, 1, -1), (0, 1, 1), (0, 1, 0), (0, 1, -1), (-1, 1, 1), (-1, 1, 0), (-1, 1, -1)];
+                            samplePoints =
+                            [
+                                (1, 1, 1), (1, 1, 0), (1, 1, -1), (0, 1, 1), (0, 1, 0), (0, 1, -1), (-1, 1, 1),
+                                (-1, 1, 0), (-1, 1, -1)
+                            ];
                             break;
                         case (0, -1, 0):
-                            samplePoints = [(1, -1, -1), (1, -1, 0), (1, -1, 1), (0, -1, -1), (0, -1, 0), (0, -1, 1), (1, -1, -1), (1, -1, 0), (1, -1, 1)];
+                            samplePoints =
+                            [
+                                (1, -1, -1), (1, -1, 0), (1, -1, 1), (0, -1, -1), (0, -1, 0), (0, -1, 1), (1, -1, -1),
+                                (1, -1, 0), (1, -1, 1)
+                            ];
                             break;
                         case (1, 0, 0):
-                            samplePoints = [(1, 1, 1), (1, 0, 1), (1, -1, 1), (1, 1, 0), (1, 0, 0), (1, -1, 0), (1, 1, -1), (1, 0, -1), (1, -1, -1)];
+                            samplePoints =
+                            [
+                                (1, 1, 1), (1, 0, 1), (1, -1, 1), (1, 1, 0), (1, 0, 0), (1, -1, 0), (1, 1, -1),
+                                (1, 0, -1), (1, -1, -1)
+                            ];
                             break;
                         case (-1, 0, 0):
-                            samplePoints = [(-1, 1, -1), (-1, 0, -1), (-1, -1, -1), (-1, 1, 0), (-1, 0, 0), (-1, -1, 0), (-1, 1, 1), (-1, 0, 1), (-1, -1, 1)];
+                            samplePoints =
+                            [
+                                (-1, 1, -1), (-1, 0, -1), (-1, -1, -1), (-1, 1, 0), (-1, 0, 0), (-1, -1, 0), (-1, 1, 1),
+                                (-1, 0, 1), (-1, -1, 1)
+                            ];
                             break;
                         case (0, 0, -1):
-                            samplePoints = [(1, 1, -1), (1, 0, -1), (1, -1, -1), (0, 1, -1), (0, 0, -1), (0, -1, -1), (-1, 1, -1), (-1, 0, -1), (-1, -1, -1)];
+                            samplePoints =
+                            [
+                                (1, 1, -1), (1, 0, -1), (1, -1, -1), (0, 1, -1), (0, 0, -1), (0, -1, -1), (-1, 1, -1),
+                                (-1, 0, -1), (-1, -1, -1)
+                            ];
                             break;
                         case (0, 0, 1):
-                            samplePoints = [(-1, 1, 1), (-1, 0, 1), (-1, -1, 1), (0, 1, 1), (0, 0, 1), (0, -1, 1), (1, 1, 1), (1, 0, 1), (1, -1, 1)];
+                            samplePoints =
+                            [
+                                (-1, 1, 1), (-1, 0, 1), (-1, -1, 1), (0, 1, 1), (0, 0, 1), (0, -1, 1), (1, 1, 1),
+                                (1, 0, 1), (1, -1, 1)
+                            ];
                             break;
 
                     }
@@ -1072,23 +1133,54 @@ namespace Blockgame_OpenTK.BlockUtil
                         for (int a = 0; a < samplePoints.Length; a++)
                         {
 
-                            if (ChunkUtils.GetSolidBlock(mask[ChunkUtils.PositionToChunk(localOffset + samplePoints[a])], ChunkUtils.PositionToBlockLocal(localOffset + samplePoints[a]))) ambientMask[a] = true;
+                            if (ChunkUtils.GetSolidBlock(
+                                    neighbors[ChunkUtils.PositionToChunk(localOffset + samplePoints[a])].BitSolidMask,
+                                    ChunkUtils.PositionToBlockLocal(localOffset + samplePoints[a])))
+                                ambientMask[a] = true;
 
                         }
 
                     }
 
                     if (ambientMask[0]) vertices[0 + i].AmbientValue++;
-                    if (ambientMask[1]) { vertices[0 + i].AmbientValue++; vertices[1 + i].AmbientValue++; }
+                    if (ambientMask[1])
+                    {
+                        vertices[0 + i].AmbientValue++;
+                        vertices[1 + i].AmbientValue++;
+                    }
+
                     if (ambientMask[2]) vertices[1 + i].AmbientValue++;
-                    if (ambientMask[3]) { vertices[0 + i].AmbientValue++; vertices[3 + i].AmbientValue++; }
-                    if (ambientMask[4]) { vertices[0 + i].AmbientValue++; vertices[1 + i].AmbientValue++; vertices[2 + i].AmbientValue++; vertices[3 + i].AmbientValue++; }
-                    if (ambientMask[5]) { vertices[1 + i].AmbientValue++; vertices[2 + i].AmbientValue++; }
+                    if (ambientMask[3])
+                    {
+                        vertices[0 + i].AmbientValue++;
+                        vertices[3 + i].AmbientValue++;
+                    }
+
+                    if (ambientMask[4])
+                    {
+                        vertices[0 + i].AmbientValue++;
+                        vertices[1 + i].AmbientValue++;
+                        vertices[2 + i].AmbientValue++;
+                        vertices[3 + i].AmbientValue++;
+                    }
+
+                    if (ambientMask[5])
+                    {
+                        vertices[1 + i].AmbientValue++;
+                        vertices[2 + i].AmbientValue++;
+                    }
+
                     if (ambientMask[6]) vertices[3 + i].AmbientValue++;
-                    if (ambientMask[7]) { vertices[2 + i].AmbientValue++; vertices[3 + i].AmbientValue++; }
+                    if (ambientMask[7])
+                    {
+                        vertices[2 + i].AmbientValue++;
+                        vertices[3 + i].AmbientValue++;
+                    }
+
                     if (ambientMask[8]) vertices[2 + i].AmbientValue++;
 
                 }
+                */
 
             }
 
@@ -1096,168 +1188,6 @@ namespace Blockgame_OpenTK.BlockUtil
 
         }
 
-        public ChunkVertex[] GetFaceWithOffsetAO(ConcurrentDictionary<Vector3i, Chunk> worldChunks, Vector3i chunkPosition, BlockModelCullDirection direction, Vector3i offset)
-        {
-
-            ChunkVertex[] vertices = new ChunkVertex[ChunkReadableFaces[direction].Length];
-            Vector3i globalBlockPosition = offset + (chunkPosition * GlobalValues.ChunkSize);
-            for (int i = 0; i < vertices.Length; i++)
-            {
-
-                vertices[i] = ChunkReadableFaces[direction][i];
-                vertices[i].Position += offset;
-
-            }
-
-            float[] ambientValues = DetermineAmbientValues(worldChunks, chunkPosition, direction, offset + (chunkPosition * 32));
-            for (int i = 0; i < vertices.Length; i++)
-            {
-
-                switch (vertices[i].Normal)
-                {
-
-                    case (0, 1, 0):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitY)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitY))];
-                        break;
-                    case (0, -1, 0):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition - Vector3i.UnitY)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition - Vector3i.UnitY))];
-                        break;
-                    case (1, 0, 0):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitX)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitX))];
-                        break;
-                    case (-1, 0, 0):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition - Vector3i.UnitX)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition - Vector3i.UnitX))];
-                        break;
-                    case (0, 0, 1):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + Vector3i.UnitZ)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition + Vector3i.UnitZ))];
-                        break;
-                    case (0, 0, -1):
-                        vertices[i].LightData = worldChunks[ChunkUtils.PositionToChunk(globalBlockPosition - Vector3i.UnitZ)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition - Vector3i.UnitZ))];
-                        break;
-                    default:
-                        vertices[i].LightData = worldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(offset))];
-                        break;
-
-                }
-
-            }
-
-            vertices[0].AmbientValue = ambientValues[0];
-            vertices[1].AmbientValue = ambientValues[1];
-            vertices[2].AmbientValue = ambientValues[2];
-            vertices[3].AmbientValue = ambientValues[3];
-            if ((ambientValues[0] != 0 && ambientValues[1] == 0 && ambientValues[2] == 0 && ambientValues[3] == 0) || (ambientValues[0] == 0 && ambientValues[1] == 0 && ambientValues[2] != 0 && ambientValues[3] == 0))
-            {
-
-                ChunkVertex[] originalVertices = new ChunkVertex[vertices.Length];
-                for (int i = 0; i < originalVertices.Length; i++)
-                {
-
-                    originalVertices[i] = vertices[i];
-
-                }
-                vertices[0] = originalVertices[3];
-                vertices[1] = originalVertices[0];
-                vertices[2] = originalVertices[1];
-                vertices[3] = originalVertices[2];
-
-            }
-
-            for (int i = 0; i < vertices.Length / 4; i++)
-            {
-
-                /// int currentCount = (worldChunks[chunkPosition].ConcurrentMeshIndices.Count / 6) * 4;
-                int[] indices =
-                {
-
-                //  0+currentCount,1+currentCount,2+currentCount,2+currentCount,3+currentCount,0+currentCount
-
-            };
-                // worldChunks[chunkPosition].AddIndices(indices);
-
-            }
-            return vertices;
-
-        }
-
-        public ChunkVertex[] GetFaceWithOffset(BlockModelCullDirection direction, Vector3i offset)
-        {
-
-            ChunkVertex[] face = new ChunkVertex[ChunkReadableFaces[direction].Length];
-
-            for (int i = 0; i < face.Length; i++)
-            {
-
-                face[i] = ChunkReadableFaces[direction][i];
-                face[i].Position += offset;
-
-            }
-
-            return face;
-
-        }
-
-        public ChunkVertex[] ConvertToChunkReadableFaceOffset(Vector3 offset, BlockModelCullDirection referenceDirection, float[] ambientPoints)
-        {
-
-            ChunkVertex[] convertedVertices = ConvertToChunkReadableFace(referenceDirection, ambientPoints);
-
-            for (int i = 0; i < convertedVertices.Length; i++)
-            {
-
-                convertedVertices[i].Position += offset;
-
-            }
-
-            return convertedVertices;
-
-        }
-
-        public ChunkVertex[] GetFaceOffsetted(BlockModelCullDirection direction, Vector3i offset, float[] ambientValues)
-        {
-
-            ChunkVertex[] referenceFace = ChunkReadableFaces[direction];
-            ChunkVertex[] face = new ChunkVertex[6];
-
-            if ((ambientValues[1] == 1 && ambientValues[3] == 1 && (ambientValues[0] == 0 || ambientValues[2] == 0)) || (ambientValues[1] == 0 && ambientValues[2] == 0 && ambientValues[3] == 0) || (ambientValues[0] == 0 && ambientValues[1] == 0 && ambientValues[3] == 0))
-            {
-
-                referenceFace = ConvertToChunkReadableFaceFlipped(direction);
-
-            }
-            for (int i = 0; i < face.Length; i++)
-            {
-
-                face[i] = referenceFace[i];
-                face[i].Position += offset;
-
-            }
-
-            if ((ambientValues[1] == 1 && ambientValues[3] == 1 && (ambientValues[0] == 0 || ambientValues[2] == 0)) || (ambientValues[1] == 0 && ambientValues[2] == 0 && ambientValues[3] == 0) || (ambientValues[0] == 0 && ambientValues[1] == 0 && ambientValues[3] == 0))
-            {
-
-                face[0].AmbientValue = ambientValues[1];
-                face[1].AmbientValue = ambientValues[2];
-                face[2].AmbientValue = ambientValues[3];
-                face[3].AmbientValue = ambientValues[3];
-                face[4].AmbientValue = ambientValues[0];
-                face[5].AmbientValue = ambientValues[1];
-
-            } else
-            {
-
-                face[0].AmbientValue = ambientValues[0];
-                face[1].AmbientValue = ambientValues[1];
-                face[2].AmbientValue = ambientValues[2];
-                face[3].AmbientValue = ambientValues[2];
-                face[4].AmbientValue = ambientValues[3];
-                face[5].AmbientValue = ambientValues[0];
-
-            }
-
-            return face;
-
-        }
         public ChunkVertex[] ConvertToChunkReadableFace(BlockModelCullDirection referenceDirection, float[] ambientPoints)
         {
 

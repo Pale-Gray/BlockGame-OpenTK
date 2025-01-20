@@ -9,6 +9,8 @@ in float vGlyphTextureIndex;
 uniform sampler2DArray glyphTextureArray;
 uniform float time;
 
+uniform vec2 fontSize;
+
 // https://www.easyrgb.com/en/math.php
 vec3 toRgb(float hue, float saturation, float value)
 {
@@ -46,15 +48,9 @@ vec3 toRgb(float hue, float saturation, float value)
 
 void main()
 {
-
-	// float alpha = texelFetch(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
+	
 	float alpha = texture(glyphTextureArray, vec3(vTextureCoordinate, vGlyphTextureIndex)).r;
 	if (alpha == 0.0) discard;
 	OutColor = vec4(vGlyphColor.rgb, alpha * vGlyphColor.a);
-	// if (vGlyphTextureIndex == 0) {
-	// 	OutColor = vec4(0,0,0,1);
-	// }
-	//alpha * vGlyphColor.a);
-	// OutColor = vec4(1);
 
 }

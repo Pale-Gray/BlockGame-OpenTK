@@ -17,7 +17,6 @@ namespace Blockgame_OpenTK.Font
 {
     class CachedFontRenderer
     {
-
         struct CachedFontVertex
         {
 
@@ -122,6 +121,8 @@ namespace Blockgame_OpenTK.Font
         private static FT_Error _error;
         private static List<CharFormattingData> _currentTextFormattingData = new();
 
+        public static FontFamily FontFamily;
+
         public static void RenderFont(out (Vector2, float, float) cursorParameters, Vector2 position, Vector2 origin, float layer, int size, string text, Color4<Rgba>? color = null, Vector2? bounds = null, float lineSpacing = 1.0f, int? cursorIndex = null)
         {
 
@@ -129,11 +130,13 @@ namespace Blockgame_OpenTK.Font
             if (color == null) color = Color4.Black;
 
             cursorParameters = (position, 0, 0);
+
+            if (text.Length == 0) return;
             if (_fontPath == null || _fontPath == string.Empty)
             {
 
-                Debugger.Log("Font path isn't set. Cannot render text", Severity.Error);
-                return;
+                // Debugger.Log("Font path isn't set. Cannot render text", Severity.Error);
+                // return;
 
             }
 
@@ -556,6 +559,7 @@ namespace Blockgame_OpenTK.Font
 
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform2f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "fontSize"), size * 2, size * 2);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "time"), 1, (float) GlobalValues.Time);
             GL.Uniform1f(GL.GetUniformLocation(GlobalValues.CachedFontShader.id, "textSize"), 1, size);
             GL.BindVertexArray(_vao);
@@ -571,10 +575,21 @@ namespace Blockgame_OpenTK.Font
             FT_FaceRec_* face;
             FT_Error error = FT_Init_FreeType(&library);
             
-            error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(_fontPath), 0, &face);
+            error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(FontFamily.FontPaths[0]), 0, &face);
             error = FT_Set_Pixel_Sizes(face, 0, (uint)size);
+            int currentFontIndex = 1;
+            while (FT_Get_Char_Index(face, character) == 0 && currentFontIndex < FontFamily.FontPaths.Count)
+            {
+                
+                error = FT_New_Face(library, (byte*)Marshal.StringToHGlobalAnsi(FontFamily.FontPaths[currentFontIndex]), 0, &face);
+                error = FT_Set_Pixel_Sizes(face, 0, (uint)size);
+                
+                currentFontIndex++;
+                
+            } 
+            // uint charIndex = FT_Get_Char_Index(face, character);
             error = FT_Load_Char(face, character, FT_LOAD.FT_LOAD_RENDER);
-            Console.WriteLine(Marshal.PtrToStringAnsi(face->style_flags));
+            // Console.WriteLine($"char of {character} is {charIndex}");
 
             float thisSizeCursorHeight = FT_MulFix(face->bbox.yMax - face->bbox.yMin, face->size->metrics.y_scale) >> 6;
             float thisSizeCursorStartingPositionRelativeToBaseline = FT_MulFix(face->bbox.yMin, face->size->metrics.y_scale) >> 6;

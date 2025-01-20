@@ -20,6 +20,9 @@ using System.Text.Json;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.BlockProperty;
 using System.Diagnostics.Contracts;
+using System.Text.RegularExpressions;
+using OpenTK.Platform.Native.Windows;
+using Debugger = Blockgame_OpenTK.Util.Debugger;
 
 namespace Blockgame_OpenTK
 {
@@ -134,19 +137,14 @@ namespace Blockgame_OpenTK
             Toolkit.Window.SetSize(window, (640, 480));
             Toolkit.Window.SetMode(window, WindowMode.Normal);
             Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-
-            //Toolkit.Window.GetClientSize(window, out int w, out int h);
-            //Console.WriteLine($"{w}, {h}");
-            // CursorHandle invisibleCursor = Toolkit.Cursor.Create(1, 1, new ReadOnlySpan<byte>(new byte[4]), 0, 0);
+            Debugger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion.ToString()}", Severity.Info);
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
             
             ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
             CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);
             Toolkit.Window.SetCursor(window, c1);
-            // Toolkit.Window.SetCursor(window, null);
             {
-
-                // Toolkit.Mouse.GetPosition();
+                
                 Toolkit.Mouse.GetPosition(window, out Vector2 position);
                 Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
                 Input.PreviousMouseScroll = state.Scroll;
@@ -164,6 +162,27 @@ namespace Blockgame_OpenTK
             while (GlobalValues.IsRunning)
             {
 
+                if (Input.IsKeyDown(Key.LeftControl))
+                {
+
+                    if (Input.IsKeyPressed(Key.V))
+                    {
+
+                        string text = Toolkit.Clipboard.GetClipboardText() ?? string.Empty;
+                        text = text.Replace(Environment.NewLine, "\r").Replace("\r", "\n");
+                        Input.CurrentTypedChars.AddRange(text);
+
+                    }
+                    
+                }
+                
+                if (GlobalValues.IsCursorLocked)
+                {
+                    Toolkit.Mouse.GetPosition(window, out Vector2 position);
+                    Input.MouseDelta = position - Input.PreviousMousePosition;
+                    Input.PreviousMousePosition = position;
+                }
+                
                 if (secondValue >= 1.0)
                 {
 
@@ -246,17 +265,19 @@ namespace Blockgame_OpenTK
                 GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
                 GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
                 GlobalValues.PreviousTime = GlobalValues.CurrentTime;
-
+                
                 Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
                 Input.CurrentMouseScroll = state.Scroll;
                 Input.ScrollDelta = Input.CurrentMouseScroll - Input.PreviousMouseScroll;
                 Input.PreviousMouseScroll = Input.CurrentMouseScroll;
 
-                Input.MouseDelta = Vector2.Zero;
+                // Input.MouseDelta = Vector2.Zero;
 
                 GlobalValues.Time += GlobalValues.DeltaTime;
 
                 Toolkit.Window.ProcessEvents(false);
+                
+                // if (Input.MouseDelta != Vector2.Zero) Console.WriteLine(Input.MouseDelta);
 
                 if (Toolkit.Window.IsWindowDestroyed(window))
                 {
@@ -296,11 +317,6 @@ namespace Blockgame_OpenTK
                 if (Input.CurrentTypedChars.Count > 0)
                 {
 
-                    foreach (char c in Input.CurrentTypedChars)
-                    {
-                        Console.Write(c);
-                    }
-                    Console.WriteLine();
                     Input.CurrentTypedChars.Clear();
 
                 }
@@ -374,29 +390,10 @@ namespace Blockgame_OpenTK
 
             }
 
-            if (args is MouseMoveEventArgs mouseMove)
-            {
-
-                Input.CurrentMousePosition = mouseMove.ClientPosition;
-                Input.MouseDelta = Input.CurrentMousePosition - Input.PreviousMousePosition;
-                Input.PreviousMousePosition = Input.CurrentMousePosition;
-
-            }
-
             if (args is TextInputEventArgs textInput)
             {
 
-                // Console.WriteLine(textInput.Text);
-                // char[] chars = textInput.Text.ToCharArray();
-                Input.CurrentTypedChars.AddRange(textInput.Text);
-
-                // for (int i = 0; i < chars.Length; i++)
-                // {
-                //     Console.Write(chars[i]);
-                // }
-                // Console.WriteLine();
-
-                // Input.CurrentTypedStrings.Add(textInput.Text);
+                Input.CurrentTypedChars.AddRange(textInput.Text.Replace(Environment.NewLine, "\r").Replace("\r", "\n"));
 
             }
 

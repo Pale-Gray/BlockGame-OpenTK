@@ -32,6 +32,8 @@ uniform float fogOffset;
 uniform float chunkLifetime;
 uniform bool shouldRenderAmbientOcclusion;
 flat in uint vlight_data;
+
+in vec3 vLightColor;
 in vec4 ambientValues;
 
 vec2[] texcoord = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
@@ -97,8 +99,10 @@ void main()
 
 	// vec3 col = vec3((array_texture.rgb * ambientValue * value) * (pow(1 + lightValue, vec3(2))));
 	
-	vec3 col = vec3((array_texture.rgb * pow(1 + lightValue, vec3(2)))) * value * (pow(ambientValue, 1.2));
+	// vec3 col = vec3((array_texture.rgb * pow(1 + lightValue, vec3(2)))) * value * (pow(ambientValue, 1.2));
 
+	vec3 col = 1.0 * (vec3(0.0) + vLightColor);
+	
 	Outcolor = vec4(col, a);
 	// Outcolor = clamp(vec4(vnormal, 1.0) * inverse(transpose(view)), 0.0, 1.0);
 

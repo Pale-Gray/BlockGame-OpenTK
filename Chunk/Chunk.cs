@@ -6,6 +6,7 @@ using Blockgame_OpenTK.BlockUtil;
 using System.IO;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Concurrent;
 using Blockgame_OpenTK.BlockProperty;
 using System.Text;
 
@@ -37,6 +38,120 @@ namespace Blockgame_OpenTK.Core.Chunks
 
     }
 
+    public struct ChunkLight
+    {
+
+        public Vector3i LightPosition;
+        public ushort R;
+        public ushort G;
+        public ushort B;
+        public ushort MaxLightValue => Math.Max(R, Math.Max(G, B));
+
+        public static ChunkLight Zero = new ChunkLight(0, 0, 0);
+
+        public ChunkLight(Vector3i position, ushort r, ushort g, ushort b)
+        {
+
+            LightPosition = position;
+            R = r;
+            G = g;
+            B = b;
+
+        }
+
+        public ChunkLight(ushort r, ushort g, ushort b)
+        {
+
+            R = r;
+            G = g;
+            B = b;
+
+        }
+
+        public static ChunkLight FromPackedData(ushort data)
+        {
+
+            return new ChunkLight((ushort) ((data >> 12) & 15), (ushort)((data >> 8) & 15), (ushort)((data >> 4) & 15));
+
+        }
+
+        public ushort ToPackedData()
+        {
+
+            return (ushort) (R << 12 | G << 8 | B << 4 );
+
+        }
+
+        public ChunkLight Max(ChunkLight comparer)
+        {
+
+            return new ChunkLight(LightPosition, Math.Max(R, comparer.R), Math.Max(G, comparer.G), Math.Max(B, comparer.B));
+
+        }
+
+        public ChunkLight Max(ushort data)
+        {
+            
+            ChunkLight comparer = ChunkLight.FromPackedData(data);
+            return Max(comparer);
+
+        }
+
+        public static bool operator >(ChunkLight a, ChunkLight b)
+        {
+
+            return a.R > b.R || a.G > b.G || a.B > b.B;
+
+        }
+
+        public static bool operator <(ChunkLight a, ChunkLight b)
+        {
+            
+            return a.R < b.R || a.G < b.G || a.B < b.B;
+            
+        }
+
+        public static bool operator <=(ChunkLight a, ChunkLight b)
+        {
+            
+            return a.R <= b.R || a.G <= b.G || a.B <= b.B;
+            
+        }
+
+        public static bool operator >=(ChunkLight a, ChunkLight b)
+        {
+            
+            return a.R >= b.R || a.G >= b.G || a.B >= b.B;
+            
+        }
+
+        public static bool operator ==(ChunkLight a, ChunkLight b)
+        {
+            
+            return a.R == b.R || a.G == b.G || a.B == b.B;
+            
+        }
+        
+        public static bool operator !=(ChunkLight a, ChunkLight b)
+        {
+            
+            return a.R != b.R || a.G != b.G || a.B != b.B;
+            
+        }
+
+        public override bool Equals(object obj)
+        {
+
+            if (obj is ChunkLight == false) return false;
+
+            ChunkLight light = (ChunkLight)obj;
+            if (light.R == R && light.G == G && light.B == B && light.LightPosition == LightPosition) return true;
+            
+            return false;
+
+        }
+    }
+    
     public enum QueueType
     {
 
@@ -62,7 +177,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         // public BlockProperty.BlockProperties[] BlockPropertyNewData = new BlockProperty.BlockProperties[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         // public bool[] SolidMask = new bool[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public uint[] BitSolidMask = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
-        public uint[] PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+        public ushort[] PackedLightData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
         public int[] MeshIndices;
         public Dictionary<Vector3i, Vector3i> GlobalBlockLightPositions = new Dictionary<Vector3i, Vector3i>();
         public ChunkVertex[] SolidMesh; // for things that are backface culled ie. grass blocks, dirt blocks, any solid blocks or specified in the mesher
@@ -82,6 +197,9 @@ namespace Blockgame_OpenTK.Core.Chunks
         public float Lifetime = 0;
         public bool IsRenderable = false;
         public string FileName { get { return $"{ChunkPosition.X}_{ChunkPosition.Y}_{ChunkPosition.Z}.cdat"; } }
+
+        public ConcurrentQueue<ChunkLight> LightAdditionQueue = new();
+        public ConcurrentQueue<ChunkLight> LightRemovalQueue = new();
         public Chunk(Vector3i chunkPosition)
         {
 
@@ -237,16 +355,20 @@ namespace Blockgame_OpenTK.Core.Chunks
             if (blockProperties == null)
             {
                 if (BlockPropertyData.ContainsKey(position)) BlockPropertyData.Remove(position);
-            } else
+            }
+            else
             {
                 if (BlockPropertyData.ContainsKey(position))
                 {
                     BlockPropertyData[position] = blockProperties;
-                } else
+                }
+                else
                 {
                     BlockPropertyData.Add(position, blockProperties);
                 }
             }
+            
+            
             BlockData[ChunkUtils.VecToIndex(position)] = block.ID;
             // SolidMask[ChunkUtils.VecToIndex(position)] = block.IsSolid ?? true;
             ChunkUtils.SetSolidBlock(BitSolidMask, position, block.IsSolid ?? true);

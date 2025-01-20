@@ -52,6 +52,8 @@ uniform float radius;
 out vec3 vPositionOffset;
 out vec4 ambientValues;
 
+out vec3 vLightColor;
+
 float dist3D(vec3 pos1, vec3 pos2) 
 {
 
@@ -72,6 +74,12 @@ vec2 unpack(PackedVec2 vector)
 	return vec2(vector.x, vector.y);
 }
 
+vec3 getLightData(uint light_data) {
+	
+	return vec3((light_data >> 12) & 15, (light_data >> 8) & 15, (light_data) >> 4 & 15) / 15.0;
+	
+}
+
 void main()
 {
 
@@ -81,6 +89,8 @@ void main()
 	vec3 normal = unpack(vertexData[gl_VertexID].normal);
 	float ambient_value = vertexData[gl_VertexID].ambientValue;
 	uint light_data = vertexData[gl_VertexID].lightData;
+	
+	vLightColor = getLightData(vertexData[gl_VertexID].lightData);
 	
 	vposition = position;
 	vtexcoord = texcoord;

@@ -1,7 +1,7 @@
 [Info] Starting in client mode.
 [Info] Platform: Debian GNU/Linux 12 (bookworm)
 [Info] Architecture: x64
-[Info] Runtime: .NET 9.0.0
+[Info] Runtime: .NET 9.0.1
 [Info] Gpu Vendor: AMD
 [Info] Gpu Renderer: AMD Radeon Graphics (renoir, LLVM 15.0.6, DRM 3.57, 6.9.10+bpo-amd64)
 [Info] OpenGL Version: 4.6 (Core Profile) Mesa 22.3.6
@@ -71,18 +71,11 @@
 [Info] Registered AspenLeafBlock
 [Info] Registering AspenLogBlock
 [Info] Registered AspenLogBlock
+[Info] Supports raw mouse? False
 System.NullReferenceException: Object reference not set to an instance of an object.
-   at System.SpanHelpers.IndexOfNullByte(Byte* searchSpace)
-   at System.String.Ctor(SByte* value)
-   at System.Runtime.InteropServices.Marshal.PtrToStringAnsi(IntPtr ptr)
-   at Blockgame_OpenTK.Font.CachedFontRenderer.GenerateGlyphData(Char character, Int32 size) in ./Font/CachedFontRenderer.cs:line 582
-   at Blockgame_OpenTK.Font.CachedFontRenderer.RenderFont(ValueTuple`3& cursorParameters, Vector2 position, Vector2 origin, Single layer, Int32 size, String text, Nullable`1 color, Nullable`1 bounds, Single lineSpacing, Nullable`1 cursorIndex) in ./Font/CachedFontRenderer.cs:line 167
-   at Blockgame_OpenTK.Gui.GuiTextbox.Draw() in ./Gui/GuiTextbox.cs:line 114
-   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 568
-   at Blockgame_OpenTK.BlockGame.UpdateScreenSize(WindowResizeEventArgs args) in ./BlockGame.cs:line 618
-   at Blockgame_OpenTK.Program.EventRaised(PalHandle handle, PlatformEventType type, EventArgs args) in ./Program.cs:line 329
-   at OpenTK.Platform.EventQueue.OnEventRaised(EventInstance& instance)
-   at OpenTK.Platform.EventQueue.Raise(PalHandle handle, PlatformEventType type, EventArgs args)
-   at OpenTK.Platform.Native.X11.X11WindowComponent.ProcessEvents(Boolean waitForEvents)
-   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 259
+   at Blockgame_OpenTK.Font.CachedFontRenderer.GenerateGlyphData(Char character, Int32 size) in ./Font/CachedFontRenderer.cs:line 578
+   at Blockgame_OpenTK.Font.CachedFontRenderer.RenderFont(ValueTuple`3& cursorParameters, Vector2 position, Vector2 origin, Single layer, Int32 size, String text, Nullable`1 color, Nullable`1 bounds, Single lineSpacing, Nullable`1 cursorIndex) in ./Font/CachedFontRenderer.cs:line 180
+   at Blockgame_OpenTK.Gui.GuiTextbox.Draw() in ./Gui/GuiTextbox.cs:line 117
+   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 572
+   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 315
    at Blockgame_OpenTK.Program.<Main>(String[] args)

@@ -17,6 +17,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Debugger = Blockgame_OpenTK.Util.Debugger;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -84,9 +85,311 @@ namespace Blockgame_OpenTK.Core.Chunks
 
             }
 
-            chunk.QueueType = QueueType.Mesh;
-            WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
+            chunk.QueueType = QueueType.LightPropagation;
+            WorldGenerator.ConcurrentChunkThreadQueue.Enqueue(chunk.ChunkPosition);
             chunk.IsUpdating = false;
+
+        }
+        public static void DoLightingCalculations(Chunk chunk, World world)
+        {
+
+            List<Vector3i> lightSamples = new();
+            List<Vector3i> nextSamples = new();
+
+            Stopwatch sw = Stopwatch.StartNew();
+            while (chunk.LightRemovalQueue.TryDequeue(out ChunkLight light))
+            {
+                
+                lightSamples.Add(light.LightPosition);
+                while (light.R > 0 || light.G > 0 || light.B > 0)
+                {
+
+                    foreach (Vector3i sample in lightSamples)
+                    {
+
+                        ChunkUtils.SetLightValue(world.WorldChunks[ChunkUtils.PositionToChunk(sample)], sample, new ChunkLight(0,0,0));
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitX)],
+                                sample + Vector3i.UnitX))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitX)],
+                                    sample + Vector3i.UnitX) < light)
+                            {
+                                if (!nextSamples.Contains(sample + Vector3i.UnitX))
+                                    nextSamples.Add(sample + Vector3i.UnitX);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitX)],
+                                        sample + Vector3i.UnitX);
+                                lightAddition.LightPosition = sample + Vector3i.UnitX;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitX)],
+                                sample - Vector3i.UnitX))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitX)],
+                                    sample - Vector3i.UnitX) < light)
+                            {
+                                if (!nextSamples.Contains(sample - Vector3i.UnitX))
+                                    nextSamples.Add(sample - Vector3i.UnitX);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitX)],
+                                        sample - Vector3i.UnitX);
+                                lightAddition.LightPosition = sample - Vector3i.UnitX;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+                        
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitY)],
+                                sample + Vector3i.UnitY))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitY)],
+                                    sample + Vector3i.UnitY) < light)
+                            {
+                                if (!nextSamples.Contains(sample + Vector3i.UnitY))
+                                    nextSamples.Add(sample + Vector3i.UnitY);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitY)],
+                                        sample + Vector3i.UnitY);
+                                lightAddition.LightPosition = sample + Vector3i.UnitY;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitY)],
+                                sample - Vector3i.UnitY))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitY)],
+                                    sample - Vector3i.UnitY) < light)
+                            {
+                                if (!nextSamples.Contains(sample - Vector3i.UnitY))
+                                    nextSamples.Add(sample - Vector3i.UnitY);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitY)],
+                                        sample - Vector3i.UnitY);
+                                lightAddition.LightPosition = sample - Vector3i.UnitY;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+                        
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitZ)],
+                                sample + Vector3i.UnitZ))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitZ)],
+                                    sample + Vector3i.UnitZ) < light)
+                            {
+                                if (!nextSamples.Contains(sample + Vector3i.UnitZ))
+                                    nextSamples.Add(sample + Vector3i.UnitZ);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitZ)],
+                                        sample + Vector3i.UnitZ);
+                                lightAddition.LightPosition = sample + Vector3i.UnitZ;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitZ)],
+                                sample - Vector3i.UnitZ))
+                        {
+
+                            if (ChunkUtils.GetLightValue(
+                                    world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitZ)],
+                                    sample - Vector3i.UnitZ) < light)
+                            {
+                                if (!nextSamples.Contains(sample - Vector3i.UnitZ))
+                                    nextSamples.Add(sample - Vector3i.UnitZ);
+                            }
+                            else
+                            {
+                                ChunkLight lightAddition =
+                                    ChunkUtils.GetLightValue(
+                                        world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitZ)],
+                                        sample - Vector3i.UnitZ);
+                                lightAddition.LightPosition = sample - Vector3i.UnitZ;
+                                if (!chunk.LightAdditionQueue.Contains(lightAddition))
+                                    chunk.LightAdditionQueue.Enqueue(lightAddition);
+                            }
+
+                        }
+                        
+                    }
+                    
+                    light.R = (ushort)Math.Max(light.R - 1, 0);
+                    light.G = (ushort)Math.Max(light.G - 1, 0);
+                    light.B = (ushort)Math.Max(light.B - 1, 0);
+
+                    lightSamples.Clear();
+                    lightSamples.AddRange(nextSamples);
+                    nextSamples.Clear();
+                    
+                }
+                
+                lightSamples.Clear();
+                nextSamples.Clear();
+                
+            }
+            
+            while (chunk.LightAdditionQueue.TryDequeue(out ChunkLight light))
+            {
+                    
+                lightSamples.Add(light.LightPosition);
+                while (light.R > 0 || light.G > 0 || light.B > 0)
+                {
+
+                    foreach (Vector3i sample in lightSamples)
+                    {
+
+                        ChunkUtils.SetLightValue(world.WorldChunks[ChunkUtils.PositionToChunk(sample)], sample,
+                            light.Max(ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample)], sample)));
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitX)],
+                                sample + Vector3i.UnitX) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitX)],
+                                sample + Vector3i.UnitX) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample + Vector3i.UnitX))
+                                nextSamples.Add(sample + Vector3i.UnitX);
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitX)],
+                                sample - Vector3i.UnitX) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitX)],
+                                sample - Vector3i.UnitX) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample - Vector3i.UnitX))
+                                nextSamples.Add(sample - Vector3i.UnitX);
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitZ)],
+                                sample + Vector3i.UnitZ) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitZ)],
+                                sample + Vector3i.UnitZ) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample + Vector3i.UnitZ))
+                                nextSamples.Add(sample + Vector3i.UnitZ);
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitZ)],
+                                sample - Vector3i.UnitZ) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitZ)],
+                                sample - Vector3i.UnitZ) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample - Vector3i.UnitZ))
+                                nextSamples.Add(sample - Vector3i.UnitZ);
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitY)],
+                                sample + Vector3i.UnitY) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample + Vector3i.UnitY)],
+                                sample + Vector3i.UnitY) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample + Vector3i.UnitY))
+                                nextSamples.Add(sample + Vector3i.UnitY);
+
+                        }
+
+                        if (!ChunkUtils.GetSolidBlock(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitY)],
+                                sample - Vector3i.UnitY) &&
+                            ChunkUtils.GetLightValue(
+                                world.WorldChunks[ChunkUtils.PositionToChunk(sample - Vector3i.UnitY)],
+                                sample - Vector3i.UnitY) < light)
+                        {
+
+                            if (!nextSamples.Contains(sample - Vector3i.UnitY))
+                                nextSamples.Add(sample - Vector3i.UnitY);
+
+                        }
+
+                    }
+
+                    light.R = (ushort)Math.Max(light.R - 1, 0);
+                    light.G = (ushort)Math.Max(light.G - 1, 0);
+                    light.B = (ushort)Math.Max(light.B - 1, 0);
+
+                    lightSamples.Clear();
+                    lightSamples.AddRange(nextSamples);
+                    nextSamples.Clear();
+
+                }
+
+                lightSamples.Clear();
+                nextSamples.Clear();
+
+            }
+
+            chunk.QueueType = QueueType.Mesh;
+            WorldGenerator.ConcurrentChunkThreadQueue.Enqueue(chunk.ChunkPosition);
+            chunk.IsUpdating = false;
+            sw.Stop();
+            // Console.WriteLine($"block lighting calculations took {sw.Elapsed.TotalMilliseconds}ms");
 
         }
 
@@ -138,12 +441,12 @@ namespace Blockgame_OpenTK.Core.Chunks
                             if (globalBlockPosition.Y >= columnMaxBlockHeight[ChunkUtils.VecToIndex((x,z))])
                             {
 
-                                world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData | 0x0000000F;
+                                // world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData | 0x0000000F;
 
                             } else
                             {
 
-                                world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData & 0xFFFFFFF0;
+                                // world.WorldChunks[(columnPosition.X, currentChunkHeight + chunkY, columnPosition.Y)].PackedLightData[ChunkUtils.VecToIndex((x, y, z))] = currentLightData & 0xFFFFFFF0;
 
                             }
 
@@ -174,11 +477,13 @@ namespace Blockgame_OpenTK.Core.Chunks
             // chunk.ConcurrentOpaqueMesh.Clear();
             // chunk.ConcurrentMeshIndices.Clear();
 
+            Stopwatch sw = Stopwatch.StartNew();
+            
             chunk.OpaqueMeshList.Clear();
             chunk.IndicesList.Clear();
             Vector3i chunkPosition = chunk.ChunkPosition;
 
-            Dictionary<Vector3i, uint[]> mask = ChunkUtils.GetChunkNeighborsSolidMaskDictionary(world, chunk.ChunkPosition);
+            Dictionary<Vector3i, Chunk> neighbors = ChunkUtils.GetChunkNeighbors(world, chunk.ChunkPosition);
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
             {
@@ -194,7 +499,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
 
-                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, chunk.BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? chunk.BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
+                            chunk.GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, neighbors, chunk.BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? chunk.BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
 
                         }
 
@@ -219,6 +524,9 @@ namespace Blockgame_OpenTK.Core.Chunks
             // WorldGenerator.ConcurrentChunkUpdateQueue.Enqueue(chunk.ChunkPosition);
             WorldGenerator.ConcurrentChunkUploadQueue.Enqueue(chunk.ChunkPosition);
             chunk.IsUpdating = false;
+            
+            sw.Stop();
+            Debugger.Log($"Chunk meshing took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
 
         }
 
@@ -243,7 +551,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             for (int i = 0; i < chunk.PackedLightData.Length; i++)
             {
 
-                chunk.PackedLightData[i] = chunk.PackedLightData[i] & 0x0000000F;
+                // chunk.PackedLightData[i] = chunk.PackedLightData[i] & 0x0000000F;
 
             }
 
@@ -324,7 +632,7 @@ namespace Blockgame_OpenTK.Core.Chunks
                         {
 
                             Vector3i globalBlockPosition = (x, y, z) + (32 * chunkPosition);
-                            world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
+                            // world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].GetBlock(ChunkUtils.PositionToBlockLocal(globalBlockPosition)).OnBlockMesh(world, mask, world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData.ContainsKey(ChunkUtils.PositionToBlockLocal(globalBlockPosition)) ? world.WorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockPropertyData[ChunkUtils.PositionToBlockLocal(globalBlockPosition)] : null, globalBlockPosition);
 
                         }
 
