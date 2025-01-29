@@ -144,7 +144,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
     }
 
-    internal class BlockModel
+    public class BlockModel
     {
         public BlockModel Reference { get; set; }
         public BlockModelFace[] Faces { get; set; }

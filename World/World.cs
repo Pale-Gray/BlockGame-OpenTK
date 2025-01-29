@@ -16,7 +16,7 @@ using Blockgame_OpenTK.BlockProperty;
 
 namespace Blockgame_OpenTK.Core.Worlds
 {
-    internal class World
+    public class World
     {
 
         public string SaveFileName;

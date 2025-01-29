@@ -21,6 +21,8 @@ using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.BlockProperty;
 using System.Diagnostics.Contracts;
 using System.Text.RegularExpressions;
+using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Platform.Native.Windows;
 using Debugger = Blockgame_OpenTK.Util.Debugger;
 
@@ -33,6 +35,9 @@ namespace Blockgame_OpenTK
         public static async Task Main(string[] args)
         {
 
+            PackedChunkVertex v = new PackedChunkVertex(Vector3i.UnitY, Direction.Up);
+            Console.WriteLine($"Inputted val: {Vector3i.UnitY}, outputted val: {v.Position}");
+            
             if (args.Length == 0)
             {
 
@@ -109,7 +114,7 @@ namespace Blockgame_OpenTK
             
             ToolkitOptions toolkitOptions = new ToolkitOptions();
             toolkitOptions.ApplicationName = "Game";
-            toolkitOptions.Logger = new ConsoleLogger();
+            toolkitOptions.Logger = null;//new ConsoleLogger();
             Toolkit.Init(toolkitOptions);
 
             OpenGLGraphicsApiHints contextSettings = new OpenGLGraphicsApiHints()
@@ -335,6 +340,7 @@ namespace Blockgame_OpenTK
             if (args is CloseEventArgs closeEventArgs)
             {
 
+                GlobalValues.IsRunning = false;
                 Toolkit.Window.Destroy(closeEventArgs.Window);
 
             }

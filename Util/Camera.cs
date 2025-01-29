@@ -10,7 +10,8 @@ namespace Blockgame_OpenTK.Util
         Perspective
 
     };
-    internal class Camera
+
+    public class Camera
     {
 
         public Vector3 Position;

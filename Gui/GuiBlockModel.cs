@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiBlockModel
+    public class GuiBlockModel
     {
 
         Matrix4 ModelMatrix = Matrix4.Identity;

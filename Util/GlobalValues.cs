@@ -111,6 +111,9 @@ namespace Blockgame_OpenTK.Util
         public static Shader GuiShader;
         public static Shader GuiBlockShader;
         public static Shader CachedFontShader;
+        public static Shader GuiLineShader;
+
+        public static Shader PackedChunkShader;
 
         public static ushort BlockSelectorID = 1;
 

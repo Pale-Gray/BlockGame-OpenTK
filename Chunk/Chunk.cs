@@ -167,7 +167,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
     }
 
-    internal class Chunk
+    public class Chunk
     {
 
         public int[] GlobalBlockMaxHeight = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];

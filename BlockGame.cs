@@ -259,6 +259,7 @@ namespace Blockgame_OpenTK
             Util.Debugger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
             Util.Debugger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
             Util.Debugger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
+            Util.Debugger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
 
             if (!Directory.Exists("Chunks"))
             {
@@ -323,7 +324,7 @@ namespace Blockgame_OpenTK
 
             Player = new Player();
             Player.SetHeight(1.8f);
-            Player.SetPosition((16, 68, 16));
+            Player.SetPosition((0, 68, 0));
 
             GuiElement element = new GuiElement();
             element.Origin = (0.5f, 0.5f);
@@ -357,7 +358,7 @@ namespace Blockgame_OpenTK
 
 
             FontFamily font = new FontFamily();
-            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
+            font.AddFontPath(Path.Combine("Resources", "Fonts", "Roboto-Regular.ttf"));
             CachedFontRenderer.FontFamily = font;
             
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
@@ -368,12 +369,17 @@ namespace Blockgame_OpenTK
             box.AbsoluteDimensions = (500, 400);
             box.Origin = (0.5f, 0.5f);
             box.RelativePosition = (0.5f, 0.5f);
-            box.IsVisible = true;
+            // box.IsVisible = true;
             box.Text = "";
             box.Color = Color4.White;
 
-            WorldGenerator.InitThreads();
-            WorldGenerator.StartThreads(World);
+            // WorldGenerator.InitThreads();
+            GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
+            // WorldGenerator.StartThreads(World);
+            PackedWorldGenerator.CurrentWorld = new PackedChunkWorld();
+            PackedWorldGenerator.Initialize();
+            
+            GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
 
         }
 
@@ -424,7 +430,6 @@ namespace Blockgame_OpenTK
                     if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Done)
                     {
 
-                        // World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].SaveToFile();
                         ChunkSerializer.Serialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
                         ChunkSerializer.Deserialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
 
@@ -454,7 +459,8 @@ namespace Blockgame_OpenTK
                 {
 
                     // Console.WriteLine("Reloading chunks for debug purposes");
-                    // World.DebugReset();
+                    // World.DebugReset(
+                    PackedWorldGenerator.CurrentWorld.PackedWorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType = PackedChunkQueueType.PassOne;
 
                 }
 
@@ -501,9 +507,20 @@ namespace Blockgame_OpenTK
 
             }
 
-            World.Generate(Player.Position);
-            World.Draw(Player.Camera);
-
+            // World.Generate(Player.Position);
+            // World.Draw(Player.Camera);
+            // PackedWorldGenerator.Tick(Player);
+            // PackedWorldGenerator.QueueGeneration();
+            
+            CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, Player.Position.ToString(), Color4.Black);
+            
+            GeneralLineRenderer.DrawLine((0, 0, 0), (0, 100, 0), Color4.Red, 5, Player);
+            rmodel.SetPosition(0,0,0);
+            rmodel.SetScale(0.5f, 0.5f, 0.5f);
+            GL.Disable(EnableCap.CullFace);
+            rmodel.Draw((0,0,0), (0,0,0), Player.Camera, 0);
+            GL.Enable(EnableCap.CullFace);
+            
             GL.Enable(EnableCap.DepthTest);
 
             if (debug)

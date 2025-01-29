@@ -1,9 +1,5 @@
 {
   "profiles": {
-    "WSL": {
-      "commandName": "WSL2",
-      "distributionName": ""
-    },
     "Run": {
       "commandName": "Project",
       "workingDirectory": "$(ProjectDir)"

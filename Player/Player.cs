@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace Blockgame_OpenTK.PlayerUtil
 {
-    internal class Player
+    public class Player
     {
 
         public Vector3 Position = Vector3.Zero;

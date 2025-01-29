@@ -3,7 +3,7 @@ using System;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class AxisAlignedBoundingBox
+    public class AxisAlignedBoundingBox
     {
 
         public Vector3 Position;

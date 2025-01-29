@@ -36,7 +36,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
     }
 
-    internal class Block
+    public class Block
     {
         
         public string DisplayName { get; set; }
