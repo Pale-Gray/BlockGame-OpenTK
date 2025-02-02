@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
@@ -14,27 +15,24 @@ public class PackedChunkBuilder
 
     public static void GeneratePassOne(PackedChunk chunk)
     {
-        
-        /*
+
         for (int x = 0; x < GlobalValues.ChunkSize; x++)
         {
-            for (int y = 0; y < GlobalValues.ChunkSize; y++)
+            for (int z = 0; z < GlobalValues.ChunkSize; z++)
             {
-                for (int z = 0; z < GlobalValues.ChunkSize; z++)
+                int height = (int) (64.0 * Maths.Noise2(132423430, (x + (chunk.ChunkPosition.X * 32)) / 128.0f, (z + (chunk.ChunkPosition.Z * 32)) / 128.0f));
+                for (int y = 0; y < GlobalValues.ChunkSize; y++)
                 {
-
-                    Vector3i globalBlockPosition = (x, y, z) + (chunk.ChunkPosition * 32);
-                    
-                    if (y <= x)
+                    if (y + (chunk.ChunkPosition.Y * 32) <= height)
                     {
+                        // chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))] = 1;
                         chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))] = 1;
                     }
-                    
                 }
             }
         }
-        */
-        if (chunk.ChunkPosition.Y <= 0) Array.Fill(chunk.BlockData, (ushort)1);
+        
+        // if (chunk.ChunkPosition.Y <= 0) Array.Fill(chunk.BlockData, (ushort)1);
 
         chunk.QueueType = PackedChunkQueueType.Mesh;
         if (chunk.HasPriority)
@@ -62,16 +60,35 @@ public class PackedChunkBuilder
                 {
                     if (chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))] != 0)
                     {
+                        NewBlock block = GlobalValues.NewRegister.GetBlockFromId(chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))]);
                         if (chunks[ChunkUtils.PositionToChunk((x,y+1,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y+1,z)))] == 0)
                         {
-                            PackedChunkVertex[] topVertices =
-                            {
-                                new PackedChunkVertex((x + 1,y + 1,z + 1), Direction.Up),
-                                new PackedChunkVertex((x + 1,y + 1,z), Direction.Up),
-                                new PackedChunkVertex((x,y + 1,z), Direction.Up),
-                                new PackedChunkVertex((x,y + 1,z + 1), Direction.Up),
-                            };
-                            vertices.AddRange(topVertices);
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z)));
+                        }
+
+                        if (chunks[ChunkUtils.PositionToChunk((x, y - 1, z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x, y - 1, z)))] == 0)
+                        {
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z)));
+                        }
+                        
+                        if (chunks[ChunkUtils.PositionToChunk((x+1,y,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x+1,y,z)))] == 0)
+                        {
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z)));
+                        }
+
+                        if (chunks[ChunkUtils.PositionToChunk((x-1, y, z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x-1, y, z)))] == 0)
+                        {
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z)));
+                        }
+                        
+                        if (chunks[ChunkUtils.PositionToChunk((x,y,z+1))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y,z+1)))] == 0)
+                        {
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z)));
+                        }
+
+                        if (chunks[ChunkUtils.PositionToChunk((x, y, z-1))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x, y, z-1)))] == 0)
+                        {
+                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z)));
                         }
                     }
                 }
@@ -121,10 +138,12 @@ public class PackedChunkBuilder
 
         GL.BindVertexArray(PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices.Length * sizeof(uint), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices, BufferUsage.DynamicDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices.Length * Marshal.SizeOf<PackedChunkVertex>(), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices, BufferUsage.DynamicDraw);
 
-        GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, sizeof(uint), 0);
+        GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), 0);
         GL.EnableVertexAttribArray(0);
+        GL.VertexAttribIPointer(1, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.PackedExtraInfo)));
+        GL.EnableVertexAttribArray(1);
         
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Ibo);
         GL.BufferData(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices.Length * sizeof(int), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices, BufferUsage.DynamicDraw);

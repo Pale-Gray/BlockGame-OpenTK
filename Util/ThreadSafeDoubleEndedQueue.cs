@@ -11,49 +11,56 @@ public class ThreadSafeDoubleEndedQueue<T>
     public int Count => _queue.Count;
 
     private Mutex _mutex = new();
+    private object _lock = new();
 
     public void EnqueueFirst(T value)
     {
-        _mutex.WaitOne();
-        _queue.AddFirst(value);
-        _mutex.ReleaseMutex();
+        lock (_lock)
+        {
+            _queue.AddFirst(value);
+        }
     }
 
     public void EnqueueLast(T value)
     {
-        _mutex.WaitOne();
-        _queue.AddLast(value);
-        _mutex.ReleaseMutex();
+        lock (_lock)
+        {
+            _queue.AddLast(value);
+        }
     }
 
     public bool TryDequeueFirst(out T value)
     {
-        _mutex.WaitOne();
-        if (_queue.Count > 0)
+
+        lock (_lock)
         {
-            value = _queue.FirstOrDefault();
-            _queue.RemoveFirst();
-            _mutex.ReleaseMutex();
-            return true;
+            if (_queue.Count > 0)
+            {
+                value = _queue.FirstOrDefault();
+                _queue.RemoveFirst();
+                return true;
+            }
+            value = default;
+            return false;
         }
-        value = default;
-        _mutex.ReleaseMutex();
-        return false;
+
     }
 
     public bool TryDequeueLast(out T value)
     {
-        _mutex.WaitOne();
-        if (_queue.Count > 0)
+
+        lock (_lock)
         {
-            value =  _queue.LastOrDefault();
-            _queue.RemoveLast();
-            _mutex.ReleaseMutex();
-            return true;
+            if (_queue.Count > 0)
+            {
+                value =  _queue.LastOrDefault();
+                _queue.RemoveLast();
+                return true;
+            }
+            value = default;
+            return false;
         }
-        value = default;
-        _mutex.ReleaseMutex();
-        return false;
+        
     }
 
 }

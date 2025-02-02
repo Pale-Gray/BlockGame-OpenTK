@@ -20,6 +20,7 @@ using Blockgame_OpenTK.BlockProperty;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
+using OpenTK.Graphics.Vulkan;
 
 namespace Blockgame_OpenTK
 {
@@ -380,6 +381,14 @@ namespace Blockgame_OpenTK
             PackedWorldGenerator.Initialize();
             
             GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
+            
+            NewBlock block = new NewBlock();
+            Cube cube = new Cube();
+            cube.TopTextureName = "GrassBlockTop";
+            NewBlockModel blockModel = NewBlockModel.FromCubes([ cube ]);
+            block.BlockModel = blockModel;
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("base", "air"), new NewBlock());
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("base", "block"), block);
 
         }
 
@@ -396,7 +405,7 @@ namespace Blockgame_OpenTK
                 World.Tick(Player.Position);
 
             }
-            Player.Update(World);
+            Player.Update(PackedWorldGenerator.CurrentWorld);
             TickTime += GlobalValues.DeltaTime;
 
             frameBuffer.Bind();
@@ -509,17 +518,17 @@ namespace Blockgame_OpenTK
 
             // World.Generate(Player.Position);
             // World.Draw(Player.Camera);
-            // PackedWorldGenerator.Tick(Player);
-            // PackedWorldGenerator.QueueGeneration();
+            PackedWorldGenerator.Tick(Player);
+            PackedWorldGenerator.QueueGeneration();
             
-            CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, Player.Position.ToString(), Color4.Black);
+            CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
             
-            GeneralLineRenderer.DrawLine((0, 0, 0), (0, 100, 0), Color4.Red, 5, Player);
-            rmodel.SetPosition(0,0,0);
-            rmodel.SetScale(0.5f, 0.5f, 0.5f);
-            GL.Disable(EnableCap.CullFace);
-            rmodel.Draw((0,0,0), (0,0,0), Player.Camera, 0);
-            GL.Enable(EnableCap.CullFace);
+            // GeneralLineRenderer.DrawLine((0, 0, 0), (0, 100, 0), Color4.Red, 5, Player);
+            // rmodel.SetPosition(0,0,0);
+            // rmodel.SetScale(0.5f, 0.5f, 0.5f);
+            // GL.Disable(EnableCap.CullFace);
+            // rmodel.Draw((0,0,0), (0,0,0), Player.Camera, 0);
+            // GL.Enable(EnableCap.CullFace);
             
             GL.Enable(EnableCap.DepthTest);
 
@@ -530,7 +539,7 @@ namespace Blockgame_OpenTK
 
             }
 
-            Dda.TraceChunks(World.WorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
+            Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.PackedWorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
 
             if (debug)
             {

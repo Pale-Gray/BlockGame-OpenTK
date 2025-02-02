@@ -21,6 +21,8 @@ namespace Blockgame_OpenTK.BlockUtil
         // public static readonly Block LogBranchBlock = new LogBranchBlock();
         public static readonly Block AspenLogBlock = Block.LoadFromJson("AspenLogBlock.json");
         public static readonly Block AspenLeafBlock = Block.LoadFromJson("AspenLeafBlock.json");
+        
+        public static readonly NewBlock SolidBlock = new NewBlock();
         // public static readonly Block LogFenceBlock = Block.LoadFromJson("LogFenceBlock.json");
         public static void Load()
         {
@@ -36,6 +38,8 @@ namespace Blockgame_OpenTK.BlockUtil
             GlobalValues.Register.AddBlock(8, new AspenTreeBlock());
             GlobalValues.Register.AddBlock(9, AspenLeafBlock);
             GlobalValues.Register.AddBlock(10, AspenLogBlock);
+
+            SolidBlock.BlockModel = new NewBlockModel();
 
             for (int i = 0; i < 5; i++)
             {

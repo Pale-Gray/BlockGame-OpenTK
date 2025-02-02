@@ -1,7 +1,7 @@
 #version 460
 
 layout (location = 0) in uint aPackedVertexData;
-layout (location = 1) in uint aVertexColorData;
+layout (location = 1) in uint aPackedColorData;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -10,6 +10,7 @@ uniform vec3 chunkPosition;
 
 out vec3 vPosition;
 out vec3 vNormal;
+out flat int vTextureIndex;
 
 vec3 extractPosition(uint packedData) {
     
@@ -40,6 +41,7 @@ void main() {
     
     vPosition = extractPosition(aPackedVertexData);
     vNormal = extractNormal(aPackedVertexData);
+    vTextureIndex = int(aPackedColorData & 65535);
     gl_Position = vec4(vPosition + (chunkPosition * 32), 1) * view * projection;
     
 }

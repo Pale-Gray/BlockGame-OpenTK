@@ -38,7 +38,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
         public Player() { }
 
-        public void Update(World world)
+        public void Update(PackedChunkWorld world)
         {
             float Speed = 0;
 
@@ -66,13 +66,13 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (RemoveDelay >= 0.15f)
                     {
 
-                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
+                        Dda.TraceChunks(world.PackedWorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
                         if (Dda.hit)
                         {
 
                             Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit);
-                            world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].GetBlock(HitPositionLocal).OnBlockDestroy(world, Dda.PositionAtHit);
-
+                            // world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].GetBlock(HitPositionLocal).OnBlockDestroy(world, Dda.PositionAtHit);
+                            
                             RemoveDelay = 0;
 
                         }
@@ -90,7 +90,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (PlaceDelay >= 0.15f)
                     {
 
-                        Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
+                        // Dda.TraceChunks(world.WorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
 
                         if (Dda.hit)
                         {
@@ -103,7 +103,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit);
 
-                                GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, Dda.PreviousPositionAtHit);
+                                // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, Dda.PreviousPositionAtHit);
 
                             }
 
@@ -117,7 +117,6 @@ namespace Blockgame_OpenTK.PlayerUtil
                 else { PlaceDelay = 1; }
 
                 Vector3 positionAlter = Vector3.Zero;
-                // Console.WriteLine(Camera.Yaw);
 
                 if (Input.JoystickLeftAxis != Vector2.Zero)
                 {
@@ -236,13 +235,13 @@ namespace Blockgame_OpenTK.PlayerUtil
                         for (int z = min.Z - 1; z <= max.Z + 1; z++)
                         {
 
-                            if (world.WorldChunks.ContainsKey(ChunkUtils.PositionToChunk((x,y,z))) && world.WorldChunks[ChunkUtils.PositionToChunk((x,y,z))].GetBlockID(ChunkUtils.PositionToBlockLocal((x,y,z))) != 0)
+                            if (world.PackedWorldChunks.ContainsKey(ChunkUtils.PositionToChunk((x,y,z))) && world.PackedWorldChunks[ChunkUtils.PositionToChunk((x,y,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y,z)))] != 0)
                             {
 
-                                Block sampledBlock = world.WorldChunks[ChunkUtils.PositionToChunk((x, y, z))].GetBlock(ChunkUtils.PositionToBlockLocal((x,y,z)));
-                                AxisAlignedBoundingBox blockBoundingBox = sampledBlock.BoundingBox.GetOffsetBoundingBox((x, y, z));
+                                // Block sampledBlock = world.WorldChunks[ChunkUtils.PositionToChunk((x, y, z))].GetBlock(ChunkUtils.PositionToBlockLocal((x,y,z)));
+                                AxisAlignedBoundingBox blockBoundingBox = new AxisAlignedBoundingBox((0, 0, 0), (1, 1, 1), (0, 0, 0)).GetOffsetBoundingBox((x, y, z));// sampledBlock.BoundingBox.GetOffsetBoundingBox((x, y, z));
 
-                                if (playerBoundsOffsetted.CollideWith(blockBoundingBox) && (sampledBlock.HasCollision ?? true))
+                                if (playerBoundsOffsetted.CollideWith(blockBoundingBox))// && (sampledBlock.HasCollision ?? true))
                                 {
 
                                     boundPriorityQueue.Enqueue(blockBoundingBox, Maths.Dist3D(playerBoundsOffsetted.Position, blockBoundingBox.Position));
@@ -302,14 +301,14 @@ namespace Blockgame_OpenTK.PlayerUtil
                             } else
                             {
 
-                                frictionForce = j * tangent * bound.DynamicFriction;
+                                frictionForce = j * tangent * 0.8f;
 
                             }
 
                             Velocity -= (impulseForce) / Mass;
 
-                            Velocity.X /= (1 + bound.DynamicFriction);
-                            Velocity.Z /= (1 + bound.DynamicFriction);
+                            Velocity.X /= (1 + 0.8f);
+                            Velocity.Z /= (1 + 0.8f);
 
                             Position += depthVector;
 

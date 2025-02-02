@@ -35,7 +35,7 @@ namespace Blockgame_OpenTK
         public static async Task Main(string[] args)
         {
 
-            PackedChunkVertex v = new PackedChunkVertex(Vector3i.UnitY, Direction.Up);
+            PackedChunkVertex v = new PackedChunkVertex(Vector3i.UnitY, Core.Chunks.Direction.Up);
             Console.WriteLine($"Inputted val: {Vector3i.UnitY}, outputted val: {v.Position}");
             
             if (args.Length == 0)
@@ -377,7 +377,7 @@ namespace Blockgame_OpenTK
 
             if (args is MouseButtonDownEventArgs mouseDown)
             {
-
+                
                 MouseState state = Input.MouseStates[mouseDown.Button];
                 state.IsMouseButtonDown = true;
                 Input.MouseStates[mouseDown.Button] = state;

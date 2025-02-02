@@ -22,6 +22,7 @@ public struct PackedChunkVertex
 {
 
     public uint PackedVertexInfo = 0;
+    public uint PackedExtraInfo = 0;
     public Vector3i Position
     {
         get
@@ -49,6 +50,14 @@ public struct PackedChunkVertex
     {
         Position = position;
         Normal = normal;
+        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex("MissingModel");
+    }
+    
+    public PackedChunkVertex(Vector3i position, Direction normal, string textureName)
+    {
+        Position = position;
+        Normal = normal;
+        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex(textureName);
     }
     
 }

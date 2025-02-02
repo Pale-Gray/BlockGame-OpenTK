@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Mod
 {
-    internal interface IMod
+    internal interface IModLoader
     {
 
         public abstract void OnLoad(Register register);
