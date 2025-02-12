@@ -1,21 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading;
 using Blockgame_OpenTK.Util;
-using Microsoft.VisualBasic.FileIO;
 using NVorbis;
 using OpenTK.Audio.OpenAL;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using WaveLoader;
 
