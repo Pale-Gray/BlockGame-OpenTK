@@ -436,6 +436,12 @@ public class AudioPlayer
 
         }
 
+        foreach (StreamedAudioSource source in _playingStreamedAudioSources) {
+
+            source.Free();
+
+        }
+
     }
     
 }
