@@ -24,7 +24,7 @@ namespace Blockgame_OpenTK.Util
             {
 
                 GL.GetShaderInfoLog(computeShader, out string info);
-                Debugger.Log(info, Severity.Error);
+                GameLogger.Log(info, Severity.Error);
 
             }
 
@@ -37,7 +37,7 @@ namespace Blockgame_OpenTK.Util
             {
 
                 GL.GetProgramInfoLog(Id, out string info);
-                Debugger.Log(info, Severity.Error);
+                GameLogger.Log(info, Severity.Error);
 
             }
 

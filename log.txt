@@ -1,0 +1,74 @@
+[Info] Starting in client mode.
+[Info] Platform: Debian GNU/Linux 12 (bookworm)
+[Info] Architecture: x64
+[Info] Runtime: .NET 9.0.1
+[Info] Gpu Vendor: AMD
+[Info] Gpu Renderer: AMD Radeon Graphics (renoir, LLVM 15.0.6, DRM 3.57, 6.10.11+bpo-amd64)
+[Info] OpenGL Version: 4.6 (Core Profile) Mesa 22.3.6
+[Info] Max texture size: 16384
+[Info] Max array texture layers: 2048
+[Info] Loading Textures
+[Info] Loading File Resources/Textures/TextureArray/TallGrassBlock.png
+[Info] Loading File Resources/Textures/TextureArray/StoneBlock.png
+[Info] Loading File Resources/Textures/TextureArray/BrickBlock.png
+[Info] Loading File Resources/Textures/TextureArray/LightBlock.png
+[Info] Loading File Resources/Textures/TextureArray/MissingModel.png
+[Info] Loading File Resources/Textures/TextureArray/X.png
+[Info] Loading File Resources/Textures/TextureArray/PlimboColor.png
+[Info] Loading File Resources/Textures/TextureArray/CowPattern.png
+[Info] Loading File Resources/Textures/TextureArray/AspenLeafBlock.png
+[Info] Loading File Resources/Textures/TextureArray/AspenLogBlockTop.png
+[Info] Loading File Resources/Textures/TextureArray/MissingTexture.png
+[Info] Loading File Resources/Textures/TextureArray/MissingBlock.png
+[Info] Loading File Resources/Textures/TextureArray/RedLightBlock.png
+[Info] Loading File Resources/Textures/TextureArray/DirtBlock.png
+[Info] Loading File Resources/Textures/TextureArray/LogBlockTop.png
+[Info] Loading File Resources/Textures/TextureArray/BlueLightBlock.png
+[Info] Loading File Resources/Textures/TextureArray/FirLogSide.png
+[Info] Loading File Resources/Textures/TextureArray/LogBlockSide.png
+[Info] Loading File Resources/Textures/TextureArray/GrassBlockTop.png
+[Info] Loading File Resources/Textures/TextureArray/GrassBlockSide.png
+[Info] Loading File Resources/Textures/TextureArray/TallGrassBlockBottom.png
+[Info] Loading File Resources/Textures/TextureArray/TallGrassBlockTop.png
+[Info] Loading File Resources/Textures/TextureArray/AspenLogBlockSide.png
+[Info] Loading File Resources/Textures/TextureArray/GreenLightBlock.png
+[Info] Loading File Resources/Textures/TextureArray/Bricks.png
+[Info] Finished Loading Textures
+[Info] Registering AirBlock
+[Info] Registered AirBlock
+[Info] Registering GrassBlock
+[Info] Registered GrassBlock
+[Info] Registering StoneBlock
+[Info] Registered StoneBlock
+[Info] Registering DirtBlock
+[Info] Registered DirtBlock
+[Info] Registering LogBlock
+[Info] Registered LogBlock
+[Info] Registering BrickBlock
+[Info] Registered BrickBlock
+[Info] Registering MissingBlock
+[Info] Registered MissingBlock
+[Info] Registering FoliageBlock
+[Info] Registered FoliageBlock
+[Info] Registering AspenTreeBlock
+[Info] Registered AspenTreeBlock
+[Info] Registering AspenLeafBlock
+[Info] Registered AspenLeafBlock
+[Info] Registering AspenLogBlock
+[Info] Registered AspenLogBlock
+[Info] NewRegistering block Game.Air
+[Info] NewRegistering block Game.Block
+[Info] Game.Block has a model
+[Info] NewRegistering block Game.BrickBlock
+[Info] Game.BrickBlock has a model
+[Info] NewRegistering block Game.CowBlock
+[Info] Game.CowBlock has a model
+[Info] Supports raw mouse? False
+System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter 'offset')
+   at NVorbis.StreamDecoder.Read(Span`1 buffer, Int32 offset, Int32 count)
+   at NVorbis.VorbisReader.ReadSamples(Single[] buffer, Int32 offset, Int32 count)
+   at Blockgame_OpenTK.Audio.AudioPlayer.PlayMusicLocal(String filePath, Single pitch, Single gain) in ./Audio/AudioPlayer.cs:line 220
+   at Blockgame_OpenTK.BlockUtil.MooingBlock.OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition) in ./Block/MooingBlock.cs:line 21
+   at Blockgame_OpenTK.PlayerUtil.Player.Update(PackedChunkWorld world) in ./Player/Player.cs:line 109
+   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 438
+   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 369

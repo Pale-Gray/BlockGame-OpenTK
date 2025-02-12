@@ -22,7 +22,7 @@ namespace Blockgame_OpenTK.Util
             uint uintG = (uint)(Math.Floor(15.0f * (float)((Convert.ToUInt32(hexG, 16) / 15.0f))));
             uint uintB = (uint)(Math.Floor(15.0f * (float)((Convert.ToUInt32(hexB, 16) / 15.0f))));
 
-            Debugger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
+            GameLogger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
             
             return ((int)uintR, (int)uintG, (int)uintB);
             
@@ -35,7 +35,7 @@ namespace Blockgame_OpenTK.Util
             uint uintG = (uint)Math.Floor(15.0f * (g / 255.0f));
             uint uintB = (uint)Math.Floor(15.0f * (b / 255.0f));
 
-            Debugger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
+            GameLogger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
 
             return ((int)uintR, (int)uintG, (int)uintB);
 
@@ -48,7 +48,7 @@ namespace Blockgame_OpenTK.Util
             uint uintG = (uint)(15.0f * Math.Floor(normalizedRgb.Y));
             uint uintB = (uint)(15.0f * Math.Floor(normalizedRgb.Z));
 
-            Debugger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
+            GameLogger.Log($"{uintR}, {uintG}, {uintB}", Severity.Info);
 
             return ((int)uintR, (int)uintG, (int)uintB);
 

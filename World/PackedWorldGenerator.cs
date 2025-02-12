@@ -15,8 +15,8 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 8;
-    public static int WorldGenerationHeight = 4;
+    public static int WorldGenerationRadius = 5;
+    public static int WorldGenerationHeight = 2;
     public static int MaxChunkUploadCount = 5;
 
     private static int _currentRadius = 0;
@@ -30,22 +30,33 @@ public class PackedWorldGenerator
     
     private static ConcurrentDictionary<int, AutoResetEvent> _chunkGenerationAutoResetEvents = new();
 
-    public static AutoResetEvent _resetEvent = new(true);
+    public static void Unload()
+    {
+        
+        foreach (Thread t in _chunkGenerationThreads)
+        {
+            while (t.IsAlive)
+            {
+                _chunkGenerationAutoResetEvents[t.ManagedThreadId].Set();
+            }
+        }
+        _chunkGenerationThreads.Clear();
+        _chunkGenerationAutoResetEvents.Clear();
 
+    }
     private static void HandleUploadQueue()
     {
         
         int currentCount = 0;
-        while (currentCount < MaxChunkUploadCount)
+        while (currentCount < MaxChunkUploadCount && GlobalValues.IsRunning)
         {
 
-            if (PackedChunkWorldUploadQueue.TryDequeueFirst(out Vector3i chunkPosition))
+            if (PackedChunkWorldUploadQueue.TryDequeueFirst(out Vector3i chunkPosition) && GlobalValues.IsRunning)
             {
                 
                 PackedChunkBuilder.Upload(chunkPosition);
                 
             }
-            
             currentCount++;
 
         }
@@ -58,9 +69,9 @@ public class PackedWorldGenerator
         {
             
             _chunkGenerationAutoResetEvents[Thread.CurrentThread.ManagedThreadId].WaitOne();
-            while (PackedChunkWorldGenerationQueue.TryDequeueFirst(out Vector3i chunkPosition))
+            while (PackedChunkWorldGenerationQueue.TryDequeueFirst(out Vector3i chunkPosition) && GlobalValues.IsRunning)
             {
-               
+
                 switch (CurrentWorld.PackedWorldChunks[chunkPosition].QueueType)
                 {
                     case PackedChunkQueueType.PassOne:
@@ -74,19 +85,49 @@ public class PackedWorldGenerator
                                 PackedChunkBuilder.Mesh(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
                             }
                             else
-                            {
-                                PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
+                            {   
+                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
+                                }
+                                else
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
+                                }
                             }
                         }
                         break;
                 }
-            
+                
             }
 
         }
         
     }
 
+    public static void SetAllResetEvents()
+    {
+
+        _chunkGenerationAutoResetEvents.Clear();
+
+    }
+
+    public static void CheckIfThreadsAreAlive()
+    {
+        
+        for (int i = 0; i < _chunkGenerationThreads.Count; i++)
+        {
+            if (_chunkGenerationThreads[i].IsAlive)
+            {
+                Console.WriteLine($"Thread {_chunkGenerationThreads[i].ManagedThreadId} is alive");
+            }
+            else
+            {
+                Console.WriteLine($"Thread {_chunkGenerationThreads[i].ManagedThreadId} is not alive");
+            }
+        }
+
+    }
     public static void Initialize()
     {
 
@@ -107,7 +148,13 @@ public class PackedWorldGenerator
 
         if (PackedChunkWorldGenerationQueue.Count > 0)
         {
-            foreach (AutoResetEvent e in _chunkGenerationAutoResetEvents.Values) e.Set();
+
+            int amountOfNeighborPairs = (PackedChunkWorldGenerationQueue.Count % 27) + 1;
+            for (int i = 0; i < (amountOfNeighborPairs > _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : amountOfNeighborPairs); i++) {
+                _chunkGenerationAutoResetEvents.ElementAt(i).Value.Set();
+            }
+
+            // foreach (AutoResetEvent e in _chunkGenerationAutoResetEvents.Values) e.Set();
         }
        
         HandleUploadQueue();
@@ -146,14 +193,17 @@ public class PackedWorldGenerator
             {
                 for (int z = -1; z <= 1; z++)
                 {
-                    if (CurrentWorld.PackedWorldChunks.ContainsKey(chunkPosition + (x,y,z)))
+                    if ((x, y, z) != Vector3i.Zero)
                     {
-                        if (CurrentWorld.PackedWorldChunks[chunkPosition + (x,y,z)].QueueType < queueType) return false;
+                        if (CurrentWorld.PackedWorldChunks.ContainsKey(chunkPosition + (x,y,z)))
+                        {
+                            if (CurrentWorld.PackedWorldChunks[chunkPosition + (x,y,z)].QueueType < queueType) return false;
+                        }
+                        else
+                        {
+                            return false;
+                        }  
                     }
-                    else
-                    {
-                        return false;
-                    }  
                 }
             }
         }

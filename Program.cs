@@ -2,29 +2,19 @@
 using System.Text;
 using System.Threading;
 using OpenTK.Platform;
-using OpenTK.Core.Utility;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using System.Resources;
-using Blockgame_OpenTK.Font;
-using System.Collections.Generic;
 using Blockgame_OpenTK.BlockUtil;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Net;
-using System.Text.Json;
-using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.BlockProperty;
-using System.Diagnostics.Contracts;
-using System.Text.RegularExpressions;
-using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
-using OpenTK.Platform.Native.Windows;
-using Debugger = Blockgame_OpenTK.Util.Debugger;
+using Tomlet;
+using Tomlet.Models;
+using GameLogger = Blockgame_OpenTK.Util.GameLogger;
+using Direction = Blockgame_OpenTK.BlockUtil.Direction;
+using Blockgame_OpenTK.Audio;
 
 namespace Blockgame_OpenTK
 {
@@ -32,30 +22,99 @@ namespace Blockgame_OpenTK
     {
 
         private static OpenGLContextHandle _glContext;
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
-
-            PackedChunkVertex v = new PackedChunkVertex(Vector3i.UnitY, Core.Chunks.Direction.Up);
-            Console.WriteLine($"Inputted val: {Vector3i.UnitY}, outputted val: {v.Position}");
             
             if (args.Length == 0)
             {
 
-                Util.Debugger.Log("Starting in client mode.", Severity.Info);
+                GameLogger.Log("Starting in client mode.", Severity.Info);
 
             }
             if (args.Length == 1)
             {
 
-                if (args[0].ToLower() == "client") Util.Debugger.Log("Starting in client mode.", Severity.Info);
+                if (args[0].ToLower() == "client") Util.GameLogger.Log("Starting in client mode.", Severity.Info);
 
             }
             if (args.Length > 1)
             {
 
-                if (args[0].ToLower() == "server") Util.Debugger.Log("Starting in server mode.", Severity.Info);
+                if (args[0].ToLower() == "server") Util.GameLogger.Log("Starting in server mode.", Severity.Info);
 
             }
+            TomletMain.RegisterMapper<Vector3>(
+
+                vector =>
+                {
+                    TomlArray arr = new TomlArray();
+                    arr.Add(vector.X);
+                    arr.Add(vector.Y);
+                    arr.Add(vector.Z);
+                    return arr;
+                },
+
+                value =>
+                {
+                    if (value is not TomlArray) return Vector3.Zero;
+
+                    float x = float.Parse(((TomlArray)value)[0].StringValue);
+                    float y = float.Parse(((TomlArray)value)[1].StringValue);
+                    float z = float.Parse(((TomlArray)value)[2].StringValue);
+                    
+                    return (x, y, z);
+
+                } 
+            );
+            
+            TomletMain.RegisterMapper<Direction>(
+                direction =>
+                {
+                    switch (direction)
+                    {
+                        case Direction.Top:
+                            return new TomlString("top");
+                        case Direction.Bottom:
+                            return new TomlString("bottom");
+                        case Direction.Left:
+                            return new TomlString("left");
+                        case Direction.Right:
+                            return new TomlString("right");
+                        case Direction.Front:
+                            return new TomlString("front");
+                        case Direction.Back:
+                            return new TomlString("back");
+                        default:
+                            return new TomlString("none");
+                    }
+                },
+
+                value =>
+                {
+
+                    if (value is not TomlString) return Direction.None;
+                    switch (((TomlString)value).Value)
+                    {
+                        case "top":
+                            return Direction.Top;
+                        case "bottom":
+                            return Direction.Bottom;
+                        case "left":
+                            return Direction.Left;
+                        case "right":
+                            return Direction.Right;
+                        case "front":
+                            return Direction.Front;
+                        case "back":
+                            return Direction.Back;
+                        default:
+                            return Direction.None;
+                    }
+
+                }
+            );
+            
+            NewBlockModel model = NewBlockModel.FromToml("cube_all.toml");
 
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;
@@ -142,7 +201,7 @@ namespace Blockgame_OpenTK
             Toolkit.Window.SetSize(window, (640, 480));
             Toolkit.Window.SetMode(window, WindowMode.Normal);
             Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-            Debugger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion.ToString()}", Severity.Info);
+            GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion.ToString()}", Severity.Info);
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
             
             ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
@@ -166,7 +225,7 @@ namespace Blockgame_OpenTK
             double numTicks = 0;
             while (GlobalValues.IsRunning)
             {
-
+                
                 if (Input.IsKeyDown(Key.LeftControl))
                 {
 
@@ -200,8 +259,7 @@ namespace Blockgame_OpenTK
                 frameTimeOverOneSecond += GlobalValues.DeltaTime;
                 numTicks++;
                 secondValue += GlobalValues.DeltaTime;
-
-                Stopwatch sw = Stopwatch.StartNew();
+                
                 if (Input.PlayerOneJoystickHandle != null)
                 {
 
@@ -284,15 +342,6 @@ namespace Blockgame_OpenTK
                 
                 // if (Input.MouseDelta != Vector2.Zero) Console.WriteLine(Input.MouseDelta);
 
-                if (Toolkit.Window.IsWindowDestroyed(window))
-                {
-
-                    BlockGame.Unload();
-                    GlobalValues.IsRunning = false;
-                    // break;
-
-                }
-
                 if (Input.IsKeyPressed(Key.Escape))
                 {
 
@@ -318,7 +367,7 @@ namespace Blockgame_OpenTK
                 }
 
                 BlockGame.Render();
-
+                
                 if (Input.CurrentTypedChars.Count > 0)
                 {
 
@@ -328,9 +377,14 @@ namespace Blockgame_OpenTK
 
                 Toolkit.OpenGL.SwapBuffers(_glContext);
 
-                sw.Stop();
-
             }
+            
+            PackedWorldGenerator.Unload();
+            
+            BlockGame.Unload();
+            AudioPlayer.Unload();
+            Toolkit.Window.Destroy(window);
+            GameLogger.SaveToFile("log");
 
         }
 
@@ -339,9 +393,12 @@ namespace Blockgame_OpenTK
 
             if (args is CloseEventArgs closeEventArgs)
             {
-
+                
+                // Toolkit.Window.Destroy(closeEventArgs.Window);
+                // PackedWorldGenerator.Unload();
+                // PackedWorldGenerator.SetAllResetEvents();
                 GlobalValues.IsRunning = false;
-                Toolkit.Window.Destroy(closeEventArgs.Window);
+                // Environment.Exit(0);
 
             }
 

@@ -13,6 +13,27 @@ public class ThreadSafeDoubleEndedQueue<T>
     private Mutex _mutex = new();
     private object _lock = new();
 
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _queue.Clear();
+        }
+    }
+    public void EnqueueBehindFirst(T value)
+    {
+        lock (_lock)
+        {
+            if (_queue.First != null)
+            {
+                _queue.AddFirst(value);
+            }
+            else
+            {
+                _queue.AddBefore(_queue.First, value);
+            }
+        }
+    }
     public void EnqueueFirst(T value)
     {
         lock (_lock)

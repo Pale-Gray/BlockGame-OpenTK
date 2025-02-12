@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.Registry;
 
@@ -9,13 +10,22 @@ public class NewRegister
     private Dictionary<Namespace, ushort> _namespaceLookup = new();
     private List<NewBlock> _blocks = new();
     
+    public int BlockCount => _blocks.Count;
+    
     private static NewBlock _missingBlock = new NewBlock();
     
     public void RegisterBlock(Namespace nameSpace, NewBlock block)
     {
         
+        GameLogger.Log($"NewRegistering block {nameSpace}");
         _blocks.Add(block);
         block.Id = (ushort)_blocks.IndexOf(block);
+        block.Namespace = nameSpace;
+        if (block.BlockModel != null)
+        {
+            GameLogger.Log($"{nameSpace} has a model");
+            // block.BlockModel.GenerateVertices();
+        }
         _namespaceLookup.Add(nameSpace, (ushort) _blocks.IndexOf(block));
         
     }

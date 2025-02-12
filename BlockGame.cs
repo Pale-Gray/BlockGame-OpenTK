@@ -21,6 +21,7 @@ using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using OpenTK.Graphics.Vulkan;
+using Blockgame_OpenTK.Audio;
 
 namespace Blockgame_OpenTK
 {
@@ -250,22 +251,26 @@ namespace Blockgame_OpenTK
 
             GLDebugProc debugMessageDel = OnDebugMessage;
             GuiRenderer.Init();
+            AudioPlayer.Initialize();
+            Console.WriteLine(AudioPlayer.ListenerDistanceModel.ToString());
+            // AudioPlayer.PlaySoundLocal("moo.wav");
 
             // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
             // GL.Enable(EnableCap.DebugOutput);
 
-            Util.Debugger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
-            Util.Debugger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
-            Util.Debugger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
-            Util.Debugger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
-            Util.Debugger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
-            Util.Debugger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
-            Util.Debugger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
+            Util.GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
+            Util.GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
+            Util.GameLogger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
+            Util.GameLogger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
+            Util.GameLogger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
+            Util.GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
+            Util.GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
+            Util.GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
 
             if (!Directory.Exists("Chunks"))
             {
 
-                Util.Debugger.Log("Created Chunks folder because it did not exist.", Severity.Info);
+                Util.GameLogger.Log("Created Chunks folder because it did not exist.", Severity.Info);
                 Directory.CreateDirectory("Chunks");
 
             }
@@ -359,7 +364,7 @@ namespace Blockgame_OpenTK
 
 
             FontFamily font = new FontFamily();
-            font.AddFontPath(Path.Combine("Resources", "Fonts", "Roboto-Regular.ttf"));
+            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
             CachedFontRenderer.FontFamily = font;
             
             e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
@@ -384,11 +389,34 @@ namespace Blockgame_OpenTK
             
             NewBlock block = new NewBlock();
             Cube cube = new Cube();
+            cube.Start = (0, 0, 0);
+            cube.End = (32, 32, 32);
             cube.TopTextureName = "GrassBlockTop";
+            cube.BottomTextureName = "GrassBlockTop";
+            cube.RightTextureName = "GrassBlockTop";
+            cube.LeftTextureName = "GrassBlockTop";
+            cube.FrontTextureName = "GrassBlockTop";
+            cube.BackTextureName = "GrassBlockTop";
             NewBlockModel blockModel = NewBlockModel.FromCubes([ cube ]);
-            block.BlockModel = blockModel;
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("base", "air"), new NewBlock());
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("base", "block"), block);
+            block.BlockModel = NewBlockModel.FromToml("grass_block.toml");
+            NewBlock block2 = new NewBlock();
+            Cube cube2 = new Cube();
+            cube2.Start = (0, 0, 0);
+            cube2.End = (32, 32, 32);
+            cube2.TopTextureName = "Bricks";
+            cube2.BottomTextureName = "Bricks";
+            cube2.RightTextureName = "Bricks";
+            cube2.LeftTextureName = "Bricks";
+            cube2.FrontTextureName = "Bricks";
+            cube2.BackTextureName = "Bricks";
+            block2.BlockModel = NewBlockModel.FromToml("bricks.toml");
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Block"), block);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), block2);
+
+            MooingBlock mooingBlock = new MooingBlock();
+            mooingBlock.BlockModel = NewBlockModel.FromToml("mooing_block.toml");
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "CowBlock"), mooingBlock);
 
         }
 
@@ -396,6 +424,8 @@ namespace Blockgame_OpenTK
         {
 
             Stopwatch sw = Stopwatch.StartNew();
+            AudioPlayer.ListenerPosition = Player.Camera.Position;
+            AudioPlayer.SetOrientation(Player.Camera.ForwardVector, Player.Camera.UpVector);
 
             double frames = 60.0;
             if (TickTime >= 1 / frames)
@@ -516,8 +546,6 @@ namespace Blockgame_OpenTK
 
             }
 
-            // World.Generate(Player.Position);
-            // World.Draw(Player.Camera);
             PackedWorldGenerator.Tick(Player);
             PackedWorldGenerator.QueueGeneration();
             
@@ -555,26 +583,24 @@ namespace Blockgame_OpenTK
 
             }
 
-            TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
-            TextRenderer.RenderText((10, 10, -900), TextRenderer.TopLeft, (1,0,0), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
+            // TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
+            // TextRenderer.RenderText((10, 10, -900), TextRenderer.TopLeft, (1,0,0), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
 
             if (Input.IsKeyPressed(Key.DownArrow)) GlobalValues.BlockSelectorID--;
             if (Input.IsKeyPressed(Key.UpArrow)) GlobalValues.BlockSelectorID++;
             if (Input.IsJoystickButtonPressed(JoystickButton.RightShoulder)) GlobalValues.BlockSelectorID++;
             if (Input.IsJoystickButtonPressed(JoystickButton.LeftShoulder)) GlobalValues.BlockSelectorID--;
             GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
-            if (GlobalValues.BlockSelectorID > GlobalValues.Register.Blocks.Keys.Last()) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.Register.Blocks.Keys.First() + 1);
-            if (GlobalValues.BlockSelectorID < GlobalValues.Register.Blocks.Keys.First() + 1) GlobalValues.BlockSelectorID = GlobalValues.Register.Blocks.Keys.Last();
-
+            if (GlobalValues.BlockSelectorID > GlobalValues.NewRegister.BlockCount - 1) GlobalValues.BlockSelectorID = (ushort) 1;
+            if (GlobalValues.BlockSelectorID <= 0) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.NewRegister.BlockCount - 1);
+            CachedFontRenderer.RenderFont(out (Vector2, float, float) c, GuiMath.RelativeToAbsolute(0.5f, 0.8f), (0.5f, 0), 100, 48, $"Currently holding ![w,5,2,5,2,0.25]![g,{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).Namespace.ToString().Length},0x8004d9FF,0x533c63FF]{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).Namespace}");
             // GL.Enable(EnableCap.DepthTest);
             // GL.Disable(EnableCap.DepthTest);
-            GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
+            // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
             // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48.0f + (float)(30.0 * Math.Sin(GlobalValues.Time)), "", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Darkred);
             // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48, "Hello World!", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
             // GL.Disable(EnableCap.ScissorTest);
             // GL.Enable(EnableCap.DepthTest);
-
-            BitConverter.ToUInt32(SHA256.HashData(Encoding.UTF8.GetBytes("mywonderfulnamespace")));
 
             if (Dda.hit && !GlobalValues.ShouldHideHud)
             {
@@ -596,12 +622,16 @@ namespace Blockgame_OpenTK
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
+            AudioPlayer.Poll();
+
+            /*
             foreach (GuiElement element in GuiRenderer.Elements)
             {
 
                 element.Draw();
 
             }
+            */
 
             // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams1, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Color4.Black);
             // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams2, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Color4.Black);
@@ -663,6 +693,7 @@ namespace Blockgame_OpenTK
             */
 
             // this portion is not required
+            
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.DeleteBuffer(vbo);
 

@@ -17,7 +17,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Debugger = Blockgame_OpenTK.Util.Debugger;
+using GameLogger = Blockgame_OpenTK.Util.GameLogger;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -526,7 +526,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             chunk.IsUpdating = false;
             
             sw.Stop();
-            Debugger.Log($"Chunk meshing took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
+            GameLogger.Log($"Chunk meshing took {sw.Elapsed.TotalMilliseconds}ms", Severity.Info);
 
         }
 

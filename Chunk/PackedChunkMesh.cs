@@ -23,13 +23,14 @@ public struct PackedChunkVertex
 
     public uint PackedVertexInfo = 0;
     public uint PackedExtraInfo = 0;
+    public Vector3 LightColor = Vector3.One;
     public Vector3i Position
     {
         get
         {
-            uint xValue = (PackedVertexInfo >> 15) & 0b111111;
-            uint yValue = (PackedVertexInfo >> 9) & 0b111111;
-            uint zValue = (PackedVertexInfo >> 3) & 0b111111;
+            uint xValue = (PackedVertexInfo >> 17) & 0b111111;
+            uint yValue = (PackedVertexInfo >> 11) & 0b111111;
+            uint zValue = (PackedVertexInfo >> 5) & 0b111111;
             return ((int)xValue, (int)yValue, (int)zValue);
         }
         set
@@ -37,13 +38,19 @@ public struct PackedChunkVertex
             uint val = ((uint)value.X << 12);
             val |= (uint)value.Y << 6;
             val |= (uint)value.Z;
-            PackedVertexInfo = (PackedVertexInfo & 0b111) | val << 3;
+            PackedVertexInfo = (PackedVertexInfo & 0b11111) | val << 5;
         }
     }
     public Direction Normal
     {
-        get => (Direction)(PackedVertexInfo & 0b111);
-        set => PackedVertexInfo = (uint) (PackedVertexInfo & ~0b111) | (uint)value;
+        get => (Direction)((PackedVertexInfo >> 2) & 0b111);
+        set => PackedVertexInfo = (uint) (PackedVertexInfo & ~0b11100) | (((uint)value) << 2);
+    }
+
+    public uint TextureCoordinateIndex
+    {
+        get => (PackedVertexInfo & 3);
+        set => PackedVertexInfo = (uint) (PackedVertexInfo & ~3) | (value & 3);
     }
 
     public PackedChunkVertex(Vector3i position, Direction normal)
@@ -53,11 +60,21 @@ public struct PackedChunkVertex
         PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex("MissingModel");
     }
     
-    public PackedChunkVertex(Vector3i position, Direction normal, string textureName)
+    public PackedChunkVertex(Vector3i position, Direction normal, uint textureCoordinateIndex, string textureName)
     {
         Position = position;
         Normal = normal;
+        TextureCoordinateIndex = textureCoordinateIndex;
         PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex(textureName);
+    }
+    
+    public PackedChunkVertex(Vector3i position, Direction normal, uint textureCoordinateIndex, string textureName, Vector3 lightColor)
+    {
+        Position = position;
+        Normal = normal;
+        TextureCoordinateIndex = textureCoordinateIndex;
+        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex(textureName);
+        LightColor = lightColor;
     }
     
 }

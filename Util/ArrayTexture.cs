@@ -65,7 +65,7 @@ namespace Blockgame_OpenTK.Util
         public void Load()
         {
 
-            Debugger.Log("Loading Textures", Severity.Info);
+            GameLogger.Log("Loading Textures", Severity.Info);
 
             StbImage.stbi_set_flip_vertically_on_load(1);
             string[] TextureNamesInDirectory = Directory.GetFiles(PathToTextures);
@@ -80,12 +80,12 @@ namespace Blockgame_OpenTK.Util
             foreach (string FileName in TextureNamesInDirectory)
             {
 
-                Debugger.Log($"Loading File {FileName}", Severity.Info);
+                GameLogger.Log($"Loading File {FileName}");
 
                 FileStream file = File.OpenRead(FileName);
                 ImageBytes.AddRange(ImageResult.FromStream(file).Data);
                 TextureNames.Add(file.Name.Split(Path.DirectorySeparatorChar).Last().Split(".")[0]);
-                Debugger.Log($"Added {file.Name.Split(Path.DirectorySeparatorChar).Last().Split(".")[0]} to TextureNames", Severity.Info);
+                // Debugger.Log($"Added {file.Name.Split(Path.DirectorySeparatorChar).Last().Split(".")[0]} to TextureNames", Severity.Info);
 
             }
 
@@ -97,7 +97,7 @@ namespace Blockgame_OpenTK.Util
             GL.TexSubImage3D(TextureTarget.Texture2dArray, 0, 0, 0, 0, Width, Height, Depth, PixelFormat.Rgba, PixelType.UnsignedByte, ImageBytes.ToArray());
             GL.GenerateMipmap(TextureTarget.Texture2dArray);
 
-            Debugger.Log("Finished Loading Textures", Severity.Info);
+            GameLogger.Log("Finished Loading Textures", Severity.Info);
 
             GL.BindTexture(TextureTarget.Texture2dArray, 0);
 

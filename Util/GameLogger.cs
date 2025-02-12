@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -11,10 +13,10 @@ namespace Blockgame_OpenTK.Util
     
     };
 
-    internal class Debugger
+    internal class GameLogger
     {
 
-        public static void Log(string message, Severity type)
+        public static void Log(string message, Severity type = Severity.Info)
         {
 
             string infoType = EvaluateDebugMessageType(type);
@@ -43,6 +45,13 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static void ThrowError(string message) {
+
+            Log(message, Severity.Error);
+            throw new Exception(message);
+
+        }
+
         private static string EvaluateDebugMessageType(Severity type)
         {
 
@@ -60,6 +69,23 @@ namespace Blockgame_OpenTK.Util
             
             }
 
+        }
+
+        public static void SaveToFile(string filename)
+        {
+
+            using (FileStream stream = File.OpenWrite($"{filename}.txt"))
+            {
+
+                foreach (string logMessage in GlobalValues.LogMessages)
+                {
+                    stream.Write(Encoding.UTF8.GetBytes(logMessage + Environment.NewLine));
+                }
+                
+            }
+
+            Log($"Saved log to {filename}.txt", Severity.Info);
+            
         }
 
     }

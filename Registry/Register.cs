@@ -22,11 +22,11 @@ namespace Blockgame_OpenTK.Registry
         public void AddBlock(ushort id, Block block)
         {
 
-            Debugger.Log($"Registering {block.DataName}", Severity.Info);
+            GameLogger.Log($"Registering {block.DataName}", Severity.Info);
             block.ID = id;
             //BlockList.Add(block);
             Blocks.Add(block.ID, block);
-            Debugger.Log($"Registered {block.DataName}", Severity.Info);
+            GameLogger.Log($"Registered {block.DataName}", Severity.Info);
 
         }
 
