@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -29,6 +30,7 @@ public class AudioPlayer
     private static List<StreamedAudioSource> _playingStreamedAudioSources = new();
     private static Queue<AudioSource> _audioSourceRemovalQueue = new();
     private static Queue<StreamedAudioSource> _streamedAudioSourceRemovalQueue = new();
+    private static bool _isMusicPlaying = false;
     public static Vector3 ListenerPosition {
         get => AL.GetListener(ALListener3f.Position);
         set => AL.Listener(ALListener3f.Position, value.X, value.Y, value.Z);
@@ -157,6 +159,7 @@ public class AudioPlayer
             } else {
 
                 // Console.WriteLine("Done playing, freeing.");
+                _isMusicPlaying = false;
                 streamedAudioSource.Free();
                 _playingStreamedAudioSources.Remove(streamedAudioSource);
 
@@ -184,72 +187,82 @@ public class AudioPlayer
     private static int _bytesPerBuffer = 65536;
     public static void PlayMusicLocal(string filePath, float pitch = 1.0f, float gain = 1.0f) {
 
-        string fileExtension = filePath.Split('.').Last().ToLower();
+        if (!_isMusicPlaying) {
 
-        if (fileExtension == "wav") {
+            _isMusicPlaying = true;
 
-            WaveFile wav = WaveFile.Load(filePath);
-            StreamedAudioSource streamedAudioSource = new StreamedAudioSource();
-            ALFormat format = ALFormat.Mono8;
-            if (wav.BitsPerSample == 8) format = ALFormat.Stereo8;
-            if (wav.BitsPerSample == 16) format = ALFormat.Stereo16;
+            string fileExtension = filePath.Split('.').Last().ToLower();
 
-            streamedAudioSource.AudioBuffers = AL.GenBuffers(_bufferAmount);
+            if (fileExtension == "wav") {
 
-            for (int i = 0; i < streamedAudioSource.AudioBuffers.Length; i++) {
+                WaveFile wav = WaveFile.Load(filePath);
+                StreamedAudioSource streamedAudioSource = new StreamedAudioSource();
+                ALFormat format = ALFormat.Mono8;
+                if (wav.BitsPerSample == 8) format = ALFormat.Stereo8;
+                if (wav.BitsPerSample == 16) format = ALFormat.Stereo16;
 
-                AL.BufferData<byte>(streamedAudioSource.AudioBuffers[i], format, wav.Data.AsSpan(i * _bytesPerBuffer, _bytesPerBuffer), wav.Channels == 1 ? wav.SampleRate / 2 : wav.SampleRate);
+                streamedAudioSource.AudioBuffers = AL.GenBuffers(_bufferAmount);
+
+                for (int i = 0; i < streamedAudioSource.AudioBuffers.Length; i++) {
+
+                    AL.BufferData<byte>(streamedAudioSource.AudioBuffers[i], format, wav.Data.AsSpan(i * _bytesPerBuffer, _bytesPerBuffer), wav.Channels == 1 ? wav.SampleRate / 2 : wav.SampleRate);
+
+                }
+
+                streamedAudioSource.Source = AL.GenSource();
+                AL.Source(streamedAudioSource.Source, ALSourcef.Pitch, pitch);
+                AL.Source(streamedAudioSource.Source, ALSourcef.Gain, gain);
+                AL.Source(streamedAudioSource.Source, ALSource3f.Position, 0, 0, 0);
+                AL.Source(streamedAudioSource.Source, ALSource3f.Velocity, 0, 0, 0);
+                AL.Source(streamedAudioSource.Source, ALSourceb.Looping, false);
+            
+                AL.SourceQueueBuffers(streamedAudioSource.Source, streamedAudioSource.AudioBuffers.Length, streamedAudioSource.AudioBuffers);
+                streamedAudioSource.Format = format;
+                streamedAudioSource.SampleRate = wav.Channels == 1 ? wav.SampleRate / 2 : wav.SampleRate;
+                streamedAudioSource.CurrentPosition = _bufferAmount * _bytesPerBuffer;
+                streamedAudioSource.SoundData = wav.Data;
+                AL.SourcePlay(streamedAudioSource.Source);
+                _playingStreamedAudioSources.Add(streamedAudioSource);
+                _streamedAudioSourceRemovalQueue.Enqueue(_playingStreamedAudioSources[_playingStreamedAudioSources.IndexOf(streamedAudioSource)]);
+
+            } else if (fileExtension == "ogg") {
+
+                VorbisReader vorbis = new VorbisReader(filePath);
+
+                StreamedAudioSource streamedAudioSource = new StreamedAudioSource();
+                ALFormat format = ALFormat.StereoFloat32Ext;
+
+                streamedAudioSource.AudioBuffers = AL.GenBuffers(_bufferAmount);
+                for (int i = 0; i < streamedAudioSource.AudioBuffers.Length; i++) {
+
+                    float[] samples = new float[vorbis.Channels * vorbis.SampleRate / 2];
+                    vorbis.ReadSamples(samples, 0, vorbis.Channels * vorbis.SampleRate / 2);
+                    AL.BufferData(streamedAudioSource.AudioBuffers[i], format, samples, vorbis.Channels == 1 ? vorbis.SampleRate / 2 : vorbis.SampleRate);
+
+                }
+
+                streamedAudioSource.Source = AL.GenSource();
+                AL.Source(streamedAudioSource.Source, ALSourcef.Pitch, pitch);
+                AL.Source(streamedAudioSource.Source, ALSourcef.Gain, gain);
+                AL.Source(streamedAudioSource.Source, ALSource3f.Position, 0, 0, 0);
+                AL.Source(streamedAudioSource.Source, ALSource3f.Velocity, 0, 0, 0);
+                AL.Source(streamedAudioSource.Source, ALSourceb.Looping, false);
+
+                AL.SourceQueueBuffers(streamedAudioSource.Source, streamedAudioSource.AudioBuffers.Length, streamedAudioSource.AudioBuffers);
+                streamedAudioSource.Format = format;
+                streamedAudioSource.SampleRate = vorbis.Channels == 1 ? vorbis.SampleRate / 2 : vorbis.SampleRate;
+                streamedAudioSource.vorbisReader = vorbis;
+                AL.SourcePlay(streamedAudioSource.Source);
+                _playingStreamedAudioSources.Add(streamedAudioSource);
+                _streamedAudioSourceRemovalQueue.Enqueue(_playingStreamedAudioSources[_playingStreamedAudioSources.IndexOf(streamedAudioSource)]);
 
             }
 
-            streamedAudioSource.Source = AL.GenSource();
-            AL.Source(streamedAudioSource.Source, ALSourcef.Pitch, pitch);
-            AL.Source(streamedAudioSource.Source, ALSourcef.Gain, gain);
-            AL.Source(streamedAudioSource.Source, ALSource3f.Position, 0, 0, 0);
-            AL.Source(streamedAudioSource.Source, ALSource3f.Velocity, 0, 0, 0);
-            AL.Source(streamedAudioSource.Source, ALSourceb.Looping, false);
-        
-            AL.SourceQueueBuffers(streamedAudioSource.Source, streamedAudioSource.AudioBuffers.Length, streamedAudioSource.AudioBuffers);
-            streamedAudioSource.Format = format;
-            streamedAudioSource.SampleRate = wav.Channels == 1 ? wav.SampleRate / 2 : wav.SampleRate;
-            streamedAudioSource.CurrentPosition = _bufferAmount * _bytesPerBuffer;
-            streamedAudioSource.SoundData = wav.Data;
-            AL.SourcePlay(streamedAudioSource.Source);
-            _playingStreamedAudioSources.Add(streamedAudioSource);
-            _streamedAudioSourceRemovalQueue.Enqueue(_playingStreamedAudioSources[_playingStreamedAudioSources.IndexOf(streamedAudioSource)]);
+        } else{
 
-        } else if (fileExtension == "ogg") {
+            GameLogger.Log("Music is currently playing, you can't add a stream right now!", Severity.Warning);
 
-            VorbisReader vorbis = new VorbisReader(filePath);
-
-            StreamedAudioSource streamedAudioSource = new StreamedAudioSource();
-            ALFormat format = ALFormat.StereoFloat32Ext;
-
-            streamedAudioSource.AudioBuffers = AL.GenBuffers(_bufferAmount);
-            for (int i = 0; i < streamedAudioSource.AudioBuffers.Length; i++) {
-
-                float[] samples = new float[vorbis.Channels * vorbis.SampleRate / 2];
-                vorbis.ReadSamples(samples, 0, vorbis.Channels * vorbis.SampleRate / 2);
-                AL.BufferData(streamedAudioSource.AudioBuffers[i], format, samples, vorbis.Channels == 1 ? vorbis.SampleRate / 2 : vorbis.SampleRate);
-
-            }
-
-            streamedAudioSource.Source = AL.GenSource();
-            AL.Source(streamedAudioSource.Source, ALSourcef.Pitch, pitch);
-            AL.Source(streamedAudioSource.Source, ALSourcef.Gain, gain);
-            AL.Source(streamedAudioSource.Source, ALSource3f.Position, 0, 0, 0);
-            AL.Source(streamedAudioSource.Source, ALSource3f.Velocity, 0, 0, 0);
-            AL.Source(streamedAudioSource.Source, ALSourceb.Looping, false);
-
-            AL.SourceQueueBuffers(streamedAudioSource.Source, streamedAudioSource.AudioBuffers.Length, streamedAudioSource.AudioBuffers);
-            streamedAudioSource.Format = format;
-            streamedAudioSource.SampleRate = vorbis.Channels == 1 ? vorbis.SampleRate / 2 : vorbis.SampleRate;
-            streamedAudioSource.vorbisReader = vorbis;
-            AL.SourcePlay(streamedAudioSource.Source);
-            _playingStreamedAudioSources.Add(streamedAudioSource);
-            _streamedAudioSourceRemovalQueue.Enqueue(_playingStreamedAudioSources[_playingStreamedAudioSources.IndexOf(streamedAudioSource)]);
-
-        }
+        } 
 
     }
 

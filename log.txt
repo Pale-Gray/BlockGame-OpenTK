@@ -64,11 +64,15 @@
 [Info] NewRegistering block Game.CowBlock
 [Info] Game.CowBlock has a model
 [Info] Supports raw mouse? False
-System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter 'offset')
-   at NVorbis.StreamDecoder.Read(Span`1 buffer, Int32 offset, Int32 count)
-   at NVorbis.VorbisReader.ReadSamples(Single[] buffer, Int32 offset, Int32 count)
-   at Blockgame_OpenTK.Audio.AudioPlayer.PlayMusicLocal(String filePath, Single pitch, Single gain) in ./Audio/AudioPlayer.cs:line 220
-   at Blockgame_OpenTK.BlockUtil.MooingBlock.OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition) in ./Block/MooingBlock.cs:line 21
-   at Blockgame_OpenTK.PlayerUtil.Player.Update(PackedChunkWorld world) in ./Player/Player.cs:line 109
-   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 438
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+[Warning] Music is currently playing, you can't add a stream right now!
+ 438
    at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 369
