@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Blockgame_OpenTK.BlockUtil;
+using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
@@ -149,7 +151,7 @@ public class PackedChunkBuilder
         GL.EnableVertexAttribArray(1);
         GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.LightColor)));
         GL.EnableVertexAttribArray(2);
-        
+
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Ibo);
         GL.BufferData(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices.Length * sizeof(int), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices, BufferUsage.DynamicDraw);
         

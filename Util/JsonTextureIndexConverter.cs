@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Blockgame_OpenTK.Core.TexturePack;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -13,7 +14,7 @@ namespace Blockgame_OpenTK.Util
         public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
 
-            return GlobalValues.ArrayTexture.GetTextureIndex(reader.GetString());
+            return TexturePackManager.GetTextureIndex(reader.GetString());
 
         }
 

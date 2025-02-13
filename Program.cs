@@ -113,8 +113,6 @@ namespace Blockgame_OpenTK
 
                 }
             );
-            
-            NewBlockModel model = NewBlockModel.FromToml("cube_all.toml");
 
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;

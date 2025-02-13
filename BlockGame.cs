@@ -7,7 +7,6 @@ using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Mathematics;
 using System;
-using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 using System.Diagnostics;
@@ -16,12 +15,8 @@ using System.Runtime.InteropServices;
 using System.IO;
 using Blockgame_OpenTK.ChunkUtil;
 using System.Collections.Generic;
-using Blockgame_OpenTK.BlockProperty;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
-using System.Text;
-using OpenTK.Graphics.Vulkan;
 using Blockgame_OpenTK.Audio;
+using Blockgame_OpenTK.Core.TexturePack;
 
 namespace Blockgame_OpenTK
 {
@@ -150,33 +145,10 @@ namespace Blockgame_OpenTK
 
         };
 
-        static Shader shader;
-        static Shader ChunkShader;
-        static Texture texture;
-        static Texture emtexture;
-
-        static int vbo;
-        static int vao;
-
-        static float speed = 2.0f;
-        // Vector3 cposition = new Vector3(10000000.0f, 0.0f, 10000000.0f);
-        static Vector3 cposition = (0, 0, 0);
-        static Vector3 cfront = new Vector3(0.0f, 0.0f, -1.0f);
-        static Vector3 cup = new Vector3(0.0f, 1.0f, 0.0f);
-
-        static float pitch; // x rotation
-        static float yaw; // y rotation
-        static float roll; // z rotation
-
-        static float sens = 0.8f;
 
         static double time = 0;
 
         static Vector2 lmpos = new Vector2(0.0f, 0.0f);
-
-        static bool firstmove = true;
-
-        static double delay = 0;
 
         public static Model rmodel;
         // Chunk chunk;
@@ -186,15 +158,11 @@ namespace Blockgame_OpenTK
         static Model hitdisplay;
         static Model Skybox;
         static Model e;
-        // Model Sun;
-
-        static NakedModel nakedmodel;
 
         static BoundingBox boundingbox = new BoundingBox(new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(0.5f, 0.5f, 0.5f));
         static NakedModel boundmodel;
         // GUIElement TestElement;
         // GUIClickable GUIClick;
-        static  TextRenderer text;
 
         // Ray ray = new Ray(0, 0, 0, 0, 0, 0);
 
@@ -204,11 +172,6 @@ namespace Blockgame_OpenTK
         static ArrayTexture TextureArray = new ArrayTexture();
 
         static bool debug = false;
-
-        static bool IsGrabbed = true;
-
-        static double ft = 0;
-        static double fs = 0;
         // Chunk c;
         static Sun Sun;
 
@@ -252,7 +215,19 @@ namespace Blockgame_OpenTK
             GLDebugProc debugMessageDel = OnDebugMessage;
             GuiRenderer.Init();
             AudioPlayer.Initialize();
-            Console.WriteLine(AudioPlayer.ListenerDistanceModel.ToString());
+            TexturePackManager.LoadTexturePack(Path.Combine("Resources", "Textures", "TextureArray"));
+
+            int supportedExtensionCount = GL.GetInteger(GetPName.NumExtensions);
+            List<string> requiredExtensions = [];
+            for (int i = 0; i < supportedExtensionCount; i++) {
+                string extension = GL.GetStringi(StringName.Extensions, (uint)i);
+                if (extension == "GL_ARB_bindless_texture") requiredExtensions.Add(extension);
+                if (extension == "GL_ARB_gpu_shader_int64") requiredExtensions.Add(extension);
+                if (extension == "GL_EXT_nonuniform_qualifier") requiredExtensions.Add(extension);
+                if (extension == "GL_NV_gpu_shader5") requiredExtensions.Add(extension);
+            }
+            GameLogger.Log("Queried extensions supported:");
+            foreach (string extension in requiredExtensions) Console.WriteLine($"\t{extension}");
             // AudioPlayer.PlaySoundLocal("moo.wav");
 
             // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
@@ -285,7 +260,6 @@ namespace Blockgame_OpenTK
             TextRenderer.InitTextRenderer();
             Translator.LoadKeymap();
 
-            GlobalValues.ArrayTexture.Load();
             Blocks.Load();
 
             GlobalValues.MissingBlockModel = BlockModel.LoadFromJson("MissingModel.json");
@@ -295,12 +269,10 @@ namespace Blockgame_OpenTK
             GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
             GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
 
-            camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
+            // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
             rmodel = new Model(verts, "hitbox.png", "hitbox.vert", "hitbox.frag");
             hitdisplay = new Model(verts, "debug.png", "model.vert", "model.frag");
             xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
-
-            nakedmodel = new NakedModel(NakedModel.Tri);
 
             boundmodel = new NakedModel(boundingbox.triangles);
 
@@ -320,8 +292,6 @@ namespace Blockgame_OpenTK
             GL.Enable(EnableCap.PolygonOffsetFill);
 
             Texture t = new Texture("cubemap/cubemap_test.png");
-
-            ChunkShader = new Shader("chunk.vert", "chunk.frag");
 
             frameBuffer = new Framebuffer();
             framebufferQuad = new FramebufferQuad();
@@ -414,9 +384,11 @@ namespace Blockgame_OpenTK
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Block"), block);
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), block2);
 
-            MooingBlock mooingBlock = new MooingBlock();
-            mooingBlock.BlockModel = NewBlockModel.FromToml("mooing_block.toml");
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "CowBlock"), mooingBlock);
+            PlimboBlock plimboBlock = new PlimboBlock();
+            plimboBlock.BlockModel = NewBlockModel.FromToml("plimbo_block.toml");
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), plimboBlock);
+
+            Core.Gui.GuiRenderer.Initialize();
 
         }
 
@@ -605,8 +577,6 @@ namespace Blockgame_OpenTK
             if (Dda.hit && !GlobalValues.ShouldHideHud)
             {
 
-                float lineThickness = 12.0f;
-
                 GL.Disable(EnableCap.CullFace);
                 GL.PolygonOffset(-1, 1);
                 rmodel.SetScale(1, 1, 1);
@@ -623,6 +593,12 @@ namespace Blockgame_OpenTK
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
             AudioPlayer.Poll();
+
+            Core.Gui.GuiRenderer.GuiBegin();
+            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), Vector2.Zero);
+            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), Vector2.Zero, Color4.Bisque);
+            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), Vector2.Zero, Color4.Purple);
+            Core.Gui.GuiRenderer.GuiEnd();
 
             /*
             foreach (GuiElement element in GuiRenderer.Elements)
@@ -661,10 +637,10 @@ namespace Blockgame_OpenTK
             // Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
             GlobalValues.Center = (GlobalValues.WIDTH / 2f, GlobalValues.HEIGHT / 2f);
 
-            camera.UpdateProjectionMatrix();
             Player.Camera.UpdateProjectionMatrix();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
             GuiRenderer.GuiCamera.UpdateProjectionMatrix();
+            Core.Gui.GuiRenderer.UpdateProjectionMatrix();
 
             foreach (GuiElement element in GlobalValues.GlobalGuiElements)
             {
@@ -692,10 +668,9 @@ namespace Blockgame_OpenTK
             }
             */
 
+            TexturePackManager.Free();
+
             // this portion is not required
-            
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.DeleteBuffer(vbo);
 
         }
 

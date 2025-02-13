@@ -1,5 +1,6 @@
 ﻿using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -92,7 +93,7 @@ namespace Blockgame_OpenTK.Gui
             GlobalValues.GuiBlockShader.Use();
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2dArray, GlobalValues.ArrayTexture.TextureID);
+            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "model"), 1, true, ModelMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "view"), 1, true, GlobalValues.GuiCamera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiBlockShader.getID(), "projection"), 1, true, GlobalValues.GuiCamera.ProjectionMatrix);

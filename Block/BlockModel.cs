@@ -1,4 +1,5 @@
 ﻿using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
@@ -45,7 +46,7 @@ namespace Blockgame_OpenTK.BlockUtil
         public BlockModelFace()
         {
 
-            TextureIndex = GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture");
+            TextureIndex = TexturePackManager.GetTextureIndex("MissingTexture");
 
         }
 
@@ -273,9 +274,9 @@ namespace Blockgame_OpenTK.BlockUtil
         public static int GetTextureIndexFromCube(Dictionary<string, string> textureList, BlockModelCubePrimitiveData cube, string face)
         {
 
-            if (textureList.ContainsKey(cube.Properties[face].Texture)) return GlobalValues.ArrayTexture.GetTextureIndex(textureList[cube.Properties[face].Texture]);
+            if (textureList.ContainsKey(cube.Properties[face].Texture)) return TexturePackManager.GetTextureIndex(textureList[cube.Properties[face].Texture]);
 
-            return GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture");
+            return TexturePackManager.GetTextureIndex("MissingTexture");
 
         }
         public static void ParseCube(BlockModelCubePrimitiveData cube, BlockModel model, Dictionary<string, string> textures)
@@ -820,7 +821,7 @@ namespace Blockgame_OpenTK.BlockUtil
             if (modelData.Textures.ContainsKey(textureReference))
             {
 
-                return GlobalValues.ArrayTexture.GetTextureIndex(modelData.Textures[textureReference]);
+                return TexturePackManager.GetTextureIndex(modelData.Textures[textureReference]);
 
             }
             if (inheritModelData != null)
@@ -829,12 +830,12 @@ namespace Blockgame_OpenTK.BlockUtil
                 if ((bool) inheritModelData?.Textures.ContainsKey(textureReference))
                 {
 
-                    return GlobalValues.ArrayTexture.GetTextureIndex(inheritModelData?.Textures[textureReference]);
+                    return TexturePackManager.GetTextureIndex(inheritModelData?.Textures[textureReference]);
 
                 }
 
             }
-            return GlobalValues.ArrayTexture.GetTextureIndex("MissingTexture");
+            return TexturePackManager.GetTextureIndex("MissingTexture");
 
         }
 

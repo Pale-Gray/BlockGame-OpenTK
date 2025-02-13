@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Security;
 using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using Tomlet;
@@ -139,12 +140,27 @@ public class NewBlockModel
         if (modelData.InheritPath != null)
         {
             string inheritPath = Path.Combine(GlobalValues.BlockModelPath, Path.Combine(modelData.InheritPath.Split('/')));
-            PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath), options: op);
+            // PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath), options: op);
             if (modelData.Cubes == null) modelData.Cubes = [];
-            modelData.Cubes.AddRange(inheritData.Cubes);
+            modelData.Cubes.AddRange(CheckInheritCubes(inheritPath));
+            // modelData.Cubes.AddRange(inheritData.Cubes);
         }
         
         return Parse(modelData);
+    }
+
+    private static List<Cube> CheckInheritCubes(string inheritPath) {
+
+        List<Cube> cubes = [];
+
+        PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath));
+        cubes.AddRange(inheritData.Cubes);
+        if (inheritData.InheritPath != null) {
+            cubes.AddRange(CheckInheritCubes(Path.Combine(GlobalValues.BlockModelPath, Path.Combine(inheritData.InheritPath.Split('/')))));
+        } 
+
+        return cubes;
+
     }
 
     private static NewBlockModel Parse(PrimitiveModelData modelData)
@@ -171,6 +187,7 @@ public class NewBlockModel
                         switch (faceProperties.Key)
                         {
                             case "top":
+                                // Console.WriteLine($"{modelData.Textures[faceProperties.Value.TextureName]}, {TexturePackManager.GetTextureHandleIndex(modelData.Textures[faceProperties.Value.TextureName])}");
                                 model._computedModelPackedVertices.Add(Direction.Top, [
                                     new PackedChunkVertex(normalizedEnd, Core.Chunks.Direction.Up, 0, modelData.Textures[faceProperties.Value.TextureName]),
                                     new PackedChunkVertex(normalizedEnd - (0, 0, 1),Core.Chunks.Direction.Up, 1, modelData.Textures[faceProperties.Value.TextureName]),

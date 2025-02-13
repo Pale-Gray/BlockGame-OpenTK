@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using Blockgame_OpenTK.BlockProperty;
 using System.Text;
+using Blockgame_OpenTK.Core.TexturePack;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
@@ -310,7 +311,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             // Console.Log(ChunkPosition);
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.ChunkShader.id, "chunkpos"), 1, ChunkPosition.ToVector3());
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2dArray, GlobalValues.ArrayTexture.TextureID);
+            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
             // GL.UniformMatrix4(GL.GetUniformLocation(Globals.ChunkShader.getID(), "model"), true, ref model);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "view"), 1, true, camera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.ChunkShader.getID(), "projection"), 1, true, camera.ProjectionMatrix);

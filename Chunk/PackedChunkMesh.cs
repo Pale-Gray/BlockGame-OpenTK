@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
@@ -53,11 +54,13 @@ public struct PackedChunkVertex
         set => PackedVertexInfo = (uint) (PackedVertexInfo & ~3) | (value & 3);
     }
 
+    public int BindlessTextureIndex;
+
     public PackedChunkVertex(Vector3i position, Direction normal)
     {
         Position = position;
         Normal = normal;
-        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex("MissingModel");
+        PackedExtraInfo = (ushort)TexturePackManager.GetTextureIndex("MissingModel");
     }
     
     public PackedChunkVertex(Vector3i position, Direction normal, uint textureCoordinateIndex, string textureName)
@@ -65,7 +68,7 @@ public struct PackedChunkVertex
         Position = position;
         Normal = normal;
         TextureCoordinateIndex = textureCoordinateIndex;
-        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex(textureName);
+        PackedExtraInfo = (ushort)TexturePackManager.GetTextureIndex(textureName);
     }
     
     public PackedChunkVertex(Vector3i position, Direction normal, uint textureCoordinateIndex, string textureName, Vector3 lightColor)
@@ -73,7 +76,7 @@ public struct PackedChunkVertex
         Position = position;
         Normal = normal;
         TextureCoordinateIndex = textureCoordinateIndex;
-        PackedExtraInfo = (ushort)GlobalValues.ArrayTexture.GetTextureIndex(textureName);
+        PackedExtraInfo = (ushort)TexturePackManager.GetTextureIndex(textureName);
         LightColor = lightColor;
     }
     
@@ -84,7 +87,8 @@ public class PackedChunkMesh
 
     public int[] PackedChunkMeshIndices;
     public PackedChunkVertex[] PackedChunkVertices;
-    public int Vbo, Vao, Ibo;
+    public int[] PackedChunkBindlessTextureIndices;
+    public int Vbo, Vao, Ibo, Ssbo, Ssbo2;
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
 
@@ -97,20 +101,17 @@ public class PackedChunkMesh
 
     public void Draw(Player player)
     {
-
-        // BlockGame.rmodel.SetScale(16, 16, 16);
-        // if (IsRenderable) BlockGame.rmodel.Draw(((Vector3)ChunkPosition + (0.5f, 0.5f, 0.5f)) * 32, Vector3.Zero, player.Camera, 1.0f);
         
         if (PackedChunkMeshIndices != null && PackedChunkMeshIndices.Length > 0 && IsRenderable)
         {
             
             GlobalValues.PackedChunkShader.Use();
-            GL.BindTexture(TextureTarget.Texture2dArray, GlobalValues.ArrayTexture.TextureID);
+            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
             
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "view"), 1, true, ref player.Camera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref player.Camera.ProjectionMatrix);
-            
+
             GL.BindVertexArray(Vao);
             GL.DrawElements(PrimitiveType.Triangles, PackedChunkMeshIndices.Length, DrawElementsType.UnsignedInt, 0);
             
