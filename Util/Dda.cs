@@ -36,7 +36,7 @@ namespace Blockgame_OpenTK.Util
         public static bool hit = false;
 
         // private static List<Vector3i> _newLightPropagationPositions = new List<Vector3i>();
-        public static void ComputeVisibility(World world, Chunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
+        public static void ComputeVisibility(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
         {
 
             ComputeLightCorner(world, chunk, globalLightPosition, lightColor, (1, 1, 1));
@@ -51,7 +51,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeSunlightVisibility(World world, Chunk chunk, Vector3i position)
+        public static void ComputeSunlightVisibility(PackedChunkWorld world, PackedChunk chunk, Vector3i position)
         {
 
             ComputeSunlightCorner(world, chunk, position, (1, 1));
@@ -61,7 +61,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeSunlightCorner(World world, Chunk chunk, Vector3i globalLightPosition, Vector2i direction)
+        private static void ComputeSunlightCorner(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector2i direction)
         {
 
             uint[] expectedSunlightValues = new uint[15 * 15];
@@ -139,8 +139,8 @@ namespace Blockgame_OpenTK.Util
                     // uint previousSunlightValue = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 15;
                     // Console.WriteLine(previousSunlightValue);
 
-                    Vector3i previousUnpackedLightValue = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)]);
-                    ushort currentSunLight = (ushort)(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0b0000000000001111);
+                    Vector3i previousUnpackedLightValue = BlockLightColorConverter.Unpack(world.PackedWorldChunks[chunkPosition].LightData[ChunkUtils.VecToIndex(safeLocalLightPosition)]);
+                    ushort currentSunLight = (ushort)(world.PackedWorldChunks[chunkPosition].LightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0b0000000000001111);
 
                     // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
                     // Console.WriteLine(finalSunlightValue);
@@ -156,7 +156,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeLightCorner(World world, Chunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
+        private static void ComputeLightCorner(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
         {
 
             int max = Math.Max(lightColor.X, Math.Max(lightColor.Y, lightColor.Z)) + 1;
@@ -229,8 +229,8 @@ namespace Blockgame_OpenTK.Util
                         Vector3i final = Vector3i.Clamp(VectorMath.Floor(value * lightColor), Vector3i.Zero, (15, 15, 15));
                         final = Vector3i.Clamp(final, Vector3i.Zero, (15, 15, 15));
 
-                        Vector3i previousUnpackedLightValue = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)]);
-                        ushort currentSunLight = (ushort)(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0b0000000000001111);
+                        Vector3i previousUnpackedLightValue = BlockLightColorConverter.Unpack(world.PackedWorldChunks[chunkPosition].LightData[ChunkUtils.VecToIndex(safeLocalLightPosition)]);
+                        ushort currentSunLight = (ushort)(world.PackedWorldChunks[chunkPosition].LightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] & 0b0000000000001111);
 
                         // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = (ushort)(BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final)) | currentSunLight);
                         // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] = world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(safeLocalLightPosition)] | BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousUnpackedLightValue, final));
@@ -244,7 +244,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeLight(World world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3i lightColor)
+        public static void ComputeLight(PackedChunkWorld world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3i lightColor)
         {
 
             Vector3i currentLightColor = lightColor;
@@ -284,7 +284,7 @@ namespace Blockgame_OpenTK.Util
                         // if (!world.WorldChunks[chunkPosition].SolidMask[ChunkUtils.VecToIndex(localLightPosition)])
                         {
 
-                            Vector3i previousLightColor = BlockLightColorConverter.Unpack(world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)]);
+                            Vector3i previousLightColor = BlockLightColorConverter.Unpack(world.PackedWorldChunks[chunkPosition].LightData[ChunkUtils.VecToIndex(localLightPosition)]);
                             // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)] = BlockLightColorConverter.Pack(Vector3i.ComponentMax(previousLightColor, currentLightColor));
 
                             _newLightPropagationPositions.Add(lightPosition + (0, 0, 1));
@@ -340,7 +340,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeLightRay(World world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3 direction, uint color)
+        public static void ComputeLightRay(PackedChunkWorld world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3 direction, uint color)
         {
 
             // world.WorldChunks[ChunkUtils.PositionToChunk(globalLightPosition)].PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
@@ -360,7 +360,7 @@ namespace Blockgame_OpenTK.Util
 
             Vector3 offsetLightPosition = new Vector3(globalLightPosition.X + 0.5f, globalLightPosition.Y + 0.5f, globalLightPosition.Z + 0.5f);
 
-            uint previousPackedLightData = world.WorldChunks[ChunkUtils.PositionToChunk(currentGlobalBlockPosition)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(currentGlobalBlockPosition))];
+            uint previousPackedLightData = world.PackedWorldChunks[ChunkUtils.PositionToChunk(currentGlobalBlockPosition)].LightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(currentGlobalBlockPosition))];
 
             // world.WorldChunks[ChunkUtils.PositionToChunk(currentGlobalBlockPosition)].PackedLightData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(currentGlobalBlockPosition))] = Math.Max(color, previousPackedLightData);
 
@@ -440,7 +440,7 @@ namespace Blockgame_OpenTK.Util
 
                     // Console.WriteLine(lightChunkPosition
 
-                    uint previousLightDataPacked = world.WorldChunks[lightChunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)];
+                    uint previousLightDataPacked = world.PackedWorldChunks[lightChunkPosition].LightData[ChunkUtils.VecToIndex(localLightPosition)];
 
                     Vector3i previousUnpacked = Vector3i.Zero; // BlockLightColorConverter.Unpack(previousLightDataPacked);
                     Vector3i currentUnpacked = Vector3i.Zero; // BlockLightColorConverter.Unpack(currentColor);
@@ -479,7 +479,7 @@ namespace Blockgame_OpenTK.Util
                     // uint newData = BlockLightColorConverter.Pack(blocklightData);
                     // uint newData = BlockLightColorConverter.Pack(mul);
 
-                    uint current = world.WorldChunks[lightChunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)];
+                    uint current = world.PackedWorldChunks[lightChunkPosition].LightData[ChunkUtils.VecToIndex(localLightPosition)];
                     // world.WorldChunks[chunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)] = newData;
                     // world.WorldChunks[lightChunkPosition].PackedLightData[ChunkUtils.VecToIndex(localLightPosition)] = Math.Max(current, currentColor);
 
@@ -900,7 +900,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void TraceChunksWhile(Dictionary<Vector3i, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        public static void TraceChunksWhile(Dictionary<Vector3i, PackedChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;

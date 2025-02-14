@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-	<PathMap>$(MSBuildThisFileDirectory)=.</PathMap>
+	  <PathMap>$(MSBuildThisFileDirectory)=.</PathMap>
     <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>Blockgame_OpenTK</RootNamespace>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BaseOutputPath>bin\</BaseOutputPath>
-	<Deterministic>false</Deterministic>
-	<AssemblyVersion>0.2.2</AssemblyVersion>
+	  <Deterministic>false</Deterministic>
+	  <AssemblyVersion>0.2.2</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

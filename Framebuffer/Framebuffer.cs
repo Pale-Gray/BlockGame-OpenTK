@@ -87,7 +87,7 @@ namespace Blockgame_OpenTK.FramebufferUtil
             GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             //GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             //GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
+            GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba32f, (int)GlobalValues.WIDTH, (int)GlobalValues.HEIGHT, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
             GL.BindTexture(TextureTarget.Texture2d, 0);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, textureColorBufferId, 0);

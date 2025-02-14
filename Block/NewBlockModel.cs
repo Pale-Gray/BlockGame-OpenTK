@@ -7,6 +7,7 @@ using System.Security;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Util;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Tomlet;
 using Tomlet.Attributes;
@@ -105,7 +106,7 @@ public class NewBlockModel
     // private Dictionary<Direction, List<CustomVertex>> _computedModelGeneralVertices = new();
     public bool IsFullBlock = true;
 
-    public List<PackedChunkVertex> QueryPackedFace(Direction direction, Vector3i offset, ConcurrentDictionary<Vector3i, PackedChunk> neighborChunks)
+    public List<PackedChunkVertex> QueryPackedFace(Direction direction, Vector3i offset, Dictionary<Vector3i, PackedChunk> neighborChunks)
     {
         List<PackedChunkVertex> result = [];
         if (_computedModelPackedVertices.TryGetValue(direction, out List<PackedChunkVertex> packedVertices))
@@ -115,6 +116,26 @@ public class NewBlockModel
                 PackedChunkVertex vertex = packedVertices[i];
                 vertex.Position += offset;
                 vertex.LightColor = Vector3.One;
+                switch (direction) {
+                    case Direction.Top: 
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset + Vector3i.UnitY)], ChunkUtils.PositionToBlockLocal(offset + Vector3i.UnitY)).Normalized;
+                        break;
+                    case Direction.Bottom:
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset - Vector3i.UnitY)], ChunkUtils.PositionToBlockLocal(offset - Vector3i.UnitY)).Normalized;
+                        break;
+                    case Direction.Left:
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset + Vector3i.UnitX)], ChunkUtils.PositionToBlockLocal(offset + Vector3i.UnitX)).Normalized;
+                        break;
+                    case Direction.Right:
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset - Vector3i.UnitX)], ChunkUtils.PositionToBlockLocal(offset - Vector3i.UnitX)).Normalized;
+                        break;
+                    case Direction.Back:
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset + Vector3i.UnitZ)], ChunkUtils.PositionToBlockLocal(offset + Vector3i.UnitZ)).Normalized;
+                        break;
+                    case Direction.Front:
+                        vertex.LightColor = ChunkUtils.GetLightColor(neighborChunks[ChunkUtils.PositionToChunk(offset - Vector3i.UnitZ)], ChunkUtils.PositionToBlockLocal(offset - Vector3i.UnitZ)).Normalized;
+                        break;
+                }
                 result.Add(vertex);
             }
         }

@@ -1,8 +1,10 @@
 using System;
+using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Audio;
+using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
-using OpenTK.Audio.OpenAL;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Blockgame_OpenTK.BlockUtil 
@@ -13,6 +15,7 @@ namespace Blockgame_OpenTK.BlockUtil
 
         public override void OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition)
         {
+            world.AddLight(globalBlockPosition, new BlockLight(new LightColor(8, 0, 15)));
             base.OnBlockPlace(world, globalBlockPosition);
             AudioPlayer.PlaySoundGlobal("bird_tweet.ogg", globalBlockPosition, pitch: Maths.Lerp(0.75f, 1.5f, (float)new Random().NextDouble()));
         }

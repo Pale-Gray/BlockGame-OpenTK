@@ -1,9 +1,0 @@
-{
-
-	"Inherit": "CrossFoliageBase.json",
-	"Textures": {
-		"$all": "TallGrassBlock"
-	},
-	"Objects": []
-
-}

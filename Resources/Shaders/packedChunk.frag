@@ -25,6 +25,6 @@ void main()
     float alpha = texelFetch(blockTextureArray, ivec3(vTextureCoordinates * 32.0, vTextureIndex), 0).a;
 
     if (alpha == 0.0) discard;
-    OutColor = vec4(albedo.rgb * vLightColor * (0.2 + max(dot(-vNormal, sunlight_position), 0.0)), albedo.a);
+    OutColor = vec4(albedo.rgb * (0.1 + pow(vLightColor, vec3(2.2))) * (0.2 + max(dot(-vNormal, sunlight_position), 0.0)), albedo.a);
     
 }

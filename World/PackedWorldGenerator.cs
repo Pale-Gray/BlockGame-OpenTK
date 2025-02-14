@@ -16,7 +16,7 @@ public class PackedWorldGenerator
 {
 
     public static int WorldGenerationRadius = 5;
-    public static int WorldGenerationHeight = 2;
+    public static int WorldGenerationHeight = 3;
     public static int MaxChunkUploadCount = 5;
 
     private static int _currentRadius = 0;
@@ -77,8 +77,24 @@ public class PackedWorldGenerator
                     case PackedChunkQueueType.PassOne:
                         PackedChunkBuilder.GeneratePassOne(CurrentWorld.PackedWorldChunks[chunkPosition]);
                         break;
+                    case PackedChunkQueueType.LightPropagation:
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius && Math.Abs(chunkPosition.Y) < WorldGenerationHeight) {
+                            if (AreNeighborsTheSameQueueType(chunkPosition, PackedChunkQueueType.LightPropagation)) {
+                                PackedChunkBuilder.ComputeBlockLights(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
+                            } else {
+                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
+                                }
+                                else
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
+                                }
+                            }
+                        }
+                        break;
                     case PackedChunkQueueType.Mesh:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius && Math.Abs(chunkPosition.Y) < WorldGenerationHeight)
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 1 && Math.Abs(chunkPosition.Y) < WorldGenerationHeight - 1)
                         {
                             if (AreNeighborsTheSameQueueType(chunkPosition, PackedChunkQueueType.Mesh))
                             {

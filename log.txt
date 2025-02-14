@@ -9,28 +9,6 @@
 [Info] OpenGL Version: 4.6 (Core Profile) Mesa 22.3.6
 [Info] Max texture size: 16384
 [Info] Max array texture layers: 2048
-[Info] Registering AirBlock
-[Info] Registered AirBlock
-[Info] Registering GrassBlock
-[Info] Registered GrassBlock
-[Info] Registering StoneBlock
-[Info] Registered StoneBlock
-[Info] Registering DirtBlock
-[Info] Registered DirtBlock
-[Info] Registering LogBlock
-[Info] Registered LogBlock
-[Info] Registering BrickBlock
-[Info] Registered BrickBlock
-[Info] Registering MissingBlock
-[Info] Registered MissingBlock
-[Info] Registering FoliageBlock
-[Info] Registered FoliageBlock
-[Info] Registering AspenTreeBlock
-[Info] Registered AspenTreeBlock
-[Info] Registering AspenLeafBlock
-[Info] Registered AspenLeafBlock
-[Info] Registering AspenLogBlock
-[Info] Registered AspenLogBlock
 [Info] NewRegistering block Game.Air
 [Info] NewRegistering block Game.Block
 [Info] Game.Block has a model
@@ -38,92 +16,85 @@
 [Info] Game.BrickBlock has a model
 [Info] NewRegistering block Game.PlimboBlock
 [Info] Game.PlimboBlock has a model
+[Info] NewRegistering block Game.EmptyCrate
+[Info] Game.EmptyCrate has a model
+[Info] NewRegistering block Game.TomatoCrate
+[Info] Game.TomatoCrate has a model
+[Info] NewRegistering block Game.RedLightBlock
+[Info] Game.RedLightBlock has a model
+[Info] NewRegistering block Game.GreenLightBlock
+[Info] Game.GreenLightBlock has a model
+[Info] NewRegistering block Game.BlueLightBlock
+[Info] Game.BlueLightBlock has a model
+[Info] NewRegistering block Game.LightBlock
+[Info] Game.LightBlock has a model
 [Info] Supports raw mouse? False
-eBlock
-[Info] Registering AspenTreeBlock
-[Info] Registered AspenTreeBlock
-[Info] Registering AspenLeafBlock
-[Info] Registered AspenLeafBlock
-[Info] Registering AspenLogBlock
-[Info] Registered AspenLogBlock
-[Info] NewRegistering block Game.Air
-[Info] NewRegistering block Game.Block
-[Info] Game.Block has a model
-[Info] NewRegistering block Game.BrickBlock
-[Info] Game.BrickBlock has a model
-[Info] NewRegistering block Game.PlimboBlock
-[Info] Game.PlimboBlock has a model
-[Info] Supports raw mouse? False
- Resources/Textures/TextureArray/TallGrassBlockBottom.png
-[Info] Loading File Resources/Textures/TextureArray/TallGrassBlockTop.png
-[Info] Loading File Resources/Textures/TextureArray/AspenLogBlockSide.png
-[Info] Loading File Resources/Textures/TextureArray/GreenLightBlock.png
-[Info] Loading File Resources/Textures/TextureArray/Bricks.png
-[Info] Finished Loading Textures
-[Info] Registering AirBlock
-[Info] Registered AirBlock
-[Info] Registering GrassBlock
-[Info] Registered GrassBlock
-[Info] Registering StoneBlock
-[Info] Registered StoneBlock
-[Info] Registering DirtBlock
-[Info] Registered DirtBlock
-[Info] Registering LogBlock
-[Info] Registered LogBlock
-[Info] Registering BrickBlock
-[Info] Registered BrickBlock
-[Info] Registering MissingBlock
-[Info] Registered MissingBlock
-[Info] Registering FoliageBlock
-[Info] Registered FoliageBlock
-[Info] Registering AspenTreeBlock
-[Info] Registered AspenTreeBlock
-[Info] Registering AspenLeafBlock
-[Info] Registered AspenLeafBlock
-[Info] Registering AspenLogBlock
-[Info] Registered AspenLogBlock
-[Info] NewRegistering block Game.Air
-[Info] NewRegistering block Game.Block
-[Info] Game.Block has a model
-[Info] NewRegistering block Game.BrickBlock
-[Info] Game.BrickBlock has a model
-[Info] NewRegistering block Game.PlimboBlock
-[Info] Game.PlimboBlock has a model
-[Info] Supports raw mouse? False
-ck.png
-[Info] Resources/Textures/TextureArray/LightBlock.png
-[Info] Resources/Textures/TextureArray/MissingModel.png
-[Info] Resources/Textures/TextureArray/X.png
-[Info] Resources/Textures/TextureArray/PlimboColor.png
-[Info] Resources/Textures/TextureArray/CowPattern.png
-[Info] Resources/Textures/TextureArray/AspenLeafBlock.png
-[Info] Resources/Textures/TextureArray/AspenLogBlockTop.png
-[Info] Resources/Textures/TextureArray/MissingTexture.png
-[Info] Resources/Textures/TextureArray/MissingBlock.png
-[Info] Resources/Textures/TextureArray/RedLightBlock.png
-[Info] Resources/Textures/TextureArray/DirtBlock.png
-[Info] Resources/Textures/TextureArray/LogBlockTop.png
-[Info] Resources/Textures/TextureArray/BlueLightBlock.png
-[Info] Resources/Textures/TextureArray/FirLogSide.png
-[Info] Resources/Textures/TextureArray/LogBlockSide.png
-[Info] Resources/Textures/TextureArray/GrassBlockTop.png
-[Info] Resources/Textures/TextureArray/GrassBlockSide.png
-[Info] Resources/Textures/TextureArray/TallGrassBlockBottom.png
-[Info] Resources/Textures/TextureArray/TallGrassBlockTop.png
-[Info] Resources/Textures/TextureArray/AspenLogBlockSide.png
-[Info] Resources/Textures/TextureArray/GreenLightBlock.png
-[Info] Resources/Textures/TextureArray/Bricks.png
-[Info] Supports raw mouse? False
-extures/TextureArray/GrassBlockSide.png
-[Info] GrassBlockSide
-[Info] Resources/Textures/TextureArray/TallGrassBlockBottom.png
-[Info] TallGrassBlockBottom
-[Info] Resources/Textures/TextureArray/TallGrassBlockTop.png
-[Info] TallGrassBlockTop
-[Info] Resources/Textures/TextureArray/AspenLogBlockSide.png
-[Info] AspenLogBlockSide
-[Info] Resources/Textures/TextureArray/GreenLightBlock.png
-[Info] GreenLightBlock
-[Info] Resources/Textures/TextureArray/Bricks.png
-[Info] Bricks
-[Info] Supports raw mouse? False
+[Info] Block light calcs took 262.6255ms
+[Info] Block light calcs took 11.1819ms
+[Info] Block light calcs took 8.0491ms
+[Info] Block light calcs took 9.8091ms
+[Info] Block light calcs took 15.7008ms
+[Info] Block light calcs took 9.8202ms
+[Info] Block light calcs took 8.8141ms
+[Info] Block light calcs took 18.8523ms
+[Info] Block light calcs took 146.2245ms
+o] Block light calcs took 9.3968ms
+[Info] Block light calcs took 9.1918ms
+[Info] Block light calcs took 1.4102ms
+[Info] Block light calcs took 9.4127ms
+ms
+[Info] Block light calcs took 3.6567ms
+[Info] Block light calcs took 3.2618ms
+[Info] Block light calcs took 4.5642ms
+[Info] Block light calcs took 7.6581ms
+[Info] Block light calcs took 3.2537ms
+[Info] Block light calcs took 7.7289ms
+[Info] Block light calcs took 8.3252ms
+[Info] Block light calcs took 7.512ms
+[Info] Block light calcs took 7.4054ms
+[Info] Block light calcs took 8.1745ms
+[Info] Block light calcs took 7.4781ms
+[Info] Block light calcs took 3.372ms
+[Info] Block light calcs took 10.0567ms
+[Info] Block light calcs took 8.3501ms
+[Info] Block light calcs took 6.9596ms
+[Info] Block light calcs took 7.1513ms
+[Info] Block light calcs took 7.3647ms
+[Info] Block light calcs took 7.083ms
+[Info] Block light calcs took 6.56ms
+[Info] Block light calcs took 7.8346ms
+[Info] Block light calcs took 7.1126ms
+[Info] Block light calcs took 7.5948ms
+[Info] Block light calcs took 5.8741ms
+[Info] Block light calcs took 3.3693ms
+[Info] Block light calcs took 10.599ms
+[Info] Block light calcs took 5.7653ms
+[Info] Block light calcs took 5.4512ms
+[Info] Block light calcs took 5.2951ms
+[Info] Block light calcs took 8.4319ms
+[Info] Block light calcs took 7.8882ms
+[Info] Block light calcs took 7.721ms
+[Info] Block light calcs took 7.5493ms
+[Info] Block light calcs took 8.1034ms
+[Info] Block light calcs took 5.1748ms
+[Info] Block light calcs took 6.0938ms
+[Info] Block light calcs took 6.8009ms
+[Info] Block light calcs took 7.4533ms
+[Info] Block light calcs took 6.9563ms
+[Info] Block light calcs took 13.7635ms
+[Info] Block light calcs took 3.4192ms
+[Info] Block light calcs took 7.203ms
+[Info] Block light calcs took 4.496ms
+[Info] Block light calcs took 4.481ms
+[Info] Block light calcs took 3.2694ms
+[Info] Block light calcs took 3.4522ms
+[Info] Block light calcs took 10.3522ms
+[Info] Block light calcs took 9.19ms
+[Info] Block light calcs took 8.4745ms
+[Info] Block light calcs took 4.0546ms
+[Info] Block light calcs took 7.1107ms
+[Info] Block light calcs took 12.5104ms
+[Info] Block light calcs took 11.6306ms
+[Info] Block light calcs took 7.5836ms
+[Info] Block light calcs took 14.7246ms
+[Info] Block light calcs took 71.6928ms

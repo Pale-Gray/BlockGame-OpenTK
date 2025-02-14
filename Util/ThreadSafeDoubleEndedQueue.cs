@@ -24,12 +24,10 @@ public class ThreadSafeDoubleEndedQueue<T>
     {
         lock (_lock)
         {
-            if (_queue.First != null)
+            if (_queue.Count <= 0) 
             {
                 _queue.AddFirst(value);
-            }
-            else
-            {
+            } else {
                 _queue.AddBefore(_queue.First, value);
             }
         }

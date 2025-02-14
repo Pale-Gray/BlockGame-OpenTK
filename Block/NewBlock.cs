@@ -45,7 +45,8 @@ public class NewBlock
     public virtual void OnBlockDestroy(PackedChunkWorld world, Vector3i globalBlockPosition)
     {
         
-        world.SetBlock(globalBlockPosition, new NewBlock());
+        world.SetBlock(globalBlockPosition, new NewBlock() {IsSolid = false});
+        if (IsSolid) world.RemoveLight(globalBlockPosition);
         world.QueueChunk(globalBlockPosition);
         
     }

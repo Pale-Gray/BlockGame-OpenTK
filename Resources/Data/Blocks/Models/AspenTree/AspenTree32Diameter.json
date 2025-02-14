@@ -1,9 +1,0 @@
-{
-	
-	"inherit": "CubeSameTexture.json"
-	"textures": {
-		"$all": "AspenLogBlockSide"
-	},
-	"objects": []
-	
-}

@@ -10,7 +10,7 @@ namespace Blockgame_OpenTK.Mod
     internal interface IModLoader
     {
 
-        public abstract void OnLoad(Register register);
+        public abstract void OnLoad(NewRegister register);
 
     }
 }

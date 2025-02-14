@@ -7,7 +7,6 @@ using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Core.Worlds;
 using Tomlet;
@@ -27,23 +26,17 @@ namespace Blockgame_OpenTK
             
             if (args.Length == 0)
             {
-
                 GameLogger.Log("Starting in client mode.", Severity.Info);
-
             }
             if (args.Length == 1)
             {
-
                 if (args[0].ToLower() == "client") Util.GameLogger.Log("Starting in client mode.", Severity.Info);
-
             }
             if (args.Length > 1)
             {
-
                 if (args[0].ToLower() == "server") Util.GameLogger.Log("Starting in server mode.", Severity.Info);
-
             }
-            TomletMain.RegisterMapper<Vector3>(
+            TomletMain.RegisterMapper(
 
                 vector =>
                 {
@@ -57,6 +50,7 @@ namespace Blockgame_OpenTK
                 value =>
                 {
                     if (value is not TomlArray) return Vector3.Zero;
+                    if (((TomlArray)value).Count != 3) return Vector3.Zero;
 
                     float x = float.Parse(((TomlArray)value)[0].StringValue);
                     float y = float.Parse(((TomlArray)value)[1].StringValue);
@@ -67,7 +61,7 @@ namespace Blockgame_OpenTK
                 } 
             );
             
-            TomletMain.RegisterMapper<Direction>(
+            TomletMain.RegisterMapper(
                 direction =>
                 {
                     switch (direction)

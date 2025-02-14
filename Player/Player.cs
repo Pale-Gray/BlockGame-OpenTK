@@ -85,7 +85,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                 }
                 else { RemoveDelay = 1; }
 
-                if (Translator.ResolveKeymap("PlaceBlock") || Input.IsRightTriggerDown())
+                if (Translator.ResolveKeymap("PlaceBlock") || Input.IsRightTriggerDown() || Input.IsKeyDown(Key.RightShift))
                 {
 
                     PlaceDelay += (float)GlobalValues.DeltaTime;

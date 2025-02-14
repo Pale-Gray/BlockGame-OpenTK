@@ -1,9 +1,0 @@
-{
-
-  "DataName": "BlueLightBlock",
-  "DisplayName": "Blue Light",
-  "Model": "BlueLightBlock.json",
-  "SoundPath": "BlueLightBlock",
-  "BreakTime": 1000
-
-}

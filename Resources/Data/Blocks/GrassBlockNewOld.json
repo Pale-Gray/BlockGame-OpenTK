@@ -1,9 +1,0 @@
-{
-
-  "DataName": "GrassBlock",
-  "DisplayName": "Grass Block",
-  "Model": "GrassBlock.json",
-  "Sounds": "GrassBlock",
-  "BreakTime": 1
-
-}

@@ -1,8 +1,0 @@
-{
-
-  "ChunkSize": 1,
-  "Dimensions": [ 8, 10, 8 ],
-  "Origin": [ 4, 0, 4 ],
-  "Data": "StructureReference.struct"
-
-}

@@ -13,7 +13,6 @@ using System.Diagnostics;
 using Blockgame_OpenTK.Font;
 using System.Runtime.InteropServices;
 using System.IO;
-using Blockgame_OpenTK.ChunkUtil;
 using System.Collections.Generic;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.TexturePack;
@@ -173,12 +172,9 @@ namespace Blockgame_OpenTK
 
         static bool debug = false;
         // Chunk c;
-        static Sun Sun;
 
         static Player Player;
         // GUIElement texx;
-
-        static World World = new World("nofile");
 
         static double TickTime = 0;
 
@@ -228,24 +224,20 @@ namespace Blockgame_OpenTK
             }
             GameLogger.Log("Queried extensions supported:");
             foreach (string extension in requiredExtensions) Console.WriteLine($"\t{extension}");
-            // AudioPlayer.PlaySoundLocal("moo.wav");
 
-            // GL.DebugMessageCallback(debugMessageDel, IntPtr.Zero);
-            // GL.Enable(EnableCap.DebugOutput);
-
-            Util.GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
-            Util.GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
-            Util.GameLogger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
-            Util.GameLogger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
-            Util.GameLogger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
-            Util.GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
-            Util.GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
-            Util.GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
+            GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
+            GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
+            GameLogger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
+            GameLogger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
+            GameLogger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
+            GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
+            GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
+            GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
 
             if (!Directory.Exists("Chunks"))
             {
 
-                Util.GameLogger.Log("Created Chunks folder because it did not exist.", Severity.Info);
+                GameLogger.Log("Created Chunks folder because it did not exist.", Severity.Info);
                 Directory.CreateDirectory("Chunks");
 
             }
@@ -260,9 +252,6 @@ namespace Blockgame_OpenTK
             TextRenderer.InitTextRenderer();
             Translator.LoadKeymap();
 
-            Blocks.Load();
-
-            GlobalValues.MissingBlockModel = BlockModel.LoadFromJson("MissingModel.json");
             GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
             GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
             GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
@@ -296,41 +285,9 @@ namespace Blockgame_OpenTK
             frameBuffer = new Framebuffer();
             framebufferQuad = new FramebufferQuad();
 
-            Sun = new Sun("sun.png", 10);
-
             Player = new Player();
             Player.SetHeight(1.8f);
             Player.SetPosition((0, 68, 0));
-
-            GuiElement element = new GuiElement();
-            element.Origin = (0.5f, 0.5f);
-            element.Color = Color4.White;
-            element.AbsoluteDimensions = (50, 50);
-            element.Layer = 10;
-            // element.IsVisible = true;
-
-            TransitionElement transition = new TransitionElement(element);
-            transition.Length = 2.0f;
-            transition.StartingRelativePosition = (0.2f, 0.5f);
-            transition.EndingRelativePosition = (0.5f, 0.5f);
-            transition.StartingAbsoluteDimensions = (50, 50);
-            transition.EndingAbsoluteDimensions = (50, 100);
-            transition.StartingColor = Color4.White;
-            transition.EndingColor = new Color4<Rgba>(1,1,1, 0);
-            transition.InterpolationMode = InterpolationMode.EaseOutCubic;
-            // transition.IsRunning = true;
-            transition.ShouldLoop = true;
-
-            GuiRandomTextDisplay textDisplay = new GuiRandomTextDisplay();
-            textDisplay.AbsoluteDimensions = (50, 50);
-            textDisplay.RelativePosition = (0.5f, 0.5f);
-            textDisplay.Origin = (0.5f, 0.5f);
-            // textDisplay.Color = Color4.White;
-            textDisplay.Layer = 1;
-            textDisplay.TickDelayInSeconds = 0.0f;
-            textDisplay.TimeInSeconds = 2.0f;
-            textDisplay.Text = "Pale_Gray";
-            // textDisplay.IsVisible = true;
 
 
             FontFamily font = new FontFamily();
@@ -388,6 +345,28 @@ namespace Blockgame_OpenTK
             plimboBlock.BlockModel = NewBlockModel.FromToml("plimbo_block.toml");
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), plimboBlock);
 
+            NewBlock emptyCrate = new NewBlock();
+            emptyCrate.BlockModel = NewBlockModel.FromToml("empty_crate.toml");
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "EmptyCrate"), emptyCrate);
+
+            NewBlock tomatoCrate = new NewBlock();
+            tomatoCrate.BlockModel = NewBlockModel.FromToml("tomato_crate.toml");
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "TomatoCrate"), tomatoCrate);
+
+            RedLightBlock redLightBlock = new RedLightBlock();
+            redLightBlock.BlockModel = NewBlockModel.FromToml("cube_all.toml");
+            GreenLightBlock greenLightBlock = new GreenLightBlock();
+            greenLightBlock.BlockModel = redLightBlock.BlockModel;
+            BlueLightBlock blueLightBlock = new BlueLightBlock();
+            blueLightBlock.BlockModel = greenLightBlock.BlockModel;
+            LightBlock lightBlock = new LightBlock();
+            lightBlock.BlockModel = blueLightBlock.BlockModel;
+
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "RedLightBlock"), redLightBlock);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), greenLightBlock);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), blueLightBlock);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), lightBlock);
+            
             Core.Gui.GuiRenderer.Initialize();
 
         }
@@ -404,7 +383,7 @@ namespace Blockgame_OpenTK
             {
 
                 TickTime -= 1 / frames;
-                World.Tick(Player.Position);
+                
 
             }
             Player.Update(PackedWorldGenerator.CurrentWorld);
@@ -418,7 +397,7 @@ namespace Blockgame_OpenTK
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             GL.Disable(EnableCap.DepthTest);
-            Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0) * Sun.RotationMatrix).Xyz, Player.Camera, (float)GlobalValues.Time);
+            Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0)).Xyz, Player.Camera, (float)GlobalValues.Time);
 
             // GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
@@ -438,31 +417,14 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.S))
                 {
 
-                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Done)
-                    {
-
-                        ChunkSerializer.Serialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
-                        ChunkSerializer.Deserialize(World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)]);
-
-                    }
-                    else
-                    {
-
-                        Console.WriteLine($"The chunk at {ChunkUtils.PositionToChunk(Player.Camera.Position)} either is not used or is not ready.");
-
-                    }
+                    
 
                 }
 
                 if (Input.IsKeyPressed(Key.W))
                 {
 
-                    if (World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType == QueueType.Done)
-                    {
 
-                        World.WorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].TryLoad();
-
-                    }
 
                 }
 
@@ -522,13 +484,6 @@ namespace Blockgame_OpenTK
             PackedWorldGenerator.QueueGeneration();
             
             CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
-            
-            // GeneralLineRenderer.DrawLine((0, 0, 0), (0, 100, 0), Color4.Red, 5, Player);
-            // rmodel.SetPosition(0,0,0);
-            // rmodel.SetScale(0.5f, 0.5f, 0.5f);
-            // GL.Disable(EnableCap.CullFace);
-            // rmodel.Draw((0,0,0), (0,0,0), Player.Camera, 0);
-            // GL.Enable(EnableCap.CullFace);
             
             GL.Enable(EnableCap.DepthTest);
 

@@ -1,9 +1,0 @@
-{
-
-	"Inherit": "CubeSameTexture.json",
-	"Textures": {
-		"$all": "DirtBlock"
-	},
-	"Objects": []
-
-}
