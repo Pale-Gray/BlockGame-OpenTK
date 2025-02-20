@@ -23,7 +23,7 @@ namespace Blockgame_OpenTK
         private static OpenGLContextHandle _glContext;
         public static void Main(string[] args)
         {
-            
+
             if (args.Length == 0)
             {
                 GameLogger.Log("Starting in client mode.", Severity.Info);
@@ -110,11 +110,11 @@ namespace Blockgame_OpenTK
 
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;
-            prop2.ToBytes();
+            // prop2.ToBytes();
 
             NewProperties prop3 = new NewProperties();
             IBlockProperties prop4 = prop3;
-            prop4.ToBytes();
+            // prop4.ToBytes();
 
             IBlockProperties[] props = new IBlockProperties[50];
 
@@ -195,6 +195,10 @@ namespace Blockgame_OpenTK
             Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
             GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion.ToString()}", Severity.Info);
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
+
+            ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
+            IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
+            Toolkit.Window.SetIcon(window, handle);
             
             ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
             CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);

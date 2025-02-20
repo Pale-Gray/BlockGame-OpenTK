@@ -1,4 +1,9 @@
-inherit = "cube_all.toml"
+inherit = "cube_distinct.toml"
 
 [textures]
-'$all' = "GrassBlockTop"
+'$up' = 'GrassBlockTop'
+'$down' = 'DirtBlock'
+'$left' = 'GrassBlockSide'
+'$right' = 'GrassBlockSide'
+'$back' = 'GrassBlockSide'
+'$front' = 'GrassBlockSide'

@@ -5,12 +5,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
+using OpenTK.Platform;
 
 namespace Blockgame_OpenTK.Core.Chunks;
 
@@ -20,13 +23,13 @@ public class PackedChunkBuilder
     public static void GeneratePassOne(PackedChunk chunk)
     {
 
-        // Array.Fill(chunk.LightData, (ushort) 0b1111111111111111);
+        Array.Fill<ushort>(chunk.LightData, 0);
         
         for (int x = 0; x < GlobalValues.ChunkSize; x++)
         {
             for (int z = 0; z < GlobalValues.ChunkSize; z++)
             {
-                int height = (int) (0.0 * Maths.Noise2(132423430, (x + (chunk.ChunkPosition.X * 32)) / 128.0f, (z + (chunk.ChunkPosition.Z * 32)) / 128.0f));
+                int height = 128 + (int) (16.0 * Maths.Noise2(132423430, (x + (chunk.ChunkPosition.X * 32)) / 128.0f, (z + (chunk.ChunkPosition.Z * 32)) / 128.0f));
                 for (int y = 0; y < GlobalValues.ChunkSize; y++)
                 {
                     if (y + (chunk.ChunkPosition.Y * 32) <= height)
@@ -36,8 +39,6 @@ public class PackedChunkBuilder
                 }
             }
         }
-        
-        // if (chunk.ChunkPosition.Y <= 0) Array.Fill(chunk.BlockData, (ushort)1);
 
         chunk.QueueType = PackedChunkQueueType.LightPropagation;
         if (chunk.HasPriority)
@@ -51,246 +52,319 @@ public class PackedChunkBuilder
         
     }
 
-    private static Vector3i[] offsets = [ Vector3i.UnitY, -Vector3i.UnitY, Vector3i.UnitX, -Vector3i.UnitX, Vector3i.UnitZ, -Vector3i.UnitZ ];
+    private static Vector3i[] offsets = [ Vector3i.UnitX, Vector3i.UnitZ, Vector3i.UnitY, -Vector3i.UnitX, -Vector3i.UnitZ, -Vector3i.UnitY ];
 
     public static void ComputeBlockLights(Dictionary<Vector3i, PackedChunk> chunks, PackedChunk chunk) 
     {
 
-        Stopwatch sw = Stopwatch.StartNew();
+        HashSet<Vector3i> alreadySampledRedPositions = new();
+        HashSet<Vector3i> alreadySampledBluePositions = new();
+        HashSet<Vector3i> alreadySampledGreenPositions = new();
 
-        while (chunk.BlockLightRemovalQueue.TryDequeue(out BlockLight light)) 
+        Stopwatch lightRemovalStopwatch = Stopwatch.StartNew();
+        while (chunk.BlockLightRemovalQueue.TryDequeue(out BlockLight light))
         {
-        
-            List<Vector3i> currentLightSamples = [ light.Position ];
-            List<Vector3i> traversedSamples = [ light.Position ];
-            List<Vector3i> newLightSamples = new();
 
-            while (light.LightColor.R > 0)
+            if (light.LightColor.G != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+
+                if (!alreadySampledGreenPositions.Contains(light.Position))
                 {
 
-                    ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), 0);
+                    alreadySampledGreenPositions.Add(light.Position);
+                    ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 0);
                     for (int i = 0; i < offsets.Length; i++)
                     {
 
-                        if (ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i])) != 0 && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i]))
+                        ushort greenSample = ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (greenSample != 0 && greenSample < light.LightColor.G)
                         {
 
-                            ushort redValue = ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i]));
-                            if (redValue != 0)
-                            {
-                                if (redValue < light.LightColor.R)
-                                {
-                                    newLightSamples.Add(lightSample + offsets[i]);
-                                } 
-                                else 
-                                {
-                                    LightColor v = ChunkUtils.GetLightColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i]));
-                                    if (redValue == light.LightColor.R)
-                                    {
-                                        v.R = (ushort) Math.Max(v.R - 1, 0);
-                                        v.G = (ushort) Math.Max(v.G - 1, 0);
-                                        v.B = (ushort) Math.Max(v.B - 1, 0);
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(v.R, 0, 0)) { Position = lightSample });
-                                    } else
-                                    {
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(light.LightColor.R, 0, 0)) { Position = lightSample });
-                                    }
-                                }
-                            }   
+                            if (light.LightColor.G > 0 && light.LightColor.G - 1 != 0) chunk.BlockLightRemovalQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, (ushort) (light.LightColor.G - 1), 0)));
+
+                        } else if (greenSample >= light.LightColor.G)
+                        {
+
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, greenSample, 0)));
 
                         }
-                    }
-                }
 
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.R = (ushort) Math.Max((int)light.LightColor.R - 1, 0);
+                    }
+
+                }  
+
             }
 
-            currentLightSamples = [ light.Position ];
-            traversedSamples = [ light.Position ];
-            newLightSamples.Clear();
-
-            while (light.LightColor.G > 0)
+            if (light.LightColor.R != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+
+                if (!alreadySampledRedPositions.Contains(light.Position))
                 {
 
-                    ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), 0);
+                    alreadySampledRedPositions.Add(light.Position);
+                    ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 0);
                     for (int i = 0; i < offsets.Length; i++)
                     {
-                        if (ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i])) != 0 && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i]))
+
+                        ushort redSample = ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (redSample != 0 && redSample < light.LightColor.R)
                         {
 
-                            ushort greenValue = ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i]));
-                            if (greenValue != 0)
-                            {
-                                if (greenValue < light.LightColor.G)
-                                {
-                                    newLightSamples.Add(lightSample + offsets[i]);
-                                } 
-                                else 
-                                {
-                                    if (greenValue == light.LightColor.G)
-                                    {
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(0, (ushort)Math.Max(light.LightColor.G - 1, 0), 0)) { Position = lightSample });
-                                    } else
-                                    {
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(0, light.LightColor.G, 0)) { Position = lightSample });
-                                    }
-                                }
-                            }   
+                            if (light.LightColor.R > 0 && light.LightColor.R - 1 != 0) chunk.BlockLightRemovalQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor((ushort) (light.LightColor.R - 1), 0, 0)));
+
+                        } else if (redSample >= light.LightColor.R)
+                        {
+
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(redSample, 0, 0)));
 
                         }
-                    }
-                }
 
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.G = (ushort) Math.Max(light.LightColor.G - 1, 0);
+                    }
+
+                }
 
             }
 
-            currentLightSamples = [ light.Position ];
-            traversedSamples = [ light.Position ];
-            newLightSamples.Clear();
-
-            while (light.LightColor.B > 0)
+            if (light.LightColor.B != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+
+                if (!alreadySampledBluePositions.Contains(light.Position))
                 {
 
-                    ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), 0);
+                    alreadySampledBluePositions.Add(light.Position);
+                    ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 0);
                     for (int i = 0; i < offsets.Length; i++)
                     {
-                        if (ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i])) != 0 && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i]))
+
+                        ushort blueSample = ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (blueSample != 0 && blueSample < light.LightColor.B)
                         {
 
-                            ushort blueValue = ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + offsets[i]));
-                            if (blueValue != 0)
-                            {
-                                if (blueValue < light.LightColor.B)
-                                {
-                                    newLightSamples.Add(lightSample + offsets[i]);
-                                } 
-                                else 
-                                {
-                                    if (blueValue == light.LightColor.B)
-                                    {
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(0, 0, (ushort)Math.Max(light.LightColor.B - 1, 0))) { Position = lightSample });
-                                    } else
-                                    {
-                                        chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(new LightColor(0, 0, light.LightColor.B)) { Position = lightSample });
-                                    }
-                                }
-                            }   
+                            if (light.LightColor.B > 0 && light.LightColor.B - 1 != 0) chunk.BlockLightRemovalQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, 0, (ushort) (light.LightColor.B - 1))));
+
+                        } else if (blueSample >= light.LightColor.B)
+                        {
+
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, 0, blueSample)));
 
                         }
-                    }
-                }
 
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.B = (ushort) Math.Max((int)light.LightColor.B - 1, 0);
+                    }
+
+                }
 
             }
 
-            currentLightSamples = [ light.Position ];
-            traversedSamples = [ light.Position ];
-            newLightSamples.Clear();
+        }
+        lightRemovalStopwatch.Stop();
+        if (chunk.HasPriority) if (lightRemovalStopwatch.Elapsed.TotalMilliseconds > 0.0) GameLogger.Log($"Light removal took {Math.Round(lightRemovalStopwatch.Elapsed.TotalMilliseconds, 4)}ms");
+
+        alreadySampledRedPositions.Clear();
+        alreadySampledGreenPositions.Clear();
+        alreadySampledBluePositions.Clear();
+
+        Stopwatch lightAdditionStopwatch = Stopwatch.StartNew();
+        while (chunk.BlockLightAdditionQueue.TryDequeue(out BlockLight light))
+        {
+
+            if (light.LightColor.G != 0)
+            {
+
+                if (!alreadySampledGreenPositions.Contains(light.Position) || ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position)) < light.LightColor.G)
+                {
+
+                    alreadySampledGreenPositions.Add(light.Position);
+                    ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), Math.Max(light.LightColor.G, ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position))));
+                    for (int i = 0; i < offsets.Length; i++)
+                    {
+
+                        ushort greenSample = ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
+                        {
+                            if (greenSample <= light.LightColor.G)
+                            {
+
+                                ushort value = light.LightColor.G;
+                                if (value > 0) value--;
+                                if (value != 0) chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, value, 0)));
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+            if (light.LightColor.R != 0)
+            {
+
+                if (!alreadySampledRedPositions.Contains(light.Position) || ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position)) < light.LightColor.R)
+                {
+
+                    alreadySampledRedPositions.Add(light.Position);
+                    ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), Math.Max(light.LightColor.R, ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position))));
+                    for (int i = 0; i < offsets.Length; i++)
+                    {
+
+                        ushort redSample = ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
+                        {
+                            if (redSample <= light.LightColor.R)
+                            {
+
+                                ushort value = light.LightColor.R;
+                                if (value > 0) value--;
+                                if (value != 0) chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(value, 0, 0)));
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+            if (light.LightColor.B != 0)
+            {
+
+                if (!alreadySampledBluePositions.Contains(light.Position) || ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position)) < light.LightColor.B)
+                {
+
+                    alreadySampledBluePositions.Add(light.Position);
+                    ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), Math.Max(light.LightColor.B, ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position))));
+                    for (int i = 0; i < offsets.Length; i++)
+                    {
+
+                        ushort blueSample = ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                        if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
+                        {
+                            if (blueSample <= light.LightColor.B)
+                            {
+
+                                ushort value = light.LightColor.B;
+                                if (value > 0) value--;
+                                if (value != 0) chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, 0, value)));
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }  
+        /*
+        while (chunk.BlockLightRemovalQueue.TryDequeue(out BlockLight light))
+        {
+
+            bool firstDequeue = true;
+            if (light.LightColor.G != 0)
+            {
+                
+                ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 0);
+                for (int i = 0; i < offsets.Length; i++)
+                {
+                    ushort greenSample = ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                    if (!alreadySampledRedPositions.Contains(light.Position) && !alreadySampledRedPositions.Contains(light.Position + offsets[i]) && greenSample != 0)
+                    {
+
+                        if (greenSample < light.LightColor.G)
+                        {
+
+                            chunk.BlockLightRemovalQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, greenSample, 0)));
+
+                        } else if (greenSample > light.LightColor.G)
+                        {
+
+                            ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 15);
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position, new LightColor(0, light.LightColor.G, 0)));
+
+                        } else if (greenSample == light.LightColor.G)
+                        {
+                            ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), 15);
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position, new LightColor(0, (ushort)(light.LightColor.G - 1), 0)));
+                        }
+
+                    }
+
+                }
+
+                alreadySampledRedPositions.Add(light.Position);
+
+            }
+            
 
         }
 
-        while (chunk.BlockLightAdditionQueue.TryDequeue(out BlockLight light)) 
+        alreadySampledRedPositions.Clear();
+
+        Stopwatch lightAdditionStopwatch = Stopwatch.StartNew();
+        while (chunk.BlockLightAdditionQueue.TryDequeue(out BlockLight light))
         {
 
-            int lightSpreadValue = light.LightColor.MaxValue;
-            List<Vector3i> currentLightSamples = [ light.Position ];
-            List<Vector3i> traversedSamples = [ light.Position ];
-            List<Vector3i> newLightSamples = new();
-
-            while (light.LightColor.R > 0)
+            if (light.LightColor.R != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+                ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), light.LightColor.R);
+                if (light.LightColor.R > 0) light.LightColor.R--;
+                for (int i = 0; i < offsets.Length; i++)
                 {
-                    if (ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample)) < light.LightColor.R)
+                    ushort redSample = ChunkUtils.GetLightRedColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                    if (!alreadySampledRedPositions.Contains(light.Position) && !alreadySampledRedPositions.Contains(light.Position + offsets[i]) && !ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
                     {
-                        ChunkUtils.SetLightRedColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), light.LightColor.R);
-                        for (int i = 0; i < offsets.Length; i++) 
+                        if (redSample <= light.LightColor.R)
                         {
-                            if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + Vector3i.UnitY)) && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i])) newLightSamples.Add(lightSample + offsets[i]);
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(light.LightColor.R, 0, 0)));
                         }
-                    }
+                    }   
                 }
-
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.R = (ushort) Math.Max((int)light.LightColor.R - 1, 0);
+                alreadySampledRedPositions.Add(light.Position);
             }
 
-            currentLightSamples = [ light.Position ];
-            traversedSamples = [ light.Position ];
-            newLightSamples.Clear();
-
-            while (light.LightColor.G > 0)
+            if (light.LightColor.G != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+                ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), Math.Max(light.LightColor.G, ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position))));
+                if (light.LightColor.G > 0) light.LightColor.G--;
+                for (int i = 0; i < offsets.Length; i++)
                 {
-                    if (ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample)) < light.LightColor.G)
+                    ushort greenSample = ChunkUtils.GetLightGreenColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                    if (!alreadySampledGreenPositions.Contains(light.Position) && !alreadySampledGreenPositions.Contains(light.Position + offsets[i]) && !ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
                     {
-                        ChunkUtils.SetLightGreenColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), light.LightColor.G);
-                        for (int i = 0; i < offsets.Length; i++) 
+                        if (greenSample <= light.LightColor.G)
                         {
-                            if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + Vector3i.UnitY)) && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i])) newLightSamples.Add(lightSample + offsets[i]);
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, light.LightColor.G, 0)));
                         }
-                    }
+                    }   
                 }
-
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.G = (ushort) Math.Max((int)light.LightColor.G - 1, 0);
+                alreadySampledGreenPositions.Add(light.Position);
             }
 
-            currentLightSamples = [ light.Position ];
-            traversedSamples = [ light.Position ];
-            newLightSamples.Clear();
-
-            while (light.LightColor.B > 0)
+            if (light.LightColor.B != 0)
             {
-                foreach (Vector3i lightSample in currentLightSamples)
+                ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position)], ChunkUtils.PositionToBlockLocal(light.Position), light.LightColor.B);
+                if (light.LightColor.B > 0) light.LightColor.B--;
+                for (int i = 0; i < offsets.Length; i++)
                 {
-                    if (ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample)) < light.LightColor.B)
+                    ushort blueSample = ChunkUtils.GetLightBlueColor(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i]));
+                    if (!alreadySampledBluePositions.Contains(light.Position) && !alreadySampledBluePositions.Contains(light.Position + offsets[i]) && !ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(light.Position + offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + offsets[i])))
                     {
-                        ChunkUtils.SetLightBlueColor(chunks[ChunkUtils.PositionToChunk(lightSample)], ChunkUtils.PositionToBlockLocal(lightSample), light.LightColor.B);
-                        for (int i = 0; i < offsets.Length; i++) 
+                        if (blueSample <= light.LightColor.B)
                         {
-                            if (!ChunkUtils.GetSolidBlock(chunks[ChunkUtils.PositionToChunk(lightSample + offsets[i])], ChunkUtils.PositionToBlockLocal(lightSample + Vector3i.UnitY)) && !traversedSamples.Contains(lightSample + offsets[i]) && !newLightSamples.Contains(lightSample + offsets[i])) newLightSamples.Add(lightSample + offsets[i]);
+                            chunk.BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position + offsets[i], new LightColor(0, 0, light.LightColor.B)));
                         }
-                    }
+                    }   
                 }
-
-                traversedSamples.AddRange(currentLightSamples);
-                currentLightSamples.Clear();
-                currentLightSamples.AddRange(newLightSamples);
-                newLightSamples.Clear();
-                light.LightColor.B = (ushort) Math.Max((int)light.LightColor.B - 1, 0);
+                alreadySampledBluePositions.Add(light.Position);
             }
-        
+
         }
-        sw.Stop();
-        if (sw.Elapsed.TotalMilliseconds > 1.0) GameLogger.Log($"Block light calcs took {sw.Elapsed.TotalMilliseconds}ms");
+        */
+        lightAdditionStopwatch.Stop();
+        if (chunk.HasPriority) if (lightAdditionStopwatch.Elapsed.TotalMilliseconds > 0.0) GameLogger.Log($"Light addition took {Math.Round(lightAdditionStopwatch.Elapsed.TotalMilliseconds, 4)}ms");
 
         chunk.QueueType = PackedChunkQueueType.Mesh;
         if (chunk.HasPriority)

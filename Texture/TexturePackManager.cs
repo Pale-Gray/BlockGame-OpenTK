@@ -37,7 +37,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
             {
 
                 ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
-                GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 32, 32, Directory.GetFiles(directory).Length);
+                GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, Directory.GetFiles(directory).Length);
                 GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
                 GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
                 GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
@@ -50,7 +50,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
 
                         ImageResult image = ImageResult.FromStream(imageFile);
                         int currentCount = _textureArrayIndices.Count;
-                        GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 32, 32, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                        GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
                         string fileName = file.Split(Path.DirectorySeparatorChar).Last().Split('.')[0];
                         _textureArrayIndices.Add(fileName, currentCount);
                         Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");

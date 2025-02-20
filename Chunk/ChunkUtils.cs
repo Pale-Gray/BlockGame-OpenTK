@@ -16,28 +16,28 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static LightColor GetLightColor(PackedChunk chunk, Vector3i localBlockPosition)
         {
 
-            return new LightColor(chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)]);
+            return new LightColor(chunk.LightData[VecToIndex(localBlockPosition)]);
 
         }
 
         public static ushort GetLightRedColor(PackedChunk chunk, Vector3i localBlockPosition)
         {
 
-            return (ushort) (chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] >> 12 & 15);
+            return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 12 & 15);
 
         }
 
         public static ushort GetLightGreenColor(PackedChunk chunk, Vector3i localBlockPosition) 
         {
 
-            return (ushort) (chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] >> 8 & 15);
+            return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 8 & 15);
 
         }
 
         public static ushort GetLightBlueColor(PackedChunk chunk, Vector3i localBlockPosition)
         {
 
-            return (ushort) (chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] >> 4 & 15);
+            return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 4 & 15);
 
         }
 
@@ -91,7 +91,7 @@ namespace Blockgame_OpenTK.Core.Chunks
         public static bool GetSolidBlock(PackedChunk chunk, Vector3i localBlockPosition) 
         {
 
-            return ((chunk.SolidMask[VecToIndex((localBlockPosition.X, localBlockPosition.Z))] >> localBlockPosition.Y) & 1) != 0;
+            return (chunk.SolidMask[VecToIndex((localBlockPosition.X, localBlockPosition.Z))] & (1u << localBlockPosition.Y)) != 0;
 
         }
 

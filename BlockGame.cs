@@ -16,6 +16,10 @@ using System.IO;
 using System.Collections.Generic;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.TexturePack;
+using Blockgame_OpenTK.BlockProperty;
+using Tomlet;
+using Blockgame_OpenTK.Core.Language;
+using System.IO.Compression;
 
 namespace Blockgame_OpenTK
 {
@@ -208,22 +212,19 @@ namespace Blockgame_OpenTK
         public static void Load()
         {
 
+            using (ZipArchive archive = ZipFile.OpenRead("/home/pale/Desktop/PainterlyPackBetaFix/minecraft/Archive.zip"))
+            {
+
+                
+
+            }
+
+            LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
+
             GLDebugProc debugMessageDel = OnDebugMessage;
             GuiRenderer.Init();
             AudioPlayer.Initialize();
             TexturePackManager.LoadTexturePack(Path.Combine("Resources", "Textures", "TextureArray"));
-
-            int supportedExtensionCount = GL.GetInteger(GetPName.NumExtensions);
-            List<string> requiredExtensions = [];
-            for (int i = 0; i < supportedExtensionCount; i++) {
-                string extension = GL.GetStringi(StringName.Extensions, (uint)i);
-                if (extension == "GL_ARB_bindless_texture") requiredExtensions.Add(extension);
-                if (extension == "GL_ARB_gpu_shader_int64") requiredExtensions.Add(extension);
-                if (extension == "GL_EXT_nonuniform_qualifier") requiredExtensions.Add(extension);
-                if (extension == "GL_NV_gpu_shader5") requiredExtensions.Add(extension);
-            }
-            GameLogger.Log("Queried extensions supported:");
-            foreach (string extension in requiredExtensions) Console.WriteLine($"\t{extension}");
 
             GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
             GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
@@ -326,47 +327,19 @@ namespace Blockgame_OpenTK
             cube.BackTextureName = "GrassBlockTop";
             NewBlockModel blockModel = NewBlockModel.FromCubes([ cube ]);
             block.BlockModel = NewBlockModel.FromToml("grass_block.toml");
-            NewBlock block2 = new NewBlock();
-            Cube cube2 = new Cube();
-            cube2.Start = (0, 0, 0);
-            cube2.End = (32, 32, 32);
-            cube2.TopTextureName = "Bricks";
-            cube2.BottomTextureName = "Bricks";
-            cube2.RightTextureName = "Bricks";
-            cube2.LeftTextureName = "Bricks";
-            cube2.FrontTextureName = "Bricks";
-            cube2.BackTextureName = "Bricks";
-            block2.BlockModel = NewBlockModel.FromToml("bricks.toml");
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Block"), block);
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), block2);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "bricks.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), NewBlock.FromToml<PlimboBlock>(Path.Combine("Resources", "Data", "Blocks", "plimbo_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "EmptyCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "empty_crate.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "TomatoCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "tomato_crate.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "RedLightBlock"), NewBlock.FromToml<RedLightBlock>(Path.Combine("Resources", "Data", "Blocks", "red_light_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), NewBlock.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), NewBlock.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
 
-            PlimboBlock plimboBlock = new PlimboBlock();
-            plimboBlock.BlockModel = NewBlockModel.FromToml("plimbo_block.toml");
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), plimboBlock);
-
-            NewBlock emptyCrate = new NewBlock();
-            emptyCrate.BlockModel = NewBlockModel.FromToml("empty_crate.toml");
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "EmptyCrate"), emptyCrate);
-
-            NewBlock tomatoCrate = new NewBlock();
-            tomatoCrate.BlockModel = NewBlockModel.FromToml("tomato_crate.toml");
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "TomatoCrate"), tomatoCrate);
-
-            RedLightBlock redLightBlock = new RedLightBlock();
-            redLightBlock.BlockModel = NewBlockModel.FromToml("cube_all.toml");
-            GreenLightBlock greenLightBlock = new GreenLightBlock();
-            greenLightBlock.BlockModel = redLightBlock.BlockModel;
-            BlueLightBlock blueLightBlock = new BlueLightBlock();
-            blueLightBlock.BlockModel = greenLightBlock.BlockModel;
-            LightBlock lightBlock = new LightBlock();
-            lightBlock.BlockModel = blueLightBlock.BlockModel;
-
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "RedLightBlock"), redLightBlock);
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), greenLightBlock);
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), blueLightBlock);
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), lightBlock);
-            
             Core.Gui.GuiRenderer.Initialize();
 
         }
@@ -484,7 +457,8 @@ namespace Blockgame_OpenTK
             PackedWorldGenerator.QueueGeneration();
             
             CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
-            
+            CachedFontRenderer.RenderFont(out var s, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
+
             GL.Enable(EnableCap.DepthTest);
 
             if (debug)
@@ -520,7 +494,7 @@ namespace Blockgame_OpenTK
             GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
             if (GlobalValues.BlockSelectorID > GlobalValues.NewRegister.BlockCount - 1) GlobalValues.BlockSelectorID = (ushort) 1;
             if (GlobalValues.BlockSelectorID <= 0) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.NewRegister.BlockCount - 1);
-            CachedFontRenderer.RenderFont(out (Vector2, float, float) c, GuiMath.RelativeToAbsolute(0.5f, 0.8f), (0.5f, 0), 100, 48, $"Currently holding ![w,5,2,5,2,0.25]![g,{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).Namespace.ToString().Length},0x8004d9FF,0x533c63FF]{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).Namespace}");
+            CachedFontRenderer.RenderFont(out (Vector2, float, float) c, GuiMath.RelativeToAbsolute(0.5f, 0.8f), (0.5f, 0), 100, 48, $"Currently holding ![w,5,2,5,2,0.25]![g,{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).DisplayName.Length},0x8004d9FF,0x533c63FF]{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).DisplayName}");
             // GL.Enable(EnableCap.DepthTest);
             // GL.Disable(EnableCap.DepthTest);
             // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);

@@ -38,14 +38,14 @@ namespace Blockgame_OpenTK.BlockProperty
         public bool CanConnectForwards = false;
         public bool CanConnectBackwards = false;
 
-        public byte[] ToBytes()
+        public void ToBytes(DataWriter writer)
         {
 
-            return Array.Empty<byte>();
+            
 
         }
 
-        public IBlockProperties FromBytes()
+        public IBlockProperties FromBytes(DataReader reader)
         {
 
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();

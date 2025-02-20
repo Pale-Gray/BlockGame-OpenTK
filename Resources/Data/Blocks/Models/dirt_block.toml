@@ -1,0 +1,4 @@
+inherit = "cube_all.toml"
+
+[textures]
+'$all' = "DirtBlock"

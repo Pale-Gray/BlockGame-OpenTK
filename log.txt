@@ -1,9 +1,8 @@
 [Info] Starting in client mode.
 [Info] loading array texture
-[Info] Queried extensions supported:
 [Info] Platform: Debian GNU/Linux 12 (bookworm)
 [Info] Architecture: x64
-[Info] Runtime: .NET 9.0.1
+[Info] Runtime: .NET 9.0.2
 [Info] Gpu Vendor: AMD
 [Info] Gpu Renderer: AMD Radeon Graphics (renoir, LLVM 15.0.6, DRM 3.57, 6.10.11+bpo-amd64)
 [Info] OpenGL Version: 4.6 (Core Profile) Mesa 22.3.6
@@ -28,73 +27,13 @@
 [Info] Game.BlueLightBlock has a model
 [Info] NewRegistering block Game.LightBlock
 [Info] Game.LightBlock has a model
+[Info] NewRegistering block Game.GrassBlock
+[Info] Game.GrassBlock has a model
+[Info] NewRegistering block Game.DirtBlock
+[Info] Game.DirtBlock has a model
 [Info] Supports raw mouse? False
-[Info] Block light calcs took 262.6255ms
-[Info] Block light calcs took 11.1819ms
-[Info] Block light calcs took 8.0491ms
-[Info] Block light calcs took 9.8091ms
-[Info] Block light calcs took 15.7008ms
-[Info] Block light calcs took 9.8202ms
-[Info] Block light calcs took 8.8141ms
-[Info] Block light calcs took 18.8523ms
-[Info] Block light calcs took 146.2245ms
-o] Block light calcs took 9.3968ms
-[Info] Block light calcs took 9.1918ms
-[Info] Block light calcs took 1.4102ms
-[Info] Block light calcs took 9.4127ms
-ms
-[Info] Block light calcs took 3.6567ms
-[Info] Block light calcs took 3.2618ms
-[Info] Block light calcs took 4.5642ms
-[Info] Block light calcs took 7.6581ms
-[Info] Block light calcs took 3.2537ms
-[Info] Block light calcs took 7.7289ms
-[Info] Block light calcs took 8.3252ms
-[Info] Block light calcs took 7.512ms
-[Info] Block light calcs took 7.4054ms
-[Info] Block light calcs took 8.1745ms
-[Info] Block light calcs took 7.4781ms
-[Info] Block light calcs took 3.372ms
-[Info] Block light calcs took 10.0567ms
-[Info] Block light calcs took 8.3501ms
-[Info] Block light calcs took 6.9596ms
-[Info] Block light calcs took 7.1513ms
-[Info] Block light calcs took 7.3647ms
-[Info] Block light calcs took 7.083ms
-[Info] Block light calcs took 6.56ms
-[Info] Block light calcs took 7.8346ms
-[Info] Block light calcs took 7.1126ms
-[Info] Block light calcs took 7.5948ms
-[Info] Block light calcs took 5.8741ms
-[Info] Block light calcs took 3.3693ms
-[Info] Block light calcs took 10.599ms
-[Info] Block light calcs took 5.7653ms
-[Info] Block light calcs took 5.4512ms
-[Info] Block light calcs took 5.2951ms
-[Info] Block light calcs took 8.4319ms
-[Info] Block light calcs took 7.8882ms
-[Info] Block light calcs took 7.721ms
-[Info] Block light calcs took 7.5493ms
-[Info] Block light calcs took 8.1034ms
-[Info] Block light calcs took 5.1748ms
-[Info] Block light calcs took 6.0938ms
-[Info] Block light calcs took 6.8009ms
-[Info] Block light calcs took 7.4533ms
-[Info] Block light calcs took 6.9563ms
-[Info] Block light calcs took 13.7635ms
-[Info] Block light calcs took 3.4192ms
-[Info] Block light calcs took 7.203ms
-[Info] Block light calcs took 4.496ms
-[Info] Block light calcs took 4.481ms
-[Info] Block light calcs took 3.2694ms
-[Info] Block light calcs took 3.4522ms
-[Info] Block light calcs took 10.3522ms
-[Info] Block light calcs took 9.19ms
-[Info] Block light calcs took 8.4745ms
-[Info] Block light calcs took 4.0546ms
-[Info] Block light calcs took 7.1107ms
-[Info] Block light calcs took 12.5104ms
-[Info] Block light calcs took 11.6306ms
-[Info] Block light calcs took 7.5836ms
-[Info] Block light calcs took 14.7246ms
-[Info] Block light calcs took 71.6928ms
+System.Collections.Generic.KeyNotFoundException: The given key '(-1, 3, -1)' was not present in the dictionary.
+   at System.Collections.Concurrent.ConcurrentDictionary`2.ThrowKeyNotFoundException(TKey key)
+   at System.Collections.Concurrent.ConcurrentDictionary`2.get_Item(TKey key)
+   at Blockgame_OpenTK.Core.Worlds.PackedChunkWorld.GetChunkNeighbors(Vector3i chunkPosition) in ./World/PackedChunkWorld.cs:line 28
+   at Blockgame_OpenTK.Core.Worlds.PackedWorldGenerator.HandleGenerationQueue() in ./World/PackedWorldGenerator.cs:line 88

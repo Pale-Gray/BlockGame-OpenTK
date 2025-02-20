@@ -34,17 +34,13 @@ void main()
 	// vec3 mapped = reinhard_extended(hdrColor, 5.0);
 	// mapped = pow(mapped, vec3(1.0 / gamma));
 	// vec3 gammaSpace = pow(mapped, vec3(1 / gamma));
+	
 	float gamma = 2.2;
 	float exposure = 0.0;
 
 	vec3 framebufferColor = texture(framebufferColorTexture, v_texcoord).rgb;
 	vec3 map = framebufferColor * exp(exposure);
 	map = pow(map, vec3(1/gamma));
-	// vec3 mapped = vec3(1.0) - exp(-framebufferColor * exposure);
-	// float gamma = 2.2;
-	// mapped = pow(mapped, vec3(1.0/gamma));
-	// framebufferColor = pow(framebufferColor, vec3(1/gamma));
-
 	FragColor = vec4(map, 1.0);
 
 }

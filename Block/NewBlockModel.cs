@@ -155,16 +155,14 @@ public class NewBlockModel
     public static NewBlockModel FromToml(string tomlPath)
     {
 
-        TomlSerializerOptions op = new TomlSerializerOptions();
-        op.OverrideConstructorValues = false;
-        PrimitiveModelData modelData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, tomlPath)), options: op);
+        Console.WriteLine(tomlPath);
+
+        PrimitiveModelData modelData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, tomlPath)));
         if (modelData.InheritPath != null)
         {
             string inheritPath = Path.Combine(GlobalValues.BlockModelPath, Path.Combine(modelData.InheritPath.Split('/')));
-            // PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath), options: op);
             if (modelData.Cubes == null) modelData.Cubes = [];
             modelData.Cubes.AddRange(CheckInheritCubes(inheritPath));
-            // modelData.Cubes.AddRange(inheritData.Cubes);
         }
         
         return Parse(modelData);

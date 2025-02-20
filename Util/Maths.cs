@@ -73,7 +73,7 @@ namespace Blockgame_OpenTK.Util
             a = a ^ (a << 5);
             b = b ^ (b >> 5);
 
-            return (seed*a*b);
+            return unchecked(seed*a*b);
 
         }
 

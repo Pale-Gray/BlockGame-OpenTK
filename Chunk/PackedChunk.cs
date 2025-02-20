@@ -1,8 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Util;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Platform.Native.X11;
 
 namespace Blockgame_OpenTK.Core.Chunks;
 
@@ -14,6 +21,32 @@ public enum PackedChunkQueueType : int
     Renderable = 3
 }
 
+public struct Vector3b
+{
+
+    public bool IsTrue => X && Y && Z;
+    public bool X;
+    public bool Y;
+    public bool Z;
+
+    public Vector3b(bool value)
+    {
+        X = value;
+        Y = value;
+        Z = value;
+    }
+
+    public Vector3b(bool x, bool y, bool z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+
+    public static implicit operator Vector3b((bool, bool, bool) values) => new Vector3b(values.Item1, values.Item2, values.Item3);
+
+}
+
 public struct LightColor
 {
     public static LightColor Zero => new LightColor(0, 0, 0);
@@ -21,19 +54,19 @@ public struct LightColor
     public ushort R 
     {
         get => (ushort) ((LightData >> 12) & 15);
-        set => LightData = (ushort) ((LightData & 0b0000111111111111) | ((ushort)Math.Clamp(value, 0u, 15u) << 12)); 
+        set => LightData = (ushort) ((LightData & 0x0FFF) | ((ushort)Math.Clamp(value, 0u, 15u) << 12)); 
     }
 
     public ushort G 
     {
         get => (ushort) ((LightData >> 8) & 15);
-        set => LightData = (ushort) ((LightData & 0b1111000011111111) | ((ushort)Math.Clamp(value, 0u, 15u) << 8)); 
+        set => LightData = (ushort) ((LightData & 0xF0FF) | ((ushort)Math.Clamp(value, 0u, 15u) << 8)); 
     }
 
     public ushort B 
     {
         get => (ushort) ((LightData >> 4) & 15);
-        set => LightData = (ushort) ((LightData & 0b1111111100001111) | ((ushort)Math.Clamp(value, 0u, 15u) << 4)); 
+        set => LightData = (ushort) ((LightData & 0xFF0F) | ((ushort)Math.Clamp(value, 0u, 15u) << 4)); 
     }
 
     public int MaxValue => Math.Max(R, Math.Max(G, B));
@@ -45,14 +78,51 @@ public struct LightColor
     public static bool operator >(LightColor a, LightColor b) => a.R > b.R || a.G > b.G || a.B > b.B;
     public static bool operator <=(LightColor a, LightColor b) => a.R <= b.R || a.G <= b.G || a.B <= b.B;
     public static bool operator >=(LightColor a, LightColor b) => a.R >= b.R || a.G >= b.G || a.B >= b.B;
-
-    public static LightColor operator -(LightColor a, LightColor b) 
+    public static LightColor operator +(LightColor a, uint value)
     {
-        return new LightColor((ushort)Math.Max(a.R - b.R, 0), (ushort)Math.Max(a.G - b.G, 0), (ushort)Math.Max(a.B - b.B, 0));
+        return new LightColor((ushort)Math.Min(a.R + value, 15), (ushort)Math.Min(a.G + value, 15), (ushort)Math.Min(a.B + value, 15));
+    }
+    public static LightColor operator -(LightColor a, uint value)
+    {
+        ushort r = 0;
+        ushort g = 0;
+        ushort b = 0;
+        if (a.R >= value) r = (ushort) (a.R - value);
+        if (a.G >= value) g = (ushort) (a.G - value);
+        if (a.B >= value) b = (ushort) (a.B - value);
+        return new LightColor(r,g,b);
+    }
+    public static LightColor operator -(LightColor a, LightColor bLight) 
+    {
+        ushort r = 0;
+        ushort g = 0;
+        ushort b = 0;
+        if (a.R - bLight.R > 0) r = (ushort) (a.R - bLight.R);
+        if (a.G - bLight.G > 0) g = (ushort) (a.G - bLight.G);
+        if (a.B - bLight.B > 0) b = (ushort) (a.B - bLight.B);
+        return new LightColor(r,g,b);
+    }
+    public static Vector3b ComponentWiseLessThan(LightColor a, LightColor b)
+    {
+        return (a.R < b.R, a.G < b.G, a.B < b.B);
     }
     public override string ToString()
     {
         return $"({R}, {G}, {B})";
+    }
+
+    public override bool Equals([NotNullWhen(true)] object obj)
+    {
+
+        if (obj is not LightColor) return false;
+        LightColor light = (LightColor)obj;
+        return light.R == R && light.G == G && light.B == B;
+
+    }
+
+    public override int GetHashCode()
+    {
+        return LightData.GetHashCode();
     }
 
     public static LightColor Max(LightColor a, LightColor b) 
@@ -86,9 +156,31 @@ public struct BlockLight
         LightColor = lightColor;
     }
 
+    public BlockLight(Vector3i localBlockPosition, LightColor lightColor)
+    {
+        LightColor = lightColor;
+        Position = localBlockPosition;
+    }
+
     public BlockLight(ushort lightData) 
     {
         LightColor = new LightColor(lightData);
+    }
+
+    public override bool Equals([NotNullWhen(true)] object obj)
+    {
+
+        if (obj is not BlockLight) return false;
+        BlockLight light = (BlockLight)obj;
+        return light.Position == Position && light.LightColor == LightColor;
+
+    }
+
+    public override int GetHashCode()
+    {
+
+        return Position.GetHashCode();
+
     }
 
 }

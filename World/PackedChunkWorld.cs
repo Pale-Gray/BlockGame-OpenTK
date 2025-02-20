@@ -33,6 +33,7 @@ public class PackedChunkWorld
 
     }
 
+    private Vector3i[] _offsets = [ Vector3i.UnitX, -Vector3i.UnitX, Vector3i.UnitY, -Vector3i.UnitY, Vector3i.UnitZ, -Vector3i.UnitZ];
     public void RemoveLight(Vector3i globalBlockPosition)
     {
 
@@ -41,17 +42,65 @@ public class PackedChunkWorld
         light.Position = localBlockPosition;
         light.LightColor = ChunkUtils.GetLightColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], light.Position);
 
-        PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightRemovalQueue.Enqueue(light);
-
-        for (int x = -1; x <= 1; x++) 
+        if (light.LightColor == LightColor.Zero)
         {
-            for (int y = -1; y <= 1; y++)
-            {
-                for (int z = -1; z <= 1; z++) 
-                {
 
+            ushort currentRedValue = 0;
+            Vector3i currentPosition = Vector3i.Zero;
+            for (int i = 0; i < _offsets.Length; i++)
+            {
+
+                ushort redValue = ChunkUtils.GetLightRedColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]));
+                if (redValue > currentRedValue)
+                {
+                    currentRedValue = redValue;
+                    currentPosition = globalBlockPosition + _offsets[i];
                 }
+
             }
+            light.Position = ChunkUtils.PositionToBlockLocal(currentPosition);
+            light.LightColor = new LightColor(currentRedValue, 0, 0);
+            PackedWorldChunks[ChunkUtils.PositionToChunk(currentPosition)].BlockLightAdditionQueue.Enqueue(light);
+
+            ushort currentGreenValue = 0;
+            currentPosition = Vector3i.Zero;
+            for (int i = 0; i < _offsets.Length; i++)
+            {
+
+                ushort greenValue = ChunkUtils.GetLightGreenColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]));
+                if (greenValue > currentGreenValue)
+                {
+                    currentGreenValue = greenValue;
+                    currentPosition = globalBlockPosition + _offsets[i];
+                }
+
+            }
+            light.Position = ChunkUtils.PositionToBlockLocal(currentPosition);
+            light.LightColor = new LightColor(0, currentGreenValue, 0);
+            PackedWorldChunks[ChunkUtils.PositionToChunk(currentPosition)].BlockLightAdditionQueue.Enqueue(light);
+
+            ushort currentBlueValue = 0;
+            currentPosition = Vector3i.Zero;
+            for (int i = 0; i < _offsets.Length; i++)
+            {
+
+                ushort blueValue = ChunkUtils.GetLightBlueColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]));
+                if (blueValue > currentBlueValue)
+                {
+                    currentBlueValue = blueValue;
+                    currentPosition = globalBlockPosition + _offsets[i];
+                }
+
+            }
+            light.Position = ChunkUtils.PositionToBlockLocal(currentPosition);
+            light.LightColor = new LightColor(0, 0, currentBlueValue);
+            PackedWorldChunks[ChunkUtils.PositionToChunk(currentPosition)].BlockLightAdditionQueue.Enqueue(light);
+
+        } else 
+        {
+
+            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightRemovalQueue.Enqueue(light);
+
         }
         
 
@@ -60,21 +109,9 @@ public class PackedChunkWorld
     public void AddLight(Vector3i globalBlockPosition, BlockLight light) 
     {
 
-        Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
-        light.Position = localBlockPosition;
+        light.Position = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
 
         PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightAdditionQueue.Enqueue(light);
-
-        for (int x = -1; x <= 1; x++) 
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                for (int z = -1; z <= 1; z++)
-                {
-                    // PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightAdditionQueue.Enqueue(light);
-                }
-            }
-        }
 
     }
 
@@ -83,21 +120,6 @@ public class PackedChunkWorld
 
         PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))] = block.Id;
         ChunkUtils.SetSolidBlock(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), block.IsSolid);
-        if (block.IsSolid)
-        {
-            if (ChunkUtils.GetLightColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition)) != LightColor.Zero)
-            {
-                Console.WriteLine("removing a light.");
-                RemoveLight(globalBlockPosition);
-            } else 
-            {
-                ChunkUtils.SetLightColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), LightColor.Zero);
-            }
-        }
-        else
-        {
-            
-        }
         
     }
 

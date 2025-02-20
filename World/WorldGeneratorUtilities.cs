@@ -6,7 +6,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 
 public class WorldGeneratorUtilities
 {
-    public static List<Vector3i> GetColumnRing(int radius, int heightRadius, Vector3i offset)
+    public static List<Vector3i> GetColumnRing(int radius, int height, Vector3i offset)
     {
 
         List<Vector3i> positions = new();
@@ -14,7 +14,7 @@ public class WorldGeneratorUtilities
         foreach (Vector3i pos in GetRing(radius))
         {
 
-            for (int y = -heightRadius; y <= heightRadius; y++)
+            for (int y = 0; y <= height; y++) 
             {
                 positions.Add((pos.X, y, pos.Z) + offset);
             }
