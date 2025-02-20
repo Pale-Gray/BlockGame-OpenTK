@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Rle
+    public class Rle
     {
 
         struct Pair

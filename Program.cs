@@ -17,7 +17,7 @@ using Blockgame_OpenTK.Audio;
 
 namespace Blockgame_OpenTK
 {
-    internal class Program
+    public class Program
     {
 
         private static OpenGLContextHandle _glContext;

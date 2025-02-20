@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class BlockNullException : Exception
+    public class BlockNullException : Exception
     {
 
         public BlockNullException() { }

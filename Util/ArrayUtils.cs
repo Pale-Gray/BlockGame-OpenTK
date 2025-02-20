@@ -1,6 +1,6 @@
 ﻿namespace Blockgame_OpenTK.Util
 {
-    internal class ArrayUtils
+    public class ArrayUtils
     {
 
         public static float[] BlockFaceShift(float[] array, float x, float y, float z)

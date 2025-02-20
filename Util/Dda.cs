@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Dda
+    public class Dda
     {
 
         public static Vector3 FinalPosition = Vector3.Zero;

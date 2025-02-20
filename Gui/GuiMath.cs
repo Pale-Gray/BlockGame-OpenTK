@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiMath
+    public class GuiMath
     {
 
         public static Vector2 RelativeToAbsolute(float x, float y)

@@ -23,7 +23,7 @@ namespace Blockgame_OpenTK.Gui
 
     }
 
-    internal class TransitionElement
+    public class TransitionElement
     {
 
         public GuiElement Target = null;

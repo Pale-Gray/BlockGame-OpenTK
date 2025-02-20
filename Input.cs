@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace Blockgame_OpenTK
 {
-    struct KeyState
+    public struct KeyState
     {
 
         public bool IsKeyDown = false;
@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK
 
     }
 
-    struct MouseState
+    public struct MouseState
     {
 
         public bool IsMouseButtonDown = false;
@@ -27,7 +27,7 @@ namespace Blockgame_OpenTK
 
     }
 
-    struct JoystickState
+    public struct JoystickState
     {
 
         public bool IsJoystickButtonDown = false;
@@ -37,7 +37,7 @@ namespace Blockgame_OpenTK
 
     }
 
-    internal class Input
+    public class Input
     {
 
         public static bool IsCurrentKeyPressed = true;

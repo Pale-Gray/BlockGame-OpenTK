@@ -2,7 +2,7 @@
 
 namespace Blockgame_OpenTK
 {
-    internal class BoundingBox
+    public class BoundingBox
     {
 
         public Vector3 position, dimension, origin;

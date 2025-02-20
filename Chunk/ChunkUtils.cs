@@ -8,7 +8,7 @@ using Blockgame_OpenTK.Core.Worlds;
 
 namespace Blockgame_OpenTK.Core.Chunks
 {
-    internal class ChunkUtils
+    public class ChunkUtils
     {
 
         static Vector3 SpiralOrigin = Vector3.Zero;

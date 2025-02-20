@@ -1,6 +1,6 @@
 ﻿namespace Blockgame_OpenTK.Util
 {
-    internal class TextureAtlas : Texture
+    public class TextureAtlas : Texture
     {
 
         public float RatioX, RatioY;

@@ -4,7 +4,7 @@ using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.FramebufferUtil
 {
-    internal class FramebufferQuad
+    public class FramebufferQuad
     {
 
         float[] vertices =

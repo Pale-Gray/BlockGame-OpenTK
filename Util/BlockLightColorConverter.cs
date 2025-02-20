@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class BlockLightColorConverter
+    public class BlockLightColorConverter
     {
 
         public static Vector3i FromHex(string hex)

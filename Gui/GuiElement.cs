@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiElement
+    public class GuiElement
     {
         public Vector2 RelativePosition;
         public Vector2 AbsolutePosition;

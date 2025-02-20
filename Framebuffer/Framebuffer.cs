@@ -5,7 +5,7 @@ using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.FramebufferUtil
 {
-    internal class Framebuffer
+    public class Framebuffer
     {
         public int id;
         public int textureColorBufferId;

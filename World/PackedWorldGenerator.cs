@@ -82,7 +82,7 @@ public class PackedWorldGenerator
                         PackedChunkBuilder.GeneratePassOne(CurrentWorld.PackedWorldChunks[chunkPosition]);
                         break;
                     case PackedChunkQueueType.LightPropagation:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius && chunkPosition.Y > 0 && chunkPosition.Y < WorldGenerationHeight) {
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius) {
                             if (IsColumnTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation) && AreColumnNeighborsTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation)) 
                             { 
                                 PackedChunkBuilder.ComputeBlockLights(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
@@ -192,6 +192,7 @@ public class PackedWorldGenerator
         if (_currentRadius <= WorldGenerationRadius)
         {
             
+            /*
             if (_currentIndex < _currentRing.Count)
             {
 
@@ -214,7 +215,8 @@ public class PackedWorldGenerator
                 _currentRing = WorldGeneratorUtilities.GetColumnRing(_currentRadius, WorldGenerationHeight, Vector3i.Zero);
 
             }
-            /*
+            */
+            
             foreach (Vector3i position in WorldGeneratorUtilities.GetColumnRing(_currentRadius, WorldGenerationHeight, Vector3i.Zero))
             {
                 
@@ -223,7 +225,6 @@ public class PackedWorldGenerator
                 
                 PackedChunkWorldGenerationQueue.EnqueueLast(position);
             }
-            */
 
             _currentRadius++;
 
@@ -278,15 +279,9 @@ public class PackedWorldGenerator
     private static bool IsColumnTheSameQueueType(PackedChunkWorld world, Vector2i columnPosition, PackedChunkQueueType queueType)
     {
 
-        for (int y = WorldGenerationHeight; y <= 0; y--)
+        for (int y = 0; y <= WorldGenerationHeight; y++)
         {
-            if (!world.PackedWorldChunks.ContainsKey((columnPosition.X, y, columnPosition.Y)))
-            {
-                return false;
-            } else
-            {
-                if (world.PackedWorldChunks[(columnPosition.X, y, columnPosition.Y)].QueueType != queueType) return false;
-            }
+            if (world.PackedWorldChunks.ContainsKey((columnPosition.X, y, columnPosition.Y)) && world.PackedWorldChunks[(columnPosition.X, y, columnPosition.Y)].QueueType < queueType) return false;
         }
         return true;
 

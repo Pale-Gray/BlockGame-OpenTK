@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Maths
+    public class Maths
     {
         
         public static bool TryStringHexColorToColor4(string hexColor, out Color4<Rgba> color)

@@ -7,7 +7,7 @@ using StbImageSharp;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class ArrayTexture
+    public class ArrayTexture
     {
 
         string PathToTextures;

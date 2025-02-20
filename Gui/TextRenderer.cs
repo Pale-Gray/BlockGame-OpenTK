@@ -6,6 +6,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 
 using Blockgame_OpenTK.Util;
+using System.IO;
 
 namespace Blockgame_OpenTK.Gui
 {
@@ -29,7 +30,7 @@ namespace Blockgame_OpenTK.Gui
     
     }
 
-    internal class TextRenderer
+    public class TextRenderer
     {
 
         private static char[] InternalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?[]{}/.,<>()\"':- _\\".ToArray();
@@ -57,7 +58,7 @@ namespace Blockgame_OpenTK.Gui
         public static void InitTextRenderer()
         {
 
-            FontTexture = new Texture("fatlas.png");
+            FontTexture = new Texture(Path.Combine("Resources", "Textures", "fatlas.png"));
             FontShader = new Shader("font.vert", "font.frag");
 
         }

@@ -6,7 +6,7 @@ using System.Resources;
 
 namespace Blockgame_OpenTK.Font
 {
-    internal class TextFormatter
+    public class TextFormatter
     {
 
         struct GlyphData

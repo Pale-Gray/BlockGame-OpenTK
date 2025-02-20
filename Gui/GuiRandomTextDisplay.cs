@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiRandomTextDisplay : GuiElement
+    public class GuiRandomTextDisplay : GuiElement
     {
 
         public override void AddElement(GuiElement element)

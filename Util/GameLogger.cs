@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Blockgame_OpenTK.Util
 {
-    enum Severity
+    public enum Severity
     { 
     
         Info,
@@ -13,7 +13,7 @@ namespace Blockgame_OpenTK.Util
     
     };
 
-    internal class GameLogger
+    public class GameLogger
     {
 
         public static void Log(string message, Severity type = Severity.Info)

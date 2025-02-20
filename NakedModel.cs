@@ -5,7 +5,7 @@ using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK
 {
-    internal class NakedModel
+    public class NakedModel
     {
 
         public Matrix4 model;

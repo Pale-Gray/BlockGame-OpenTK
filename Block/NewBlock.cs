@@ -80,7 +80,7 @@ public class NewBlock
     {
         
         world.SetBlock(globalBlockPosition, new NewBlock() {IsSolid = false});
-        world.RemoveLight(globalBlockPosition);
+        world.RemoveLight(globalBlockPosition, LightColor.Zero);
         world.QueueChunk(globalBlockPosition);
         
     }
@@ -89,7 +89,7 @@ public class NewBlock
     {
 
         world.SetBlock(globalBlockPosition, this);
-        if (IsSolid) world.RemoveLight(globalBlockPosition);
+        if (IsSolid) world.RemoveLight(globalBlockPosition, LightColor.Zero);
         world.QueueChunk(globalBlockPosition);
         
     }

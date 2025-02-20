@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class BlockNotFoundException : Exception
+    public class BlockNotFoundException : Exception
     {
 
         public BlockNotFoundException() { }

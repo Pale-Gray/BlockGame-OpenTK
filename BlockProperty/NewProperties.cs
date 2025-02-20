@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 
 namespace Blockgame_OpenTK.BlockProperty
 {
-    internal class NewProperties : IBlockProperties
+    public class NewProperties : IBlockProperties
     {
 
         public bool MyBool = false;

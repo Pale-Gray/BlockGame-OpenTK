@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Blockgame_OpenTK
 {
-    internal class Translator
+    public class Translator
     {
 
         struct Settings

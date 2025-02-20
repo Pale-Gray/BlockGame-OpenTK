@@ -6,7 +6,7 @@ using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Shader
+    public class Shader
     {
 
         public int id;

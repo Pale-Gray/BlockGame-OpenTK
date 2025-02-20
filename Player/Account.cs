@@ -34,7 +34,7 @@ namespace Blockgame_OpenTK.PlayerUtil
         internal Texture ProfilePicture;
 
     }
-    internal class Account
+    public class Account
     {
 
 

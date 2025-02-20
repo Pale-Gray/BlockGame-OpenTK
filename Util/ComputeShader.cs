@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class ComputeShader
+    public class ComputeShader
     {
 
         public int Id;

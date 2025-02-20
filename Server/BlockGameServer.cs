@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Server
 {
-    internal class BlockGameServer
+    public class BlockGameServer
     {
 
 

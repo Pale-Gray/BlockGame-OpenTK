@@ -18,7 +18,7 @@ namespace Blockgame_OpenTK.Util
         Chunk
 
     };
-    internal class Vao
+    public class Vao
     {
 
         public static int Generate(AttribPointerMode type)

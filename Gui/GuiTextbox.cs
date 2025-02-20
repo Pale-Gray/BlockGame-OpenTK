@@ -10,7 +10,7 @@ using OpenTK.Platform.Native.Windows;
 
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiTextbox : GuiElement
+    public class GuiTextbox : GuiElement
     {
 
         public string Text = "";

@@ -2,7 +2,7 @@
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Vbo
+    public class Vbo
     {
 
         static int vbo;// = GL.GenBuffer();

@@ -13,4 +13,10 @@ public class GreenLightBlock : NewBlock
         base.OnBlockPlace(world, globalBlockPosition);
     }
 
+    public override void OnBlockDestroy(PackedChunkWorld world, Vector3i globalBlockPosition)
+    {
+        world.RemoveLight(globalBlockPosition, new LightColor(0, 15, 0));
+        base.OnBlockDestroy(world, globalBlockPosition);
+    }
+
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Font
 {
-    internal class TextLocalizer
+    public class TextLocalizer
     {
 
         private static Dictionary<string, string> _localLanguage = new Dictionary<string, string>();

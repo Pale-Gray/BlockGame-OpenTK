@@ -2,7 +2,7 @@
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class DeltaTime
+    public class DeltaTime
     {
         private static double LastTime = GLFW.GetTime();
         public static double Get()

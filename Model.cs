@@ -5,7 +5,7 @@ using Blockgame_OpenTK.Util;
 
 namespace Blockgame_OpenTK
 {
-    internal class Model
+    public class Model
     {
 
         public float[] vertices;

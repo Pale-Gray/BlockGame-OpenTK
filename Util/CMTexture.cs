@@ -2,7 +2,7 @@
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class CMTexture
+    public class CMTexture
     {
 
         public int id;

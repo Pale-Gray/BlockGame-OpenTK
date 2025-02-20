@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class VectorMath
+    public class VectorMath
     {
 
         public static Vector3i Floor(Vector3 vec)

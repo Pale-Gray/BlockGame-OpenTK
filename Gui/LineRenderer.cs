@@ -30,7 +30,7 @@ namespace Blockgame_OpenTK.Gui
     }
 
     // implemented based on https://wwwtyro.net/2019/11/18/instanced-lines.html
-    internal class LineRenderer
+    public class LineRenderer
     {
 
         static Shader LineShader = new Shader("lines.vert", "lines.frag");

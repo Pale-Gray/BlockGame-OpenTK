@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Image
+    public class Image
     {
 
         public int Width = 0;

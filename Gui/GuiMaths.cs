@@ -5,7 +5,7 @@ using System.Formats.Asn1;
 
 namespace Blockgame_OpenTK.Gui
 {
-    internal class GuiMaths
+    public class GuiMaths
     {
 
         public static Vector3 AbsoluteToRelative(Vector3 absolutePostion)

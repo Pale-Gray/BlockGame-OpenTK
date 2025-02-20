@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class TextureLoader
+    public class TextureLoader
     {
 
         public static byte[] Flip(byte[] unflippedData)

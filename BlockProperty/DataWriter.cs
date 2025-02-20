@@ -2,6 +2,9 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 
@@ -16,7 +19,7 @@ public class DataWriter : IDisposable
 
         GameLogger.Log($"Opened a file for writing to at {path}");
         DataWriter writer = new DataWriter();
-        writer._stream = File.OpenWrite(path);
+        writer._stream = File.Open(path, FileMode.Create);
         return writer;
 
     }
@@ -59,6 +62,15 @@ public class DataWriter : IDisposable
         Span<byte> longBytes = stackalloc byte[sizeof(long)];
         BinaryPrimitives.WriteInt64LittleEndian(longBytes, value);
         _stream.Write(longBytes);
+
+    }
+
+    public void WriteDouble(double value)
+    {
+
+        Span<byte> doubleBytes = stackalloc byte[sizeof(double)];
+        BinaryPrimitives.WriteDoubleLittleEndian(doubleBytes, value);
+        _stream.Write(doubleBytes);
 
     }
 

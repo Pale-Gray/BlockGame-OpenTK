@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Blockgame_OpenTK.BlockUtil
 {
-    internal class BlockUtils
+    public class BlockUtils
     {
 
         public static int[] CalculateAmbientPoints(Dictionary<Vector3i, bool[]> masks, Vector3i globalBlockPositon)

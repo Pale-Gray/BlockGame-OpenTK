@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Blockgame_OpenTK.Util
 {
-    internal class Texture
+    public class Texture
     {
 
         int Id;
@@ -23,10 +23,9 @@ namespace Blockgame_OpenTK.Util
 
             Id = GL.GenTexture();
 
-            if (imageFile == null) imageFile = "missing.png";
-
+            if (imageFile == null) imageFile = GlobalValues.MissingTexture;
             FileName = imageFile;
-            Path = System.IO.Path.Combine(GlobalValues.TexturePath, imageFile);
+            Path = imageFile;
 
 
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -43,7 +42,7 @@ namespace Blockgame_OpenTK.Util
             using (FileStream stream = File.OpenRead(Path))
             {
 
-                Image = ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+                Image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 
             }
 

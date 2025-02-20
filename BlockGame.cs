@@ -23,7 +23,7 @@ using System.IO.Compression;
 
 namespace Blockgame_OpenTK
 {
-    internal class BlockGame
+    public class BlockGame
     {
 
         public static float[] verts = {
@@ -209,13 +209,34 @@ namespace Blockgame_OpenTK
                 // throw new Exception(message);
             }
         }
+
+        public struct Str
+        {
+
+            public int Hello = 16;
+            public int hi = 32;
+
+            public Str() {}
+
+        }
         public static void Load()
         {
 
-            using (ZipArchive archive = ZipFile.OpenRead("/home/pale/Desktop/PainterlyPackBetaFix/minecraft/Archive.zip"))
+            GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
+            TexturePackManager.IterateAvailableTexturePacks();
+            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
+            foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
             {
 
-                
+                Console.WriteLine(texturePack.Value);
+
+            }
+
+            NewProperties prop = new NewProperties();
+            using (DataWriter writer = DataWriter.Open("data.dat"))
+            {
+
+                prop.ToBytes(writer);
 
             }
 
@@ -224,7 +245,6 @@ namespace Blockgame_OpenTK
             GLDebugProc debugMessageDel = OnDebugMessage;
             GuiRenderer.Init();
             AudioPlayer.Initialize();
-            TexturePackManager.LoadTexturePack(Path.Combine("Resources", "Textures", "TextureArray"));
 
             GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
             GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
@@ -260,13 +280,13 @@ namespace Blockgame_OpenTK
             GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
 
             // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
-            rmodel = new Model(verts, "hitbox.png", "hitbox.vert", "hitbox.frag");
-            hitdisplay = new Model(verts, "debug.png", "model.vert", "model.frag");
+            rmodel = new Model(verts, Path.Combine("Resources", "Textures", "hitbox.png"), "hitbox.vert", "hitbox.frag");
+            hitdisplay = new Model(verts, Path.Combine("Resources", "Textures", "debug.png"), "model.vert", "model.frag");
             xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
 
             boundmodel = new NakedModel(boundingbox.triangles);
 
-            Skybox = new Model(verts, "cubemap/cubemap_test.png", "model.vert", "model.frag");
+            Skybox = new Model(verts, Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"), "model.vert", "model.frag");
 
             xyz_display.SetScale(0.25f, 0.25f, 0.25f);
 
@@ -281,7 +301,7 @@ namespace Blockgame_OpenTK
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.Enable(EnableCap.PolygonOffsetFill);
 
-            Texture t = new Texture("cubemap/cubemap_test.png");
+            Texture t = new Texture(Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"));
 
             frameBuffer = new Framebuffer();
             framebufferQuad = new FramebufferQuad();
@@ -295,7 +315,7 @@ namespace Blockgame_OpenTK
             font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
             CachedFontRenderer.FontFamily = font;
             
-            e = new Model(v, "missing.png", "billboard.vert", "billboard.frag");
+            e = new Model(v, null, "billboard.vert", "billboard.frag");
 
             // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
 
@@ -328,7 +348,9 @@ namespace Blockgame_OpenTK
             NewBlockModel blockModel = NewBlockModel.FromCubes([ cube ]);
             block.BlockModel = NewBlockModel.FromToml("grass_block.toml");
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Block"), block);
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "StoneBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "stone_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "bricks.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), NewBlock.FromToml<PlimboBlock>(Path.Combine("Resources", "Data", "Blocks", "plimbo_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "EmptyCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "empty_crate.toml")));
@@ -337,8 +359,6 @@ namespace Blockgame_OpenTK
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), NewBlock.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), NewBlock.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
 
             Core.Gui.GuiRenderer.Initialize();
 
@@ -456,8 +476,9 @@ namespace Blockgame_OpenTK
             PackedWorldGenerator.Tick(Player);
             PackedWorldGenerator.QueueGeneration();
             
-            CachedFontRenderer.RenderFont(out var cs, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
-            CachedFontRenderer.RenderFont(out var s, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
+            CachedFontRenderer.RenderFont(out var _, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
+            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
+            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50), (0, 0), 0, 24, $"Usage (GB): {Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1e+9, 2)}", Color4.White);
 
             GL.Enable(EnableCap.DepthTest);
 
