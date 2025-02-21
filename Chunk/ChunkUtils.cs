@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Blockgame_OpenTK.Util;
-using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Worlds;
 
 namespace Blockgame_OpenTK.Core.Chunks
@@ -69,7 +68,9 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         public static ushort GetSunlightValue(PackedChunk chunk, Vector3i localBlockPosition)
         {
+
             return (ushort) (chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] & 15);
+            
         }
 
         public static void SetLightColor(PackedChunk chunk, Vector3i localBlockPosition, LightColor light) {

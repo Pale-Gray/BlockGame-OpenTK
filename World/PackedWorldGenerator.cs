@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 16;
+    public static int WorldGenerationRadius = 7;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
@@ -81,11 +81,30 @@ public class PackedWorldGenerator
                     case PackedChunkQueueType.PassOne:
                         PackedChunkBuilder.GeneratePassOne(CurrentWorld.PackedWorldChunks[chunkPosition]);
                         break;
+                    case PackedChunkQueueType.SunlightCalculation:
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius)
+                        {
+                            if (IsColumnTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.SunlightCalculation) && AreColumnNeighborsTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.SunlightCalculation)) 
+                            { 
+                                PackedChunkBuilder.QueueSunlightValues(CurrentWorld, CurrentWorld.PackedWorldChunks[chunkPosition]);
+                            } else 
+                            {
+                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
+                                }
+                                else
+                                {
+                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
+                                }
+                            }
+                        }
+                        break;
                     case PackedChunkQueueType.LightPropagation:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius) {
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 1 && chunkPosition.Y > 0 && chunkPosition.Y < WorldGenerationHeight) {
                             if (IsColumnTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation) && AreColumnNeighborsTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation)) 
                             { 
-                                PackedChunkBuilder.ComputeBlockLights(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
+                                PackedChunkBuilder.ComputeLights(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
                             } else 
                             {
                                 if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
@@ -100,7 +119,7 @@ public class PackedWorldGenerator
                         }
                         break;
                     case PackedChunkQueueType.Mesh:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 1 && chunkPosition.Y > 1 && chunkPosition.Y < WorldGenerationHeight - 1)
+                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 2 && chunkPosition.Y > 0 && chunkPosition.Y < WorldGenerationHeight)
                         {
                             if (AreNeighborsTheSameQueueType(chunkPosition, PackedChunkQueueType.Mesh))
                             {
@@ -222,6 +241,7 @@ public class PackedWorldGenerator
                 
                 CurrentWorld.PackedWorldChunks.TryAdd(position, new PackedChunk(position));
                 CurrentWorld.PackedWorldMeshes.TryAdd(position, new PackedChunkMesh(position));
+                CurrentWorld.MaxColumnBlockHeight.TryAdd(position.Xz, new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize]);
                 
                 PackedChunkWorldGenerationQueue.EnqueueLast(position);
             }

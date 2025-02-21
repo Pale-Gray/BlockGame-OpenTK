@@ -33,6 +33,8 @@ namespace Blockgame_OpenTK.Util
         public static string BlockModelPath => Path.Combine("Resources", "Data", "Blocks", "Models") + Path.DirectorySeparatorChar;//"Resources/Blocks/Models/";
         public static string TexturePackPath => Path.Combine("TexturePacks");
 
+        public static List<string> AvailableExtensions = new();
+
         public static Texture MissingTexturePackIcon;
 
         public static List<string> LogMessages = new List<string>();

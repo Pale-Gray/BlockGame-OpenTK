@@ -2,7 +2,7 @@
 
 layout (location = 0) in uint aPackedVertexData;
 layout (location = 1) in uint aPackedColorData;
-layout (location = 2) in vec3 aLightColor;
+layout (location = 2) in vec4 aLightColor;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -12,7 +12,7 @@ uniform vec3 chunkPosition;
 out vec3 vPosition;
 out vec3 vNormal;
 out vec2 vTextureCoordinates;
-out vec3 vLightColor;
+out vec4 vLightColor;
 out flat int vTextureIndex;
 
 vec3 extractPosition(uint packedData) {

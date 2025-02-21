@@ -1,24 +1,18 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Util;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OpenTK.Platform.Native.X11;
 
 namespace Blockgame_OpenTK.Core.Chunks;
 
 public enum PackedChunkQueueType : int
 {
     PassOne = 0,
-    LightPropagation = 1,
-    Mesh = 2,
-    Renderable = 3
+    SunlightCalculation = 1,
+    LightPropagation = 2,
+    Mesh = 3,
+    Renderable = 4
 }
 
 public struct Vector3b
@@ -184,6 +178,20 @@ public struct BlockLight
     }
 
 }
+
+public struct SunLight
+{
+
+    public ushort Value;
+    public Vector3i Position;
+    public float Normalized => Value / 15.0f;
+    public SunLight(Vector3i localBlockPosition, ushort value)
+    {
+        Value = (ushort) Math.Clamp(value, 0u, 15u);
+        Position = localBlockPosition;
+    }
+
+}
 public class PackedChunk
 {
 
@@ -196,6 +204,8 @@ public class PackedChunk
     public uint[] SolidMask = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
     public Queue<BlockLight> BlockLightAdditionQueue = new();
     public Queue<BlockLight> BlockLightRemovalQueue = new();
+    public Queue<SunLight> SunlightAdditionQueue = new();
+    public Queue<SunLight> SunlightRemovalQueue = new();
 
     public PackedChunk(Vector3i chunkPosition)
     {

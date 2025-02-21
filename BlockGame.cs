@@ -222,6 +222,18 @@ namespace Blockgame_OpenTK
         public static void Load()
         {
 
+            int extensionCount = GL.GetInteger(GetPName.NumExtensions);
+            List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];
+            for (int i = 0; i < extensionCount; i++)
+            {
+                string extension = GL.GetStringi(StringName.Extensions, (uint)i);
+                if (requestedExtensions.Contains(extension)) GlobalValues.AvailableExtensions.Add(extension);
+            }   
+            Console.WriteLine("Requested extensions");
+            foreach (string requestedExtension in requestedExtensions) Console.WriteLine($"\t{requestedExtension}");
+            Console.WriteLine("Supported extensions");
+            foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
+
             GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
             TexturePackManager.IterateAvailableTexturePacks();
             TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
@@ -359,6 +371,7 @@ namespace Blockgame_OpenTK
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), NewBlock.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), NewBlock.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
+            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LeafBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
 
             Core.Gui.GuiRenderer.Initialize();
 
@@ -424,8 +437,6 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.C))
                 {
 
-                    // Console.WriteLine("Reloading chunks for debug purposes");
-                    // World.DebugReset(
                     PackedWorldGenerator.CurrentWorld.PackedWorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType = PackedChunkQueueType.PassOne;
 
                 }
@@ -468,17 +479,23 @@ namespace Blockgame_OpenTK
 
                 }
 
-                // GlobalValues.FogOffset += (0.1f * GlobalValues.Mouse.ScrollDelta.Y);
                 GlobalValues.FogOffset = Math.Clamp(GlobalValues.FogOffset, 0, 1);
 
             }
 
             PackedWorldGenerator.Tick(Player);
             PackedWorldGenerator.QueueGeneration();
+
+            string gpuUsage = "err";
+            if (GlobalValues.AvailableExtensions.Contains("GL_NVX_gpu_memory_info"))
+            {
+                gpuUsage = Math.Round((GL.GetInteger((GetPName)All.GpuMemoryInfoDedicatedVidmemNvx) - GL.GetInteger((GetPName)All.GpuMemoryInfoCurrentAvailableVidmemNvx)) / 1e+6, 2).ToString();
+            }
             
             CachedFontRenderer.RenderFont(out var _, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
             CachedFontRenderer.RenderFont(out var _, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
             CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50), (0, 0), 0, 24, $"Usage (GB): {Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1e+9, 2)}", Color4.White);
+            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50 + 50), (0, 0), 0, 24, $"GPU Usage (GB): {gpuUsage}", Color4.White);
 
             GL.Enable(EnableCap.DepthTest);
 

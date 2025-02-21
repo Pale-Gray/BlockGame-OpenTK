@@ -9,3 +9,4 @@
 "Game.Block.GrassBlock" = "Grass Block"
 "Game.Block.DirtBlock" = "Dirt Block"
 "Game.Block.StoneBlock" = "Stone Block"
+"Game.Block.LeafBlock" = "Leaf Block"

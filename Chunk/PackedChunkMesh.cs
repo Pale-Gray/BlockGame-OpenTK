@@ -25,6 +25,7 @@ public struct PackedChunkVertex
     public uint PackedVertexInfo = 0;
     public uint PackedExtraInfo = 0;
     public Vector3 LightColor = Vector3.One;
+    public float SunlightColor = 1.0f;
     public Vector3i Position
     {
         get
