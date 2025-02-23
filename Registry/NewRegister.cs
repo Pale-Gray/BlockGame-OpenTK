@@ -7,7 +7,7 @@ namespace Blockgame_OpenTK.Registry;
 public class NewRegister
 {
 
-    private Dictionary<Namespace, ushort> _namespaceLookup = new();
+    private Dictionary<string, ushort> _namespaceLookup = new();
     private List<NewBlock> _blocks = new();
     
     public int BlockCount => _blocks.Count;
@@ -26,7 +26,7 @@ public class NewRegister
             GameLogger.Log($"{nameSpace} has a model");
             // block.BlockModel.GenerateVertices();
         }
-        _namespaceLookup.Add(nameSpace, (ushort) _blocks.IndexOf(block));
+        _namespaceLookup.Add(nameSpace.ToString(), (ushort) _blocks.IndexOf(block));
         
     }
 
@@ -46,7 +46,7 @@ public class NewRegister
     public NewBlock GetBlockFromNamespace(Namespace name)
     {
 
-        if (_namespaceLookup.TryGetValue(name, out ushort id))
+        if (_namespaceLookup.TryGetValue(name.ToString(), out ushort id))
         {
 
             return _blocks[id];
@@ -54,6 +54,14 @@ public class NewRegister
         } 
         return _missingBlock;
         
+    }
+
+    public NewBlock GetBlockFromNamespace(string name)
+    {
+
+        if (_namespaceLookup.TryGetValue(name, out ushort id)) return _blocks[id];
+        return _missingBlock;
+
     }
     
 }

@@ -555,7 +555,7 @@ namespace Blockgame_OpenTK.Util
              * https://www.shadertoy.com/view/4dX3zl
              * 
              */
-            public static void TraceChunks(ConcurrentDictionary<Vector3i, PackedChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+            public static void TraceChunks(ConcurrentDictionary<Vector2i, ChunkColumn> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;
@@ -630,11 +630,12 @@ namespace Blockgame_OpenTK.Util
             while (Maths.ChebyshevDistance3D(position, GlobalBlockPosition) < maxSteps && !hit)
             {
 
-                if (chunkDictionary.ContainsKey(ChunkUtils.PositionToChunk(GlobalBlockPosition)) && chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].QueueType == PackedChunkQueueType.Renderable)
+                Vector3i chunkPosition = ChunkUtils.PositionToChunk(GlobalBlockPosition);
+                if (chunkPosition.Y < PackedWorldGenerator.WorldGenerationHeight && chunkPosition.Y >= 0 && chunkDictionary.ContainsKey(chunkPosition.Xz) && !chunkDictionary[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates)
                 {
                         
                     // if its not air...
-                    if (chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition))] != 0)
+                    if (chunkDictionary[ChunkUtils.PositionToChunk(GlobalBlockPosition).Xz].Chunks[ChunkUtils.PositionToChunk(GlobalBlockPosition).Y].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(GlobalBlockPosition))] != 0)
                     {
 
                         // ChunkAtHit = (Vector3i)ChunkUtils.PositionToChunk(RoundedPosition);

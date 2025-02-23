@@ -489,12 +489,12 @@ namespace Blockgame_OpenTK
             string gpuUsage = "err";
             if (GlobalValues.AvailableExtensions.Contains("GL_NVX_gpu_memory_info"))
             {
-                gpuUsage = Math.Round((GL.GetInteger((GetPName)All.GpuMemoryInfoDedicatedVidmemNvx) - GL.GetInteger((GetPName)All.GpuMemoryInfoCurrentAvailableVidmemNvx)) / 1e+6, 2).ToString();
+                gpuUsage = Math.Round((GL.GetInteger((GetPName)All.GpuMemoryInfoDedicatedVidmemNvx) - GL.GetInteger((GetPName)All.GpuMemoryInfoCurrentAvailableVidmemNvx)) / 1024.0 / 1024.0, 2).ToString();
             }
             
             CachedFontRenderer.RenderFont(out var _, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
             CachedFontRenderer.RenderFont(out var _, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
-            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50), (0, 0), 0, 24, $"Usage (GB): {Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1e+9, 2)}", Color4.White);
+            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50), (0, 0), 0, 24, $"Usage (GB): {Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0, 2)}", Color4.White);
             CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50 + 50), (0, 0), 0, 24, $"GPU Usage (GB): {gpuUsage}", Color4.White);
 
             GL.Enable(EnableCap.DepthTest);
@@ -506,7 +506,7 @@ namespace Blockgame_OpenTK
 
             }
 
-            Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.PackedWorldChunks, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
+            Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.WorldColumns, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
 
             if (debug)
             {

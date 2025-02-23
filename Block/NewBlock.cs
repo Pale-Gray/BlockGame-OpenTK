@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Language;
@@ -32,6 +34,32 @@ public struct Namespace
         Prefix = prefix;
         Suffix = suffix;
         
+    }
+
+    public Namespace(string fullName)
+    {
+
+        string[] split = fullName.Split('.');
+        Prefix = split[0];
+        Suffix = split[1];
+
+    }   
+
+    public override int GetHashCode()
+    {
+        
+        return ToString().GetHashCode();
+
+    }
+
+    public override bool Equals([NotNullWhen(true)] object obj)
+    {
+        
+        Namespace? value = obj as Namespace?;
+        if (value == null) return false;
+        if (value?.ToString() == ToString()) return true;
+        return false;
+
     }
 
 }
@@ -73,14 +101,14 @@ public class NewBlock
 
     public virtual void OnBlockSet(PackedChunkWorld world, Vector3i globalBlockPosition)
     {
-        if (IsSolid) ChunkUtils.SetLightColor(world.PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), LightColor.Zero);
+        // if (IsSolid) ChunkUtils.SetLightColor(world.PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), LightColor.Zero);
         world.SetBlock(globalBlockPosition, this);
     }
     public virtual void OnBlockDestroy(PackedChunkWorld world, Vector3i globalBlockPosition)
     {
         
         world.SetBlock(globalBlockPosition, new NewBlock() {IsSolid = false});
-        world.RemoveLight(globalBlockPosition);
+        // world.RemoveLight(globalBlockPosition);
         world.QueueChunk(globalBlockPosition);
         
     }
@@ -89,7 +117,7 @@ public class NewBlock
     {
 
         world.SetBlock(globalBlockPosition, this);
-        if (IsSolid) world.RemoveLight(globalBlockPosition);
+        // if (IsSolid) world.RemoveLight(globalBlockPosition);
         world.QueueChunk(globalBlockPosition);
         
     }

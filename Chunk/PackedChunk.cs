@@ -198,6 +198,7 @@ public class PackedChunk
     public Vector3i ChunkPosition;
     public PackedChunkQueueType QueueType = PackedChunkQueueType.PassOne;
     public bool HasPriority = false;
+    public bool HasUpdates = false;
     
     public ushort[] BlockData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];
     public ushort[] LightData = new ushort[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];

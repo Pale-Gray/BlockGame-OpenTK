@@ -66,13 +66,14 @@ namespace Blockgame_OpenTK.PlayerUtil
                     if (RemoveDelay >= 0.15f)
                     {
 
-                        Dda.TraceChunks(world.PackedWorldChunks, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
+                        Dda.TraceChunks(world.WorldColumns, Camera.Position, Camera.ForwardVector, GlobalValues.PlayerRange);
                         if (Dda.hit)
                         {
 
                             Vector3i HitPositionLocal = (Vector3i)ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit);
                             // new NewBlock().OnBlockDestroy(PackedWorldGenerator.CurrentWorld, Dda.PositionAtHit);
-                            ushort id = world.PackedWorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit))];
+                            // ushort id = world.PackedWorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit))];
+                            ushort id = world.WorldColumns[ChunkUtils.PositionToChunk(Dda.PositionAtHit).Xz].Chunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit).Y].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit))];
                             GlobalValues.NewRegister.GetBlockFromId(id).OnBlockDestroy(world, Dda.PositionAtHit);
                             // world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].GetBlock(HitPositionLocal).OnBlockDestroy(world, Dda.PositionAtHit);
                             
@@ -239,7 +240,8 @@ namespace Blockgame_OpenTK.PlayerUtil
                         for (int z = min.Z - 1; z <= max.Z + 1; z++)
                         {
 
-                            if (world.PackedWorldChunks.ContainsKey(ChunkUtils.PositionToChunk((x,y,z))) && world.PackedWorldChunks[ChunkUtils.PositionToChunk((x,y,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y,z)))] != 0)
+                            if (world.WorldColumns.ContainsKey(ChunkUtils.PositionToChunk((x,y,z)).Xz) && ColumnUtils.GetSolidBlock(world.WorldColumns[ChunkUtils.PositionToChunk((x,y,z)).Xz], (x,y,z)))
+                            // world.PackedWorldChunks[ChunkUtils.PositionToChunk((x,y,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y,z)))] != 0)
                             {
 
                                 // Block sampledBlock = world.WorldChunks[ChunkUtils.PositionToChunk((x, y, z))].GetBlock(ChunkUtils.PositionToBlockLocal((x,y,z)));

@@ -18,6 +18,7 @@ public class PackedChunkWorld
     public ConcurrentDictionary<Vector3i, PackedChunk> PackedWorldChunks = new();
     public ConcurrentDictionary<Vector3i, PackedChunkMesh> PackedWorldMeshes = new();
     public ConcurrentDictionary<Vector2i, uint[]> MaxColumnBlockHeight = new();
+    public ConcurrentDictionary<Vector2i, ChunkColumn> WorldColumns = new();
     
     public Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(Vector3i chunkPosition)
     {
@@ -122,18 +123,31 @@ public class PackedChunkWorld
     public void SetBlock(Vector3i globalBlockPosition, NewBlock block)
     {
 
-        PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition))] = block.Id;
-        if (block.IsSolid) 
-        {
-            MaxColumnBlockHeight[ChunkUtils.PositionToChunk(globalBlockPosition).Xz][ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition).Xz)] = (uint) Math.Max(MaxColumnBlockHeight[ChunkUtils.PositionToChunk(globalBlockPosition).Xz][ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(globalBlockPosition).Xz)], globalBlockPosition.Y);
-        }
-        ChunkUtils.SetSolidBlock(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), block.IsSolid);
-        
+        ColumnUtils.SetBlockId(WorldColumns[ChunkUtils.PositionToChunk(globalBlockPosition).Xz], globalBlockPosition, block.Id);
+        ColumnUtils.SetSolidBlock(WorldColumns[ChunkUtils.PositionToChunk(globalBlockPosition).Xz], globalBlockPosition, block.IsSolid);
+
     }
 
     public void QueueChunk(Vector3i globalBlockPosition)
     {
 
+        Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
+
+        for (int x = -1; x <= 1; x++)
+        {
+
+            for (int z = -1; z <= 1; z++)
+            {
+
+                WorldColumns[(x,z) + chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
+                WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
+                PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst((x,z) + chunkPosition.Xz);
+
+            }
+
+        }
+
+        /*
         Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
         Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
 
@@ -164,6 +178,7 @@ public class PackedChunkWorld
             }    
 
         }
+        */
         
         /*
         if (localBlockPosition.Y == 0 && PackedWorldChunks.ContainsKey(chunkPosition - Vector3i.UnitY))

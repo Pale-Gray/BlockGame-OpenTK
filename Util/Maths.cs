@@ -178,6 +178,13 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static int ChebyshevDistance2D(Vector2i pointA, Vector2i pointB)
+        {
+
+            return Math.Max(Math.Abs(pointB.X - pointA.X), Math.Abs(pointB.Y - pointA.Y));
+
+        }
+
         public static int ChebyshevDistance3D(Vector3 pointA, Vector3 pointB)
         {
 

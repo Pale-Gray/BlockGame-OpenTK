@@ -23,7 +23,6 @@ public class DataWriter : IDisposable
         return writer;
 
     }
-
     public void WriteVector3i(Vector3i value)
     {
 

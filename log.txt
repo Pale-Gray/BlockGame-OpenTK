@@ -1,3 +1,4 @@
+[Info] Starting in client mode.
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
 [Info] Platform: Debian GNU/Linux 12 (bookworm)
@@ -34,111 +35,11 @@
 [Info] NewRegistering block Game.LeafBlock
 [Info] Game.LeafBlock has a model
 [Info] Supports raw mouse? False
-[Info] Light removal took 0.0013ms
-[Info] Light addition took 0.0014ms
-[Info] Light removal took 0.0019ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0013ms
-[Info] Light addition took 0.0009ms
-[Info] Light removal took 0.3374ms
-[Info] Light addition took 17.8591ms
-[Info] Light removal took 0.0066ms
-[Info] Light addition took 0.0338ms
-[Info] Light removal took 5.8592ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0009ms
-[Info] Light addition took 11.3934ms
-[Info] Light removal took 5.8398ms
-[Info] Light addition took 0.0014ms
-[Info] Light removal took 0.0014ms
-[Info] Light addition took 10.9538ms
-[Info] Light removal took 5.9759ms
-[Info] Light addition took 0.0014ms
-[Info] Light removal took 0.0013ms
-[Info] Light addition took 3.4983ms
-[Info] Light removal took 1.9584ms
-[Info] Light addition took 0.0009ms
-[Info] Light removal took 0.0013ms
-[Info] Light addition took 3.8031ms
-[Info] Light removal took 1.5518ms
-[Info] Light addition took 7.6679ms
-[Info] Light removal took 1.5643ms
-[Info] Light addition took 6.8789ms
-[Info] Light removal took 2.2312ms
-[Info] Light addition took 3.3892ms
-[Info] Light removal took 1.6091ms
-[Info] Light addition took 8.056ms
-[Info] Light removal took 2.505ms
-[Info] Light addition took 0.0433ms
-[Info] Light removal took 2.2054ms
-[Info] Light addition took 0.0328ms
-[Info] Light removal took 1.895ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0009ms
-[Info] Light addition took 4.1536ms
-[Info] Light removal took 2.0931ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0009ms
-[Info] Light addition took 3.8166ms
-[Info] Light removal took 0.9682ms
-[Info] Light addition took 4.1211ms
-[Info] Light removal took 0.9855ms
-[Info] Light addition took 4.1343ms
-[Info] Light removal took 0.5182ms
-[Info] Light addition took 3.3994ms
-[Info] Light removal took 0.62ms
-[Info] Light addition took 2.9561ms
-[Info] Light removal took 0.3983ms
-[Info] Light addition took 2.0367ms
-[Info] Light removal took 0.3029ms
-[Info] Light addition took 2.4116ms
-[Info] Light removal took 0.097ms
-[Info] Light addition took 1.6467ms
-[Info] Light removal took 0.4759ms
-[Info] Light addition took 3.3009ms
-[Info] Light removal took 0.5987ms
-[Info] Light addition took 2.758ms
-[Info] Light removal took 0.7306ms
-[Info] Light addition took 1.6336ms
-[Info] Light removal took 0.7217ms
-[Info] Light addition took 1.693ms
-[Info] Light removal took 1.7313ms
-[Info] Light addition took 2.2501ms
-[Info] Light removal took 0.8848ms
-[Info] Light addition took 1.504ms
-[Info] Light removal took 1.2575ms
-[Info] Light addition took 3.3109ms
-[Info] Light removal took 1.1384ms
-[Info] Light addition took 2.2174ms
-[Info] Light removal took 0.7449ms
-[Info] Light addition took 1.8324ms
-[Info] Light removal took 0.2814ms
-[Info] Light addition took 1.134ms
-[Info] Light removal took 1.3998ms
-[Info] Light addition took 2.0033ms
-[Info] Light removal took 2.0653ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0014ms
-[Info] Light addition took 4.2053ms
-[Info] Light removal took 2.3943ms
-[Info] Light addition took 0.0009ms
-
-[Info] Light addition took 0.0009ms
-[Info] Light removal took 0.0019ms
-[Info] Light addition took 19.1024ms
-[Info] Light removal took 10.1784ms
-[Info] Light addition took 0.0018ms
-[Info] Light removal took 0.0014ms
-[Info] Light addition took 21.1711ms
-[Info] Light removal took 10.9388ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0018ms
-[Info] Light addition took 6.5483ms
-[Info] Light removal took 3.5821ms
-[Info] Light addition took 0.0013ms
-[Info] Light removal took 0.0019ms
-[Info] Light addition took 6.4493ms
-[Info] Light removal took 3.4249ms
-[Info] Light addition took 0.0014ms
-[Info] Light removal took 0.0014ms
-[Info] Light addition took 20.6656ms
+System.Collections.Generic.KeyNotFoundException: The given key '(-1, 0, 0)' was not present in the dictionary.
+   at System.Collections.Concurrent.ConcurrentDictionary`2.ThrowKeyNotFoundException(TKey key)
+   at System.Collections.Concurrent.ConcurrentDictionary`2.get_Item(TKey key)
+   at Blockgame_OpenTK.Core.Worlds.PackedChunkWorld.RemoveLight(Vector3i globalBlockPosition) in ./World/PackedChunkWorld.cs:line 47
+   at Blockgame_OpenTK.BlockUtil.NewBlock.OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition) in ./Block/NewBlock.cs:line 92
+   at Blockgame_OpenTK.PlayerUtil.Player.Update(PackedChunkWorld world) in ./Player/Player.cs:line 110
+   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 395
+   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 365

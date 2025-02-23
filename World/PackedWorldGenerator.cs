@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 7;
+    public static int WorldGenerationRadius = 16;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
@@ -27,12 +27,13 @@ public class PackedWorldGenerator
 
     public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldGenerationQueue = new();
     public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldUploadQueue = new();
+
+    public static ThreadSafeDoubleEndedQueue<Vector2i> ColumnWorldGenerationQueue = new();
+    public static ThreadSafeDoubleEndedQueue<Vector2i> ColumnWorldUploadQueue = new();
     
     private static List<Thread> _chunkGenerationThreads = new();
     
     private static ConcurrentDictionary<int, AutoResetEvent> _chunkGenerationAutoResetEvents = new();
-    public static ConcurrentQueue<BlockLight> LightAdditionQueue = new();
-    public static ConcurrentQueue<BlockLight> LightRemovalQueue = new();
 
     public static void Unload()
     {
@@ -51,17 +52,26 @@ public class PackedWorldGenerator
     private static void HandleUploadQueue()
     {
         
+        /*
         int currentCount = 0;
         while (currentCount < MaxChunkUploadCount && GlobalValues.IsRunning)
         {
 
-            if (PackedChunkWorldUploadQueue.TryDequeueFirst(out Vector3i chunkPosition) && GlobalValues.IsRunning)
+            if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
             {
-                
-                PackedChunkBuilder.Upload(chunkPosition);
-                
+
+                ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
+
             }
             currentCount++;
+
+        }
+        */
+
+        if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
+        {
+
+            ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
 
         }
 
@@ -73,102 +83,76 @@ public class PackedWorldGenerator
         {
             
             _chunkGenerationAutoResetEvents[Thread.CurrentThread.ManagedThreadId].WaitOne();
-            while (PackedChunkWorldGenerationQueue.TryDequeueFirst(out Vector3i chunkPosition) && GlobalValues.IsRunning)
+            while (ColumnWorldGenerationQueue.TryDequeueFirst(out Vector2i columnPosition))
             {
 
-                switch (CurrentWorld.PackedWorldChunks[chunkPosition].QueueType)
+                switch (CurrentWorld.WorldColumns[columnPosition].QueueType)
                 {
-                    case PackedChunkQueueType.PassOne:
-                        PackedChunkBuilder.GeneratePassOne(CurrentWorld.PackedWorldChunks[chunkPosition]);
+
+                    case ColumnQueueType.PassOne:
+                        ColumnBuilder.GeneratePassOne(CurrentWorld.WorldColumns[columnPosition]);
                         break;
-                    case PackedChunkQueueType.SunlightCalculation:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius)
+                    case ColumnQueueType.Mesh:
+                        if (Maths.ChebyshevDistance2D(columnPosition, Vector2i.Zero) < WorldGenerationRadius)
                         {
-                            if (IsColumnTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.SunlightCalculation) && AreColumnNeighborsTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.SunlightCalculation)) 
-                            { 
-                                PackedChunkBuilder.QueueSunlightValues(CurrentWorld, CurrentWorld.PackedWorldChunks[chunkPosition]);
-                            } else 
+
+                            if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                             {
-                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
-                                }
-                                else
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
-                                }
+                                ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
+                            } else
+                            {
+                                ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
                             }
+
                         }
                         break;
-                    case PackedChunkQueueType.LightPropagation:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 1 && chunkPosition.Y > 0 && chunkPosition.Y < WorldGenerationHeight) {
-                            if (IsColumnTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation) && AreColumnNeighborsTheSameQueueType(CurrentWorld, chunkPosition.Xz, PackedChunkQueueType.LightPropagation)) 
-                            { 
-                                PackedChunkBuilder.ComputeLights(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
-                            } else 
-                            {
-                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
-                                }
-                                else
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
-                                }
-                            }
-                        }
-                        break;
-                    case PackedChunkQueueType.Mesh:
-                        if (Maths.ChebyshevDistance3D((chunkPosition.X, 0, chunkPosition.Z), Vector3i.Zero) < WorldGenerationRadius - 2 && chunkPosition.Y > 0 && chunkPosition.Y < WorldGenerationHeight)
-                        {
-                            if (AreNeighborsTheSameQueueType(chunkPosition, PackedChunkQueueType.Mesh))
-                            {
-                                PackedChunkBuilder.Mesh(CurrentWorld.GetChunkNeighbors(chunkPosition), CurrentWorld.PackedWorldChunks[chunkPosition]);
-                            }
-                            else
-                            {   
-                                if (CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority)
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueBehindFirst(chunkPosition);
-                                }
-                                else
-                                {
-                                    PackedChunkWorldGenerationQueue.EnqueueLast(chunkPosition);
-                                }
-                            }
-                        }
-                        break;
+
                 }
-                
+
             }
 
         }
         
     }
 
-    public static void SetAllResetEvents()
+    private static bool AreNeighborColumnsTheSameQueueType(Vector2i position, ColumnQueueType queueType)
     {
 
-        _chunkGenerationAutoResetEvents.Clear();
-
-    }
-
-    public static void CheckIfThreadsAreAlive()
-    {
-        
-        for (int i = 0; i < _chunkGenerationThreads.Count; i++)
+        for (int x = -1; x <= 1; x++)
         {
-            if (_chunkGenerationThreads[i].IsAlive)
+            for (int z = -1; z <= 1; z++)
             {
-                Console.WriteLine($"Thread {_chunkGenerationThreads[i].ManagedThreadId} is alive");
+                if ((x,z) != Vector2i.Zero) if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
             }
-            else
+        }
+        return true;
+
+    }
+
+    private static bool IsColumnTheSameQueueType(ChunkColumn column, ColumnQueueType queueType)
+    {
+
+        return column.QueueType >= queueType;
+
+    }
+
+    private static ConcurrentDictionary<Vector2i, ChunkColumn> GetSurroundingColumns(Vector2i position)
+    {
+
+        ConcurrentDictionary<Vector2i, ChunkColumn> columns = new();
+
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int z = -1; z <= 1; z++)
             {
-                Console.WriteLine($"Thread {_chunkGenerationThreads[i].ManagedThreadId} is not alive");
+                columns.TryAdd((x,z), CurrentWorld.WorldColumns[position + (x,z)]);
             }
         }
 
+        return columns;
+
     }
+
     public static void Initialize()
     {
 
@@ -187,63 +171,46 @@ public class PackedWorldGenerator
     public static void Tick(Player player)
     {
 
-        if (PackedChunkWorldGenerationQueue.Count > 0)
+        if (ColumnWorldGenerationQueue.Count > 0)
         {
 
-            int amountOfNeighborPairs = (PackedChunkWorldGenerationQueue.Count % 27) + 1;
-            for (int i = 0; i < (amountOfNeighborPairs > _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : amountOfNeighborPairs); i++) {
+            for (int i = 0; i < (ColumnWorldGenerationQueue.Count > _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : ColumnWorldGenerationQueue.Count); i++) {
                 _chunkGenerationAutoResetEvents.ElementAt(i).Value.Set();
             }
 
-            // foreach (AutoResetEvent e in _chunkGenerationAutoResetEvents.Values) e.Set();
+            
         }
        
         HandleUploadQueue();
         
-        foreach (PackedChunkMesh m in CurrentWorld.PackedWorldMeshes.Values) m.Draw(player);
+        // foreach (PackedChunkMesh m in CurrentWorld.PackedWorldMeshes.Values) m.Draw(player);
+        foreach (ChunkColumn column in CurrentWorld.WorldColumns.Values)
+        {
+
+            for (int i = 0; i < column.ChunkMeshes.Length; i++)
+            {
+
+                column.ChunkMeshes[i].Draw(player);
+                
+            }
+
+        }
 
     }
-    private static List<Vector3i> _currentRing = WorldGeneratorUtilities.GetColumnRing(_currentRadius, WorldGenerationHeight, Vector3i.Zero);
-    private static int _currentIndex = 0;
+
     public static void QueueGeneration()
     {
         
         if (_currentRadius <= WorldGenerationRadius)
         {
-            
-            /*
-            if (_currentIndex < _currentRing.Count)
+
+            foreach (Vector2i columnPosition in ColumnUtils.GetRing(_currentRadius))
             {
 
-                int amountUpated = 0;
-                while (amountUpated < 25 && _currentIndex < _currentRing.Count)
-                {
+                CurrentWorld.WorldColumns.TryAdd(columnPosition, new ChunkColumn(columnPosition));
 
-                    CurrentWorld.PackedWorldChunks.TryAdd(_currentRing[_currentIndex], new PackedChunk(_currentRing[_currentIndex]));
-                    CurrentWorld.PackedWorldMeshes.TryAdd(_currentRing[_currentIndex], new PackedChunkMesh(_currentRing[_currentIndex]));
-                    PackedChunkWorldGenerationQueue.EnqueueLast(_currentRing[_currentIndex]);
-                    _currentIndex++;
-                    amountUpated++;
+                ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
 
-                }
-
-            } else 
-            {
-
-                _currentRadius++;
-                _currentRing = WorldGeneratorUtilities.GetColumnRing(_currentRadius, WorldGenerationHeight, Vector3i.Zero);
-
-            }
-            */
-            
-            foreach (Vector3i position in WorldGeneratorUtilities.GetColumnRing(_currentRadius, WorldGenerationHeight, Vector3i.Zero))
-            {
-                
-                CurrentWorld.PackedWorldChunks.TryAdd(position, new PackedChunk(position));
-                CurrentWorld.PackedWorldMeshes.TryAdd(position, new PackedChunkMesh(position));
-                CurrentWorld.MaxColumnBlockHeight.TryAdd(position.Xz, new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize]);
-                
-                PackedChunkWorldGenerationQueue.EnqueueLast(position);
             }
 
             _currentRadius++;
@@ -252,59 +219,4 @@ public class PackedWorldGenerator
         
     }
 
-    private static bool AreColumnNeighborsTheSameQueueType(PackedChunkWorld world, Vector2i columnPosition, PackedChunkQueueType queueType)
-    {
-
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int z = -1; z <= 1; z++)
-            {
-                if ((x,z) != Vector2i.Zero)
-                {
-                    if (!IsColumnTheSameQueueType(world, columnPosition + (x,z), queueType)) return false;
-                }
-            }
-        }
-        return true;
-
-    }
-
-    private static bool AreNeighborsTheSameQueueType(Vector3i chunkPosition, PackedChunkQueueType queueType)
-    {
-
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                for (int z = -1; z <= 1; z++)
-                {
-                    if ((x, y, z) != Vector3i.Zero)
-                    {
-                        if (CurrentWorld.PackedWorldChunks.ContainsKey(chunkPosition + (x,y,z)))
-                        {
-                            if (CurrentWorld.PackedWorldChunks[chunkPosition + (x,y,z)].QueueType < queueType) return false;
-                        }
-                        else
-                        {
-                            return false;
-                        }  
-                    }
-                }
-            }
-        }
-        return true;
-
-    }
-
-    private static bool IsColumnTheSameQueueType(PackedChunkWorld world, Vector2i columnPosition, PackedChunkQueueType queueType)
-    {
-
-        for (int y = 0; y <= WorldGenerationHeight; y++)
-        {
-            if (world.PackedWorldChunks.ContainsKey((columnPosition.X, y, columnPosition.Y)) && world.PackedWorldChunks[(columnPosition.X, y, columnPosition.Y)].QueueType < queueType) return false;
-        }
-        return true;
-
-    }
-    
 }
