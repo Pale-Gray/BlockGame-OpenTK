@@ -133,96 +133,28 @@ public class PackedChunkWorld
 
         Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
 
+        WorldColumns[chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
+        WorldColumns[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
+        WorldColumns[chunkPosition.Xz].HasPriority = true;
+        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst(chunkPosition.Xz);
+
         for (int x = -1; x <= 1; x++)
         {
 
             for (int z = -1; z <= 1; z++)
             {
 
-                WorldColumns[(x,z) + chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
-                WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
-                PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst((x,z) + chunkPosition.Xz);
+                if ((x,z) != Vector2i.Zero)
+                {
+                    WorldColumns[(x,z) + chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
+                    WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
+                    WorldColumns[(x,z) + chunkPosition.Xz].HasPriority = true;
+                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst((x,z) + chunkPosition.Xz);
+                }
 
             }
 
         }
-
-        /*
-        Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
-        Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
-
-        PackedWorldChunks[chunkPosition].HasPriority = true;
-        PackedWorldChunks[chunkPosition].QueueType = PackedChunkQueueType.LightPropagation;
-        PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition);
-        
-        for (int x = -1; x <= 1; x++) 
-        {
-
-            for (int y = -1; y <= 1; y++) 
-            {
-
-                for (int z = -1; z <= 1; z++) 
-                {
-
-                    if ((x,y,z) != Vector3i.Zero && PackedWorldChunks.ContainsKey(chunkPosition + (x,y,z))) 
-                    {
-
-                        // PackedWorldChunks[chunkPosition + (x,y,z)].HasPriority = true;
-                        PackedWorldChunks[chunkPosition + (x,y,z)].QueueType = PackedChunkQueueType.LightPropagation;
-                        PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition + (x,y,z));
-
-                    }
-
-                }
-
-            }    
-
-        }
-        */
-        
-        /*
-        if (localBlockPosition.Y == 0 && PackedWorldChunks.ContainsKey(chunkPosition - Vector3i.UnitY))
-        {
-            PackedWorldChunks[chunkPosition - Vector3i.UnitY].HasPriority = true;
-            PackedWorldChunks[chunkPosition - Vector3i.UnitY].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition - Vector3i.UnitY);
-        }
-
-        if (localBlockPosition.Y == GlobalValues.ChunkSize - 1 && PackedWorldChunks.ContainsKey(chunkPosition + Vector3i.UnitY))
-        {
-            PackedWorldChunks[chunkPosition + Vector3i.UnitY].HasPriority = true;
-            PackedWorldChunks[chunkPosition + Vector3i.UnitY].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition + Vector3i.UnitY);
-        }
-
-        if (localBlockPosition.X == 0 && PackedWorldChunks.ContainsKey(chunkPosition - Vector3i.UnitX))
-        {
-            PackedWorldChunks[chunkPosition - Vector3i.UnitX].HasPriority = true;
-            PackedWorldChunks[chunkPosition - Vector3i.UnitX].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition - Vector3i.UnitX);
-        }
-
-        if (localBlockPosition.X == GlobalValues.ChunkSize - 1 && PackedWorldChunks.ContainsKey(chunkPosition + Vector3i.UnitX))
-        {
-            PackedWorldChunks[chunkPosition + Vector3i.UnitX].HasPriority = true;
-            PackedWorldChunks[chunkPosition + Vector3i.UnitX].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition + Vector3i.UnitX);
-        }
-        
-        if (localBlockPosition.Z == 0 && PackedWorldChunks.ContainsKey(chunkPosition - Vector3i.UnitZ))
-        {
-            PackedWorldChunks[chunkPosition - Vector3i.UnitZ].HasPriority = true;
-            PackedWorldChunks[chunkPosition - Vector3i.UnitZ].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition - Vector3i.UnitZ);
-        }
-
-        if (localBlockPosition.Z == GlobalValues.ChunkSize - 1 && PackedWorldChunks.ContainsKey(chunkPosition + Vector3i.UnitZ))
-        {
-            PackedWorldChunks[chunkPosition + Vector3i.UnitZ].HasPriority = true;
-            PackedWorldChunks[chunkPosition + Vector3i.UnitZ].QueueType = PackedChunkQueueType.LightPropagation;
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunkPosition + Vector3i.UnitZ);
-        }
-        */
 
     }
 

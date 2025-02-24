@@ -86,8 +86,10 @@ public struct PackedChunkVertex
 public class PackedChunkMesh
 {
 
-    public int[] PackedChunkMeshIndices;
-    public PackedChunkVertex[] PackedChunkVertices;
+    // public int[] PackedChunkMeshIndices;
+    // public PackedChunkVertex[] PackedChunkVertices;
+    public List<PackedChunkVertex> ChunkVertices;
+    public List<int> ChunkIndices;
     public int[] PackedChunkBindlessTextureIndices;
     public int Vbo, Vao, Ibo, Ssbo, Ssbo2;
     public Vector3i ChunkPosition = Vector3i.Zero;
@@ -103,7 +105,7 @@ public class PackedChunkMesh
     public void Draw(Player player)
     {
         
-        if (PackedChunkMeshIndices != null && PackedChunkMeshIndices.Length > 0 && IsRenderable)
+        if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)
         {
             
             GlobalValues.PackedChunkShader.Use();
@@ -114,7 +116,7 @@ public class PackedChunkMesh
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref player.Camera.ProjectionMatrix);
 
             GL.BindVertexArray(Vao);
-            GL.DrawElements(PrimitiveType.Triangles, PackedChunkMeshIndices.Length, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
             
         }
         

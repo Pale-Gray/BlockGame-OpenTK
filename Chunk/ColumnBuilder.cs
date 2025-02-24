@@ -223,22 +223,28 @@ public class ColumnBuilder
 
                 }
 
-                // TODO: Change these properties to spans instead of arrays. ToArray sucks ass!
-                columns[Vector2i.Zero].ChunkMeshes[chunkY].PackedChunkVertices = vertices.ToArray();
-                columns[Vector2i.Zero].ChunkMeshes[chunkY].PackedChunkMeshIndices = indices.ToArray();
+                columns[Vector2i.Zero].ChunkMeshes[chunkY].ChunkVertices = new List<PackedChunkVertex>(vertices);
+                columns[Vector2i.Zero].ChunkMeshes[chunkY].ChunkIndices = new List<int>(indices);
 
             }
 
         }
 
         columns[Vector2i.Zero].QueueType = ColumnQueueType.Upload;
-        PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueLast(columns[Vector2i.Zero].Position);
+        if (columns[Vector2i.Zero].HasPriority)
+        {
+            PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueFirst(columns[Vector2i.Zero].Position);
+        } else
+        {
+            PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueLast(columns[Vector2i.Zero].Position);
+        }
 
     }
 
     public static void Upload(ChunkColumn column)
     {
 
+        column.HasPriority = false;
         for (int chunkY = PackedWorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
         {
 
@@ -246,7 +252,6 @@ public class ColumnBuilder
             {
 
                 column.Chunks[chunkY].HasUpdates = false;
-                column.Chunks[chunkY].HasPriority = false;
                 GL.DeleteBuffer(column.ChunkMeshes[chunkY].Vbo);
                 GL.DeleteVertexArray(column.ChunkMeshes[chunkY].Vao);
                 GL.DeleteBuffer(column.ChunkMeshes[chunkY].Ibo);
@@ -257,7 +262,7 @@ public class ColumnBuilder
 
                 GL.BindVertexArray(column.ChunkMeshes[chunkY].Vao);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].Vbo);
-                GL.BufferData(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].PackedChunkVertices.Length * Marshal.SizeOf<PackedChunkVertex>(), column.ChunkMeshes[chunkY].PackedChunkVertices, BufferUsage.DynamicDraw);
+                GL.BufferData<PackedChunkVertex>(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].ChunkVertices.Count * Marshal.SizeOf<PackedChunkVertex>(), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].ChunkVertices), BufferUsage.DynamicDraw);
 
                 GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), 0);
                 GL.EnableVertexAttribArray(0);
@@ -267,7 +272,7 @@ public class ColumnBuilder
                 GL.EnableVertexAttribArray(2);
 
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, column.ChunkMeshes[chunkY].Ibo);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, column.ChunkMeshes[chunkY].PackedChunkMeshIndices.Length * sizeof(int), column.ChunkMeshes[chunkY].PackedChunkMeshIndices, BufferUsage.DynamicDraw);
+                GL.BufferData<int>(BufferTarget.ElementArrayBuffer, column.ChunkMeshes[chunkY].ChunkIndices.Count * sizeof(int), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].ChunkIndices), BufferUsage.DynamicDraw);
                 
                 column.ChunkMeshes[chunkY].IsRenderable = true;
 

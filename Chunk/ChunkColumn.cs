@@ -21,6 +21,7 @@ public class ChunkColumn
     public PackedChunk[] Chunks = new PackedChunk[PackedWorldGenerator.WorldGenerationHeight];
     public PackedChunkMesh[] ChunkMeshes = new PackedChunkMesh[PackedWorldGenerator.WorldGenerationHeight]; 
     public ColumnQueueType QueueType = ColumnQueueType.PassOne;
+    public bool HasPriority = false;
 
     public ChunkColumn(Vector2i position)
     {

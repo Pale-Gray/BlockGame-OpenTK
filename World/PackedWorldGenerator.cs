@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 16;
+    public static int WorldGenerationRadius = 4;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
@@ -51,22 +52,6 @@ public class PackedWorldGenerator
     }
     private static void HandleUploadQueue()
     {
-        
-        /*
-        int currentCount = 0;
-        while (currentCount < MaxChunkUploadCount && GlobalValues.IsRunning)
-        {
-
-            if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
-            {
-
-                ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
-
-            }
-            currentCount++;
-
-        }
-        */
 
         if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
         {
@@ -98,10 +83,19 @@ public class PackedWorldGenerator
 
                             if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                             {
+                                Stopwatch sw = Stopwatch.StartNew();
                                 ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
+                                sw.Stop();
+                                Console.WriteLine($"meshing took {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
                             } else
                             {
-                                ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
+                                if (CurrentWorld.WorldColumns[columnPosition].HasPriority)
+                                {
+                                    ColumnWorldGenerationQueue.EnqueueBehindFirst(columnPosition);
+                                } else 
+                                {
+                                    ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
+                                }
                             }
 
                         }

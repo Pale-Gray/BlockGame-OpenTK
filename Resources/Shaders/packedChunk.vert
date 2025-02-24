@@ -51,7 +51,7 @@ void main() {
     
     vPosition = extractPosition(aPackedVertexData);
     vNormal = extractNormal(aPackedVertexData);
-    vTextureCoordinates = textureCoordinates[int(aPackedVertexData & 3)];
+    vTextureCoordinates = textureCoordinates[gl_VertexID % 4];
     vLightColor = aLightColor;
     vTextureIndex = int(aPackedColorData & 65535);
     gl_Position = vec4(vPosition + (chunkPosition * 32), 1) * view * projection;
