@@ -84,7 +84,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
                             ImageResult image = ImageResult.FromMemory(imageBytes);
                             int currentCount = _textureArrayIndices.Count;
                             GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-                            string fileName = entry.FullName.Split(Path.DirectorySeparatorChar).Last().Split('.')[0];
+                            string fileName = entry.FullName.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
                             Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
 
@@ -121,7 +121,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
                             ImageResult image = ImageResult.FromStream(imageFile);
                             int currentCount = _textureArrayIndices.Count;
                             GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-                            string fileName = file.Split(Path.DirectorySeparatorChar).Last().Split('.')[0];
+                            string fileName = file.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
                             Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
 
@@ -199,7 +199,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
                             texturePackInfo.Path = dir;
                             texturePackInfo.VisualPath = dir;
 
-                            _availableTexturePacks.Add(dir.Split(Path.DirectorySeparatorChar).Last().Split('.')[0], texturePackInfo);
+                            _availableTexturePacks.Add(dir.Split('/').Last().Split('.')[0], texturePackInfo);
 
                         }
 
