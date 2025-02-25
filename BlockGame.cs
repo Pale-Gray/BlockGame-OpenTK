@@ -559,13 +559,17 @@ namespace Blockgame_OpenTK
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-            AudioPlayer.Poll();
+            Core.Gui.GuiRenderer.Begin();
+            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            if (Core.Gui.GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (100, 50), (0.5f, 0.5f), "Hello, Button!", Color4.Red))
+            {
+                Console.WriteLine("I was clicked!");
+            }
+            Core.Gui.GuiRenderer.End();
 
-            Core.Gui.GuiRenderer.GuiBegin();
-            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), Vector2.Zero);
-            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), Vector2.Zero, Color4.Bisque);
-            Core.Gui.GuiRenderer.RenderElement(0, GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), Vector2.Zero, Color4.Purple);
-            Core.Gui.GuiRenderer.GuiEnd();
+            AudioPlayer.Poll();
 
             /*
             foreach (GuiElement element in GuiRenderer.Elements)

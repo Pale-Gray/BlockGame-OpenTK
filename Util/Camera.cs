@@ -75,7 +75,7 @@ namespace Blockgame_OpenTK.Util
         public void Update(Vector3 position)
         {
 
-            Vector2 MouseDelta = Input.MouseDelta;
+            Vector2 MouseDelta = -Input.MouseDelta;
 
             Yaw += MouseDelta.X * GlobalValues.Settings.MouseSensitivity;
             Pitch -= MouseDelta.Y * GlobalValues.Settings.MouseSensitivity;

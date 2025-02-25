@@ -227,14 +227,11 @@ namespace Blockgame_OpenTK
             ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
             CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);
             Toolkit.Window.SetCursor(window, c1);
-            {
-                
-                Toolkit.Mouse.GetPosition(window, out Vector2 position);
-                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
-                Input.PreviousMouseScroll = state.Scroll;
-                Input.PreviousMousePosition = position;
-
-            }
+            
+            Toolkit.Mouse.GetPosition(window, out Vector2 position);
+            Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
+            Input.PreviousMouseScroll = state.Scroll;
+            Input.PreviousMousePosition = position;
 
             // Toolkit.Joystick.Initialize(toolkitOptions);
             // Input.CheckForController(0);
@@ -243,9 +240,24 @@ namespace Blockgame_OpenTK
             double secondValue = 0;
             double frameTimeOverOneSecond = 0;
             double numTicks = 0;
+
+            Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
+            Input.PreviousMousePosition = mousePosition;
+
             while (GlobalValues.IsRunning)
             {
                 
+                Toolkit.Mouse.GetPosition(window, out mousePosition);
+                Input.MouseDelta = Input.PreviousMousePosition - mousePosition;
+                Input.PreviousMousePosition = mousePosition;
+                if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
+                {
+                    Input.MousePosition = (GlobalValues.WIDTH / 2, GlobalValues.HEIGHT / 2);
+                } else
+                {
+                    Input.MousePosition = mousePosition;
+                }
+
                 if (Input.IsKeyDown(Key.LeftControl))
                 {
 
@@ -260,12 +272,11 @@ namespace Blockgame_OpenTK
                     
                 }
                 
-                if (GlobalValues.IsCursorLocked)
-                {
-                    Toolkit.Mouse.GetPosition(window, out Vector2 position);
-                    Input.MouseDelta = position - Input.PreviousMousePosition;
-                    Input.PreviousMousePosition = position;
-                }
+                // Toolkit.Mouse.GetPosition(window, out Vector2 currentPosition);
+                // Input.MouseDelta = position - Input.PreviousMousePosition;
+                // position = Input.PreviousMousePosition;
+                // Input.PreviousMousePosition = currentPosition;
+                // Input.MousePosition = currentPosition;
                 
                 if (secondValue >= 1.0)
                 {
@@ -349,8 +360,8 @@ namespace Blockgame_OpenTK
                 GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
                 GlobalValues.PreviousTime = GlobalValues.CurrentTime;
                 
-                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
-                Input.CurrentMouseScroll = state.Scroll;
+                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState currentState);
+                Input.CurrentMouseScroll = currentState.Scroll;
                 Input.ScrollDelta = Input.CurrentMouseScroll - Input.PreviousMouseScroll;
                 Input.PreviousMouseScroll = Input.CurrentMouseScroll;
 
