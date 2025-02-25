@@ -1,4 +1,4 @@
-[Info] Starting in client mode.
+[Info] Starting in client mode
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
 [Info] Platform: Debian GNU/Linux 12 (bookworm)
@@ -35,6 +35,7 @@
 [Info] NewRegistering block Game.LeafBlock
 [Info] Game.LeafBlock has a model
 [Info] Supports raw mouse? False
+
 System.Collections.Generic.KeyNotFoundException: The given key '(-1, 0, 0)' was not present in the dictionary.
    at System.Collections.Concurrent.ConcurrentDictionary`2.ThrowKeyNotFoundException(TKey key)
    at System.Collections.Concurrent.ConcurrentDictionary`2.get_Item(TKey key)

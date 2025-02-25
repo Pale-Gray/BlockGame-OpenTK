@@ -33,7 +33,6 @@ public class PackedWorldGenerator
     public static ThreadSafeDoubleEndedQueue<Vector2i> ColumnWorldUploadQueue = new();
     
     private static List<Thread> _chunkGenerationThreads = new();
-    
     private static ConcurrentDictionary<int, AutoResetEvent> _chunkGenerationAutoResetEvents = new();
 
     public static void Unload()
@@ -83,10 +82,7 @@ public class PackedWorldGenerator
 
                             if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                             {
-                                Stopwatch sw = Stopwatch.StartNew();
                                 ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
-                                sw.Stop();
-                                Console.WriteLine($"meshing took {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
                             } else
                             {
                                 if (CurrentWorld.WorldColumns[columnPosition].HasPriority)

@@ -14,6 +14,8 @@ using Tomlet.Models;
 using GameLogger = Blockgame_OpenTK.Util.GameLogger;
 using Direction = Blockgame_OpenTK.BlockUtil.Direction;
 using Blockgame_OpenTK.Audio;
+using Blockgame_OpenTK.Core.Networking;
+using System.Net;
 
 namespace Blockgame_OpenTK
 {
@@ -24,18 +26,6 @@ namespace Blockgame_OpenTK
         public static void Main(string[] args)
         {
 
-            if (args.Length == 0)
-            {
-                GameLogger.Log("Starting in client mode.", Severity.Info);
-            }
-            if (args.Length == 1)
-            {
-                if (args[0].ToLower() == "client") Util.GameLogger.Log("Starting in client mode.", Severity.Info);
-            }
-            if (args.Length > 1)
-            {
-                if (args[0].ToLower() == "server") Util.GameLogger.Log("Starting in server mode.", Severity.Info);
-            }
             TomletMain.RegisterMapper(
 
                 vector =>
@@ -107,6 +97,40 @@ namespace Blockgame_OpenTK
 
                 }
             );
+
+            TomletMain.RegisterMapper(
+                address =>
+                {
+                    return new TomlString("");
+                },
+
+                value =>
+                {
+                    return IPAddress.Parse(((TomlString)value).Value);
+                }
+            );
+
+            if (args.Length == 0)
+            {
+                GameLogger.Log("Starting in client mode");
+            } else
+            {
+                if (args.Length >= 1)
+                {
+                    if (args[0].ToLower() == "server")
+                    {
+                        GameLogger.Log("Starting in server mode.");
+                        NetworkingConstants.Server = new Server(true);
+                        NetworkingConstants.Server.Start();
+                    } else if (args[0].ToLower() == "client")
+                    {
+                        GameLogger.Log("Starting in client mode.");
+                    } else
+                    {
+                        GameLogger.Log("There were no valid arguments, so starting in client mode.");
+                    }
+                }
+            }
 
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;
