@@ -9,7 +9,7 @@ namespace Blockgame_OpenTK.Gui
         public static Vector2 RelativeToAbsolute(float x, float y)
         {
 
-            return new Vector2(x, y) * (GlobalValues.WIDTH, GlobalValues.HEIGHT);
+            return new Vector2(x, y) * (GlobalValues.Width, GlobalValues.Height);
 
         }
 

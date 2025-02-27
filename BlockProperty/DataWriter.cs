@@ -41,6 +41,14 @@ public class DataWriter : IDisposable
 
     }
 
+    public void WriteByteSpan(Span<byte> bytes)
+    {
+
+        WriteInt(bytes.Length);
+        _stream.Write(bytes);
+
+    }
+
     public void WriteString(string value)
     {
 
@@ -88,6 +96,15 @@ public class DataWriter : IDisposable
         Span<byte> intBytes = stackalloc byte[sizeof(int)];
         BinaryPrimitives.WriteInt32LittleEndian(intBytes, value);
         _stream.Write(intBytes);
+
+    }
+
+    public void WriteUshort(ushort value)
+    {
+
+        Span<byte> ushortBytes = stackalloc byte[sizeof(ushort)];
+        BinaryPrimitives.WriteUInt16LittleEndian(ushortBytes, value);
+        _stream.Write(ushortBytes);
 
     }
 

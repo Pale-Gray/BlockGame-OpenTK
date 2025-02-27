@@ -41,9 +41,9 @@ namespace Blockgame_OpenTK.Util
 
         public static GameSettings Settings;// JsonSerializer.Deserialize<GameSettings>(File.ReadAllText("settings.json"));
 
-        public static float WIDTH = 640f;
-        public static float HEIGHT = 480f;
-        public static Vector2 Center = (WIDTH / 2f, HEIGHT / 2f);
+        public static float Width = 640f;
+        public static float Height = 480f;
+        public static Vector2 Center = (Width / 2f, Height / 2f);
         public const int ChunkSize = 32;
         public static double PreviousTime = 0;
         public static double CurrentTime = 0;

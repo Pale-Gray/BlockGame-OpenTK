@@ -22,7 +22,7 @@ namespace Blockgame_OpenTK.Gui
         }
 
     }
-    public class GuiRenderer
+    public class GuiRendere
     {
 
         public static Camera GuiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90);

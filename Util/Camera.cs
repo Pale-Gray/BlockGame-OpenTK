@@ -51,10 +51,10 @@ namespace Blockgame_OpenTK.Util
             {
 
                 case CameraType.Orthographic:
-                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, GlobalValues.WIDTH, GlobalValues.HEIGHT, 0, 0.1f, 1000f);
+                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, GlobalValues.Width, GlobalValues.Height, 0, 0.1f, 1000f);
                     break;
                 case CameraType.Perspective:
-                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), GlobalValues.WIDTH / GlobalValues.HEIGHT, 0.1f, 100000f);
+                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), GlobalValues.Width / GlobalValues.Height, 0.1f, 100000f);
                     break;
 
             }

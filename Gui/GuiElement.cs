@@ -22,12 +22,12 @@ namespace Blockgame_OpenTK.Gui
         private Texture _texture;
         public Texture Texture { get { return _texture; } set { if (_texture != null) { _texture.Dispose(); } _texture = value; } }
         private bool _isVisible = false;
-        public bool IsVisible { get { return _isVisible; } set { _isVisible = value; if (_isVisible) { GuiRenderer.Elements.Add(this); GuiRenderer.Elements.Sort((a,b) => a.Layer.CompareTo(b.Layer)); } else { GuiRenderer.Elements.Remove(this); } } }
+        public bool IsVisible { get { return _isVisible; } set { _isVisible = value; if (_isVisible) { GuiRendere.Elements.Add(this); GuiRendere.Elements.Sort((a,b) => a.Layer.CompareTo(b.Layer)); } else { GuiRendere.Elements.Remove(this); } } }
         public TransitionElement TransitionElement = null;
         public virtual void Draw()
         {
             CalculateDimensionsAndPosition();
-            GuiRenderer.RenderElement(this);
+            GuiRendere.RenderElement(this);
             if (TransitionElement != null) TransitionElement.Update();
             if (Children.Count > 0)
             {
@@ -40,8 +40,8 @@ namespace Blockgame_OpenTK.Gui
         }
         public void CalculateDimensionsAndPosition()
         {
-            Dimensions = AbsoluteDimensions + GuiMath.RelativeToAbsolute(RelativeDimensions, Parent?.Dimensions ?? (GlobalValues.WIDTH, GlobalValues.HEIGHT));
-            Position = ((Parent?.Position - (Parent?.Dimensions * Parent?.Origin)) ?? (0, 0)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, (Parent?.Dimensions) ?? (GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            Dimensions = AbsoluteDimensions + GuiMath.RelativeToAbsolute(RelativeDimensions, Parent?.Dimensions ?? (GlobalValues.Width, GlobalValues.Height));
+            Position = ((Parent?.Position - (Parent?.Dimensions * Parent?.Origin)) ?? (0, 0)) + AbsolutePosition + GuiMath.RelativeToAbsolute(RelativePosition, (Parent?.Dimensions) ?? (GlobalValues.Width, GlobalValues.Height));
         }
         public virtual void AddElement(GuiElement element)
         {

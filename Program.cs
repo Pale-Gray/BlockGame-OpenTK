@@ -16,6 +16,10 @@ using Direction = Blockgame_OpenTK.BlockUtil.Direction;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Networking;
 using System.Net;
+using Blockgame_OpenTK.Core.Serialization;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace Blockgame_OpenTK
 {
@@ -132,6 +136,8 @@ namespace Blockgame_OpenTK
                 }
             }
 
+            // Compression.RleCompress<uint, uint>([0,1,2,3,4,5,6,6,7]);
+
             AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
             IBlockProperties prop2 = prop;
             // prop2.ToBytes();
@@ -227,7 +233,7 @@ namespace Blockgame_OpenTK
             ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
             CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);
             Toolkit.Window.SetCursor(window, c1);
-            
+
             Toolkit.Mouse.GetPosition(window, out Vector2 position);
             Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
             Input.PreviousMouseScroll = state.Scroll;
@@ -252,7 +258,7 @@ namespace Blockgame_OpenTK
                 Input.PreviousMousePosition = mousePosition;
                 if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
                 {
-                    Input.MousePosition = (GlobalValues.WIDTH / 2, GlobalValues.HEIGHT / 2);
+                    Input.MousePosition = (GlobalValues.Width / 2, GlobalValues.Height / 2);
                 } else
                 {
                     Input.MousePosition = mousePosition;
@@ -397,7 +403,10 @@ namespace Blockgame_OpenTK
 
                 }
 
+                //Stopwatch sw = Stopwatch.StartNew();
                 BlockGame.Render();
+                //sw.Stop();
+                //GameLogger.Log($"Render loop took {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
                 
                 if (Input.CurrentTypedChars.Count > 0)
                 {

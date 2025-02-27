@@ -17,9 +17,9 @@ using System.Collections.Generic;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.BlockProperty;
-using Tomlet;
 using Blockgame_OpenTK.Core.Language;
-using System.IO.Compression;
+using Blockgame_OpenTK.Core.Gui;
+using System.Drawing;
 
 namespace Blockgame_OpenTK
 {
@@ -219,6 +219,8 @@ namespace Blockgame_OpenTK
             public Str() {}
 
         }
+
+        private static bool _toggle = false;
         public static void Load()
         {
 
@@ -255,7 +257,7 @@ namespace Blockgame_OpenTK
             LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
 
             GLDebugProc debugMessageDel = OnDebugMessage;
-            GuiRenderer.Init();
+            GuiRendere.Init();
             AudioPlayer.Initialize();
 
             GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
@@ -374,6 +376,7 @@ namespace Blockgame_OpenTK
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LeafBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
 
             Core.Gui.GuiRenderer.Initialize();
+            FontRenderer.Initialize();
 
         }
 
@@ -467,8 +470,20 @@ namespace Blockgame_OpenTK
                 if (Input.IsKeyPressed(Key.O))
                 {
 
-                    Console.WriteLine("Toggling AO");
-                    GlobalValues.RenderAmbientOcclusion = !GlobalValues.RenderAmbientOcclusion;
+                    // Console.WriteLine("Toggling AO");
+                    // GlobalValues.RenderAmbientOcclusion = !GlobalValues.RenderAmbientOcclusion;
+                    ColumnSerializer.SerializeColumn(PackedWorldGenerator.CurrentWorld.WorldColumns[ChunkUtils.PositionToChunk(Player.Position).Xz]);
+
+                }
+
+                if (Input.IsKeyPressed(Key.P))
+                {
+
+                    Vector2i columnPos = ChunkUtils.PositionToChunk(Player.Position).Xz;
+
+                    ColumnSerializer.DeserializeColumn(PackedWorldGenerator.CurrentWorld.WorldColumns[columnPos]);
+                    PackedWorldGenerator.CurrentWorld.WorldColumns[columnPos].QueueType = ColumnQueueType.Mesh;
+                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst(columnPos);
 
                 }
 
@@ -559,29 +574,40 @@ namespace Blockgame_OpenTK
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-            Core.Gui.GuiRenderer.Begin();
-            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
-            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
-            Core.Gui.GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
-            if (Core.Gui.GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (100, 50), (0.5f, 0.5f), "Hello, Button!", Color4.Red))
+            GuiRenderer.Begin("thing");
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            /*
+            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (100, 50), (0.5f, 0.5f), "Play", Color4.Red))
             {
                 Console.WriteLine("I was clicked!");
             }
-            Core.Gui.GuiRenderer.End();
-
-            AudioPlayer.Poll();
-
-            /*
-            foreach (GuiElement element in GuiRenderer.Elements)
+            */
+            if (GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.5f), new Vector2i(200, 24), (0.5f, 0.5f), out string text, Color4.White))
             {
 
-                element.Draw();
+                if (text.Length != 0) Console.WriteLine($"The text inputted: {text}");
 
             }
-            */
+            GuiRenderer.End();
 
-            // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams1, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 20), (0.5f, 0.5f), 1, 24, $"{Math.Round(Player.Position.X, 2)}, {Math.Round(Player.Position.Y, 2)}, {Math.Round(Player.Position.Z, 2)}", Color4.Black);
-            // CachedFontRenderer.RenderFont(out Tuple<Vector2, float, float> cursorParams2, GuiMath.RelativeToAbsolute(0.5f, 1.0f) - (0, 46), (0.5f, 0.5f), 1, 24, GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).DisplayName, Color4.Black);
+            // Console.WriteLine(_toggle);
+
+            // FontRenderer.Text(GuiMath.RelativeToAbsolute(0.5f, 0.9f), Vector2.Zero, 24, Color4.Black, 
+            // """
+            // Hello World
+            //     This is a TAB
+            //     and more tabs...
+            // No more tabs!
+            // English with 日本語
+            // How does it look with
+            // English characters?
+            // """);
+
+            if (Input.IsKeyPressed(Key.H)) FontRenderer.ClearCache();
+
+            AudioPlayer.Poll();
 
             /*CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f) - (0, 80), (0.5f, 0.5f), 1, 24, """
                 This is
@@ -603,22 +629,16 @@ namespace Blockgame_OpenTK
 
             Toolkit.Window.GetFramebufferSize(args.Window, out Vector2i framebufferSize);
             GL.Viewport(0, 0, framebufferSize.X, framebufferSize.Y);
-            GlobalValues.WIDTH = args.NewClientSize.X;
-            GlobalValues.HEIGHT = args.NewClientSize.Y;
+            GlobalValues.Width = args.NewClientSize.X;
+            GlobalValues.Height = args.NewClientSize.Y;
             // Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
-            GlobalValues.Center = (GlobalValues.WIDTH / 2f, GlobalValues.HEIGHT / 2f);
+            GlobalValues.Center = (GlobalValues.Width / 2f, GlobalValues.Height / 2f);
 
             Player.Camera.UpdateProjectionMatrix();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
-            GuiRenderer.GuiCamera.UpdateProjectionMatrix();
-            Core.Gui.GuiRenderer.UpdateProjectionMatrix();
-
-            foreach (GuiElement element in GlobalValues.GlobalGuiElements)
-            {
-
-                // element.Recalculate();
-
-            }
+            GuiRendere.GuiCamera.UpdateProjectionMatrix();
+            GuiRenderer.UpdateProjectionMatrix();
+            FontRenderer.Update();
 
             TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
@@ -640,6 +660,7 @@ namespace Blockgame_OpenTK
             */
 
             TexturePackManager.Free();
+            FontRenderer.Free();
 
             // this portion is not required
 

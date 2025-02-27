@@ -78,7 +78,7 @@ public class GeneralLineRenderer
         GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiLineShader.id, "projection"), 1, true, in player.Camera.ProjectionMatrix);
         GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.GuiLineShader.id, "model"), 1, true, in modelMatrix);
         
-        GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiLineShader.id, "resolution"), GlobalValues.WIDTH, GlobalValues.HEIGHT);
+        GL.Uniform2f(GL.GetUniformLocation(GlobalValues.GuiLineShader.id, "resolution"), GlobalValues.Width, GlobalValues.Height);
         
         GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
         GL.Enable(EnableCap.CullFace);

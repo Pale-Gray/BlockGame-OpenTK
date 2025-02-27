@@ -1,8 +1,11 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.IO;
-
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 
@@ -34,6 +37,21 @@ public class DataReader : IDisposable
     {
 
         return (GetFloat(), GetFloat(), GetFloat());
+
+    }
+
+    public unsafe Span<byte> GetByteSpan()
+    {
+
+        int length = GetInt();
+
+        GCHandle handle = GCHandle.Alloc(new byte[length], GCHandleType.Pinned);
+        Span<byte> value = new Span<byte>((byte*)handle.AddrOfPinnedObject(), length);
+
+        _stream.ReadExactly(value);
+
+        handle.Free();
+        return value;
 
     }
 
@@ -125,6 +143,15 @@ public class DataReader : IDisposable
         Span<byte> bytes = stackalloc byte[sizeof(int)];
         _stream.ReadExactly(bytes);
         return BinaryPrimitives.ReadInt32LittleEndian(bytes);
+
+    }
+
+    public ushort GetUshort()
+    {
+
+        Span<byte> bytes = stackalloc byte[sizeof(ushort)];
+        _stream.ReadExactly(bytes);
+        return BinaryPrimitives.ReadUInt16LittleEndian(bytes);
 
     }
 

@@ -35,13 +35,6 @@
 [Info] NewRegistering block Game.LeafBlock
 [Info] Game.LeafBlock has a model
 [Info] Supports raw mouse? False
-l
-[Info] Supports raw mouse? False
-oundException: The given key '(-1, 0, 0)' was not present in the dictionary.
-   at System.Collections.Concurrent.ConcurrentDictionary`2.ThrowKeyNotFoundException(TKey key)
-   at System.Collections.Concurrent.ConcurrentDictionary`2.get_Item(TKey key)
-   at Blockgame_OpenTK.Core.Worlds.PackedChunkWorld.RemoveLight(Vector3i globalBlockPosition) in ./World/PackedChunkWorld.cs:line 47
-   at Blockgame_OpenTK.BlockUtil.NewBlock.OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition) in ./Block/NewBlock.cs:line 92
-   at Blockgame_OpenTK.PlayerUtil.Player.Update(PackedChunkWorld world) in ./Player/Player.cs:line 110
-   at Blockgame_OpenTK.BlockGame.Render() in ./BlockGame.cs:line 395
-   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 365
+System.PlatformNotSupportedException: X11 doesn't support system icons!
+   at OpenTK.Platform.Native.X11.X11IconComponent.Create(SystemIconType systemIcon)
+   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 230

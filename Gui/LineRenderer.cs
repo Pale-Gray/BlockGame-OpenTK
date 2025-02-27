@@ -87,7 +87,7 @@ namespace Blockgame_OpenTK.Gui
             GL.Uniform1f(GL.GetUniformLocation(SdfShader.id, "thickness"), thickness);
             GL.Uniform3f(GL.GetUniformLocation(SdfShader.id, "color"), 1, color);
             // GL.Uniform3f(GL.GetUniformLocation(SdfShader.id, "pointB"), 1, pointB);
-            GL.Uniform2f(GL.GetUniformLocation(SdfShader.id, "screenSize"), 1, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            GL.Uniform2f(GL.GetUniformLocation(SdfShader.id, "screenSize"), 1, (GlobalValues.Width, GlobalValues.Height));
 
             GL.Uniform1i(GL.GetUniformLocation(SdfShader.id, "sceneDepth"), 0);
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -146,7 +146,7 @@ namespace Blockgame_OpenTK.Gui
             GL.UniformMatrix4f(GL.GetUniformLocation(LineShader.id, "view"), 1, true, ref camera.ViewMatrix);
             GL.UniformMatrix4f(GL.GetUniformLocation(LineShader.id, "projection"), 1, true, ref camera.ProjectionMatrix);
             GL.Uniform1f(GL.GetUniformLocation(LineShader.id, "thickness"), thickness);
-            GL.Uniform2f(GL.GetUniformLocation(LineShader.id, "screenDimensions"), 1, (GlobalValues.WIDTH, GlobalValues.HEIGHT));
+            GL.Uniform2f(GL.GetUniformLocation(LineShader.id, "screenDimensions"), 1, (GlobalValues.Width, GlobalValues.Height));
             GL.Uniform3f(GL.GetUniformLocation(LineShader.id, "pointAPoint"), 1, pointA);
             GL.Uniform3f(GL.GetUniformLocation(LineShader.id, "pointBPoint"), 1, pointB);
 

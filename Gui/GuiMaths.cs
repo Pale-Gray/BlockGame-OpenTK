@@ -12,10 +12,10 @@ namespace Blockgame_OpenTK.Gui
         {
 
             Vector3 relativePosition = absolutePostion;
-            relativePosition.X /= GlobalValues.WIDTH;
+            relativePosition.X /= GlobalValues.Width;
             relativePosition.X *= 2;
             relativePosition.X -= 1;
-            relativePosition.Y /= GlobalValues.HEIGHT;
+            relativePosition.Y /= GlobalValues.Height;
             relativePosition.Y *= 2;
             relativePosition.Y -= 1;
             return relativePosition;
@@ -26,8 +26,8 @@ namespace Blockgame_OpenTK.Gui
         {
 
             Vector3 absolutePosition = relativePosition;
-            absolutePosition.X *= GlobalValues.WIDTH;
-            absolutePosition.Y *= GlobalValues.HEIGHT;
+            absolutePosition.X *= GlobalValues.Width;
+            absolutePosition.Y *= GlobalValues.Height;
 
             return absolutePosition;
 
@@ -36,36 +36,36 @@ namespace Blockgame_OpenTK.Gui
         public static float PixelSizeRelativeToPercentageOfWidth(float percentage)
         {
 
-            return GlobalValues.WIDTH * (percentage / 100);
+            return GlobalValues.Width * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageOfHeight(float percentage)
         {
 
-            return GlobalValues.HEIGHT * (percentage / 100);
+            return GlobalValues.Height * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageMax(float percentage)
         {
 
-            return Math.Max(GlobalValues.HEIGHT, GlobalValues.WIDTH) * (percentage / 100);
+            return Math.Max(GlobalValues.Height, GlobalValues.Width) * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageMin(float percentage)
         {
 
-            return Math.Min(GlobalValues.HEIGHT, GlobalValues.WIDTH) * (percentage / 100);
+            return Math.Min(GlobalValues.Height, GlobalValues.Width) * (percentage / 100);
 
         }
 
         public static float PixelSizeRelativeToPercentageAverage(float percentage)
         {
 
-            float a = GlobalValues.WIDTH * (percentage / 100);
-            float b = GlobalValues.HEIGHT * (percentage / 100);
+            float a = GlobalValues.Width * (percentage / 100);
+            float b = GlobalValues.Height * (percentage / 100);
 
             return (a + b) / 2f;
 
