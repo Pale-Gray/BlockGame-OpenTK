@@ -295,7 +295,7 @@ namespace Blockgame_OpenTK
                 // WorldGenerator.InitThreads();
                 GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
                 // WorldGenerator.StartThreads(World);
-                PackedWorldGenerator.CurrentWorld = new World();
+                PackedWorldGenerator.CurrentWorld = NetworkingValues.Client.World;
                 PackedWorldGenerator.Initialize();
                 
                 GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
@@ -313,17 +313,17 @@ namespace Blockgame_OpenTK
                 foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
 
                 GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
-                TexturePackManager.IterateAvailableTexturePacks();
-                TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
-                foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
-                {
-
-                    Console.WriteLine(texturePack.Value);
-
-                }
+                // TexturePackManager.IterateAvailableTexturePacks();
+                // TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
+                // foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
+                // {
+// 
+                //     Console.WriteLine(texturePack.Value);
+// 
+                // }
 
                 NewProperties prop = new NewProperties();
-                using (DataWriter writer = DataWriter.Open("data.dat"))
+                using (DataWriter writer = DataWriter.OpenFile("data.dat"))
                 {
 
                     prop.ToBytes(writer);
@@ -342,14 +342,17 @@ namespace Blockgame_OpenTK
 
             LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
 
-            GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
-            GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
-            GameLogger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
-            GameLogger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
-            GameLogger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
-            GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
-            GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
-            GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
+            // GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
+            // GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
+            // GameLogger.Log($"Runtime: {RuntimeInformation.FrameworkDescription}", Severity.Info);
+            // GameLogger.Log($"Gpu Vendor: {GL.GetString(StringName.Vendor)}", Severity.Info);
+            // GameLogger.Log($"Gpu Renderer: {GL.GetString(StringName.Renderer)}", Severity.Info);
+            // GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
+            // GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
+            // GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
+
+            TexturePackManager.IterateAvailableTexturePacks();
+            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
 
             if (!Directory.Exists("Chunks"))
             {
@@ -360,6 +363,8 @@ namespace Blockgame_OpenTK
             }
 
             Translator.LoadGameSettings();
+
+            GameLogger.Log("loading blocks");
 
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
@@ -381,6 +386,7 @@ namespace Blockgame_OpenTK
         public static void Render()
         {
 
+
             NetworkingValues.Client.Update();
 
             AudioPlayer.ListenerPosition = Player.Camera.Position;
@@ -400,8 +406,9 @@ namespace Blockgame_OpenTK
             Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0)).Xyz, Player.Camera, (float)GlobalValues.Time);
             GL.Enable(EnableCap.DepthTest);
 
-            PackedWorldGenerator.Tick(Player);
-            PackedWorldGenerator.QueueGeneration();
+            PackedWorldGenerator.Poll();
+            NetworkingValues.Client.World.Draw(Player);
+            // PackedWorldGenerator.QueueGeneration();
 
             string gpuUsage = "err";
             if (GlobalValues.AvailableExtensions.Contains("GL_NVX_gpu_memory_info"))

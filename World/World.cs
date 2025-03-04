@@ -10,6 +10,7 @@ using System.ComponentModel;
 using OpenTK.Graphics.OpenGL;
 using System.Reflection.Metadata;
 using System.Net;
+using Blockgame_OpenTK.PlayerUtil;
 
 namespace Blockgame_OpenTK.Core.Worlds;
 
@@ -20,7 +21,24 @@ public class World
     public ConcurrentDictionary<Vector3i, PackedChunkMesh> PackedWorldMeshes = new();
     public ConcurrentDictionary<Vector2i, uint[]> MaxColumnBlockHeight = new();
     public ConcurrentDictionary<Vector2i, ChunkColumn> WorldColumns = new();
-    
+
+
+    public void Draw(Player player)
+    {
+
+        foreach (ChunkColumn column in WorldColumns.Values)
+        {
+
+            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            {
+
+                column.ChunkMeshes[i].Draw(player);
+
+            }
+
+        }
+
+    }
     public Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(Vector3i chunkPosition)
     {
 

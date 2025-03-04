@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
@@ -9,12 +10,15 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Xml;
 using Blockgame_OpenTK.BlockProperty;
+using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using NVorbis.Contracts;
+using OpenTK.Mathematics;
 using OpenTK.Platform;
 using Tomlet;
 using Tomlet.Attributes;
@@ -49,10 +53,10 @@ public class Server
     public EventBasedNetListener Listener;
     public NetManager NetworkManager;
     public ServerProperties Properties { get; private set; }
-    public World World;
-    public Dictionary<long, Player> ConnectedPlayers = new();
-    public Dictionary<long, NetPeer> ConnectedPlayerPeers = new();
-    public Dictionary<long, PlayerChunkArea> PlayerChunkAreas = new();
+    public World World = new();
+    public Dictionary<int, NewPlayer> ConnectedPlayers = new();
+    
+
     private NetDataWriter _writer = new();
     public Server(bool isMultiplayer = false)
     {
@@ -71,6 +75,10 @@ public class Server
         if (IsMultiplayer)
         {
 
+            PackedWorldGenerator.Initialize();
+            PackedWorldGenerator.CurrentWorld = World;
+            
+
             Properties = TomletMain.To<ServerProperties>(File.ReadAllText("server.toml"));
 
             NetworkManager.IPv6Enabled = false;
@@ -86,7 +94,8 @@ public class Server
                 if (NetworkManager.ConnectedPeersCount >= Properties.MaxPlayers)
                 {
                     _writer.Put((byte)PacketType.DisconnectErrorPacket);
-                    _writer.Put("Maximum players exceeded");
+                    _writer.Put("Maximum players reached.");
+                    GameLogger.Log($"{PacketType.DisconnectErrorPacket}: Maximum players reached.");
                     request.Reject(_writer);
                     _writer.Reset();
                 } else
@@ -110,7 +119,8 @@ public class Server
             Listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>
             {
 
-                GameLogger.Log($"A client has disconnected");
+                GameLogger.Log($"Player with uid {ConnectedPlayers[peer.Id].UserId} and netpeer id {peer.Id} has disconnected.");
+                ConnectedPlayers.Remove(peer.Id);
 
             };
 
@@ -118,39 +128,37 @@ public class Server
             {
 
                 PacketType packetType = (PacketType)dataReader.GetByte();
+                IPacket packet;
 
                 switch (packetType)
                 {
                     case PacketType.SendPlayerUniqueIdPacket:
                         long uid = dataReader.GetLong();
-                        GameLogger.Log($"Player with uid {uid} is trying to join");
-                        if (ConnectedPlayers.ContainsKey(uid))
+                        GameLogger.Log($"Player with uid {uid} and netpeer id {fromPeer.Id} is trying to join");
+                        
+                        if (ConnectedPlayers.Where(player => player.Value.UserId == uid).Count() != 0)
                         {
+                            // disconnect
                             _writer.Put((byte)PacketType.DisconnectErrorPacket);
-                            _writer.Put("The uid already exists on the server.");
-                            GameLogger.Log($"{PacketType.DisconnectErrorPacket}: The uid already exists on the server");
-                            fromPeer.Disconnect(_writer);
+                            _writer.Put($"A player with the uid {uid} already exists.");
+                            GameLogger.Log($"{PacketType.DisconnectErrorPacket}: A player with the uid {uid} already exists.");
+                            fromPeer.Send(_writer, DeliveryMethod.ReliableOrdered);
                             _writer.Reset();
-                        } else 
+                        } else
                         {
-                            GameLogger.Log($"The player with uid {uid} would be considered joined.");
-                            ConnectedPlayers.Add(uid, new Player() { UserId = uid });
-                            ConnectedPlayerPeers.Add(uid, fromPeer);
+                            // accept
+                            ConnectedPlayers.Add(fromPeer.Id, new NewPlayer() { NetPeerId = fromPeer.Id, UserId = uid, DisplayName = "null", Position = (0, 0, 0) });
+                            ConnectedPlayers[fromPeer.Id].ResolveAreaDifference((0, 0));
+                            GameLogger.Log($"A player with the uid {uid} has successfully joined the game.");
+                            packet = new ConnectSuccessPacket();
+                            packet.Serialize(_writer);
+                            fromPeer.Send(_writer, DeliveryMethod.ReliableOrdered);
+                            _writer.Reset();
                         }
                         break;
                     case PacketType.BlockPlacePacket:
-                        ushort blockId = dataReader.GetUShort();
-                        int x = dataReader.GetInt();
-                        int y = dataReader.GetInt();
-                        int z = dataReader.GetInt();
-                        GlobalValues.NewRegister.GetBlockFromId(blockId).OnBlockPlace(World, (x,y,z));
-
-                        _writer.Put((byte)PacketType.BlockPlacePacket);
-                        _writer.Put(blockId);
-                        _writer.Put(x);
-                        _writer.Put(y);
-                        _writer.Put(z);
-                        NetworkManager.SendToAll(_writer, DeliveryMethod.ReliableOrdered, fromPeer);
+                        packet = new BlockPlacePacket();
+                        packet.Deserialize(dataReader);
                         break;
 
                 }
@@ -162,7 +170,33 @@ public class Server
         } else
         {
 
+            
 
+        }
+
+    }   
+
+    public void SendChunk(Vector2i chunkPosition)
+    {
+
+        foreach (NewPlayer player in ConnectedPlayers.Values)
+        {
+
+            Vector2i position = ChunkUtils.PositionToChunk(player.Position).Xz;
+            // Console.WriteLine(position);
+            if (Maths.ChebyshevDistance2D(position, chunkPosition) <= PackedWorldGenerator.WorldGenerationRadius)
+            {
+                
+                // ColumnSerializer.SerializeColumn(World.WorldColumns[chunkPosition]);
+
+                ChunkSendPacket packet = new ChunkSendPacket();
+                packet.Position = chunkPosition;
+                packet.Data = ColumnSerializer.SerializeColumnToBytes(World.WorldColumns[chunkPosition]);
+                packet.Serialize(_writer);
+                NetworkManager.GetPeerById(player.NetPeerId).Send(_writer, DeliveryMethod.ReliableOrdered);
+                _writer.Reset();
+
+            }
 
         }
 
@@ -175,13 +209,9 @@ public class Server
         {
 
             NetworkManager.PollEvents();
+            PackedWorldGenerator.Poll();
 
-            foreach (Player player in ConnectedPlayers.Values)
-            {
 
-                
-
-            }
 
         } else
         {

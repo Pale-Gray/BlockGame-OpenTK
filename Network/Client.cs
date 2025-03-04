@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml.Linq;
+using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
 using LiteNetLib;
+using LiteNetLib.Layers;
 using LiteNetLib.Utils;
 
 namespace Blockgame_OpenTK.Core.Networking;
@@ -14,7 +17,7 @@ public class Client
     public bool IsMultiplayer { get; private set; }
     public EventBasedNetListener Listener;
     public NetManager NetworkManager;
-    public World World;
+    public World World = new();
 
     public Client(bool isMultiplayer = false)
     {
@@ -38,11 +41,13 @@ public class Client
         IsMultiplayer = true;
         NetworkManager.Start();
         NetworkManager.Connect(address, port, "BlockGame");
+        // PackedWorldGenerator.Initialize();
 
         Listener.NetworkReceiveEvent += (fromPeer, dataReader, deliveryMethod, channel) =>
         {
 
-            PacketType packetType = (PacketType)dataReader.GetByte();
+            PacketType packetType = (PacketType)dataReader.GetUShort();
+            IPacket packet;
 
             Console.WriteLine(packetType);
 
@@ -56,11 +61,27 @@ public class Client
                     fromPeer.Send(writer, DeliveryMethod.ReliableOrdered);
                     break;
                 case PacketType.BlockPlacePacket:
-                    ushort blockId = dataReader.GetUShort();
-                    int x = dataReader.GetInt();
-                    int y = dataReader.GetInt();
-                    int z = dataReader.GetInt();
-                    GlobalValues.NewRegister.GetBlockFromId(blockId).OnBlockPlace(World, (x,y,z));
+                    packet = new BlockPlacePacket();
+                    packet.Deserialize(dataReader);
+                    GlobalValues.NewRegister.GetBlockFromId(((BlockPlacePacket)packet).BlockId).OnBlockPlace(World, ((BlockPlacePacket)packet).BlockPosition);
+                    break;
+                case PacketType.ChunkSendPacket:
+                    packet = new ChunkSendPacket();
+                    packet.Deserialize(dataReader);
+                    // GameLogger.Log($"Received a {PacketType.ChunkSendPacket} at chunk position {((ChunkSendPacket)packet).Position}");
+                    // GameLogger.Log("need to add a chunk");
+                    bool added = World.WorldColumns.TryAdd(((ChunkSendPacket)packet).Position, new ChunkColumn(((ChunkSendPacket)packet).Position) { QueueType = ColumnQueueType.Mesh } );
+                    ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[((ChunkSendPacket)packet).Position], ((ChunkSendPacket)packet).Data);
+                    for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+                    {
+                        World.WorldColumns[((ChunkSendPacket)packet).Position].Chunks[i].HasUpdates = true;
+                    }
+                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(((ChunkSendPacket)packet).Position);
+                    break;
+                case PacketType.ChunkRemovePacket:
+                    packet = new ChunkRemovePacket();
+                    packet.Deserialize(dataReader);
+                    NetworkingValues.Client.World.WorldColumns.Remove(((ChunkRemovePacket)packet).ChunkPosition, out _);
                     break;
 
             }

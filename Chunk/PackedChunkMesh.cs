@@ -136,6 +136,9 @@ public class PackedChunkMesh
             GL.BindVertexArray(Vao);
             GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
             
+        } else
+        { 
+
         }
         
     }

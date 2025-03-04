@@ -16,7 +16,16 @@ public class DataReader : IDisposable
 
     private Stream _stream;
 
-    public static DataReader Open(string path)
+    public DataReader(byte[] data)
+    {
+
+        _stream = new MemoryStream(data);
+
+    }
+
+    public DataReader() {}
+
+    public static DataReader OpenFile(string path)
     {
 
         GameLogger.Log($"Opened a file for reading to at {path}");

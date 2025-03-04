@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 
@@ -14,7 +15,16 @@ public class DataWriter : IDisposable
 
     private Stream _stream;
 
-    public static DataWriter Open(string path)
+    public byte[] GetUnderlyingBytes() => ((MemoryStream)_stream).ToArray();
+
+    public DataWriter()
+    {
+
+        _stream = new MemoryStream(); 
+
+    }
+
+    public static DataWriter OpenFile(string path)
     {
 
         GameLogger.Log($"Opened a file for writing to at {path}");

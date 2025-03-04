@@ -17,6 +17,8 @@ public class ColumnBuilder
     public static void GeneratePassOne(ChunkColumn column)
     {
 
+        Console.WriteLine("generating chunk column");
+
         for (int chunkY = PackedWorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
         {
 

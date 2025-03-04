@@ -56,7 +56,14 @@ public class PackedWorldGenerator
         if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
         {
 
-            ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
+            if (NetworkingValues.Server != null)
+            {
+                NetworkingValues.Server.SendChunk(columnPosition);
+            } else
+            {
+                // Console.WriteLine("uploading");
+                ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
+            }
 
         }
 
@@ -113,7 +120,10 @@ public class PackedWorldGenerator
         {
             for (int z = -1; z <= 1; z++)
             {
-                if ((x,z) != Vector2i.Zero) if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
+                if ((x,z) != Vector2i.Zero) 
+                {
+                    if (!CurrentWorld.WorldColumns.ContainsKey(position + (x,z))) return false;
+                } else if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
             }
         }
         return true;
@@ -159,22 +169,22 @@ public class PackedWorldGenerator
         
     }
 
-    public static void Tick(Player player)
+    public static void Poll()
     {
 
         if (ColumnWorldGenerationQueue.Count > 0)
         {
 
-            for (int i = 0; i < (ColumnWorldGenerationQueue.Count > _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : ColumnWorldGenerationQueue.Count); i++) {
+            for (int i = 0; i < (ColumnWorldGenerationQueue.Count >= _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : ColumnWorldGenerationQueue.Count); i++) {
                 _chunkGenerationAutoResetEvents.ElementAt(i).Value.Set();
             }
-
             
         }
        
         HandleUploadQueue();
         
         // foreach (PackedChunkMesh m in CurrentWorld.PackedWorldMeshes.Values) m.Draw(player);
+        /*
         foreach (ChunkColumn column in CurrentWorld.WorldColumns.Values)
         {
 
@@ -186,6 +196,7 @@ public class PackedWorldGenerator
             }
 
         }
+        */
 
     }
 

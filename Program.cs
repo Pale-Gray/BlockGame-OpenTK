@@ -189,7 +189,8 @@ namespace Blockgame_OpenTK
             if (NetworkingValues.Server != null)
             {
 
-                // BlockGame.Load();
+                Console.WriteLine("loading blockgame necesary stuf");
+                BlockGame.Load(true);
 
                 GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
 
