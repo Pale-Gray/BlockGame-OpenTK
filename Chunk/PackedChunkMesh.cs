@@ -83,6 +83,24 @@ public struct PackedChunkVertex
     
 }
 
+public struct ChunkVertex
+{
+
+    public Vector3 Position;
+    public Vector3 Normal;
+    public Vector2 TextureCoordinate;
+
+    public ChunkVertex(Vector3 position, Vector3 normal, Vector2 texCoord)
+    {
+
+        Position = position;
+        Normal = normal;
+        TextureCoordinate = texCoord;
+
+    }
+
+}
+
 public class PackedChunkMesh
 {
 

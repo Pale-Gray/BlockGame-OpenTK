@@ -20,6 +20,7 @@ using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Core.Language;
 using Blockgame_OpenTK.Core.Gui;
 using System.Drawing;
+using Blockgame_OpenTK.Core.Networking;
 
 namespace Blockgame_OpenTK
 {
@@ -154,8 +155,6 @@ namespace Blockgame_OpenTK
         static Vector2 lmpos = new Vector2(0.0f, 0.0f);
 
         public static Model rmodel;
-        // Chunk chunk;
-        static Camera camera;
 
         static Model xyz_display;
         static Model hitdisplay;
@@ -220,45 +219,128 @@ namespace Blockgame_OpenTK
 
         }
 
-        private static bool _toggle = false;
-        public static void Load()
+        public static void LoadResources()
         {
 
-            int extensionCount = GL.GetInteger(GetPName.NumExtensions);
-            List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];
-            for (int i = 0; i < extensionCount; i++)
-            {
-                string extension = GL.GetStringi(StringName.Extensions, (uint)i);
-                if (requestedExtensions.Contains(extension)) GlobalValues.AvailableExtensions.Add(extension);
-            }   
-            Console.WriteLine("Requested extensions");
-            foreach (string requestedExtension in requestedExtensions) Console.WriteLine($"\t{requestedExtension}");
-            Console.WriteLine("Supported extensions");
-            foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
+            Translator.LoadGameSettings();
+            GlobalValues.Base.OnLoad(GlobalValues.NewRegister);
 
-            GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
-            TexturePackManager.IterateAvailableTexturePacks();
-            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
-            foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
+        }
+        
+        public static void Load(bool isServer)
+        {
+
+            if (!isServer)
             {
 
-                Console.WriteLine(texturePack.Value);
+                int major = GL.GetInteger(GetPName.MajorVersion);
+                int minor = GL.GetInteger(GetPName.MinorVersion);
 
-            }
+                TextRenderer.InitTextRenderer();
+                Translator.LoadKeymap();
 
-            NewProperties prop = new NewProperties();
-            using (DataWriter writer = DataWriter.Open("data.dat"))
-            {
+                GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
+                GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
+                GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
+                GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
+                GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
 
-                prop.ToBytes(writer);
+                // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
+                rmodel = new Model(verts, Path.Combine("Resources", "Textures", "hitbox.png"), "hitbox.vert", "hitbox.frag");
+                hitdisplay = new Model(verts, Path.Combine("Resources", "Textures", "debug.png"), "model.vert", "model.frag");
+                xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
+
+                boundmodel = new NakedModel(boundingbox.triangles);
+
+                Skybox = new Model(verts, Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"), "model.vert", "model.frag");
+
+                xyz_display.SetScale(0.25f, 0.25f, 0.25f);
+
+                GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+                GL.Enable(EnableCap.DepthTest);
+                GL.DepthFunc(DepthFunction.Less);
+                GL.Enable(EnableCap.CullFace);
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.Enable(EnableCap.PolygonOffsetFill);
+
+                Texture t = new Texture(Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"));
+
+                frameBuffer = new Framebuffer();
+                framebufferQuad = new FramebufferQuad();
+
+                Player = new Player();
+                Player.SetHeight(1.8f);
+                Player.SetPosition((0, 68, 0));
+
+                FontFamily font = new FontFamily();
+                font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
+                CachedFontRenderer.FontFamily = font;
+                
+                e = new Model(v, null, "billboard.vert", "billboard.frag");
+
+                // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
+
+                GuiTextbox box = new GuiTextbox();
+                box.AbsoluteDimensions = (500, 400);
+                box.Origin = (0.5f, 0.5f);
+                box.RelativePosition = (0.5f, 0.5f);
+                // box.IsVisible = true;
+                box.Text = "";
+                box.Color = Color4.White;
+
+                // WorldGenerator.InitThreads();
+                GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
+                // WorldGenerator.StartThreads(World);
+                PackedWorldGenerator.CurrentWorld = new World();
+                PackedWorldGenerator.Initialize();
+                
+                GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
+
+                int extensionCount = GL.GetInteger(GetPName.NumExtensions);
+                List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];
+                for (int i = 0; i < extensionCount; i++)
+                {
+                    string extension = GL.GetStringi(StringName.Extensions, (uint)i);
+                    if (requestedExtensions.Contains(extension)) GlobalValues.AvailableExtensions.Add(extension);
+                }   
+                Console.WriteLine("Requested extensions");
+                foreach (string requestedExtension in requestedExtensions) Console.WriteLine($"\t{requestedExtension}");
+                Console.WriteLine("Supported extensions");
+                foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
+
+                GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
+                TexturePackManager.IterateAvailableTexturePacks();
+                TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
+                foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
+                {
+
+                    Console.WriteLine(texturePack.Value);
+
+                }
+
+                NewProperties prop = new NewProperties();
+                using (DataWriter writer = DataWriter.Open("data.dat"))
+                {
+
+                    prop.ToBytes(writer);
+
+                }
+
+                GLDebugProc debugMessageDel = OnDebugMessage;
+                GuiRendere.Init();
+                AudioPlayer.Initialize();
+
+                CachedFontRenderer.Init();
+                GuiRenderer.Initialize();
+                FontRenderer.Initialize();
 
             }
 
             LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
-
-            GLDebugProc debugMessageDel = OnDebugMessage;
-            GuiRendere.Init();
-            AudioPlayer.Initialize();
 
             GameLogger.Log($"Platform: {RuntimeInformation.OSDescription}", Severity.Info);
             GameLogger.Log($"Architecture: {RuntimeInformation.OSArchitecture.ToString().ToLower()}", Severity.Info);
@@ -278,89 +360,7 @@ namespace Blockgame_OpenTK
             }
 
             Translator.LoadGameSettings();
-            Input.Initialize();
-            CachedFontRenderer.Init();
 
-            int major = GL.GetInteger(GetPName.MajorVersion);
-            int minor = GL.GetInteger(GetPName.MinorVersion);
-
-            TextRenderer.InitTextRenderer();
-            Translator.LoadKeymap();
-
-            GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
-            GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
-            GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
-            GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
-            GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
-
-            // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
-            rmodel = new Model(verts, Path.Combine("Resources", "Textures", "hitbox.png"), "hitbox.vert", "hitbox.frag");
-            hitdisplay = new Model(verts, Path.Combine("Resources", "Textures", "debug.png"), "model.vert", "model.frag");
-            xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
-
-            boundmodel = new NakedModel(boundingbox.triangles);
-
-            Skybox = new Model(verts, Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"), "model.vert", "model.frag");
-
-            xyz_display.SetScale(0.25f, 0.25f, 0.25f);
-
-            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
-            GL.Enable(EnableCap.CullFace);
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.Enable(EnableCap.PolygonOffsetFill);
-
-            Texture t = new Texture(Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"));
-
-            frameBuffer = new Framebuffer();
-            framebufferQuad = new FramebufferQuad();
-
-            Player = new Player();
-            Player.SetHeight(1.8f);
-            Player.SetPosition((0, 68, 0));
-
-
-            FontFamily font = new FontFamily();
-            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
-            CachedFontRenderer.FontFamily = font;
-            
-            e = new Model(v, null, "billboard.vert", "billboard.frag");
-
-            // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
-
-            GuiTextbox box = new GuiTextbox();
-            box.AbsoluteDimensions = (500, 400);
-            box.Origin = (0.5f, 0.5f);
-            box.RelativePosition = (0.5f, 0.5f);
-            // box.IsVisible = true;
-            box.Text = "";
-            box.Color = Color4.White;
-
-            // WorldGenerator.InitThreads();
-            GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
-            // WorldGenerator.StartThreads(World);
-            PackedWorldGenerator.CurrentWorld = new PackedChunkWorld();
-            PackedWorldGenerator.Initialize();
-            
-            GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
-            
-            NewBlock block = new NewBlock();
-            Cube cube = new Cube();
-            cube.Start = (0, 0, 0);
-            cube.End = (32, 32, 32);
-            cube.TopTextureName = "GrassBlockTop";
-            cube.BottomTextureName = "GrassBlockTop";
-            cube.RightTextureName = "GrassBlockTop";
-            cube.LeftTextureName = "GrassBlockTop";
-            cube.FrontTextureName = "GrassBlockTop";
-            cube.BackTextureName = "GrassBlockTop";
-            NewBlockModel blockModel = NewBlockModel.FromCubes([ cube ]);
-            block.BlockModel = NewBlockModel.FromToml("grass_block.toml");
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
@@ -375,26 +375,17 @@ namespace Blockgame_OpenTK
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
             GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LeafBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
 
-            Core.Gui.GuiRenderer.Initialize();
-            FontRenderer.Initialize();
 
         }
 
         public static void Render()
         {
 
-            Stopwatch sw = Stopwatch.StartNew();
+            NetworkingValues.Client.Update();
+
             AudioPlayer.ListenerPosition = Player.Camera.Position;
             AudioPlayer.SetOrientation(Player.Camera.ForwardVector, Player.Camera.UpVector);
 
-            double frames = 60.0;
-            if (TickTime >= 1 / frames)
-            {
-
-                TickTime -= 1 / frames;
-                
-
-            }
             Player.Update(PackedWorldGenerator.CurrentWorld);
             TickTime += GlobalValues.DeltaTime;
 
@@ -407,96 +398,7 @@ namespace Blockgame_OpenTK
 
             GL.Disable(EnableCap.DepthTest);
             Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0)).Xyz, Player.Camera, (float)GlobalValues.Time);
-
-            // GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
-
-            if (Input.IsKeyDown(Key.LeftControl))
-            {
-
-                if (Input.IsKeyPressed(Key.R))
-                {
-
-                    // Input.CheckForController(0);
-                    // GlobalValues.Toggle = !GlobalValues.Toggle;
-                    CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "JetBrainsMono-Bold.ttf");
-
-                }
-
-                if (Input.IsKeyPressed(Key.S))
-                {
-
-                    
-
-                }
-
-                if (Input.IsKeyPressed(Key.W))
-                {
-
-
-
-                }
-
-                if (Input.IsKeyPressed(Key.C))
-                {
-
-                    PackedWorldGenerator.CurrentWorld.PackedWorldChunks[ChunkUtils.PositionToChunk(Player.Camera.Position)].QueueType = PackedChunkQueueType.PassOne;
-
-                }
-
-                if (Input.IsKeyPressed(Key.F))
-                {
-
-                    Console.WriteLine("Toggling fog");
-                    GlobalValues.ShouldRenderFog = !GlobalValues.ShouldRenderFog;
-
-                }
-
-                if (Input.IsKeyPressed(Key.B))
-                {
-
-                    Console.WriteLine("Toggling chunk bounds");
-                    GlobalValues.ShouldRenderBounds = !GlobalValues.ShouldRenderBounds;
-
-                }
-
-                if (Input.IsKeyPressed(Key.M))
-                {
-
-                    GlobalValues.ShouldRenderWireframe = !GlobalValues.ShouldRenderWireframe;
-
-                }
-
-                if (Input.IsKeyPressed(Key.O))
-                {
-
-                    // Console.WriteLine("Toggling AO");
-                    // GlobalValues.RenderAmbientOcclusion = !GlobalValues.RenderAmbientOcclusion;
-                    ColumnSerializer.SerializeColumn(PackedWorldGenerator.CurrentWorld.WorldColumns[ChunkUtils.PositionToChunk(Player.Position).Xz]);
-
-                }
-
-                if (Input.IsKeyPressed(Key.P))
-                {
-
-                    Vector2i columnPos = ChunkUtils.PositionToChunk(Player.Position).Xz;
-
-                    ColumnSerializer.DeserializeColumn(PackedWorldGenerator.CurrentWorld.WorldColumns[columnPos]);
-                    PackedWorldGenerator.CurrentWorld.WorldColumns[columnPos].QueueType = ColumnQueueType.Mesh;
-                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst(columnPos);
-
-                }
-
-                if (Input.IsKeyPressed(Key.F1))
-                {
-
-                    GlobalValues.ShouldHideHud = !GlobalValues.ShouldHideHud;
-
-                }
-
-                GlobalValues.FogOffset = Math.Clamp(GlobalValues.FogOffset, 0, 1);
-
-            }
 
             PackedWorldGenerator.Tick(Player);
             PackedWorldGenerator.QueueGeneration();
@@ -506,11 +408,6 @@ namespace Blockgame_OpenTK
             {
                 gpuUsage = Math.Round((GL.GetInteger((GetPName)All.GpuMemoryInfoDedicatedVidmemNvx) - GL.GetInteger((GetPName)All.GpuMemoryInfoCurrentAvailableVidmemNvx)) / 1024.0 / 1024.0, 2).ToString();
             }
-            
-            CachedFontRenderer.RenderFont(out var _, (40, 40), (0, 0), 0, 24, $"{Math.Floor(Player.Position.X)}, {Math.Floor(Player.Position.Y)}, {Math.Floor(Player.Position.Z)}", Color4.Black);
-            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50), (0, 0), 0, 24, $"{ChunkUtils.PositionToChunk(Player.Position)}", Color4.Black);
-            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50), (0, 0), 0, 24, $"Usage (GB): {Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0 / 1024.0, 2)}", Color4.White);
-            CachedFontRenderer.RenderFont(out var _, (40, 40 + 50 + 50 + 50), (0, 0), 0, 24, $"GPU Usage (GB): {gpuUsage}", Color4.White);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -523,51 +420,6 @@ namespace Blockgame_OpenTK
 
             Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.WorldColumns, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
 
-            if (debug)
-            {
-
-                GL.Disable(EnableCap.CullFace);
-                GL.Disable(EnableCap.DepthTest);
-
-                GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-                xyz_display.Draw(Player.Camera.Position + (Player.Camera.ForwardVector * 5), Vector3.Zero, Player.Camera, (float)time);
-                GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-                GL.Enable(EnableCap.CullFace);
-                GL.Enable(EnableCap.DepthTest);
-
-            }
-
-            // TextRenderer.RenderText((4, 4, -100), TextRenderer.TopLeft, (1, 1, 1), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
-            // TextRenderer.RenderText((10, 10, -900), TextRenderer.TopLeft, (1,0,0), 18, $"{GlobalValues.Phase} {GlobalValues.Version}");
-
-            if (Input.IsKeyPressed(Key.DownArrow)) GlobalValues.BlockSelectorID--;
-            if (Input.IsKeyPressed(Key.UpArrow)) GlobalValues.BlockSelectorID++;
-            if (Input.IsJoystickButtonPressed(JoystickButton.RightShoulder)) GlobalValues.BlockSelectorID++;
-            if (Input.IsJoystickButtonPressed(JoystickButton.LeftShoulder)) GlobalValues.BlockSelectorID--;
-            GlobalValues.BlockSelectorID = (ushort)((int)GlobalValues.BlockSelectorID + Input.ScrollDelta.Y);
-            if (GlobalValues.BlockSelectorID > GlobalValues.NewRegister.BlockCount - 1) GlobalValues.BlockSelectorID = (ushort) 1;
-            if (GlobalValues.BlockSelectorID <= 0) GlobalValues.BlockSelectorID = (ushort) (GlobalValues.NewRegister.BlockCount - 1);
-            CachedFontRenderer.RenderFont(out (Vector2, float, float) c, GuiMath.RelativeToAbsolute(0.5f, 0.8f), (0.5f, 0), 100, 48, $"Currently holding ![w,5,2,5,2,0.25]![g,{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).DisplayName.Length},0x8004d9FF,0x533c63FF]{GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).DisplayName}");
-            // GL.Enable(EnableCap.DepthTest);
-            // GL.Disable(EnableCap.DepthTest);
-            // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).GuiRenderableBlockModel.Draw(GuiMaths.RelativeToAbsolute((1.0f, 0.5f, 0.0f)) - (50, 0, 50), 40, (float)GlobalValues.Time);
-            // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48.0f + (float)(30.0 * Math.Sin(GlobalValues.Time)), "", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Darkred);
-            // CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f), 0, 48, "Hello World!", Path.Combine("Resources", "Fonts", "NotoSansJP-Regular.ttf"), Color3.Black);
-            // GL.Disable(EnableCap.ScissorTest);
-            // GL.Enable(EnableCap.DepthTest);
-
-            if (Dda.hit && !GlobalValues.ShouldHideHud)
-            {
-
-                GL.Disable(EnableCap.CullFace);
-                GL.PolygonOffset(-1, 1);
-                rmodel.SetScale(1, 1, 1);
-                rmodel.Draw(Dda.PositionAtHit + new Vector3(0.5f, 0.5f, 0.5f), (0, 0, 0), Player.Camera, (float) GlobalValues.Time);
-                GL.PolygonOffset(1, 1);
-                GL.Enable(EnableCap.CullFace);
-
-            }
-
             frameBuffer.Unbind();
 
             framebufferQuad.Draw(frameBuffer, (float)time);
@@ -578,49 +430,21 @@ namespace Blockgame_OpenTK
             GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
             GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
             GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
-            /*
-            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (100, 50), (0.5f, 0.5f), "Play", Color4.Red))
-            {
-                Console.WriteLine("I was clicked!");
-            }
-            */
-            if (GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.5f), new Vector2i(200, 24), (0.5f, 0.5f), out string text, Color4.White))
+            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
+            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
+            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
             {
 
-                if (text.Length != 0) Console.WriteLine($"The text inputted: {text}");
+                string[] network = addressString.Split(':');
+
+                NetworkingValues.Client.JoinWorld(network[0], int.Parse(network[1]), long.Parse(userIdString));
 
             }
             GuiRenderer.End();
 
-            // Console.WriteLine(_toggle);
-
-            // FontRenderer.Text(GuiMath.RelativeToAbsolute(0.5f, 0.9f), Vector2.Zero, 24, Color4.Black, 
-            // """
-            // Hello World
-            //     This is a TAB
-            //     and more tabs...
-            // No more tabs!
-            // English with 日本語
-            // How does it look with
-            // English characters?
-            // """);
-
-            if (Input.IsKeyPressed(Key.H)) FontRenderer.ClearCache();
+            // if (Input.IsKeyPressed(Key.H)) FontRenderer.ClearCache();
 
             AudioPlayer.Poll();
-
-            /*CachedFontRenderer.RenderFont(GuiMath.RelativeToAbsolute(0.5f, 0.5f) - (0, 80), (0.5f, 0.5f), 1, 24, """
-                This is
-                A raw string literal.
-                Which means I don't have to 
-                ![i]worry about adding any newline![d]
-                ![g,20,0xFFFFFFFF,0xAA00FFFF]![w,0,0,2,4,0.5]This!! is a gradient![d]
-                characters!!
-                    This is a tab
-                """);
-            */
-            // GL.Disable(EnableCap.DepthTest);
-            // GL.Enable(EnableCap.ScissorTest);
 
         }
 

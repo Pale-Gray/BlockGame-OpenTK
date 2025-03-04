@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Text;
-using System.Threading;
 using OpenTK.Platform;
 using OpenTK.Graphics;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Core.Worlds;
 using Tomlet;
 using Tomlet.Models;
-using GameLogger = Blockgame_OpenTK.Util.GameLogger;
-using Direction = Blockgame_OpenTK.BlockUtil.Direction;
+using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Networking;
-using System.Net;
-using Blockgame_OpenTK.Core.Serialization;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using Blockgame_OpenTK.Core.Chunks;
+using System.Net;
+using System.IO.Pipes;
+using System.Threading;
 
 namespace Blockgame_OpenTK
 {
@@ -60,17 +57,17 @@ namespace Blockgame_OpenTK
                 {
                     switch (direction)
                     {
-                        case Direction.Top:
+                        case BlockUtil.Direction.Top:
                             return new TomlString("top");
-                        case Direction.Bottom:
+                        case BlockUtil.Direction.Bottom:
                             return new TomlString("bottom");
-                        case Direction.Left:
+                        case BlockUtil.Direction.Left:
                             return new TomlString("left");
-                        case Direction.Right:
+                        case BlockUtil.Direction.Right:
                             return new TomlString("right");
-                        case Direction.Front:
+                        case BlockUtil.Direction.Front:
                             return new TomlString("front");
-                        case Direction.Back:
+                        case BlockUtil.Direction.Back:
                             return new TomlString("back");
                         default:
                             return new TomlString("none");
@@ -80,43 +77,32 @@ namespace Blockgame_OpenTK
                 value =>
                 {
 
-                    if (value is not TomlString) return Direction.None;
+                    if (value is not TomlString) return BlockUtil.Direction.None;
                     switch (((TomlString)value).Value)
                     {
                         case "top":
-                            return Direction.Top;
+                            return BlockUtil.Direction.Top;
                         case "bottom":
-                            return Direction.Bottom;
+                            return BlockUtil.Direction.Bottom;
                         case "left":
-                            return Direction.Left;
+                            return BlockUtil.Direction.Left;
                         case "right":
-                            return Direction.Right;
+                            return BlockUtil.Direction.Right;
                         case "front":
-                            return Direction.Front;
+                            return BlockUtil.Direction.Front;
                         case "back":
-                            return Direction.Back;
+                            return BlockUtil.Direction.Back;
                         default:
-                            return Direction.None;
+                            return BlockUtil.Direction.None;
                     }
 
-                }
-            );
-
-            TomletMain.RegisterMapper(
-                address =>
-                {
-                    return new TomlString("");
-                },
-
-                value =>
-                {
-                    return IPAddress.Parse(((TomlString)value).Value);
                 }
             );
 
             if (args.Length == 0)
             {
                 GameLogger.Log("Starting in client mode");
+                NetworkingValues.Client = new Client();
             } else
             {
                 if (args.Length >= 1)
@@ -124,33 +110,23 @@ namespace Blockgame_OpenTK
                     if (args[0].ToLower() == "server")
                     {
                         GameLogger.Log("Starting in server mode.");
-                        NetworkingConstants.Server = new Server(true);
-                        NetworkingConstants.Server.Start();
+                        // GlobalValues.Server = new Server(true);
+                        NetworkingValues.Server = new Server(true);
+                        NetworkingValues.Server.Start();
                     } else if (args[0].ToLower() == "client")
                     {
                         GameLogger.Log("Starting in client mode.");
+                        NetworkingValues.Client = new Client();
                     } else
                     {
                         GameLogger.Log("There were no valid arguments, so starting in client mode.");
+                        NetworkingValues.Client = new Client();
                     }
                 }
             }
 
-            // Compression.RleCompress<uint, uint>([0,1,2,3,4,5,6,6,7]);
-
-            AspenTreeBlockProperties prop = new AspenTreeBlockProperties();
-            IBlockProperties prop2 = prop;
-            // prop2.ToBytes();
-
-            NewProperties prop3 = new NewProperties();
-            IBlockProperties prop4 = prop3;
-            // prop4.ToBytes();
-
-            IBlockProperties[] props = new IBlockProperties[50];
-
-            IBlockProperties propser = null;
-
-            Console.WriteLine(propser is null);
+            // NetworkingValues.Client = new Client(false);
+            // GlobalValues.Client = new Client(true);
 
             // account stuff
             /* 
@@ -191,11 +167,11 @@ namespace Blockgame_OpenTK
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            ThreadPool.SetMaxThreads(8, 8);
+            // ThreadPool.SetMaxThreads(8, 8);
             
             ToolkitOptions toolkitOptions = new ToolkitOptions();
             toolkitOptions.ApplicationName = "Game";
-            toolkitOptions.Logger = null;//new ConsoleLogger();
+            toolkitOptions.Logger = null;
             Toolkit.Init(toolkitOptions);
 
             OpenGLGraphicsApiHints contextSettings = new OpenGLGraphicsApiHints()
@@ -209,221 +185,186 @@ namespace Blockgame_OpenTK
 
             };
 
-            WindowHandle window = Toolkit.Window.Create(contextSettings);
-            _glContext = Toolkit.OpenGL.CreateFromWindow(window);
-
-            Toolkit.OpenGL.SetCurrentContext(_glContext);
-            GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(_glContext));
-
-            BlockGame.Load();
-
-            EventQueue.EventRaised += EventRaised;
-
-            Toolkit.Window.SetTitle(window, "Game");
-            Toolkit.Window.SetSize(window, (640, 480));
-            Toolkit.Window.SetMode(window, WindowMode.Normal);
-            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-            GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion.ToString()}", Severity.Info);
-            CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
-
-            ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
-            IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
-            Toolkit.Window.SetIcon(window, handle);
-            
-            ReadOnlySpan<byte> hd = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
-            CursorHandle c1 = Toolkit.Cursor.Create(1, 1, hd, 0, 0);
-            Toolkit.Window.SetCursor(window, c1);
-
-            Toolkit.Mouse.GetPosition(window, out Vector2 position);
-            Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
-            Input.PreviousMouseScroll = state.Scroll;
-            Input.PreviousMousePosition = position;
-
-            // Toolkit.Joystick.Initialize(toolkitOptions);
-            // Input.CheckForController(0);
-
-            GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
-            double secondValue = 0;
-            double frameTimeOverOneSecond = 0;
-            double numTicks = 0;
-
-            Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
-            Input.PreviousMousePosition = mousePosition;
-
-            while (GlobalValues.IsRunning)
+            // Server existant means this is a server!
+            if (NetworkingValues.Server != null)
             {
-                
-                Toolkit.Mouse.GetPosition(window, out mousePosition);
-                Input.MouseDelta = Input.PreviousMousePosition - mousePosition;
-                Input.PreviousMousePosition = mousePosition;
-                if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
-                {
-                    Input.MousePosition = (GlobalValues.Width / 2, GlobalValues.Height / 2);
-                } else
-                {
-                    Input.MousePosition = mousePosition;
-                }
 
-                if (Input.IsKeyDown(Key.LeftControl))
-                {
-
-                    if (Input.IsKeyPressed(Key.V))
-                    {
-
-                        string text = Toolkit.Clipboard.GetClipboardText() ?? string.Empty;
-                        text = text.Replace(Environment.NewLine, "\r").Replace("\r", "\n");
-                        Input.CurrentTypedChars.AddRange(text);
-
-                    }
-                    
-                }
-                
-                // Toolkit.Mouse.GetPosition(window, out Vector2 currentPosition);
-                // Input.MouseDelta = position - Input.PreviousMousePosition;
-                // position = Input.PreviousMousePosition;
-                // Input.PreviousMousePosition = currentPosition;
-                // Input.MousePosition = currentPosition;
-                
-                if (secondValue >= 1.0)
-                {
-
-                    GlobalValues.AverageFps = (int) Math.Truncate(((frameTimeOverOneSecond / numTicks) * 60) * 100);
-                    secondValue--;
-                    frameTimeOverOneSecond = 0;
-                    numTicks = 0;
-
-                }
-                frameTimeOverOneSecond += GlobalValues.DeltaTime;
-                numTicks++;
-                secondValue += GlobalValues.DeltaTime;
-                
-                if (Input.PlayerOneJoystickHandle != null)
-                {
-
-                    float joystickLeftAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftXAxis);
-                    float joystickLeftAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftYAxis);
-                    float joystickRightAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightXAxis);
-                    float joystickRightAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightYAxis);
-
-                    Input.JoystickLeftAxis.X = joystickLeftAxisX;
-                    Input.JoystickLeftAxis.Y = joystickLeftAxisY;
-                    Input.JoystickRightAxis.X = joystickRightAxisX;
-                    Input.JoystickRightAxis.Y = joystickRightAxisY;
-                    if (Math.Abs(joystickLeftAxisX) < Toolkit.Joystick.LeftDeadzone)
-                    {
-
-                        Input.JoystickLeftAxis.X = 0.0f;
-
-                    }
-                    if (Math.Abs(joystickLeftAxisY) < Toolkit.Joystick.LeftDeadzone)
-                    {
-
-                        Input.JoystickLeftAxis.Y = 0.0f;
-
-                    }
-                    if (Math.Abs(joystickRightAxisX) < Toolkit.Joystick.RightDeadzone)
-                    {
-
-                        Input.JoystickRightAxis.X = 0.0f;
-
-                    }
-                    if (Math.Abs(joystickRightAxisY) < Toolkit.Joystick.RightDeadzone)
-                    {
-
-                        Input.JoystickRightAxis.Y = 0.0f;
-
-                    }
-
-                    Input.LeftTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftTrigger);
-                    Input.RightTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightTrigger);
-                    if (Input.LeftTrigger < Toolkit.Joystick.TriggerThreshold)
-                    {
-
-                        Input.LeftTrigger = 0.0f;
-
-                    }
-                    if (Input.RightTrigger < Toolkit.Joystick.TriggerThreshold)
-                    {
-
-                        Input.RightTrigger = 0.0f;
-
-                    }
-
-                    foreach (JoystickButton joystickButton in Input.JoystickStates.Keys)
-                    {
-
-                        JoystickState joystickButtonState = Input.JoystickStates[joystickButton];
-                        bool isJoystickButtonDown = Toolkit.Joystick.GetButton(Input.PlayerOneJoystickHandle, joystickButton);
-                        joystickButtonState.IsJoystickButtonDown = isJoystickButtonDown;
-                        if (!joystickButtonState.AllowJoystickButtonPress && !isJoystickButtonDown) joystickButtonState.AllowJoystickButtonPress = true;
-                        Input.JoystickStates[joystickButton] = joystickButtonState;
-
-                    }
-
-                }
+                // BlockGame.Load();
 
                 GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
-                GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
-                GlobalValues.PreviousTime = GlobalValues.CurrentTime;
-                
-                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState currentState);
-                Input.CurrentMouseScroll = currentState.Scroll;
-                Input.ScrollDelta = Input.CurrentMouseScroll - Input.PreviousMouseScroll;
-                Input.PreviousMouseScroll = Input.CurrentMouseScroll;
 
-                // Input.MouseDelta = Vector2.Zero;
-
-                GlobalValues.Time += GlobalValues.DeltaTime;
-
-                Toolkit.Window.ProcessEvents(false);
-                
-                // if (Input.MouseDelta != Vector2.Zero) Console.WriteLine(Input.MouseDelta);
-
-                if (Input.IsKeyPressed(Key.Escape))
+                while (true)
                 {
 
-                    // Console.WriteLine("yes");
-                    if (Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked)
+                    long currTime = Stopwatch.GetTimestamp();
+                    GlobalValues.DeltaTime = (GlobalValues.CurrentTime - currTime) / Stopwatch.Frequency;
+                    GlobalValues.CurrentTime = currTime;
+
+                    NetworkingValues.Server.Update();
+
+                }
+
+            }
+
+            // Client existant means this is a client!
+            if (NetworkingValues.Client != null)
+            {
+
+                WindowHandle window = Toolkit.Window.Create(contextSettings);
+                _glContext = Toolkit.OpenGL.CreateFromWindow(window);
+
+                Toolkit.OpenGL.SetCurrentContext(_glContext);
+                GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(_glContext));
+
+                Toolkit.Window.SetTitle(window, "Game");
+                Toolkit.Window.SetSize(window, (640, 480));
+                Toolkit.Window.SetMode(window, WindowMode.Normal);
+                
+                GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion}");
+                CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
+
+                ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
+                IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
+                Toolkit.Window.SetIcon(window, handle);
+
+                Toolkit.Mouse.GetPosition(window, out Vector2 position);
+                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
+
+                GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
+
+                Input.Initialize(window);
+
+                BlockGame.Load(false);
+
+                EventQueue.EventRaised += EventRaised;
+
+                string typed = "";
+
+                while (GlobalValues.IsRunning)
+                {
+
+                    // joystick input stuff
+                    /*
+                    if (Input.PlayerOneJoystickHandle != null)
                     {
 
-                        Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Normal);
-                        Toolkit.Window.SetCursor(window, visibleCursor);
-                        GlobalValues.IsCursorLocked = false;
-                        
-                    } else
+                        float joystickLeftAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftXAxis);
+                        float joystickLeftAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftYAxis);
+                        float joystickRightAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightXAxis);
+                        float joystickRightAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightYAxis);
+
+                        Input.JoystickLeftAxis.X = joystickLeftAxisX;
+                        Input.JoystickLeftAxis.Y = joystickLeftAxisY;
+                        Input.JoystickRightAxis.X = joystickRightAxisX;
+                        Input.JoystickRightAxis.Y = joystickRightAxisY;
+                        if (Math.Abs(joystickLeftAxisX) < Toolkit.Joystick.LeftDeadzone)
+                        {
+
+                            Input.JoystickLeftAxis.X = 0.0f;
+
+                        }
+                        if (Math.Abs(joystickLeftAxisY) < Toolkit.Joystick.LeftDeadzone)
+                        {
+
+                            Input.JoystickLeftAxis.Y = 0.0f;
+
+                        }
+                        if (Math.Abs(joystickRightAxisX) < Toolkit.Joystick.RightDeadzone)
+                        {
+
+                            Input.JoystickRightAxis.X = 0.0f;
+
+                        }
+                        if (Math.Abs(joystickRightAxisY) < Toolkit.Joystick.RightDeadzone)
+                        {
+
+                            Input.JoystickRightAxis.Y = 0.0f;
+
+                        }
+
+                        Input.LeftTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftTrigger);
+                        Input.RightTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightTrigger);
+                        if (Input.LeftTrigger < Toolkit.Joystick.TriggerThreshold)
+                        {
+
+                            Input.LeftTrigger = 0.0f;
+
+                        }
+                        if (Input.RightTrigger < Toolkit.Joystick.TriggerThreshold)
+                        {
+
+                            Input.RightTrigger = 0.0f;
+
+                        }
+
+                        foreach (JoystickButton joystickButton in Input.JoystickStates.Keys)
+                        {
+
+                            JoystickState joystickButtonState = Input.JoystickStates[joystickButton];
+                            bool isJoystickButtonDown = Toolkit.Joystick.GetButton(Input.PlayerOneJoystickHandle, joystickButton);
+                            joystickButtonState.IsJoystickButtonDown = isJoystickButtonDown;
+                            if (!joystickButtonState.AllowJoystickButtonPress && !isJoystickButtonDown) joystickButtonState.AllowJoystickButtonPress = true;
+                            Input.JoystickStates[joystickButton] = joystickButtonState;
+
+                        }
+
+                    }
+                    */
+
+                    GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
+                    GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
+                    GlobalValues.PreviousTime = GlobalValues.CurrentTime;
+
+                    GlobalValues.Time += GlobalValues.DeltaTime;
+
+                    Toolkit.Window.ProcessEvents(false);
+
+                    if (Input.IsKeyPressed(Key.Escape))
                     {
 
-                        Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-                        ReadOnlySpan<byte> hiddenCursor = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
-                        CursorHandle cursor = Toolkit.Cursor.Create(1, 1, hiddenCursor, 0, 0);
-                        Toolkit.Window.SetCursor(window, cursor);
-                        GlobalValues.IsCursorLocked = true;
+                        if (Input.IsMouseFocused)
+                        {
+
+                            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Normal);
+                            Toolkit.Window.SetCursor(window, visibleCursor);
+                            GlobalValues.IsCursorLocked = false;
+                            
+                        } else
+                        {
+
+                            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
+                            ReadOnlySpan<byte> hiddenCursor = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
+                            CursorHandle cursor = Toolkit.Cursor.Create(1, 1, hiddenCursor, 0, 0);
+                            Toolkit.Window.SetCursor(window, cursor);
+                            GlobalValues.IsCursorLocked = true;
+
+                        }
 
                     }
 
+                    BlockGame.Render();
+                    
+                    if (Input.CurrentTypedChars.Count > 0)
+                    {
+
+                        Input.CurrentTypedChars.Clear();
+
+                    }
+
+                    Toolkit.OpenGL.SwapBuffers(_glContext);
+
+                    Input.Poll(window);
+
                 }
 
-                //Stopwatch sw = Stopwatch.StartNew();
-                BlockGame.Render();
-                //sw.Stop();
-                //GameLogger.Log($"Render loop took {Math.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
-                
-                if (Input.CurrentTypedChars.Count > 0)
-                {
-
-                    Input.CurrentTypedChars.Clear();
-
-                }
-
-                Toolkit.OpenGL.SwapBuffers(_glContext);
+                PackedWorldGenerator.Unload();
+            
+                BlockGame.Unload();
+                AudioPlayer.Unload();
+                Toolkit.Window.Destroy(window);
 
             }
             
-            PackedWorldGenerator.Unload();
-            
-            BlockGame.Unload();
-            AudioPlayer.Unload();
-            Toolkit.Window.Destroy(window);
             GameLogger.SaveToFile("log");
 
         }
@@ -454,42 +395,28 @@ namespace Blockgame_OpenTK
             if (args is KeyDownEventArgs keyDown)
             {
 
-                KeyState keyState = Input.KeyStates[keyDown.Key];
-                keyState.IsKeyDown = true;
-                Input.KeyStates[keyDown.Key] = keyState;
+                Input.OnKeyDown(keyDown.Key);
 
             }
 
             if (args is KeyUpEventArgs keyUp)
             {
 
-                KeyState keyState = Input.KeyStates[keyUp.Key];
-                keyState.IsKeyDown = false;
-                keyState.AllowKeyPress = true;
-                Input.CurrentKeyDown = Key.Unknown;
-                Input.CurrentKeyPressed = Key.Unknown;
-                Input.KeyStates[keyUp.Key] = keyState;
+                Input.OnKeyUp(keyUp.Key);
 
             }
 
             if (args is MouseButtonDownEventArgs mouseDown)
             {
                 
-                MouseState state = Input.MouseStates[mouseDown.Button];
-                state.IsMouseButtonDown = true;
-                Input.MouseStates[mouseDown.Button] = state;
+                Input.OnMouseDown(mouseDown.Button);
 
             }
 
             if (args is MouseButtonUpEventArgs mouseUp)
             {
 
-                MouseState state = Input.MouseStates[mouseUp.Button];
-                state.IsMouseButtonDown = false;
-                state.AllowButtonPress = true;
-                Input.CurrentButtonDown = null;
-                Input.CurrentButtonPressed = null;
-                Input.MouseStates[mouseUp.Button] = state;
+                Input.OnMouseUp(mouseUp.Button);
 
             }
 
@@ -528,99 +455,6 @@ namespace Blockgame_OpenTK
             }
 
         }
-
-        /*
-        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
-        {
-
-            Exception e = args.ExceptionObject as Exception;
-
-            string message = e.Message;
-            string[] stackTrace = e.StackTrace.Split(Environment.NewLine);
-
-            Console.WriteLine(message);
-            Console.WriteLine(e.StackTrace);
-
-            game.CursorState = CursorState.Normal;
-            game.frameBuffer.UpdateAspect();
-
-            float previousTime = 0;
-
-            GL.Disable(EnableCap.DepthTest);
-
-            using (FileStream stream = new FileStream("log.txt", FileMode.Create))
-            {
-
-                foreach (string line in GlobalValues.LogMessages)
-                {
-
-                    stream.Write(Encoding.UTF8.GetBytes($"{line}\n"));
-
-                }
-
-                stream.Write(Encoding.UTF8.GetBytes($"{e.GetType()}: {e.Message}\n"));
-                stream.Write(Encoding.UTF8.GetBytes(e.StackTrace));
-
-            }
-
-            while (!game.IsExiting)
-            {
-
-                GLFW.GetWindowSize(game.WindowPtr, out int w, out int h);
-
-                GL.Viewport(0, 0, w, h);
-                GlobalValues.WIDTH = w;
-                GlobalValues.HEIGHT = h;
-                TextRenderer.Camera.UpdateProjectionMatrix();
-
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                GL.ClearColor(0.2f, 0, 0.5f, 1);
-
-                float dt = (float)GLFW.GetTime() - (float)previousTime;
-                previousTime = (float)GLFW.GetTime();
-                
-                GlobalValues.Time += dt;
-
-                float yOffset = 2;
-                float lineSpacing = 8;
-                int _fontSize = 16;
-
-                TextRenderer.RenderLines((0, 2, 0), TextRenderer.TopLeft, (1, 1, 1), 18, 2, new string[]
-                {
-
-                    "Encountered an error.",
-                    e.GetType() + ": " + e.Message,
-
-                }.Concat(stackTrace).ToArray());
-
-                // TextRenderer.RenderText((2, yOffset, 0), (1, 1, 1), _fontSize, TextRenderer.FilterText("<0xF00000>Encountered an error.</0xF00000>"));
-
-                // TextRenderer.RenderText((2, yOffset + _fontSize + lineSpacing, 0), (1, 1, 1), _fontSize, e.GetType() + ": " + message);
-
-                // for (int i = 0; i < stackTrace.Length; i++)
-                // {
-
-                //      TextRenderer.RenderText((0, 2*(_fontSize + lineSpacing) + yOffset + ( (_fontSize + lineSpacing) * i), 0), (1, 1, 1), 16, stackTrace[i]);
-
-                // }
-
-                game.SwapBuffers();
-                GLFW.PollEvents();
-
-            }
-
-            GLFW.Terminate();
-            Environment.Exit(-1);
-
-        }
-        public static void RunWindow()
-        {
-
-            GameWindow gw2 = new GameWindow(GameWindowSettings.Default, new NativeWindowSettings() { Size = (640, 480), Title = "hi" });
-            gw2.Run();
-
-        }
-        */
 
     }
 }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenTK.Platform.Native.Windows;
 using System.Reflection;
+using FreeTypeSharp;
+using OpenTK.Audio.OpenAL;
 
 namespace Blockgame_OpenTK
 {
@@ -11,7 +13,6 @@ namespace Blockgame_OpenTK
     {
 
         public bool IsKeyDown = false;
-        public bool AllowKeyPress = true;
 
         public KeyState() { }
 
@@ -21,7 +22,6 @@ namespace Blockgame_OpenTK
     {
 
         public bool IsMouseButtonDown = false;
-        public bool AllowButtonPress = true;
 
         public MouseState() { }
 
@@ -31,7 +31,6 @@ namespace Blockgame_OpenTK
     {
 
         public bool IsJoystickButtonDown = false;
-        public bool AllowJoystickButtonPress = true;
 
         public JoystickState() { }
 
@@ -40,33 +39,28 @@ namespace Blockgame_OpenTK
     public class Input
     {
 
-        public static bool IsCurrentKeyPressed = true;
-        public static bool IsAnyCurrentKeyPressed = true;
-        public static bool IsCurrentKeyRepeat = false;
-        public static Key CurrentKey = Key.Unknown;
-        public static Key LastKeyPressed = Key.Unknown;
+        public static Key CurrentKey { get; private set; } = Key.Unknown;
+        public static MouseButton? CurrentMouseButtonDown { get; private set; } = null;
+        public static Vector2 CurrentMousePosition { get; private set; } = Vector2.Zero;
+        public static Vector2 MouseDelta { get; private set; } = Vector2.Zero;
 
-        public static bool IsCurrentMouseButtonPressed = true;
-        public static bool IsAnyCurrentMouseButtonPressed = true;
-        public static MouseButton? CurrentButtonDown = null;
-        public static MouseButton? CurrentButtonPressed = null;
+        public static Vector2 FocusAwareMouseDelta { get; private set; } = Vector2.Zero;
 
-        public static Vector2 CurrentMousePosition = Vector2.Zero;
-        public static Vector2 PreviousMousePosition = Vector2.Zero;
-        public static Vector2 MouseDelta = Vector2.Zero;
+        private static Vector2 _focusAwareMousePosition = Vector2.Zero;
+        public static Vector2 MousePosition { get; private set; } = Vector2.Zero;
 
-        public static Vector2 MousePosition = Vector2.Zero;
-
-        public static Vector2 CurrentMouseScroll = Vector2.Zero;
-        public static Vector2 PreviousMouseScroll = Vector2.Zero;
-        public static Vector2 ScrollDelta = Vector2.Zero;
+        private static Vector2 _mouseScroll = Vector2.Zero;
+        public static Vector2 ScrollDelta { get; private set; } = Vector2.Zero;
 
         public static Key CurrentKeyDown = Key.Unknown;
         public static Key CurrentKeyPressed = Key.Unknown;
 
-        public static Dictionary<Key, KeyState> KeyStates = new Dictionary<Key, KeyState>();
-        public static Dictionary<MouseButton, MouseState> MouseStates = new Dictionary<MouseButton, MouseState>();
-        public static Dictionary<JoystickButton, JoystickState> JoystickStates = new Dictionary<JoystickButton, JoystickState>();
+        private static Dictionary<Key, KeyState> _previousKeyStates = new();
+        private static Dictionary<Key, KeyState> _keyStates = new();
+        private static Dictionary<MouseButton, MouseState> _previousMouseStates = new();
+        private static Dictionary<MouseButton, MouseState> _mouseStates = new();
+        public static Dictionary<JoystickButton, JoystickState> JoystickStates = new();
+        public static bool IsMouseFocused { get; private set; } = false;
 
         public static Vector2 JoystickLeftAxis = Vector2.Zero;
         public static Vector2 JoystickRightAxis = Vector2.Zero;
@@ -74,25 +68,32 @@ namespace Blockgame_OpenTK
         public static float LeftTrigger = 0.0f;
         public static float RightTrigger = 0.0f;
 
-        public static List<string> CurrentTypedStrings = new List<string>();
         public static List<char> CurrentTypedChars = new List<char>();
 
         public static JoystickHandle PlayerOneJoystickHandle;
 
-        public static void Initialize()
+        public static void Initialize(WindowHandle window)
         {
+
+            Toolkit.Mouse.GetPosition(window, out Vector2 currentMousePosition);
+            CurrentMousePosition = currentMousePosition;
+
+            Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
+            _mouseScroll = state.Scroll;
 
             foreach (Key key in Enum.GetValues(typeof(Key)))
             {
 
-                KeyStates.Add(key, new KeyState());
+                _keyStates.Add(key, new KeyState());
+                _previousKeyStates.Add(key, new KeyState());
 
             }
 
             foreach (MouseButton button in Enum.GetValues(typeof(MouseButton)))
             {
 
-                MouseStates.Add(button, new MouseState());
+                _mouseStates.Add(button, new MouseState());
+                _previousMouseStates.Add(button, new MouseState());
 
             }
 
@@ -118,7 +119,6 @@ namespace Blockgame_OpenTK
                 Toolkit.Joystick.TryGetBatteryInfo(PlayerOneJoystickHandle, out GamepadBatteryInfo batteryInfo);
                 Console.WriteLine($"Charge level: {batteryInfo.ChargeLevel} ({batteryInfo.ChargeLevel * 100.0f})");
                 Console.WriteLine($"Battery type: {batteryInfo.BatteryType.ToString()}");
-                // Toolkit.Joystick.SetVibration(PlayerOneJoystickHandle, 0.0f, 0.0f);
 
             }
             else
@@ -130,6 +130,43 @@ namespace Blockgame_OpenTK
 
         }
 
+        public static void Poll(WindowHandle window)
+        {
+
+            Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
+            if (IsMouseFocused)
+            {
+                FocusAwareMouseDelta = _focusAwareMousePosition - mousePosition;
+                _focusAwareMousePosition = mousePosition;  
+            }      
+
+            MouseDelta = MousePosition - mousePosition;
+            MousePosition = mousePosition;
+
+            Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
+            
+            IsMouseFocused = Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked;
+            
+            ScrollDelta = _mouseScroll - state.Scroll;
+            _mouseScroll = state.Scroll;
+
+            foreach (KeyValuePair<Key, KeyState> keyState in _keyStates)
+            {
+
+                _previousKeyStates[keyState.Key] = keyState.Value;
+
+            }
+
+            foreach (KeyValuePair<MouseButton, MouseState> mouseState in _mouseStates)
+            {
+
+                _previousMouseStates[mouseState.Key] = mouseState.Value;
+
+            }
+
+        }
+
+        // TODO: fix for abstraction
         public static bool IsLeftTriggerDown(float threshhold = 0.5f)
         {
 
@@ -138,6 +175,7 @@ namespace Blockgame_OpenTK
 
         }
 
+        // TODO: fix for abstraction
         public static bool IsRightTriggerDown(float threshhold = 0.5f)
         {
 
@@ -146,6 +184,7 @@ namespace Blockgame_OpenTK
 
         }
 
+        // TODO: fix for abstraction
         public static bool IsJoystickButtonDown(JoystickButton joystickButton)
         {
 
@@ -153,14 +192,15 @@ namespace Blockgame_OpenTK
 
         }
 
+        // TODO: fix for abstraction
         public static bool IsJoystickButtonPressed(JoystickButton joystickButton)
         {
 
-            if (JoystickStates[joystickButton].IsJoystickButtonDown && JoystickStates[joystickButton].AllowJoystickButtonPress)
+            if (JoystickStates[joystickButton].IsJoystickButtonDown)//  && JoystickStates[joystickButton].AllowJoystickButtonPress)
             {
 
                 JoystickState state = JoystickStates[joystickButton];
-                state.AllowJoystickButtonPress = false;
+                // state.AllowJoystickButtonPress = false;
                 JoystickStates[joystickButton] = state;
                 return true;
 
@@ -173,18 +213,7 @@ namespace Blockgame_OpenTK
         public static bool IsAnyKeyDown()
         {
 
-            foreach (Key key in KeyStates.Keys)
-            {
-
-                if (KeyStates[key].IsKeyDown)
-                {
-
-                    CurrentKeyDown = key;
-                    return true;
-
-                }
-
-            }
+            if (CurrentKeyDown != Key.Unknown) return true;
 
             return false;
 
@@ -193,7 +222,7 @@ namespace Blockgame_OpenTK
         public static bool IsKeyDown(Key key)
         {
 
-            if (KeyStates[key].IsKeyDown) return true;
+            if (_keyStates[key].IsKeyDown) return true;
 
             return false;
 
@@ -202,20 +231,7 @@ namespace Blockgame_OpenTK
         public static bool IsAnyKeyPressed()
         {
 
-            foreach (Key key in KeyStates.Keys)
-            {
-
-                if (KeyStates[key].IsKeyDown && KeyStates[key].AllowKeyPress)
-                {
-
-                    KeyState keyState = KeyStates[key];
-                    keyState.AllowKeyPress = false;
-                    CurrentKeyPressed = key;
-                    return true;
-
-                }
-
-            }
+            if (CurrentKeyDown != Key.Unknown && !_previousKeyStates[CurrentKeyDown].IsKeyDown) return true;
 
             return false;
 
@@ -224,15 +240,7 @@ namespace Blockgame_OpenTK
         public static bool IsKeyPressed(Key key)
         {
 
-            if (KeyStates[key].IsKeyDown && KeyStates[key].AllowKeyPress)
-            {
-
-                KeyState keyState = KeyStates[key];
-                keyState.AllowKeyPress = false;
-                KeyStates[key] = keyState;
-                return true;
-
-            }
+            if (_keyStates[key].IsKeyDown && !_previousKeyStates[key].IsKeyDown) return true;
 
             return false;
 
@@ -241,19 +249,7 @@ namespace Blockgame_OpenTK
         public static bool IsAnyMouseButtonDown()
         {
 
-            // return CurrentButton != null;
-            foreach (MouseButton button in MouseStates.Keys)
-            {
-
-                if (MouseStates[button].IsMouseButtonDown)
-                {
-
-                    CurrentButtonDown = button;
-                    return true;
-
-                }
-
-            }
+            if (CurrentMouseButtonDown != null) return true;
 
             return false;
 
@@ -262,7 +258,7 @@ namespace Blockgame_OpenTK
         public static bool IsMouseButtonDown(MouseButton button)
         {
 
-            if (MouseStates[button].IsMouseButtonDown) return true;
+            if (_mouseStates[button].IsMouseButtonDown) return true;
 
             return false;
 
@@ -271,21 +267,7 @@ namespace Blockgame_OpenTK
         public static bool IsAnyMouseButtonPressed()
         {
 
-            foreach (MouseButton button in MouseStates.Keys)
-            {
-
-                if (MouseStates[button].IsMouseButtonDown && MouseStates[button].AllowButtonPress)
-                {
-
-                    MouseState state = MouseStates[button];
-                    state.AllowButtonPress = false;
-                    MouseStates[button] = state;
-                    CurrentButtonPressed = button;
-                    return true;
-
-                }
-
-            }
+            if (CurrentMouseButtonDown != null && !_previousMouseStates[CurrentMouseButtonDown??MouseButton.Button1].IsMouseButtonDown) return true;
 
             return false;
 
@@ -294,17 +276,49 @@ namespace Blockgame_OpenTK
         public static bool IsMouseButtonPressed(MouseButton button)
         {
 
-            if (MouseStates[button].IsMouseButtonDown && MouseStates[button].AllowButtonPress)
-            {
-
-                MouseState state = MouseStates[button];
-                state.AllowButtonPress = false;
-                MouseStates[button] = state;
-                return true;
-
-            }
+            if (_mouseStates[button].IsMouseButtonDown && !_previousMouseStates[button].IsMouseButtonDown) return true;
 
             return false;
+
+        }
+
+        public static void OnKeyDown(Key key)
+        {
+
+            KeyState state = _keyStates[key];
+            CurrentKeyDown = key;
+            state.IsKeyDown = true;
+            _keyStates[key] = state;
+
+        }
+
+        public static void OnKeyUp(Key key)
+        {
+
+            KeyState state = _keyStates[key];
+            CurrentKeyDown = Key.Unknown;
+            state.IsKeyDown = false;
+            _keyStates[key] = state;
+
+        }
+
+        public static void OnMouseDown(MouseButton button)
+        {
+
+            MouseState state = _mouseStates[button];
+            CurrentMouseButtonDown = button;
+            state.IsMouseButtonDown = true;
+            _mouseStates[button] = state;
+
+        }
+
+        public static void OnMouseUp(MouseButton button)
+        {
+
+            MouseState state = _mouseStates[button];
+            CurrentMouseButtonDown = null;
+            state.IsMouseButtonDown = false;
+            _mouseStates[button] = state;
 
         }
 

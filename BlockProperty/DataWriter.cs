@@ -63,6 +63,16 @@ public class DataWriter : IDisposable
         }
         
     }
+
+    public void WriteBinaryInteger<T>(T value) where T : System.Numerics.IBinaryInteger<T>
+    {
+
+        Span<byte> bytes = stackalloc byte[value.GetByteCount()];
+        value.WriteLittleEndian(bytes);
+        _stream.Write(bytes);
+
+    }
+
     public void WriteLong(long value) 
     {
 
@@ -87,6 +97,15 @@ public class DataWriter : IDisposable
         Span<byte> floatBytes = stackalloc byte[sizeof(float)];
         BinaryPrimitives.WriteSingleLittleEndian(floatBytes, value);
         _stream.Write(floatBytes);
+
+    }
+
+    public void WriteUInt(uint value)
+    {
+
+        Span<byte> bytes = stackalloc byte[sizeof(uint)];
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes, value);
+        _stream.Write(bytes);
 
     }
 

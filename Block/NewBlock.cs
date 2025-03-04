@@ -99,12 +99,12 @@ public class NewBlock
 
     }
 
-    public virtual void OnBlockSet(PackedChunkWorld world, Vector3i globalBlockPosition)
+    public virtual void OnBlockSet(World world, Vector3i globalBlockPosition)
     {
         // if (IsSolid) ChunkUtils.SetLightColor(world.PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), LightColor.Zero);
         world.SetBlock(globalBlockPosition, this);
     }
-    public virtual void OnBlockDestroy(PackedChunkWorld world, Vector3i globalBlockPosition)
+    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition)
     {
         
         world.SetBlock(globalBlockPosition, new NewBlock() {IsSolid = false});
@@ -113,7 +113,7 @@ public class NewBlock
         
     }
 
-    public virtual void OnBlockPlace(PackedChunkWorld world, Vector3i globalBlockPosition)
+    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition)
     {
 
         world.SetBlock(globalBlockPosition, this);

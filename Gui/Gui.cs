@@ -101,7 +101,7 @@ namespace Blockgame_OpenTK.Core.Gui
             if (IsPointCollidingWithElement(Input.MousePosition, element))
             {
                 element.Color = new Color4<Rgba>(color.X * 0.8f, color.Y * 0.8f, color.Z * 0.8f, color.W);
-                if (Input.IsMouseButtonPressed(OpenTK.Platform.MouseButton.Button1))
+                if (Input.IsMouseButtonPressed(MouseButton.Button1))
                 {
                     element.Color = new Color4<Rgba>(color.X * 0.5f, color.Y * 0.5f, color.Z * 0.5f, color.W);
                     isClicked = true;
@@ -109,18 +109,27 @@ namespace Blockgame_OpenTK.Core.Gui
             }
 
             DrawElement(element);
-            // CachedFontRenderer.RenderFont(out _, position, origin, 1000, 18, text);
-            FontRenderer.Text(position - (dimensions * origin) + (dimensions * origin), dimensions, 24, Color4.Black, text);
+            FontRenderer.Text(position - (dimensions * origin) + (0, dimensions.Y), dimensions, 18, Color4.Black, text, justifyMode: JustifyMode.Centered);
             _currentIndex++;
 
             return isClicked;
 
         }
-        static int _idx = 0;
-        public static bool RenderTextbox(Vector2 position, Vector2 dimensions, Vector2 origin, out string text, Color4<Rgba> color = default)
+        
+        public static void SetTextboxString(string text)
         {
 
-            bool wasEntered = false;
+            if (_guiStates[_currentKey].TextboxStates.TryGetValue(_currentIndex - 1, out GuiTextboxState state))
+            {
+
+                state.Text = text;
+                _guiStates[_currentKey].TextboxStates[_currentIndex-1] = state;
+
+            }
+
+        }
+        public static void RenderTextbox(Vector2 position, Vector2 dimensions, Vector2 origin, string label, out string text, Color4<Rgba> color = default)
+        {
 
             if (color == default) color = Color4.Black; 
             if (!_guiStates[_currentKey].TextboxStates.ContainsKey(_currentIndex))
@@ -222,23 +231,19 @@ namespace Blockgame_OpenTK.Core.Gui
 
                 }
 
-                if (Input.IsKeyPressed(Key.KeypadEnter) || Input.IsKeyPressed(Key.Return))
-                {
-
-                    wasEntered = true;
-                    state.Text = string.Empty;
-
-                }
-
             }
 
             DrawElement(element);
-            FontRenderer.Text(position - (dimensions * origin) + (0, dimensions.Y), dimensions, 18, Color4.Black, _guiStates[_currentKey].TextboxStates[_currentIndex].Text, justifyMode: JustifyMode.HorizontalLeftVerticalCentered);
-
+            if (text != string.Empty || state.IsFocused)
+            {
+                FontRenderer.Text(position - (dimensions * origin) + (0, dimensions.Y), dimensions, 18, Color4.Black, state.Text, justifyMode: JustifyMode.HorizontalLeftVerticalCentered);
+            } else
+            {
+                FontRenderer.Text(position - (dimensions * origin) + (0, dimensions.Y), dimensions, 18, new Color4<Rgba>(0.1f, 0.1f, 0.1f, 1.0f), label, justifyMode: JustifyMode.HorizontalLeftVerticalCentered);
+            }
+            
             _guiStates[_currentKey].TextboxStates[_currentIndex] = state;
             _currentIndex++;
-
-            return wasEntered;
 
         }
 

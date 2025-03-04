@@ -1,16 +1,10 @@
-﻿using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 using Blockgame_OpenTK.Registry;
 using System.IO;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Collections;
 using Blockgame_OpenTK.Gui;
-using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.PlayerUtil;
+using Blockgame_OpenTK.Core.Networking;
+using Blockgame_OpenTK.Core.Modding;
 
 namespace Blockgame_OpenTK.Util
 {
@@ -22,9 +16,18 @@ namespace Blockgame_OpenTK.Util
         public float MouseSensitivity { get; set; }
 
     }
+
+    public class NetworkingValues
+    {
+
+        public static Server Server;
+        public static Client Client;
+
+    }
     public class GlobalValues
     {
 
+        public static IModLoader Base = new Base();
         public static string TexturePath => Path.Combine("Resources", "Textures") + Path.DirectorySeparatorChar; //"Resources/Textures/";
         public static string ShaderPath => Path.Combine("Resources", "Shaders") + Path.DirectorySeparatorChar;//"Resources/Shaders/";
         public static string MissingTexture => Path.Combine("Resources", "Textures", "missing.png");//"Resources/Textures/missing.png";

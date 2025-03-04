@@ -5,6 +5,7 @@ using Blockgame_OpenTK.BlockProperty;
 using Blockgame_OpenTK.Core.Serialization;
 using Blockgame_OpenTK.Core.Worlds;
 using OpenTK.Mathematics;
+using OpenTK.Platform.Native.X11;
 
 namespace Blockgame_OpenTK.Core.Chunks;
 
@@ -26,6 +27,13 @@ public class ColumnSerializer
 
                 // Console.WriteLine(span.Length);
                 writer.WriteByteSpan(span);
+                
+                for (int s = 0; s < column.Chunks[i].SolidMask.Length; s++)
+                {
+
+                    writer.WriteUInt(column.Chunks[i].SolidMask[s]);
+
+                }
 
             }
 
@@ -45,9 +53,14 @@ public class ColumnSerializer
             {
 
                 Span<byte> span = reader.GetByteSpan();
-                // Console.WriteLine($"Span length: {span.Length}");
-                // Console.WriteLine($"Previous length: {column.Chunks[i].BlockData.Length}");
+                
                 column.Chunks[i].BlockData = Compressor.RleDecompress<ushort, ushort>(span);
+                for (int s = 0; s < column.Chunks[i].SolidMask.Length; s++)
+                {
+
+                    column.Chunks[i].SolidMask[s] = reader.GetUInt();
+
+                }
                 // Console.WriteLine($"Current Length: {column.Chunks[i].BlockData.Length}");
                 column.Chunks[i].HasUpdates = true;
 

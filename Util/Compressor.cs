@@ -17,7 +17,7 @@ namespace Blockgame_OpenTK.Core.Serialization;
 public class Compressor
 {
 
-    public static Span<byte> RleCompress<TCount, TValue>(TValue[] data) where TCount : struct, INumber<TCount> where TValue : struct, INumber<TValue>
+    public static Span<byte> RleCompress<TCount, TValue>(TValue[] data) where TCount : unmanaged, IBinaryInteger<TCount> where TValue : unmanaged, IBinaryInteger<TValue>
     {
 
         List<byte> bytes = new();
@@ -30,16 +30,10 @@ public class Compressor
             if (i == data.Length-1)
             {
                 currentCount++;
-                // Console.WriteLine("data changed");
-                // Console.WriteLine($"value: {currentValue}");
-                // Console.WriteLine($"count: {currentCount}");
                 bytes.AddRange(GetBytes(currentCount));
                 bytes.AddRange(GetBytes(currentValue));
             } else if (data[i] != currentValue)
             {
-                // Console.WriteLine("data changed");
-                // Console.WriteLine($"value: {currentValue}");
-                // Console.WriteLine($"count: {currentCount}");
                 bytes.AddRange(GetBytes(currentCount));
                 bytes.AddRange(GetBytes(currentValue));
                 currentValue = data[i];
@@ -53,7 +47,7 @@ public class Compressor
 
     }
 
-    public static TValue[] RleDecompress<TCount, TValue>(Span<byte> data) where TCount : struct, INumber<TCount> where TValue : struct, INumber<TValue>
+    public static TValue[] RleDecompress<TCount, TValue>(Span<byte> data) where TCount : unmanaged, IBinaryInteger<TCount> where TValue : unmanaged, IBinaryInteger<TValue>
     {
 
         List<TValue> decompressed = new();
@@ -76,28 +70,28 @@ public class Compressor
 
         }
 
-        Console.WriteLine($"decompressed count: {decompressed.Count}");
+        // Console.WriteLine($"decompressed count: {decompressed.Count}");
 
         return decompressed.ToArray();
 
     }
 
-    private static T GetValue<T>(Span<byte> data) where T: struct, INumber<T> => MemoryMarshal.Read<T>(data);
-
-    private static Span<byte> GetBytes<T>(T value) where T : notnull, INumber<T>
+    public static Span<byte> GetBytes<T>(T value) where T : IBinaryInteger<T>
     {
 
-        byte[] b = new byte[Unsafe.SizeOf<T>()];
-        GCHandle valueHandle = GCHandle.Alloc(value, GCHandleType.Pinned);
-        Marshal.Copy(valueHandle.AddrOfPinnedObject(), b, 0, Unsafe.SizeOf<T>());
-        valueHandle.Free();
+        Span<byte> bytes = new byte[value.GetByteCount()];
+        value.WriteLittleEndian(bytes);
+        return bytes;
 
-        if (!BitConverter.IsLittleEndian)
-        {
-            b.Reverse();
-        }
+    }
 
-        return b;
+    public static T GetValue<T>(Span<byte> data) where T : IBinaryInteger<T>
+    {
+
+        T value = default;
+
+        Type type = typeof(T);
+        return T.ReadLittleEndian(data, type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong));
 
     }
 

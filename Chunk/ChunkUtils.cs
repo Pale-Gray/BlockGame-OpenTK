@@ -127,7 +127,7 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(PackedChunkWorld world, Vector3i chunkPosition)
+        public static Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(World world, Vector3i chunkPosition)
         {
             
             Dictionary<Vector3i, PackedChunk> neighbors = new();
@@ -153,7 +153,7 @@ namespace Blockgame_OpenTK.Core.Chunks
             
         }
 
-        public static Dictionary<Vector3i, uint[]> GetChunkNeighborsSolidMaskDictionary(PackedChunkWorld world, Vector3i chunkPosition)
+        public static Dictionary<Vector3i, uint[]> GetChunkNeighborsSolidMaskDictionary(World world, Vector3i chunkPosition)
         {
 
             Dictionary<Vector3i, uint[]> neighborMasks = new();

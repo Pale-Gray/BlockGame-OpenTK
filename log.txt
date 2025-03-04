@@ -1,4 +1,5 @@
 [Info] Starting in client mode
+[Info] Supports raw mouse? False
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
 [Info] Platform: Debian GNU/Linux 12 (bookworm)
@@ -34,7 +35,4 @@
 [Info] Game.LightBlock has a model
 [Info] NewRegistering block Game.LeafBlock
 [Info] Game.LeafBlock has a model
-[Info] Supports raw mouse? False
-System.PlatformNotSupportedException: X11 doesn't support system icons!
-   at OpenTK.Platform.Native.X11.X11IconComponent.Create(SystemIconType systemIcon)
-   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 230
+[Info] failed to connect with reason The uid already exists on the server.

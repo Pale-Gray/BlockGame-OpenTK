@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Chunks;
@@ -18,13 +19,13 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 3;
+    public static int WorldGenerationRadius = 8;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
     private static int _currentRadius = 0;
 
-    public static PackedChunkWorld CurrentWorld;
+    public static World CurrentWorld;
 
     public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldGenerationQueue = new();
     public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldUploadQueue = new();
@@ -188,9 +189,105 @@ public class PackedWorldGenerator
 
     }
 
+    static bool c = false;
+
+    public static List<Vector2i> GetArea(int radius, Vector2i playerPosition)
+    {
+
+        List<Vector2i> area = new();
+
+        for (int x = -radius; x <= radius; x++)
+        {
+
+            for (int z = -radius; z <= radius; z++)
+            {
+
+                area.Add((x,z));
+
+            }
+
+        }
+
+        return area;
+
+    }
+
+    static int currentIndex = 0;
+    static Queue<Vector2i> _queue = new();
+    static Vector2i[] _offset = { (-1, 0), (1, 0), (0, 1), (0, -1) };
+    static bool hello = false;
+
     public static void QueueGeneration()
     {
-        
+
+        if (!hello) 
+        {
+
+            _queue.Enqueue(Vector2i.Zero); 
+            CurrentWorld.WorldColumns.TryAdd(Vector2i.Zero, new ChunkColumn(Vector2i.Zero));
+            ColumnWorldGenerationQueue.EnqueueLast(Vector2i.Zero);
+
+            hello = true;
+
+        }
+
+        int c = 0;
+        while (_queue.Count != 0 && c < 20)
+        {
+
+            if (_queue.TryDequeue(out Vector2i res))
+            {
+
+                for (int i = 0; i < _offset.Length; i++)
+                {
+
+                    if (Maths.ChebyshevDistance2D(res + _offset[i], Vector2i.Zero) <= WorldGenerationRadius && CurrentWorld.WorldColumns.TryAdd(res + _offset[i], new ChunkColumn(res + _offset[i])))
+                    {
+
+                        ColumnWorldGenerationQueue.EnqueueLast(res + _offset[i]);
+                        _queue.Enqueue(res + _offset[i]);
+
+                    }
+
+                }
+
+            }
+            c++;
+
+        }   
+
+        /*
+        int maxPolledChunks = 8;
+
+        if (!c)
+        {
+
+            List<Vector2i> positions = GetArea(WorldGenerationRadius, Vector2i.Zero);
+
+            if (currentIndex < positions.Count)
+            {
+
+                int i = 0;
+                while (i <= maxPolledChunks && currentIndex < positions.Count)
+                {
+
+                    CurrentWorld.WorldColumns.TryAdd(positions[currentIndex], new ChunkColumn(positions[currentIndex]));
+                    ColumnWorldGenerationQueue.EnqueueLast(positions[currentIndex]);
+                    currentIndex++;
+                    i++;
+
+                }
+
+            } else
+            {
+
+                c = true;
+
+            }
+
+        }
+
+        /*
         if (_currentRadius <= WorldGenerationRadius)
         {
 
@@ -206,6 +303,7 @@ public class PackedWorldGenerator
             _currentRadius++;
 
         }
+        */
         
     }
 

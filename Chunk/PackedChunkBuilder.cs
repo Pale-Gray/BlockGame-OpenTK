@@ -58,7 +58,7 @@ public class PackedChunkBuilder
 
     private static Vector3i[] blockLightOffsets = [ Vector3i.UnitX, Vector3i.UnitZ, Vector3i.UnitY, -Vector3i.UnitX, -Vector3i.UnitZ, -Vector3i.UnitY ];
     private static Vector3i[] sunlightOffsets = [ Vector3i.UnitX, Vector3i.UnitZ, Vector3i.UnitY, -Vector3i.UnitX, -Vector3i.UnitZ, -Vector3i.UnitY ];
-    public static void QueueSunlightValues(PackedChunkWorld world, PackedChunk chunk)
+    public static void QueueSunlightValues(World world, PackedChunk chunk)
     {
 
         for (int x = 0; x < GlobalValues.ChunkSize; x++)

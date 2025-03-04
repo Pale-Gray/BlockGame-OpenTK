@@ -36,7 +36,7 @@ namespace Blockgame_OpenTK.Util
         public static bool hit = false;
 
         // private static List<Vector3i> _newLightPropagationPositions = new List<Vector3i>();
-        public static void ComputeVisibility(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
+        public static void ComputeVisibility(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
         {
 
             ComputeLightCorner(world, chunk, globalLightPosition, lightColor, (1, 1, 1));
@@ -51,7 +51,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeSunlightVisibility(PackedChunkWorld world, PackedChunk chunk, Vector3i position)
+        public static void ComputeSunlightVisibility(World world, PackedChunk chunk, Vector3i position)
         {
 
             ComputeSunlightCorner(world, chunk, position, (1, 1));
@@ -61,7 +61,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeSunlightCorner(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector2i direction)
+        private static void ComputeSunlightCorner(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector2i direction)
         {
 
             uint[] expectedSunlightValues = new uint[15 * 15];
@@ -156,7 +156,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeLightCorner(PackedChunkWorld world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
+        private static void ComputeLightCorner(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
         {
 
             int max = Math.Max(lightColor.X, Math.Max(lightColor.Y, lightColor.Z)) + 1;
@@ -244,7 +244,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeLight(PackedChunkWorld world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3i lightColor)
+        public static void ComputeLight(World world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3i lightColor)
         {
 
             Vector3i currentLightColor = lightColor;
@@ -340,7 +340,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeLightRay(PackedChunkWorld world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3 direction, uint color)
+        public static void ComputeLightRay(World world, Vector3i chunkPosition, Vector3i globalLightPosition, Vector3 direction, uint color)
         {
 
             // world.WorldChunks[ChunkUtils.PositionToChunk(globalLightPosition)].PackedLightData = new uint[GlobalValues.ChunkSize * GlobalValues.ChunkSize * GlobalValues.ChunkSize];

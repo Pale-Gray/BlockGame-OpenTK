@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.Mod
+namespace Blockgame_OpenTK.Core.Modding;
+
+public interface IModLoader
 {
-    internal interface IModLoader
-    {
 
-        public abstract void OnLoad(NewRegister register);
+    public abstract void OnLoad(NewRegister register);
 
-    }
 }

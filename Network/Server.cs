@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Xml;
+using Blockgame_OpenTK.BlockProperty;
+using Blockgame_OpenTK.Core.Worlds;
+using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using NVorbis.Contracts;
+using OpenTK.Platform;
 using Tomlet;
 using Tomlet.Attributes;
 
@@ -18,7 +25,7 @@ public struct ServerProperties
 {
 
     [TomlProperty("address")]
-    public IPAddress Address { get; set; }
+    public string AddressOrHost { get; set; }
     
     [TomlProperty("port")]
     public int Port { get; set; }
@@ -39,14 +46,22 @@ public class Server
     private RSACryptoServiceProvider _rsa;
     public byte[] PublicKey => _rsa.ExportRSAPublicKey();
     public bool IsMultiplayer;
-    public EventBasedNetListener ServerListener;
-    public NetManager ServerNetworkManager;
+    public EventBasedNetListener Listener;
+    public NetManager NetworkManager;
     public ServerProperties Properties { get; private set; }
+    public World World;
+    public Dictionary<long, Player> ConnectedPlayers = new();
+    public Dictionary<long, NetPeer> ConnectedPlayerPeers = new();
+    public Dictionary<long, PlayerChunkArea> PlayerChunkAreas = new();
+    private NetDataWriter _writer = new();
     public Server(bool isMultiplayer = false)
     {
 
         IsMultiplayer = isMultiplayer;
         _rsa = new RSACryptoServiceProvider(2048);
+
+        Listener = new EventBasedNetListener();
+        NetworkManager = new NetManager(Listener);
 
     }
 
@@ -56,28 +71,91 @@ public class Server
         if (IsMultiplayer)
         {
 
-            ServerListener = new EventBasedNetListener();
-            ServerNetworkManager = new NetManager(ServerListener);
-
             Properties = TomletMain.To<ServerProperties>(File.ReadAllText("server.toml"));
-            
-            ServerNetworkManager.IPv6Enabled = false;
-            ServerNetworkManager.Start(Properties.Address.MapToIPv4(), null, Properties.Port);
 
-            GameLogger.Log($"Started a server at {Properties.Address}:{Properties.Port}");
+            NetworkManager.IPv6Enabled = false;
+            NetworkManager.Start(Properties.AddressOrHost, Properties.AddressOrHost, Properties.Port);
 
-            ServerListener.ConnectionRequestEvent += request => 
+            GameLogger.Log($"Started a server at {Properties.AddressOrHost}:{Properties.Port}");
+
+            Listener.ConnectionRequestEvent += request => 
             {
 
-                if (ServerNetworkManager.ConnectedPeersCount >= Properties.MaxPlayers)
+                GameLogger.Log("Someone is trying to join");
+
+                if (NetworkManager.ConnectedPeersCount >= Properties.MaxPlayers)
                 {
-                    NetDataWriter writer = new NetDataWriter();
-                    writer.Put((byte)PacketType.ServerDisconnectErrorMaxPlayersPacket);
-                    request.Reject(writer);
+                    _writer.Put((byte)PacketType.DisconnectErrorPacket);
+                    _writer.Put("Maximum players exceeded");
+                    request.Reject(_writer);
+                    _writer.Reset();
                 } else
                 {
-                    request.AcceptIfKey("ClientGameConnection");
+                    request.AcceptIfKey("BlockGame");
                 }
+
+            };
+
+            Listener.PeerConnectedEvent += peer =>   
+            {
+
+                GameLogger.Log("A player has connected");
+
+                _writer.Put((byte)PacketType.RequestPlayerUniqueIdPacket);
+                peer.Send(_writer, DeliveryMethod.ReliableOrdered);
+                _writer.Reset();
+
+            };
+
+            Listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>
+            {
+
+                GameLogger.Log($"A client has disconnected");
+
+            };
+
+            Listener.NetworkReceiveEvent += (fromPeer, dataReader, deliveryMethod, channel) =>
+            {
+
+                PacketType packetType = (PacketType)dataReader.GetByte();
+
+                switch (packetType)
+                {
+                    case PacketType.SendPlayerUniqueIdPacket:
+                        long uid = dataReader.GetLong();
+                        GameLogger.Log($"Player with uid {uid} is trying to join");
+                        if (ConnectedPlayers.ContainsKey(uid))
+                        {
+                            _writer.Put((byte)PacketType.DisconnectErrorPacket);
+                            _writer.Put("The uid already exists on the server.");
+                            GameLogger.Log($"{PacketType.DisconnectErrorPacket}: The uid already exists on the server");
+                            fromPeer.Disconnect(_writer);
+                            _writer.Reset();
+                        } else 
+                        {
+                            GameLogger.Log($"The player with uid {uid} would be considered joined.");
+                            ConnectedPlayers.Add(uid, new Player() { UserId = uid });
+                            ConnectedPlayerPeers.Add(uid, fromPeer);
+                        }
+                        break;
+                    case PacketType.BlockPlacePacket:
+                        ushort blockId = dataReader.GetUShort();
+                        int x = dataReader.GetInt();
+                        int y = dataReader.GetInt();
+                        int z = dataReader.GetInt();
+                        GlobalValues.NewRegister.GetBlockFromId(blockId).OnBlockPlace(World, (x,y,z));
+
+                        _writer.Put((byte)PacketType.BlockPlacePacket);
+                        _writer.Put(blockId);
+                        _writer.Put(x);
+                        _writer.Put(y);
+                        _writer.Put(z);
+                        NetworkManager.SendToAll(_writer, DeliveryMethod.ReliableOrdered, fromPeer);
+                        break;
+
+                }
+
+                dataReader.Recycle();
 
             };
 
@@ -96,7 +174,14 @@ public class Server
         if (IsMultiplayer)
         {
 
+            NetworkManager.PollEvents();
 
+            foreach (Player player in ConnectedPlayers.Values)
+            {
+
+                
+
+            }
 
         } else
         {
@@ -113,7 +198,7 @@ public class Server
         if (IsMultiplayer)
         {
 
-            ServerNetworkManager.Stop();
+            NetworkManager.Stop();
 
         } else
         {

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OpenTK.Platform;
 using System.Runtime.InteropServices;
+using LiteNetLib;
 
 namespace Blockgame_OpenTK.PlayerUtil
 {
@@ -32,17 +33,21 @@ namespace Blockgame_OpenTK.PlayerUtil
         float Mass = 64.0f;
         Vector3 Velocity = Vector3.Zero;
 
+        // public NetPeer PlayerClient;
+        public Vector3i ChunkPosition;
+        public long UserId;
+
         bool IsGrounded = false;
 
         public AxisAlignedBoundingBox PlayerBounds = new AxisAlignedBoundingBox((0, 0, 0), (0.7f, 1.9f, 0.7f), (0.0f, 0.0f, 0.0f));
 
         public Player() { }
 
-        public void Update(PackedChunkWorld world)
+        public void Update(World world)
         {
             float Speed = 0;
 
-            if (GlobalValues.IsCursorLocked)
+            if (Input.IsMouseFocused)
             {
 
                 if (Translator.ResolveKeymap("Sprint"))
@@ -131,6 +136,8 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                     positionAlter += new Vector3(xValue, 0.0f, zValue) * Speed;
 
+                    AddPlayerPosition(new Vector3(xValue, 0.0f, zValue) * Speed);
+
                 }
                 if (Translator.ResolveKeymap("Forwards"))
                 {
@@ -138,8 +145,9 @@ namespace Blockgame_OpenTK.PlayerUtil
                     float xValue = (float) Math.Cos(Maths.ToRadians(Camera.Yaw));
                     float zValue = (float) Math.Sin(Maths.ToRadians(Camera.Yaw));
 
-                    positionAlter += new Vector3(xValue, 0.0f, zValue) * Speed;//  * (float)GlobalValues.DeltaTime;
+                    positionAlter += new Vector3(xValue, 0.0f, zValue) * Speed * (float)GlobalValues.DeltaTime;
 
+                    AddPlayerPosition(new Vector3(xValue, 0.0f, zValue) * Speed * (float)GlobalValues.DeltaTime);
                     // Velocity = new Vector3(Camera.ForwardVector.X, 0.0f, Camera.ForwardVector.Z) * Speed;// * (float)GlobalValues.DeltaTime;
                     // Velocity.X = positionAlter.X;
                     // Velocity.Z = positionAlter.Z;
@@ -151,9 +159,11 @@ namespace Blockgame_OpenTK.PlayerUtil
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
                     float zValue = (float)Math.Sin(Maths.ToRadians(Camera.Yaw));
 
-                    Vector3 vec = -Vector3.Normalize(Vector3.Cross((xValue, 0.0f, zValue), Camera.UpVector)) * Speed;// * (float)GlobalValues.DeltaTime);
+                    Vector3 vec = -Vector3.Normalize(Vector3.Cross((xValue, 0.0f, zValue), Camera.UpVector)) * Speed * (float)GlobalValues.DeltaTime;
 
                     positionAlter += (vec.X, 0.0f, vec.Z);
+
+                    AddPlayerPosition((vec.X, 0.0f, vec.Z));
 
                     // Velocity.X = positionAlter.X;
                     // Velocity.Z = positionAlter.Z;
@@ -165,10 +175,11 @@ namespace Blockgame_OpenTK.PlayerUtil
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
                     float zValue = (float)Math.Sin(Maths.ToRadians(Camera.Yaw));
 
-                    Vector3 vec = -new Vector3(xValue, 0.0f, zValue) * Speed;// * (float)GlobalValues.DeltaTime;
+                    Vector3 vec = -new Vector3(xValue, 0.0f, zValue) * Speed * (float)GlobalValues.DeltaTime;
 
                     positionAlter += (vec.X, 0.0f, vec.Z);
 
+                    AddPlayerPosition((vec.X, 0.0f, vec.Z));
                     // Velocity.X = positionAlter.X;
                     // Velocity.Z = positionAlter.Z;
 
@@ -179,9 +190,10 @@ namespace Blockgame_OpenTK.PlayerUtil
                     float xValue = (float)Math.Cos(Maths.ToRadians(Camera.Yaw));
                     float zValue = (float)Math.Sin(Maths.ToRadians(Camera.Yaw));
 
-                    Vector3 vec = Vector3.Normalize(Vector3.Cross((xValue, 0.0f, zValue), Camera.UpVector)) * Speed;
+                    Vector3 vec = Vector3.Normalize(Vector3.Cross((xValue, 0.0f, zValue), Camera.UpVector)) * Speed * (float)GlobalValues.DeltaTime;
 
                     positionAlter += (vec.X, 0.0f, vec.Z);
+                    AddPlayerPosition((vec.X, 0.0f, vec.Z));
 
                 }
 
@@ -227,6 +239,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                 Camera.Update(Position + (0.5f * PlayerBounds.Dimensions.X, CameraOffsetY, 0.5f * PlayerBounds.Dimensions.Z));
 
+                /*
                 Position += Velocity * (float)GlobalValues.DeltaTime;
 
                 AxisAlignedBoundingBox playerBoundsOffsetted = PlayerBounds.GetOffsetBoundingBox(Position);
@@ -338,6 +351,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                     }
 
                 }
+                */
 
                 // Velocity.X /= (1.0f + lastDynamicFriction) * (float)GlobalValues.DeltaTime;
                 // Velocity.Z /= (1.0f + lastDynamicFriction) * (float)GlobalValues.DeltaTime;

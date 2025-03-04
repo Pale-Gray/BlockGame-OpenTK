@@ -9,10 +9,11 @@ using System;
 using System.ComponentModel;
 using OpenTK.Graphics.OpenGL;
 using System.Reflection.Metadata;
+using System.Net;
 
 namespace Blockgame_OpenTK.Core.Worlds;
 
-public class PackedChunkWorld
+public class World
 {
     
     public ConcurrentDictionary<Vector3i, PackedChunk> PackedWorldChunks = new();

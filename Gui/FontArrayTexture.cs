@@ -14,7 +14,6 @@ public class FontArrayTexture
     public Vector2i Size;
 
     private int _currentLayer = 0;
-    // private int _currentDepth = 8;
 
     public FontArrayTexture(int width, int height)
     {
@@ -39,7 +38,7 @@ public class FontArrayTexture
     public unsafe void AddGlyph(char character, FT_Bitmap_ glyphBitmap)
     {
 
-        // GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
+        GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
         GL.TextureSubImage3D(TextureId, 0, 0, 0, _currentLayer, (int) glyphBitmap.width, (int) glyphBitmap.rows, 1, PixelFormat.Red, PixelType.UnsignedByte, glyphBitmap.buffer);
         _charIndex.Add(character, _currentLayer);
         _currentLayer++;

@@ -83,10 +83,6 @@ namespace Blockgame_OpenTK.Font
         private static Dictionary<int, (float, float, float)> _variableSizedUnderlineAndLinegap = new();
         private static Dictionary<int, (float, float)> _variableSizedCursorParameters = new();
 
-        private static float _ascent = 0.0f;
-        private static float _descent = 0.0f;
-        private static float _linegap = 0.0f;
-
         // private static ArrayTexture _glyphArrays;
 
         struct CharFormattingData
@@ -116,9 +112,6 @@ namespace Blockgame_OpenTK.Font
 
         }
 
-        private static unsafe FT_LibraryRec_* _library;
-        private static unsafe FT_FaceRec_* _face;
-        private static FT_Error _error;
         private static List<CharFormattingData> _currentTextFormattingData = new();
 
         public static FontFamily FontFamily;
@@ -162,7 +155,6 @@ namespace Blockgame_OpenTK.Font
             Color4<Rgba> gradientEnd = Color4.Black;
             float gradientTextLength = 0;
             float currentCount = 0;
-            int currentIndex = 0;
 
             if (text.Length == 0 && !_variableSizedGlyphData.ContainsKey(('A', size)))
             {

@@ -40,17 +40,14 @@ public class DataReader : IDisposable
 
     }
 
-    public unsafe Span<byte> GetByteSpan()
+    public Span<byte> GetByteSpan()
     {
 
         int length = GetInt();
 
-        GCHandle handle = GCHandle.Alloc(new byte[length], GCHandleType.Pinned);
-        Span<byte> value = new Span<byte>((byte*)handle.AddrOfPinnedObject(), length);
-
+        Span<byte> value = new byte[length];
         _stream.ReadExactly(value);
 
-        handle.Free();
         return value;
 
     }
@@ -128,8 +125,18 @@ public class DataReader : IDisposable
 
     }
 
-    public long GetLong()
+    public T GetBinaryInteger<T>() where T : System.Numerics.IBinaryInteger<T>
     {
+
+        Span<byte> bytes = stackalloc byte[Unsafe.SizeOf<T>()];
+        _stream.ReadExactly(bytes);
+        Type type = typeof(T);
+        return T.ReadLittleEndian(bytes, type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong));
+
+    }
+
+    public long GetLong()
+    {   
 
         Span<byte> bytes = stackalloc byte[sizeof(long)];
         _stream.ReadExactly(bytes);
@@ -143,6 +150,15 @@ public class DataReader : IDisposable
         Span<byte> bytes = stackalloc byte[sizeof(int)];
         _stream.ReadExactly(bytes);
         return BinaryPrimitives.ReadInt32LittleEndian(bytes);
+
+    }
+
+    public uint GetUInt()
+    {
+
+        Span<byte> bytes = stackalloc byte[sizeof(uint)];
+        _stream.ReadExactly(bytes);
+        return BinaryPrimitives.ReadUInt32LittleEndian(bytes);
 
     }
 
