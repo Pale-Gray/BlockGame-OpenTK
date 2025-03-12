@@ -2,9 +2,9 @@
 [Info] Supports raw mouse? False
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
+[Info] Created Chunks folder because it did not exist.
 [Info] loading blocks
-[Info] Connected to server.
-[Info] Finished reading from file.
+m file.
 [Info] Finished reading from file.
 [Info] Finished reading from file.
 [Info] Finished reading from file.
