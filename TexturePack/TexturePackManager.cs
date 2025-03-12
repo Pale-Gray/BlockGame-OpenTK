@@ -66,15 +66,12 @@ namespace Blockgame_OpenTK.Core.TexturePack
 
                     List<ZipArchiveEntry> blockFiles = archive.GetFilesInDirectory(Path.Combine("Blocks"));
                     StbImage.stbi_set_flip_vertically_on_load(1);
-                    if (NetworkingValues.Server == null)
-                    {
-                        ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
-                        GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, blockFiles.Count);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
-                    }
+                    ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
+                    GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, blockFiles.Count);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
                     foreach (ZipArchiveEntry entry in blockFiles)
                     {
                         
@@ -86,7 +83,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
 
                             ImageResult image = ImageResult.FromMemory(imageBytes);
                             int currentCount = _textureArrayIndices.Count;
-                            if (NetworkingValues.Server == null) GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                            GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
                             string fileName = entry.FullName.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
                             Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
@@ -94,7 +91,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
                         }
 
                     }
-                    if (NetworkingValues.Server == null) GL.GenerateTextureMipmap(ArrayTextureName);
+                    GL.GenerateTextureMipmap(ArrayTextureName);
 
                 }
 
@@ -109,15 +106,12 @@ namespace Blockgame_OpenTK.Core.TexturePack
                 if (Directory.Exists(blockTexturePath))
                 {
 
-                    if (NetworkingValues.Server == null)
-                    {
-                        ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
-                        GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, Directory.GetFiles(blockTexturePath).Length);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
-                        GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
-                    }
+                    ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
+                    GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, Directory.GetFiles(blockTexturePath).Length);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
                     foreach (string file in Directory.GetFiles(blockTexturePath)) 
                     {
 
@@ -126,7 +120,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
 
                             ImageResult image = ImageResult.FromStream(imageFile);
                             int currentCount = _textureArrayIndices.Count;
-                            if (NetworkingValues.Server == null) GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                            GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
                             string fileName = file.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
                             Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
@@ -134,7 +128,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
                         }
 
                     }
-                    if (NetworkingValues.Server == null) GL.GenerateTextureMipmap(ArrayTextureName);
+                    GL.GenerateTextureMipmap(ArrayTextureName);
 
                 } else 
                 {
@@ -151,7 +145,7 @@ namespace Blockgame_OpenTK.Core.TexturePack
             foreach (TexturePackInfo texturePack in _availableTexturePacks.Values)
             {
 
-                if (NetworkingValues.Server == null) if (texturePack.Icon != null) texturePack.Icon.Dispose();
+                texturePack.Icon.Dispose();
 
             }
             _availableTexturePacks.Clear();
@@ -174,10 +168,10 @@ namespace Blockgame_OpenTK.Core.TexturePack
 
                         if (File.Exists(Path.Combine(dir, "icon.png")))
                         {
-                            if (NetworkingValues.Server == null) texturePack.Icon = new Texture(Path.Combine(dir, "icon.png"));
+                            texturePack.Icon = new Texture(Path.Combine(dir, "icon.png"));
                         } else 
                         {
-                            if (NetworkingValues.Server == null) texturePack.Icon = GlobalValues.MissingTexturePackIcon;
+                            texturePack.Icon = GlobalValues.MissingTexturePackIcon;
                         }
 
                         _availableTexturePacks.Add(dir.Split(Path.DirectorySeparatorChar).Last(), texturePack);

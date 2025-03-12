@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
+using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
+using OpenTK.Platform;
 
 namespace Blockgame_OpenTK.Core.PlayerUtil;
 
@@ -13,31 +15,72 @@ public class NewPlayer
     public long UserId;
     public string DisplayName;
     public Vector3 Position;
+    public HashSet<Vector2i> ChunkArea = new();
+    public HashSet<Vector2i> SentChunks = new();
+    public PlayerCamera Camera = new PlayerCamera(90.0f);
+    public PlayerChunkLoader Loader;
 
-    public HashSet<Vector2i> ChunkArea;
+    public void UpdateInputs()
+    {
 
+        if (Input.IsKeyDown(Key.E))
+        {
+            Camera.Position += Vector3.UnitY;
+            Camera.UpdateViewMatrix();
+        }
+
+        if (Input.IsKeyDown(Key.Q))
+        {
+            Camera.Position -= Vector3.UnitY;
+            Camera.UpdateViewMatrix();
+        }
+
+        if (Input.IsKeyDown(Key.W))
+        {
+            Camera.Position -= Vector3.UnitZ;
+            Camera.UpdateViewMatrix();
+        }
+
+        if (Input.IsKeyDown(Key.S))
+        {
+            Camera.Position += Vector3.UnitZ;
+            Camera.UpdateViewMatrix();
+        }
+
+        if (Input.IsKeyDown(Key.A))
+        {
+            Camera.Position -= Vector3.UnitX;
+            Camera.UpdateViewMatrix();
+        }
+
+        if (Input.IsKeyDown(Key.D))
+        {
+            Camera.Position += Vector3.UnitX;
+            Camera.UpdateViewMatrix();
+        }
+
+    }
     public void ResolveAreaDifference(Vector2i playerChunkPosition)
     {
 
-        if (ChunkArea == null)
+        if (ChunkArea.Count == 0)
         {
-            ChunkArea = new();
             for (int x = -PackedWorldGenerator.WorldGenerationRadius; x <= PackedWorldGenerator.WorldGenerationRadius; x++)
             {
                 for (int z = -PackedWorldGenerator.WorldGenerationRadius; z <= PackedWorldGenerator.WorldGenerationRadius; z++)
                 {
                     ChunkArea.Add((x,z) + playerChunkPosition);
-                    if (NetworkingValues.Server.World.WorldColumns.ContainsKey((x,z) + playerChunkPosition))
-                    {
-                        NetworkingValues.Server.World.WorldColumns[(x,z) + playerChunkPosition].QueueType = ColumnQueueType.PassOne;
-                        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast((x,z) + playerChunkPosition);
-                        // call a send method.
-                    } else
-                    {
-                        NetworkingValues.Server.World.WorldColumns.TryAdd((x,z) + playerChunkPosition, new ChunkColumn((x,z) + playerChunkPosition));
-                        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast((x,z) + playerChunkPosition);
-                        // call the generate method that eventually sends it.
-                    }
+                    // if (NetworkingValues.Server.World.WorldColumns.ContainsKey((x,z) + playerChunkPosition))
+                    // {
+                    //     NetworkingValues.Server.World.WorldColumns[(x,z) + playerChunkPosition].QueueType = ColumnQueueType.PassOne;
+                    //     PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast((x,z) + playerChunkPosition);
+                    //     // call a send method.
+                    // } else
+                    // {
+                    //     NetworkingValues.Server.World.WorldColumns.TryAdd((x,z) + playerChunkPosition, new ChunkColumn((x,z) + playerChunkPosition));
+                    //     PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast((x,z) + playerChunkPosition);
+                    //     // call the generate method that eventually sends it.
+                    // }
                 }
             }
         } else
@@ -57,10 +100,10 @@ public class NewPlayer
                 if (!ChunkArea.Contains(chunkPos))
                 {
 
-                    if (NetworkingValues.Server.World.WorldColumns.ContainsKey(chunkPos + playerChunkPosition))
+                    // if (NetworkingValues.Server.World.WorldColumns.ContainsKey(chunkPos + playerChunkPosition))
                     {
                         // call a send method.
-                    } else
+                    }//  else
                     {
                         // call the generate method that eventually sends it.
                     }

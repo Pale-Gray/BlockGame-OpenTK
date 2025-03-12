@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.PlayerUtil;
@@ -120,25 +121,25 @@ public class PackedChunkMesh
         
     }
 
-    public void Draw(Player player)
+    public void Draw(NewPlayer player)
     {
         
         if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)
         {
-            
+
             GlobalValues.PackedChunkShader.Use();
+            GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
             
             GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "view"), 1, true, ref player.Camera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref player.Camera.ProjectionMatrix);
+            Matrix4 viewMatrix = player.Camera.ViewMatrix;
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "view"), 1, true, ref viewMatrix);
+            Matrix4 projectionMatrix = player.Camera.ProjectionMatrix;
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref projectionMatrix);
 
             GL.BindVertexArray(Vao);
             GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
             
-        } else
-        { 
-
         }
         
     }

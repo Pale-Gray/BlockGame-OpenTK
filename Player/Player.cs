@@ -79,7 +79,7 @@ namespace Blockgame_OpenTK.PlayerUtil
                             // new NewBlock().OnBlockDestroy(PackedWorldGenerator.CurrentWorld, Dda.PositionAtHit);
                             // ushort id = world.PackedWorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit))];
                             ushort id = world.WorldColumns[ChunkUtils.PositionToChunk(Dda.PositionAtHit).Xz].Chunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit).Y].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal(Dda.PositionAtHit))];
-                            GlobalValues.NewRegister.GetBlockFromId(id).OnBlockDestroy(world, Dda.PositionAtHit);
+                            GlobalValues.Register.GetBlockFromId(id).OnBlockDestroy(world, Dda.PositionAtHit);
                             // world.WorldChunks[ChunkUtils.PositionToChunk(Dda.PositionAtHit)].GetBlock(HitPositionLocal).OnBlockDestroy(world, Dda.PositionAtHit);
                             
                             RemoveDelay = 0;
@@ -112,7 +112,7 @@ namespace Blockgame_OpenTK.PlayerUtil
 
                                 Vector3i previousPositionChunkHit = ChunkUtils.PositionToChunk(Dda.PreviousPositionAtHit);
 
-                                GlobalValues.NewRegister.GetBlockFromId(GlobalValues.BlockSelectorID).OnBlockPlace(PackedWorldGenerator.CurrentWorld, Dda.PreviousPositionAtHit);
+                                GlobalValues.Register.GetBlockFromId(GlobalValues.BlockSelectorID).OnBlockPlace(PackedWorldGenerator.CurrentWorld, Dda.PreviousPositionAtHit);
                                 // GlobalValues.Register.GetBlockFromID(GlobalValues.BlockSelectorID).OnBlockPlace(world, Dda.PreviousPositionAtHit);
 
                             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Worlds;
@@ -17,7 +18,7 @@ public class Client
     public bool IsMultiplayer { get; private set; }
     public EventBasedNetListener Listener;
     public NetManager NetworkManager;
-    public World World = new();
+    // public World World = new();
 
     public Client(bool isMultiplayer = false)
     {
@@ -54,34 +55,40 @@ public class Client
             switch (packetType)
             {
 
-                case PacketType.RequestPlayerUniqueIdPacket:
+                case PacketType.PlayerDataRequestPacket:
                     NetDataWriter writer = new NetDataWriter();
-                    writer.Put((byte)PacketType.SendPlayerUniqueIdPacket);
+                    writer.Put((byte)PacketType.PlayerDataSendPacket);
                     writer.Put(uid);
                     fromPeer.Send(writer, DeliveryMethod.ReliableOrdered);
                     break;
                 case PacketType.BlockPlacePacket:
                     packet = new BlockPlacePacket();
                     packet.Deserialize(dataReader);
-                    GlobalValues.NewRegister.GetBlockFromId(((BlockPlacePacket)packet).BlockId).OnBlockPlace(World, ((BlockPlacePacket)packet).BlockPosition);
+                    // GlobalValues.Register.GetBlockFromId(((BlockPlacePacket)packet).BlockId).OnBlockPlace(World, ((BlockPlacePacket)packet).BlockPosition);
                     break;
                 case PacketType.ChunkSendPacket:
                     packet = new ChunkSendPacket();
                     packet.Deserialize(dataReader);
                     // GameLogger.Log($"Received a {PacketType.ChunkSendPacket} at chunk position {((ChunkSendPacket)packet).Position}");
                     // GameLogger.Log("need to add a chunk");
-                    bool added = World.WorldColumns.TryAdd(((ChunkSendPacket)packet).Position, new ChunkColumn(((ChunkSendPacket)packet).Position) { QueueType = ColumnQueueType.Mesh } );
-                    ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[((ChunkSendPacket)packet).Position], ((ChunkSendPacket)packet).Data);
-                    for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
-                    {
-                        World.WorldColumns[((ChunkSendPacket)packet).Position].Chunks[i].HasUpdates = true;
-                    }
-                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(((ChunkSendPacket)packet).Position);
+                    // bool added = World.WorldColumns.TryAdd(((ChunkSendPacket)packet).Position, new ChunkColumn(((ChunkSendPacket)packet).Position) { QueueType = ColumnQueueType.Mesh } );
+                    // ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[((ChunkSendPacket)packet).Position], ((ChunkSendPacket)packet).Data);
+                    // for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+                    // {
+                    //     World.WorldColumns[((ChunkSendPacket)packet).Position].Chunks[i].HasUpdates = true;
+                    // }
+                    // PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(((ChunkSendPacket)packet).Position);
+
+                    ChunkReceivePacket received = new ChunkReceivePacket();
+                    received.Position = ((ChunkSendPacket)packet).Position;
+                    NetDataWriter dataWriter = new NetDataWriter();
+                    received.Serialize(dataWriter);
+                    fromPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
                     break;
                 case PacketType.ChunkRemovePacket:
                     packet = new ChunkRemovePacket();
                     packet.Deserialize(dataReader);
-                    NetworkingValues.Client.World.WorldColumns.Remove(((ChunkRemovePacket)packet).ChunkPosition, out _);
+                    // NetworkingValues.Client.World.WorldColumns.Remove(((ChunkRemovePacket)packet).ChunkPosition, out _);
                     break;
 
             }

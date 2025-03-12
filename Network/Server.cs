@@ -25,25 +25,6 @@ using Tomlet.Attributes;
 
 namespace Blockgame_OpenTK.Core.Networking;
 
-public struct ServerProperties
-{
-
-    [TomlProperty("address")]
-    public string AddressOrHost { get; set; }
-    
-    [TomlProperty("port")]
-    public int Port { get; set; }
-
-    [TomlProperty("max_players")]
-    public int MaxPlayers { get; set; }
-
-    public ServerProperties(ServerProperties properties) 
-    {
-
-        // Address = IPAddress.Parse(AddressString);
-    }
-
-}
 public class Server
 {
 
@@ -53,7 +34,7 @@ public class Server
     public EventBasedNetListener Listener;
     public NetManager NetworkManager;
     public ServerProperties Properties { get; private set; }
-    public World World = new();
+    // public World World = new();
     public Dictionary<int, NewPlayer> ConnectedPlayers = new();
     
 
@@ -76,10 +57,10 @@ public class Server
         {
 
             PackedWorldGenerator.Initialize();
-            PackedWorldGenerator.CurrentWorld = World;
-            
+            // PackedWorldGenerator.CurrentWorld = World;
 
             Properties = TomletMain.To<ServerProperties>(File.ReadAllText("server.toml"));
+            // World.WorldPath = Properties.WorldName;
 
             NetworkManager.IPv6Enabled = false;
             NetworkManager.Start(Properties.AddressOrHost, Properties.AddressOrHost, Properties.Port);
@@ -110,7 +91,7 @@ public class Server
 
                 GameLogger.Log("A player has connected");
 
-                _writer.Put((byte)PacketType.RequestPlayerUniqueIdPacket);
+                _writer.Put((byte)PacketType.PlayerDataRequestPacket);
                 peer.Send(_writer, DeliveryMethod.ReliableOrdered);
                 _writer.Reset();
 
@@ -121,6 +102,48 @@ public class Server
 
                 GameLogger.Log($"Player with uid {ConnectedPlayers[peer.Id].UserId} and netpeer id {peer.Id} has disconnected.");
                 ConnectedPlayers.Remove(peer.Id);
+                if (ConnectedPlayers.Count == 0)
+                {
+                    // foreach (ChunkColumn column in World.WorldColumns.Values)
+                    // {
+                    //     // save to file.
+                    //     ColumnSerializer.SerializeColumn(column);
+                    // }
+                    // // clear the whole dict.
+                    // World.WorldColumns.Clear();
+                } else
+                {
+                    Queue<Vector2i> removeColumns = new();
+
+                    // foreach (ChunkColumn column in World.WorldColumns.Values)
+                    // {
+// 
+                    //     bool shouldRemove = true;
+                    //     foreach (NewPlayer player in ConnectedPlayers.Values)
+                    //     {
+// 
+                    //         if (Maths.ChebyshevDistance2D(ChunkUtils.PositionToChunk(player.Position).Xz, column.Position) <= PackedWorldGenerator.WorldGenerationRadius)
+                    //         {
+                    //             // you shouldnt at all remove the chunk column.
+                    //             shouldRemove = false;
+                    //         }
+// 
+                    //     }
+                    //     if (shouldRemove)
+                    //     {
+                    //         // actually save and remove the chunk since no players have it.
+                    //         ColumnSerializer.SerializeColumn(column);
+                    //         removeColumns.Enqueue(column.Position);
+// 
+                    //     }
+// 
+                    // }
+// 
+                    // while (removeColumns.TryDequeue(out Vector2i column))
+                    // {
+                    //     World.WorldColumns.Remove(column, out _);
+                    // }
+                }
 
             };
 
@@ -130,12 +153,13 @@ public class Server
                 PacketType packetType = (PacketType)dataReader.GetByte();
                 IPacket packet;
 
+                GameLogger.Log($"{packetType}");
+
                 switch (packetType)
                 {
-                    case PacketType.SendPlayerUniqueIdPacket:
+                    case PacketType.PlayerDataSendPacket:
                         long uid = dataReader.GetLong();
                         GameLogger.Log($"Player with uid {uid} and netpeer id {fromPeer.Id} is trying to join");
-                        
                         if (ConnectedPlayers.Where(player => player.Value.UserId == uid).Count() != 0)
                         {
                             // disconnect
@@ -155,6 +179,14 @@ public class Server
                             fromPeer.Send(_writer, DeliveryMethod.ReliableOrdered);
                             _writer.Reset();
                         }
+                        break;
+                    case PacketType.ChunkReceivePacket:
+                        // generator uses this to check if it should send a packet.
+                        // ensures that the server doesnt send a whole
+                        // chunk packet again to the same client.
+                        packet = new ChunkReceivePacket();
+                        packet.Deserialize(dataReader);
+                        ConnectedPlayers[fromPeer.Id].SentChunks.Add(((ChunkReceivePacket)packet).Position);
                         break;
                     case PacketType.BlockPlacePacket:
                         packet = new BlockPlacePacket();
@@ -183,18 +215,18 @@ public class Server
         {
 
             Vector2i position = ChunkUtils.PositionToChunk(player.Position).Xz;
-            // Console.WriteLine(position);
             if (Maths.ChebyshevDistance2D(position, chunkPosition) <= PackedWorldGenerator.WorldGenerationRadius)
             {
                 
-                // ColumnSerializer.SerializeColumn(World.WorldColumns[chunkPosition]);
-
-                ChunkSendPacket packet = new ChunkSendPacket();
-                packet.Position = chunkPosition;
-                packet.Data = ColumnSerializer.SerializeColumnToBytes(World.WorldColumns[chunkPosition]);
-                packet.Serialize(_writer);
-                NetworkManager.GetPeerById(player.NetPeerId).Send(_writer, DeliveryMethod.ReliableOrdered);
-                _writer.Reset();
+                if (!player.SentChunks.Contains(chunkPosition))
+                {
+                    ChunkSendPacket packet = new ChunkSendPacket();
+                    packet.Position = chunkPosition;
+                    // packet.Data = ColumnSerializer.SerializeColumnToBytes(World.WorldColumns[chunkPosition]);
+                    packet.Serialize(_writer);
+                    NetworkManager.GetPeerById(player.NetPeerId).Send(_writer, DeliveryMethod.ReliableOrdered);
+                    _writer.Reset();
+                }
 
             }
 
@@ -209,7 +241,7 @@ public class Server
         {
 
             NetworkManager.PollEvents();
-            PackedWorldGenerator.Poll();
+            PackedWorldGenerator.Update();
 
 
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Net;
 using System.Security;
@@ -103,9 +104,11 @@ public class NewBlockModel
 {
     
     private Dictionary<Direction, List<PackedChunkVertex>> _computedModelPackedVertices = new();
+    private Dictionary<Direction, List<ChunkVertex>> _computedModelVertices = new();
     // private Dictionary<Direction, List<CustomVertex>> _computedModelGeneralVertices = new();
     public bool IsFullBlock = true;
 
+    // FIXME: remove this shit
     public List<PackedChunkVertex> QueryPackedFace(Direction direction, Vector3i offset, LightColor lightColor)
     {
         List<PackedChunkVertex> result = [];
@@ -120,6 +123,26 @@ public class NewBlockModel
             }
         }
         return result;
+
+    }
+
+    // TODO: implement this because column meshing is taking like 80ms
+    public void QueryFace(List<ChunkVertex> vertices, Direction direction, Vector3i offset)
+    {
+
+        if (_computedModelVertices.ContainsKey(direction))
+        {
+
+            for (int i = 0; i < _computedModelVertices[direction].Count; i++)
+            {
+
+                ChunkVertex vertex = _computedModelVertices[direction][i];
+                vertex.Position += offset;
+                vertices.Add(vertex);
+
+            }
+
+        }
 
     }
 
@@ -142,23 +165,54 @@ public class NewBlockModel
         {
             string inheritPath = Path.Combine(GlobalValues.BlockModelPath, Path.Combine(modelData.InheritPath.Split('/')));
             if (modelData.Cubes == null) modelData.Cubes = [];
-            modelData.Cubes.AddRange(CheckInheritCubes(inheritPath));
+            CheckInheritCubes(modelData.Cubes, inheritPath);
         }
         
         return Parse(modelData);
     }
 
-    private static List<Cube> CheckInheritCubes(string inheritPath) {
+    public static NewBlockModel FromTomlNew(string tomlPath)
+    {
+        
+        // find all inherit paths
+        // get all textures in inherit paths
+        // get all cubes in inherit paths
+        // parse the cubes with the texture array
 
-        List<Cube> cubes = [];
+        PrimitiveModelData modelData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, tomlPath)));
+        if (modelData.InheritPath != null)
+        {
+            string inheritPath = Path.Combine(GlobalValues.BlockModelPath, Path.Combine(modelData.InheritPath.Split('/')));
+            if (modelData.Cubes == null) modelData.Cubes = [];
+            CheckInheritCubes(modelData.Cubes, inheritPath);
+        }
+
+        return ParseNew(modelData);
+    }
+
+    private static NewBlockModel ParseNew(PrimitiveModelData modelData)
+    {
+
+        NewBlockModel model = new NewBlockModel();
+
+        foreach (Cube cube in modelData.Cubes)
+        {
+
+            
+
+        }
+
+        return model;
+
+    }
+
+    private static void CheckInheritCubes(List<Cube> cubes, string inheritPath) {
 
         PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath));
         cubes.AddRange(inheritData.Cubes);
         if (inheritData.InheritPath != null) {
-            cubes.AddRange(CheckInheritCubes(Path.Combine(GlobalValues.BlockModelPath, Path.Combine(inheritData.InheritPath.Split('/')))));
+            CheckInheritCubes(cubes, Path.Combine(GlobalValues.BlockModelPath, Path.Combine(inheritData.InheritPath.Split('/'))));
         } 
-
-        return cubes;
 
     }
 

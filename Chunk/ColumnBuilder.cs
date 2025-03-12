@@ -36,13 +36,13 @@ public class ColumnBuilder
                         globalBlockPosition.Y = y + (column.Chunks[chunkY].ChunkPosition.Y * GlobalValues.ChunkSize);
                         if (globalBlockPosition.Y <= height - 4)
                         {
-                            GlobalValues.NewRegister.GetBlockFromNamespace("Game.StoneBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.StoneBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
                         } else if (globalBlockPosition.Y <= height - 1)
                         {
-                            GlobalValues.NewRegister.GetBlockFromNamespace("Game.DirtBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
                         } else if (globalBlockPosition.Y <= height)
                         {
-                            GlobalValues.NewRegister.GetBlockFromNamespace("Game.GrassBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.GrassBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
                         }
 
                     }
@@ -54,8 +54,15 @@ public class ColumnBuilder
 
         }
 
-        column.QueueType = ColumnQueueType.Mesh;
-        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(column.Position);
+        if (NetworkingValues.Server == null)
+        {
+            column.QueueType = ColumnQueueType.Mesh;
+            PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(column.Position);
+        } else
+        {
+            column.QueueType = ColumnQueueType.Upload;
+            PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueLast(column.Position);
+        }
 
     }
 
@@ -83,7 +90,7 @@ public class ColumnBuilder
                             {
 
                                 Vector3i globalBlockPosition = (x,y,z) + (columns[Vector2i.Zero].Chunks[chunkY].ChunkPosition * GlobalValues.ChunkSize);
-                                NewBlock block = GlobalValues.NewRegister.GetBlockFromId(columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z))]);
+                                NewBlock block = GlobalValues.Register.GetBlockFromId(columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z))]);
 
                                 if (y + 1 < GlobalValues.ChunkSize)
                                 {

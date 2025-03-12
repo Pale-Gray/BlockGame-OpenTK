@@ -18,13 +18,13 @@ public class NewRegister
     public void RegisterBlock(Namespace nameSpace, NewBlock block)
     {
         
-        GameLogger.Log($"NewRegistering block {nameSpace}");
+        // GameLogger.Log($"NewRegistering block {nameSpace}");
         _blocks.Add(block);
         block.Id = (ushort)_blocks.IndexOf(block);
         block.Namespace = nameSpace;
         if (block.BlockModel != null)
         {
-            GameLogger.Log($"{nameSpace} has a model");
+            // GameLogger.Log($"{nameSpace} has a model");
             // block.BlockModel.GenerateVertices();
         }
         _namespaceLookup.Add(nameSpace.ToString(), (ushort) _blocks.IndexOf(block));

@@ -1,3 +1,4 @@
-address = "127.0.0.1" # localhost
+address = "0.0.0.0" # everything
 port = 20802
 max_players = 25
+world_name = "Shit"

@@ -8,7 +8,9 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Language;
+using Blockgame_OpenTK.Core.Networking;
 using Blockgame_OpenTK.Core.Worlds;
+using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Tomlet;
@@ -93,7 +95,7 @@ public class NewBlock
         T block = new();
 
         block.DisplayName = LanguageManager.GetTranslation(properties.DisplayName);
-        block.BlockModel = NewBlockModel.FromToml(properties._blockModelPath);
+        if (NetworkingValues.Server is not PhysicalServer) block.BlockModel = NewBlockModel.FromToml(properties._blockModelPath);
 
         return block;
 

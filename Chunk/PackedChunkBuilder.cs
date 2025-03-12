@@ -31,13 +31,13 @@ public class PackedChunkBuilder
                 {
                     if (y + (chunk.ChunkPosition.Y * 32) <= height)
                     {
-                        GlobalValues.NewRegister.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
+                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
                     }
 
                     if (y == 31 && x > 8 && z > 8)
                     {
 
-                        GlobalValues.NewRegister.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
+                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
 
                     }
                 }
@@ -321,7 +321,7 @@ public class PackedChunkBuilder
                 {
                     if (chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))] != 0)
                     {
-                        NewBlock block = GlobalValues.NewRegister.GetBlockFromId(chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))]);
+                        NewBlock block = GlobalValues.Register.GetBlockFromId(chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))]);
                 
                         // if (chunks.ContainsKey(ChunkUtils.PositionToChunk((x,y+1,z))) && chunks[ChunkUtils.PositionToChunk((x,y+1,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y+1,z)))] == 0)
                         // {

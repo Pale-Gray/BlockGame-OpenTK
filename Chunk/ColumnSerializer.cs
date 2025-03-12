@@ -81,7 +81,11 @@ public class ColumnSerializer
 
         string fileName = $"{column.Position.X}_{column.Position.Y}.cdat";
 
-        using (DataWriter writer = DataWriter.OpenFile(fileName))
+        if (!Directory.Exists("Worlds")) Directory.CreateDirectory("Worlds");
+
+        if (!Directory.Exists(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath))) Directory.CreateDirectory(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath));
+
+        using (DataWriter writer = DataWriter.OpenFile(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath, fileName)))
         {
 
             for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)

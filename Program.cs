@@ -17,6 +17,7 @@ using Blockgame_OpenTK.Core.Chunks;
 using System.Net;
 using System.IO.Pipes;
 using System.Threading;
+using OpenTK.Graphics.OpenGL;
 
 namespace Blockgame_OpenTK
 {
@@ -24,6 +25,7 @@ namespace Blockgame_OpenTK
     {
 
         private static OpenGLContextHandle _glContext;
+        private static WindowHandle _window;
         public static void Main(string[] args)
         {
 
@@ -99,35 +101,6 @@ namespace Blockgame_OpenTK
                 }
             );
 
-            if (args.Length == 0)
-            {
-                GameLogger.Log("Starting in client mode");
-                NetworkingValues.Client = new Client();
-            } else
-            {
-                if (args.Length >= 1)
-                {
-                    if (args[0].ToLower() == "server")
-                    {
-                        GameLogger.Log("Starting in server mode.");
-                        // GlobalValues.Server = new Server(true);
-                        NetworkingValues.Server = new Server(true);
-                        NetworkingValues.Server.Start();
-                    } else if (args[0].ToLower() == "client")
-                    {
-                        GameLogger.Log("Starting in client mode.");
-                        NetworkingValues.Client = new Client();
-                    } else
-                    {
-                        GameLogger.Log("There were no valid arguments, so starting in client mode.");
-                        NetworkingValues.Client = new Client();
-                    }
-                }
-            }
-
-            // NetworkingValues.Client = new Client(false);
-            // GlobalValues.Client = new Client(true);
-
             // account stuff
             /* 
             Console.WriteLine("Please specify a username");
@@ -185,188 +158,113 @@ namespace Blockgame_OpenTK
 
             };
 
-            // Server existant means this is a server!
-            if (NetworkingValues.Server != null)
+            if (args.Length == 0)
             {
-
-                Console.WriteLine("loading blockgame necesary stuf");
-                BlockGame.Load(true);
-
-                GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
-
-                while (true)
+                GameLogger.Log("Starting in client mode");
+                InitializeWindow(contextSettings);
+                EventQueue.EventRaised += EventRaised;
+                Input.Initialize(_window);
+                BlockGame.Load();
+            } else
+            {
+                if (args.Length >= 1)
                 {
-
-                    long currTime = Stopwatch.GetTimestamp();
-                    GlobalValues.DeltaTime = (GlobalValues.CurrentTime - currTime) / Stopwatch.Frequency;
-                    GlobalValues.CurrentTime = currTime;
-
-                    NetworkingValues.Server.Update();
-
+                    if (args[0].ToLower() == "server")
+                    {
+                        GameLogger.Log("Starting in server mode.");
+                        // make server
+                        NetworkingValues.Server = new PhysicalServer();
+                        NetworkingValues.Server.Start();
+                    } else if (args[0].ToLower() == "client")
+                    {
+                        GameLogger.Log("Starting in client mode.");
+                        InitializeWindow(contextSettings);
+                        EventQueue.EventRaised += EventRaised;
+                        Input.Initialize(_window);
+                        BlockGame.Load();
+                    } else
+                    {
+                        GameLogger.Log("There were no valid arguments, so starting in client mode.");
+                        InitializeWindow(contextSettings);
+                        EventQueue.EventRaised += EventRaised;
+                        Input.Initialize(_window);
+                        BlockGame.Load();
+                    }
                 }
-
             }
 
-            // Client existant means this is a client!
-            if (NetworkingValues.Client != null)
+            GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
+
+            while (GlobalValues.IsRunning)
             {
 
-                WindowHandle window = Toolkit.Window.Create(contextSettings);
-                _glContext = Toolkit.OpenGL.CreateFromWindow(window);
+                GlobalValues.Time += GlobalValues.DeltaTime;
 
-                Toolkit.OpenGL.SetCurrentContext(_glContext);
-                GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(_glContext));
+                long currentTime = Stopwatch.GetTimestamp();
+                GlobalValues.DeltaTime = (GlobalValues.CurrentTime - currentTime) / Stopwatch.Frequency;
+                GlobalValues.CurrentTime = currentTime;
+// 
+                NetworkingValues.Server?.Update();
+                NetworkingValues.Client?.Update(); 
+// 
+                Toolkit.Window.ProcessEvents(false);
 
-                Toolkit.Window.SetTitle(window, "Game");
-                Toolkit.Window.SetSize(window, (640, 480));
-                Toolkit.Window.SetMode(window, WindowMode.Normal);
-                
-                GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion}");
-                CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
-
-                ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
-                IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
-                Toolkit.Window.SetIcon(window, handle);
-
-                Toolkit.Mouse.GetPosition(window, out Vector2 position);
-                Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
-
-                GlobalValues.PreviousTime = Stopwatch.GetTimestamp();
-
-                Input.Initialize(window);
-
-                BlockGame.Load(false);
-
-                EventQueue.EventRaised += EventRaised;
-
-                string typed = "";
-
-                while (GlobalValues.IsRunning)
+                // call general render loop in client update method? 
+                if (NetworkingValues.Server is not PhysicalServer)
                 {
 
-                    // joystick input stuff
-                    /*
-                    if (Input.PlayerOneJoystickHandle != null)
-                    {
-
-                        float joystickLeftAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftXAxis);
-                        float joystickLeftAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftYAxis);
-                        float joystickRightAxisX = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightXAxis);
-                        float joystickRightAxisY = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightYAxis);
-
-                        Input.JoystickLeftAxis.X = joystickLeftAxisX;
-                        Input.JoystickLeftAxis.Y = joystickLeftAxisY;
-                        Input.JoystickRightAxis.X = joystickRightAxisX;
-                        Input.JoystickRightAxis.Y = joystickRightAxisY;
-                        if (Math.Abs(joystickLeftAxisX) < Toolkit.Joystick.LeftDeadzone)
-                        {
-
-                            Input.JoystickLeftAxis.X = 0.0f;
-
-                        }
-                        if (Math.Abs(joystickLeftAxisY) < Toolkit.Joystick.LeftDeadzone)
-                        {
-
-                            Input.JoystickLeftAxis.Y = 0.0f;
-
-                        }
-                        if (Math.Abs(joystickRightAxisX) < Toolkit.Joystick.RightDeadzone)
-                        {
-
-                            Input.JoystickRightAxis.X = 0.0f;
-
-                        }
-                        if (Math.Abs(joystickRightAxisY) < Toolkit.Joystick.RightDeadzone)
-                        {
-
-                            Input.JoystickRightAxis.Y = 0.0f;
-
-                        }
-
-                        Input.LeftTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.LeftTrigger);
-                        Input.RightTrigger = Toolkit.Joystick.GetAxis(Input.PlayerOneJoystickHandle, JoystickAxis.RightTrigger);
-                        if (Input.LeftTrigger < Toolkit.Joystick.TriggerThreshold)
-                        {
-
-                            Input.LeftTrigger = 0.0f;
-
-                        }
-                        if (Input.RightTrigger < Toolkit.Joystick.TriggerThreshold)
-                        {
-
-                            Input.RightTrigger = 0.0f;
-
-                        }
-
-                        foreach (JoystickButton joystickButton in Input.JoystickStates.Keys)
-                        {
-
-                            JoystickState joystickButtonState = Input.JoystickStates[joystickButton];
-                            bool isJoystickButtonDown = Toolkit.Joystick.GetButton(Input.PlayerOneJoystickHandle, joystickButton);
-                            joystickButtonState.IsJoystickButtonDown = isJoystickButtonDown;
-                            if (!joystickButtonState.AllowJoystickButtonPress && !isJoystickButtonDown) joystickButtonState.AllowJoystickButtonPress = true;
-                            Input.JoystickStates[joystickButton] = joystickButtonState;
-
-                        }
-
-                    }
-                    */
-
-                    GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
-                    GlobalValues.DeltaTime = (GlobalValues.CurrentTime - GlobalValues.PreviousTime) / Stopwatch.Frequency;
-                    GlobalValues.PreviousTime = GlobalValues.CurrentTime;
-
-                    GlobalValues.Time += GlobalValues.DeltaTime;
-
-                    Toolkit.Window.ProcessEvents(false);
-
-                    if (Input.IsKeyPressed(Key.Escape))
-                    {
-
-                        if (Input.IsMouseFocused)
-                        {
-
-                            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Normal);
-                            Toolkit.Window.SetCursor(window, visibleCursor);
-                            GlobalValues.IsCursorLocked = false;
-                            
-                        } else
-                        {
-
-                            Toolkit.Window.SetCursorCaptureMode(window, CursorCaptureMode.Locked);
-                            ReadOnlySpan<byte> hiddenCursor = new ReadOnlySpan<byte>(new byte[] {0, 0, 0, 0});
-                            CursorHandle cursor = Toolkit.Cursor.Create(1, 1, hiddenCursor, 0, 0);
-                            Toolkit.Window.SetCursor(window, cursor);
-                            GlobalValues.IsCursorLocked = true;
-
-                        }
-
-                    }
-
+                    NetworkingValues.Client?.Update();
                     BlockGame.Render();
-                    
-                    if (Input.CurrentTypedChars.Count > 0)
-                    {
 
-                        Input.CurrentTypedChars.Clear();
-
-                    }
-
+                    Input.Poll(_window);
+                    AudioPlayer.Poll();
                     Toolkit.OpenGL.SwapBuffers(_glContext);
 
-                    Input.Poll(window);
-
                 }
 
-                PackedWorldGenerator.Unload();
-            
-                BlockGame.Unload();
-                AudioPlayer.Unload();
-                Toolkit.Window.Destroy(window);
-
             }
-            
+
+            if (NetworkingValues.Server is not PhysicalServer)
+            {
+                AudioPlayer.Unload();
+                BlockGame.Unload();
+                Toolkit.Window.Destroy(_window);
+            }
+
             GameLogger.SaveToFile("log");
+
+            // if (NetworkingValues.Server is not PhysicalServer)
+            // {
+// 
+            //     AudioPlayer.Unload();
+            //     BlockGame.Unload();
+            //     Toolkit.Window.Destroy(_window);
+// 
+            // }
+            
+            // GameLogger.SaveToFile("log");
+
+        }
+
+        static void InitializeWindow(OpenGLGraphicsApiHints contextSettings)
+        {
+
+            _window = Toolkit.Window.Create(contextSettings);
+            _glContext = Toolkit.OpenGL.CreateFromWindow(_window);
+
+            Toolkit.OpenGL.SetCurrentContext(_glContext);
+            GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(_glContext));
+
+            Toolkit.Window.SetTitle(_window, "Game");
+            Toolkit.Window.SetSize(_window, (640, 480));
+            Toolkit.Window.SetMode(_window, WindowMode.Normal);
+            
+            GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion}");
+            CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
+
+            ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
+            IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
+            Toolkit.Window.SetIcon(_window, handle);
 
         }
 

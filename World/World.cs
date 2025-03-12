@@ -11,6 +11,8 @@ using OpenTK.Graphics.OpenGL;
 using System.Reflection.Metadata;
 using System.Net;
 using Blockgame_OpenTK.PlayerUtil;
+using Blockgame_OpenTK.Core.PlayerUtil;
+using System.IO;
 
 namespace Blockgame_OpenTK.Core.Worlds;
 
@@ -21,9 +23,16 @@ public class World
     public ConcurrentDictionary<Vector3i, PackedChunkMesh> PackedWorldMeshes = new();
     public ConcurrentDictionary<Vector2i, uint[]> MaxColumnBlockHeight = new();
     public ConcurrentDictionary<Vector2i, ChunkColumn> WorldColumns = new();
+    public string WorldPath { get; private set; }
 
+    public World(string worldPath)
+    {
 
-    public void Draw(Player player)
+        WorldPath = worldPath;
+        if (!Directory.Exists(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))))) Directory.CreateDirectory(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))));
+
+    }
+    public void Draw(NewPlayer player)
     {
 
         foreach (ChunkColumn column in WorldColumns.Values)

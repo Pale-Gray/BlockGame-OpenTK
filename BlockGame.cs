@@ -21,6 +21,8 @@ using Blockgame_OpenTK.Core.Language;
 using Blockgame_OpenTK.Core.Gui;
 using System.Drawing;
 using Blockgame_OpenTK.Core.Networking;
+using Blockgame_OpenTK.Core.PlayerUtil;
+using LiteNetLib.Utils;
 
 namespace Blockgame_OpenTK
 {
@@ -176,7 +178,7 @@ namespace Blockgame_OpenTK
         static bool debug = false;
         // Chunk c;
 
-        static Player Player;
+        static NewPlayer Player;
         // GUIElement texx;
 
         static double TickTime = 0;
@@ -223,122 +225,123 @@ namespace Blockgame_OpenTK
         {
 
             Translator.LoadGameSettings();
-            GlobalValues.Base.OnLoad(GlobalValues.NewRegister);
+            GlobalValues.Base.OnLoad(GlobalValues.Register);
 
         }
         
-        public static void Load(bool isServer)
+        public static void Load()
         {
 
-            if (!isServer)
+            int major = GL.GetInteger(GetPName.MajorVersion);
+            int minor = GL.GetInteger(GetPName.MinorVersion);
+
+            TextRenderer.InitTextRenderer();
+            Translator.LoadKeymap();
+
+            GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
+            GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
+            GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
+            GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
+            GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
+
+            // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
+            rmodel = new Model(verts, Path.Combine("Resources", "Textures", "hitbox.png"), "hitbox.vert", "hitbox.frag");
+            hitdisplay = new Model(verts, Path.Combine("Resources", "Textures", "debug.png"), "model.vert", "model.frag");
+            xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
+
+            boundmodel = new NakedModel(boundingbox.triangles);
+
+            Skybox = new Model(verts, Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"), "model.vert", "model.frag");
+
+            xyz_display.SetScale(0.25f, 0.25f, 0.25f);
+
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Less);
+            GL.Enable(EnableCap.CullFace);
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.Enable(EnableCap.PolygonOffsetFill);
+
+            Texture t = new Texture(Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"));
+
+            frameBuffer = new Framebuffer();
+            framebufferQuad = new FramebufferQuad();
+
+            // Player = new Player();
+            // Player.SetHeight(1.8f);
+            // Player.SetPosition((0, 68, 0));
+            Player = new NewPlayer() { Camera = new PlayerCamera(90.0f) };
+            Console.WriteLine(Player.Camera.FieldOfView);
+
+            FontFamily font = new FontFamily();
+            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
+            CachedFontRenderer.FontFamily = font;
+            
+            e = new Model(v, null, "billboard.vert", "billboard.frag");
+
+            // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
+
+            GuiTextbox box = new GuiTextbox();
+            box.AbsoluteDimensions = (500, 400);
+            box.Origin = (0.5f, 0.5f);
+            box.RelativePosition = (0.5f, 0.5f);
+            // box.IsVisible = true;
+            box.Text = "";
+            box.Color = Color4.White;
+
+            // WorldGenerator.InitThreads();
+            GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
+            // WorldGenerator.StartThreads(World);
+            // PackedWorldGenerator.CurrentWorld = NetworkingValues.Client.World;
+            // PackedWorldGenerator.Initialize();
+            
+            GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
+
+            int extensionCount = GL.GetInteger(GetPName.NumExtensions);
+            List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];
+            for (int i = 0; i < extensionCount; i++)
+            {
+                string extension = GL.GetStringi(StringName.Extensions, (uint)i);
+                if (requestedExtensions.Contains(extension)) GlobalValues.AvailableExtensions.Add(extension);
+            }   
+            Console.WriteLine("Requested extensions");
+            foreach (string requestedExtension in requestedExtensions) Console.WriteLine($"\t{requestedExtension}");
+            Console.WriteLine("Supported extensions");
+            foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
+
+            GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
+            // TexturePackManager.IterateAvailableTexturePacks();
+            // TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
+            // foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
+            // {
+// 
+            //     Console.WriteLine(texturePack.Value);
+// 
+            // }
+
+            NewProperties prop = new NewProperties();
+            using (DataWriter writer = DataWriter.OpenFile("data.dat"))
             {
 
-                int major = GL.GetInteger(GetPName.MajorVersion);
-                int minor = GL.GetInteger(GetPName.MinorVersion);
-
-                TextRenderer.InitTextRenderer();
-                Translator.LoadKeymap();
-
-                GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
-                GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
-                GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
-                GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
-                GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
-
-                // camera = new Camera(cposition, cfront, cup, CameraType.Perspective, 45.0f);
-                rmodel = new Model(verts, Path.Combine("Resources", "Textures", "hitbox.png"), "hitbox.vert", "hitbox.frag");
-                hitdisplay = new Model(verts, Path.Combine("Resources", "Textures", "debug.png"), "model.vert", "model.frag");
-                xyz_display = new Model(xyz_verts, null, "debug.vert", "debug.frag");
-
-                boundmodel = new NakedModel(boundingbox.triangles);
-
-                Skybox = new Model(verts, Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"), "model.vert", "model.frag");
-
-                xyz_display.SetScale(0.25f, 0.25f, 0.25f);
-
-                GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-                GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-                GL.Enable(EnableCap.DepthTest);
-                GL.DepthFunc(DepthFunction.Less);
-                GL.Enable(EnableCap.CullFace);
-                GL.ActiveTexture(TextureUnit.Texture0);
-                GL.Enable(EnableCap.PolygonOffsetFill);
-
-                Texture t = new Texture(Path.Combine("Resources", "Textures", "cubemap", "cubemap_test.png"));
-
-                frameBuffer = new Framebuffer();
-                framebufferQuad = new FramebufferQuad();
-
-                Player = new Player();
-                Player.SetHeight(1.8f);
-                Player.SetPosition((0, 68, 0));
-
-                FontFamily font = new FontFamily();
-                font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
-                CachedFontRenderer.FontFamily = font;
-                
-                e = new Model(v, null, "billboard.vert", "billboard.frag");
-
-                // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
-
-                GuiTextbox box = new GuiTextbox();
-                box.AbsoluteDimensions = (500, 400);
-                box.Origin = (0.5f, 0.5f);
-                box.RelativePosition = (0.5f, 0.5f);
-                // box.IsVisible = true;
-                box.Text = "";
-                box.Color = Color4.White;
-
-                // WorldGenerator.InitThreads();
-                GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
-                // WorldGenerator.StartThreads(World);
-                PackedWorldGenerator.CurrentWorld = NetworkingValues.Client.World;
-                PackedWorldGenerator.Initialize();
-                
-                GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
-
-                int extensionCount = GL.GetInteger(GetPName.NumExtensions);
-                List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];
-                for (int i = 0; i < extensionCount; i++)
-                {
-                    string extension = GL.GetStringi(StringName.Extensions, (uint)i);
-                    if (requestedExtensions.Contains(extension)) GlobalValues.AvailableExtensions.Add(extension);
-                }   
-                Console.WriteLine("Requested extensions");
-                foreach (string requestedExtension in requestedExtensions) Console.WriteLine($"\t{requestedExtension}");
-                Console.WriteLine("Supported extensions");
-                foreach (string supportedExtension in GlobalValues.AvailableExtensions) Console.WriteLine($"\t{supportedExtension}");
-
-                GlobalValues.MissingTexturePackIcon = new Texture(Path.Combine("Resources", "Textures", "MissingIcon.png"));
-                // TexturePackManager.IterateAvailableTexturePacks();
-                // TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
-                // foreach (KeyValuePair<string, TexturePackInfo> texturePack in TexturePackManager.AvailableTexturePacks)
-                // {
-// 
-                //     Console.WriteLine(texturePack.Value);
-// 
-                // }
-
-                NewProperties prop = new NewProperties();
-                using (DataWriter writer = DataWriter.OpenFile("data.dat"))
-                {
-
-                    prop.ToBytes(writer);
-
-                }
-
-                GLDebugProc debugMessageDel = OnDebugMessage;
-                GuiRendere.Init();
-                AudioPlayer.Initialize();
-
-                CachedFontRenderer.Init();
-                GuiRenderer.Initialize();
-                FontRenderer.Initialize();
+                prop.ToBytes(writer);
 
             }
+
+            GLDebugProc debugMessageDel = OnDebugMessage;
+            GuiRendere.Init();
+            AudioPlayer.Initialize();
+
+            CachedFontRenderer.Init();
+            GuiRenderer.Initialize();
+            FontRenderer.Initialize();
+
+            TexturePackManager.IterateAvailableTexturePacks();
+            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
+
 
             LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
 
@@ -350,9 +353,6 @@ namespace Blockgame_OpenTK
             // GameLogger.Log($"OpenGL Version: {GL.GetString(StringName.Version)}", Severity.Info); 
             // GameLogger.Log($"Max texture size: {GL.GetInteger(GetPName.MaxTextureSize)}", Severity.Info);
             // GameLogger.Log($"Max array texture layers: {GL.GetInteger(GetPName.MaxArrayTextureLayers)}");
-
-            TexturePackManager.IterateAvailableTexturePacks();
-            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
 
             if (!Directory.Exists("Chunks"))
             {
@@ -366,19 +366,19 @@ namespace Blockgame_OpenTK
 
             GameLogger.Log("loading blocks");
 
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "StoneBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "stone_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BrickBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "bricks.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "PlimboBlock"), NewBlock.FromToml<PlimboBlock>(Path.Combine("Resources", "Data", "Blocks", "plimbo_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "EmptyCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "empty_crate.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "TomatoCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "tomato_crate.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "RedLightBlock"), NewBlock.FromToml<RedLightBlock>(Path.Combine("Resources", "Data", "Blocks", "red_light_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "GreenLightBlock"), NewBlock.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "BlueLightBlock"), NewBlock.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
-            GlobalValues.NewRegister.RegisterBlock(new Namespace("Game", "LeafBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "Air"), new NewBlock());
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "GrassBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "DirtBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "StoneBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "stone_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "BrickBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "bricks.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "PlimboBlock"), NewBlock.FromToml<PlimboBlock>(Path.Combine("Resources", "Data", "Blocks", "plimbo_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "EmptyCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "empty_crate.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "TomatoCrate"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "tomato_crate.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "RedLightBlock"), NewBlock.FromToml<RedLightBlock>(Path.Combine("Resources", "Data", "Blocks", "red_light_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "GreenLightBlock"), NewBlock.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "BlueLightBlock"), NewBlock.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "LightBlock"), NewBlock.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
+            // GlobalValues.Register.RegisterBlock(new Namespace("Game", "LeafBlock"), NewBlock.FromToml<NewBlock>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
 
 
         }
@@ -386,13 +386,21 @@ namespace Blockgame_OpenTK
         public static void Render()
         {
 
+            // TODO: NO CLIENT CALLS SHOULD BE IN THIS
+            // INCLUDING PLAYER IN PUT AND RESPONSE
+            // ONLY RENDER CODE
 
-            NetworkingValues.Client.Update();
+            // TODO: maybe render calls actually just are separately implemented?
 
-            AudioPlayer.ListenerPosition = Player.Camera.Position;
-            AudioPlayer.SetOrientation(Player.Camera.ForwardVector, Player.Camera.UpVector);
+            // NetworkingValues.Client.Update();
 
-            Player.Update(PackedWorldGenerator.CurrentWorld);
+            // Player.UpdateInputs();
+            // Console.WriteLine(Player.Camera.ForwardVector);
+
+            // AudioPlayer.ListenerPosition = Player.Camera.Position;
+            // AudioPlayer.SetOrientation(Player.Camera.ForwardVector, Player.Camera.UpVector);
+
+            // Player.Update(PackedWorldGenerator.CurrentWorld);
             TickTime += GlobalValues.DeltaTime;
 
             frameBuffer.Bind();
@@ -403,11 +411,11 @@ namespace Blockgame_OpenTK
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             GL.Disable(EnableCap.DepthTest);
-            Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0)).Xyz, Player.Camera, (float)GlobalValues.Time);
+            // Skybox.Draw(Player.Camera.Position, (new Vector4(0, -1, 0, 0)).Xyz, Player.Camera, (float)GlobalValues.Time);
             GL.Enable(EnableCap.DepthTest);
 
-            PackedWorldGenerator.Poll();
-            NetworkingValues.Client.World.Draw(Player);
+            // PackedWorldGenerator.Poll();
+            // NetworkingValues.Client.World.Draw(Player);
             // PackedWorldGenerator.QueueGeneration();
 
             string gpuUsage = "err";
@@ -425,7 +433,7 @@ namespace Blockgame_OpenTK
 
             }
 
-            Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.WorldColumns, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
+            // Dda.TraceChunks(PackedWorldGenerator.CurrentWorld.WorldColumns, Player.Camera.Position, Player.Camera.ForwardVector, GlobalValues.PlayerRange);
 
             frameBuffer.Unbind();
 
@@ -444,7 +452,18 @@ namespace Blockgame_OpenTK
 
                 string[] network = addressString.Split(':');
 
-                NetworkingValues.Client.JoinWorld(network[0], int.Parse(network[1]), long.Parse(userIdString));
+                if (!int.TryParse(network[1], out int port))
+                {
+                    GameLogger.Log("port is invalid");
+                } else if (!long.TryParse(userIdString, out long uid))
+                {
+                    GameLogger.Log("uid is invalid");
+                } else
+                {
+                    NetworkingValues.Client = new PhysicalClient();
+                    NetworkingValues.Client.Start(network[0], port, new NewPlayer() { UserId = uid, DisplayName = "Poo" });
+                }
+                // NetworkingValues.Client.JoinWorld(network[0], int.Parse(network[1]), long.Parse(userIdString));
 
             }
             GuiRenderer.End();
@@ -474,7 +493,8 @@ namespace Blockgame_OpenTK
             TextRenderer.Camera.UpdateProjectionMatrix();
             frameBuffer.UpdateAspect();
 
-            Render();
+            // this shitty call
+            // Render();
 
         }
 

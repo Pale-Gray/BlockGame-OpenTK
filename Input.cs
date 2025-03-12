@@ -133,6 +133,8 @@ namespace Blockgame_OpenTK
         public static void Poll(WindowHandle window)
         {
 
+            if (CurrentTypedChars.Count > 0) CurrentTypedChars.Clear();
+
             Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
             if (IsMouseFocused)
             {

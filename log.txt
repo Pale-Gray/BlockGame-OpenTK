@@ -2,9 +2,86 @@
 [Info] Supports raw mouse? False
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
-System.ArgumentException: An item with the same key has already been added. Key: Stone
-   at System.Collections.Generic.Dictionary`2.TryInsert(TKey key, TValue value, InsertionBehavior behavior)
-   at System.Collections.Generic.Dictionary`2.Add(TKey key, TValue value)
-   at Blockgame_OpenTK.Core.TexturePack.TexturePackManager.LoadTexturePack(TexturePackInfo texturePack) in ./TexturePack/TexturePackManager.cs:line 91
-   at Blockgame_OpenTK.BlockGame.Load(Boolean isServer) in ./BlockGame.cs:line 355
-   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 238
+[Info] loading blocks
+[Info] Connected to server.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.
+[Info] Finished reading from file.

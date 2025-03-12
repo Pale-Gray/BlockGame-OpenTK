@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.Networking;
 using Blockgame_OpenTK.PlayerUtil;
 using Blockgame_OpenTK.Util;
 using OpenTK.Graphics.OpenGL;
@@ -19,7 +20,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 8;
+    public static int WorldGenerationRadius = 4;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
@@ -55,15 +56,20 @@ public class PackedWorldGenerator
 
         if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
         {
-
+            
+            Console.WriteLine("uploading");
+            NetworkingValues.Server?.SendChunk(columnPosition);
+            NetworkingValues.Client?.SendChunk(columnPosition);
+            /*
             if (NetworkingValues.Server != null)
             {
-                NetworkingValues.Server.SendChunk(columnPosition);
+                // NetworkingValues.Server.SendChunk(columnPosition);
             } else
             {
                 // Console.WriteLine("uploading");
                 ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
             }
+            */
 
         }
 
@@ -90,7 +96,10 @@ public class PackedWorldGenerator
 
                             if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                             {
+                                // Stopwatch sw = Stopwatch.StartNew();
                                 ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
+                                // sw.Stop();
+                                // Console.WriteLine($"column meshing took {sw.Elapsed.TotalMilliseconds}ms");
                             } else
                             {
                                 if (CurrentWorld.WorldColumns[columnPosition].HasPriority)
@@ -122,8 +131,12 @@ public class PackedWorldGenerator
             {
                 if ((x,z) != Vector2i.Zero) 
                 {
-                    if (!CurrentWorld.WorldColumns.ContainsKey(position + (x,z))) return false;
-                } else if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
+                    if (!CurrentWorld.WorldColumns.ContainsKey(position + (x,z)))
+                    {
+                        return false;
+                    } else if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
+                    // if (!CurrentWorld.WorldColumns.ContainsKey(position + (x,z))) return false;
+                } // else if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
             }
         }
         return true;
@@ -169,7 +182,7 @@ public class PackedWorldGenerator
         
     }
 
-    public static void Poll()
+    public static void Update()
     {
 
         if (ColumnWorldGenerationQueue.Count > 0)

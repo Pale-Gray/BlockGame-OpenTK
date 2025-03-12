@@ -12,13 +12,15 @@ public enum PacketType : ushort
     DisconnectErrorPacket,
     DisconnectSuccessPacket,
     ConnectSuccessPacket,
-    RequestPlayerUniqueIdPacket,
-    SendPlayerUniqueIdPacket,
+    ConnectRejectPacket,
+    PlayerDataRequestPacket,
+    PlayerDataSendPacket,
     BlockPlacePacket,
     LightPlacePacket,
     BlockRemovePacket,
     LightRemovePacket,
     ChunkSendPacket,
+    ChunkReceivePacket,
     ChunkRemovePacket
 
 }
@@ -60,6 +62,26 @@ public class DisconnectErrorPacket : IPacket
 
 }
 
+public class ConnectRejectPacket : IPacket
+{
+
+    public PacketType Type => PacketType.ConnectRejectPacket;
+
+    public string Reason = "";
+
+    public void Serialize(NetDataWriter writer)
+    {
+        writer.Put((ushort)Type);
+        writer.Put(Reason);
+    }
+
+    public void Deserialize(NetDataReader reader)
+    {
+        Reason = reader.GetString();
+    }
+
+}
+
 public class ConnectSuccessPacket : IPacket
 {
 
@@ -73,6 +95,29 @@ public class ConnectSuccessPacket : IPacket
     public void Deserialize(NetDataReader reader)
     {
 
+    }
+
+}
+
+public class PlayerDataSendPacket : IPacket
+{
+
+    public PacketType Type => PacketType.PlayerDataSendPacket;
+
+    public long UserId;
+    public string DisplayName;
+
+    public void Serialize(NetDataWriter writer)
+    {
+        writer.Put((ushort)Type);
+        writer.Put(UserId);
+        writer.Put(DisplayName);
+    }
+
+    public void Deserialize(NetDataReader reader)
+    {
+        UserId = reader.GetLong();
+        DisplayName = reader.GetString();
     }
 
 }
@@ -123,6 +168,27 @@ public class ChunkSendPacket : IPacket
         Position.X = reader.GetInt();
         Position.Y = reader.GetInt();
         Data = reader.GetRemainingBytes();
+    }
+
+}
+
+public class ChunkReceivePacket : IPacket
+{
+
+    public PacketType Type => PacketType.ChunkReceivePacket;
+
+    public Vector2i Position;
+    public void Serialize(NetDataWriter writer)
+    {
+        writer.Put((ushort)Type);
+        writer.Put(Position.X);
+        writer.Put(Position.Y);
+    }
+
+    public void Deserialize(NetDataReader reader)
+    {
+        Position.X = reader.GetInt();
+        Position.Y = reader.GetInt();
     }
 
 }

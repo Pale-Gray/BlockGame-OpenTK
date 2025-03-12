@@ -20,8 +20,8 @@ namespace Blockgame_OpenTK.Util
     public class NetworkingValues
     {
 
-        public static Server Server;
-        public static Client Client;
+        public static IServer Server;
+        public static IClient Client;
 
     }
     public class GlobalValues
@@ -70,7 +70,7 @@ namespace Blockgame_OpenTK.Util
         public static float FogOffset = 0.0f;
         public static bool ShouldRenderBounds = false;
 
-        public static NewRegister NewRegister = new NewRegister();
+        public static NewRegister Register = new NewRegister();
         public static Shader ChunkShader;
         public static Shader DefaultShader;
         public static Shader GuiShader;
