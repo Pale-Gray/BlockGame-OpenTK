@@ -61,6 +61,7 @@ public class NewRegister
     {
 
         if (_namespaceLookup.TryGetValue(name, out ushort id)) return _blocks[id];
+        Console.WriteLine("err");
         return _missingBlock;
 
     }

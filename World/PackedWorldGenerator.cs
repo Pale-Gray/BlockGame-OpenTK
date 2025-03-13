@@ -58,6 +58,17 @@ public class PackedWorldGenerator
         {
             
             Console.WriteLine("uploading");
+            if (NetworkingValues.Server?.IsNetworked ?? false)
+            {
+
+                NetworkingValues.Server.SendChunk(columnPosition);
+
+            } else
+            {
+
+                ColumnBuilder.Upload(CurrentWorld.WorldColumns[columnPosition]);
+
+            }
             // NetworkingValues.Server?.SendChunk(columnPosition);
             // NetworkingValues.Client?.SendChunk(columnPosition);
             /*
@@ -97,6 +108,7 @@ public class PackedWorldGenerator
                             if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                             {
                                 // Stopwatch sw = Stopwatch.StartNew();
+                                // Console.WriteLine("meshing");
                                 ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
                                 // sw.Stop();
                                 // Console.WriteLine($"column meshing took {sw.Elapsed.TotalMilliseconds}ms");

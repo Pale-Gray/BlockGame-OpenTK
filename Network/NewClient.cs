@@ -36,6 +36,11 @@ public class NewClient
     {
 
         // singleplayer
+        IsNetworked = false;
+
+        Player = player;
+
+
 
     }
 
@@ -43,6 +48,8 @@ public class NewClient
     {
 
         // multiplayer
+        IsNetworked = true;
+
         Player = player;
 
         _listener = new EventBasedNetListener();
@@ -132,6 +139,10 @@ public class NewClient
 
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
         GL.ClearColor(new Color4<Rgba>(0, 0, 0, 1.0f));
+
+        Player?.UpdateInputs();
+        _world?.Draw(Player);
+        PackedWorldGenerator.Update();
 
         GuiRenderer.Begin("thing");
         GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));

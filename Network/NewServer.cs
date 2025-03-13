@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
@@ -56,8 +57,10 @@ public class NewServer
         PackedWorldGenerator.CurrentWorld = _world;
 
     }
-    public void Start()
+    public void StartNetworked()
     {
+
+        IsNetworked = true;
 
         _listener = new EventBasedNetListener();
         _manager = new NetManager(_listener);
@@ -65,6 +68,9 @@ public class NewServer
         _connectedPlayers = new Dictionary<int, NewPlayer>();
         
         _properties = TomletMain.To<ServerProperties>(File.ReadAllText("server.toml"));
+
+        // mod loading (base)
+        GlobalValues.Base.OnLoad(GlobalValues.Register);
 
         GameLogger.Log($"String address: {_properties.AddressOrHost}");
         GameLogger.Log($"Port: {_properties.Port}");
@@ -154,6 +160,15 @@ public class NewServer
     public void Update()
     {
 
+        PackedWorldGenerator.Update();
+
+        foreach (NewPlayer player in _connectedPlayers.Values)
+        {
+
+            player.Loader.Tick(_world);
+
+        }
+
         _manager?.PollEvents();
 
     }
@@ -162,6 +177,29 @@ public class NewServer
     {
 
 
+
+    }
+
+    public void SendChunk(Vector2i position)
+    {
+
+        foreach (NewPlayer player in _connectedPlayers.Values)
+        {
+
+            if (!player.SentChunks.Contains(position))
+            {
+
+                player.SentChunks.Add(position);
+                ChunkSendPacket packet = new ChunkSendPacket();
+                packet.Position = position;
+                packet.Data = ColumnSerializer.SerializeColumnToBytes(_world.WorldColumns[position]);
+                packet.Serialize(_writer);
+                _manager.GetPeerById(player.NetPeerId).Send(_writer, DeliveryMethod.ReliableOrdered);
+                _writer.Reset();
+
+            }
+
+        }
 
     }
 

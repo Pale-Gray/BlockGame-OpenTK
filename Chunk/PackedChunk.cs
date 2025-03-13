@@ -221,4 +221,21 @@ public class PackedChunk
         return (val, val, val);
     }
 
+    public bool IsEmpty()
+    {
+
+        for (int x = 0; x < GlobalValues.ChunkSize; x++)
+        {
+            for (int y = 0; y < GlobalValues.ChunkSize; y++)
+            {
+                for (int z = 0; z < GlobalValues.ChunkSize; z++)
+                {
+                    if (BlockData[ChunkUtils.VecToIndex((x,y,z))] != 0) return false;
+                }
+            }
+        }
+        return true;
+
+    }
+
 }

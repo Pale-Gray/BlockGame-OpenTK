@@ -164,7 +164,7 @@ namespace Blockgame_OpenTK
                         GameLogger.Log("Starting in server mode.");
                         // make server
                         NetworkingValues.Server = new NewServer();
-                        NetworkingValues.Server.Start();
+                        NetworkingValues.Server.StartNetworked();
                     } else
                     {
                         GameLogger.Log("There were no valid arguments, so starting in client mode.");
@@ -225,17 +225,6 @@ namespace Blockgame_OpenTK
             }
 
             GameLogger.SaveToFile("log");
-
-            // if (NetworkingValues.Server is not PhysicalServer)
-            // {
-// 
-            //     AudioPlayer.Unload();
-            //     BlockGame.Unload();
-            //     Toolkit.Window.Destroy(_window);
-// 
-            // }
-            
-            // GameLogger.SaveToFile("log");
 
         }
 
