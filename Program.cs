@@ -6,18 +6,10 @@ using Blockgame_OpenTK.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using Blockgame_OpenTK.Core.Worlds;
 using Tomlet;
 using Tomlet.Models;
-using Blockgame_OpenTK.BlockUtil;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Networking;
-using System.Collections.Generic;
-using Blockgame_OpenTK.Core.Chunks;
-using System.Net;
-using System.IO.Pipes;
-using System.Threading;
-using OpenTK.Graphics.OpenGL;
 
 namespace Blockgame_OpenTK
 {
@@ -53,7 +45,7 @@ namespace Blockgame_OpenTK
 
                 } 
             );
-            
+
             TomletMain.RegisterMapper(
                 direction =>
                 {
