@@ -149,7 +149,7 @@ namespace Blockgame_OpenTK
 
             Toolkit.Mouse.GetMouseState(window, out OpenTK.Platform.MouseState state);
             
-            IsMouseFocused = Toolkit.Window.GetCursorCaptureMode(window) == CursorCaptureMode.Locked;
+            IsMouseFocused = Toolkit.Window.GetCursorCaptureMode(window) != CursorCaptureMode.Normal;
             
             ScrollDelta = _mouseScroll - state.Scroll;
             _mouseScroll = state.Scroll;

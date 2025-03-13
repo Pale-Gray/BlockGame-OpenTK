@@ -20,7 +20,7 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 4;
+    public static int WorldGenerationRadius = 6;
     public static int WorldGenerationHeight = 8; // The height starting from 0
     public static int MaxChunkUploadCount = 5;
 
@@ -57,7 +57,7 @@ public class PackedWorldGenerator
         if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
         {
             
-            Console.WriteLine("uploading");
+            // Console.WriteLine("uploading");
             if (NetworkingValues.Server?.IsNetworked ?? false)
             {
 
@@ -102,25 +102,36 @@ public class PackedWorldGenerator
                         ColumnBuilder.GeneratePassOne(CurrentWorld.WorldColumns[columnPosition]);
                         break;
                     case ColumnQueueType.Mesh:
-                        if (Maths.ChebyshevDistance2D(columnPosition, Vector2i.Zero) < WorldGenerationRadius)
+                        if (NetworkingValues.Server?.IsNetworked ?? false)
                         {
 
-                            if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
+                            CurrentWorld.WorldColumns[columnPosition].QueueType = ColumnQueueType.Upload;
+                            ColumnWorldUploadQueue.EnqueueLast(columnPosition);
+
+                        } else 
+                        {
+
+                            if (Maths.ChebyshevDistance2D(columnPosition, Vector2i.Zero) < WorldGenerationRadius)
                             {
-                                // Stopwatch sw = Stopwatch.StartNew();
-                                // Console.WriteLine("meshing");
-                                ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
-                                // sw.Stop();
-                                // Console.WriteLine($"column meshing took {sw.Elapsed.TotalMilliseconds}ms");
-                            } else
-                            {
-                                if (CurrentWorld.WorldColumns[columnPosition].HasPriority)
+
+                                if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
                                 {
-                                    ColumnWorldGenerationQueue.EnqueueBehindFirst(columnPosition);
-                                } else 
+                                    // Stopwatch sw = Stopwatch.StartNew();
+                                    // Console.WriteLine("meshing");
+                                    ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
+                                    // sw.Stop();
+                                    // Console.WriteLine($"column meshing took {sw.Elapsed.TotalMilliseconds}ms");
+                                } else
                                 {
-                                    ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
+                                    if (CurrentWorld.WorldColumns[columnPosition].HasPriority)
+                                    {
+                                        ColumnWorldGenerationQueue.EnqueueBehindFirst(columnPosition);
+                                    } else 
+                                    {
+                                        ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
+                                    }
                                 }
+
                             }
 
                         }

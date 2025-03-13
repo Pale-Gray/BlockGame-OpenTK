@@ -205,6 +205,30 @@ namespace Blockgame_OpenTK
                 if (NetworkingValues.Client != null)
                 {
 
+                    if (Input.IsKeyPressed(Key.Escape))
+                    {
+
+                        if (Input.IsMouseFocused)
+                        {
+
+                            Console.WriteLine("unfocusing");
+                            Toolkit.Window.SetCursor(_window, Toolkit.Cursor.Create(SystemCursorType.Default));
+                            Toolkit.Window.SetCursorCaptureMode(_window, CursorCaptureMode.Normal);
+
+                        } else
+                        {
+
+                            Console.WriteLine("focusing");
+                            Span<byte> arr = new byte[4];
+                            CursorHandle handle = Toolkit.Cursor.Create(1, 1, arr, 0, 0);
+                            Toolkit.Window.SetCursor(_window, handle);
+                            Toolkit.Window.SetCursorCaptureMode(_window, CursorCaptureMode.Locked);
+                            // Toolkit.Window.SetCursor(_window, Toolkit.Cursor.Create(SystemCursorType.Default));
+
+                        }
+
+                    }
+
                     AudioPlayer.Poll();
                     Input.Poll(_window);
                     Toolkit.OpenGL.SwapBuffers(_glContext);
@@ -240,6 +264,7 @@ namespace Blockgame_OpenTK
             Toolkit.Window.SetTitle(_window, "Game");
             Toolkit.Window.SetSize(_window, (640, 480));
             Toolkit.Window.SetMode(_window, WindowMode.Normal);
+            Toolkit.Window.SetCursorCaptureMode(_window, CursorCaptureMode.Normal);
             
             GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion}");
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
@@ -250,7 +275,7 @@ namespace Blockgame_OpenTK
 
         }
 
-        static void EventRaised(PalHandle? handle, PlatformEventType type, EventArgs args)
+        static void EventRaised(PalHandle handle, PlatformEventType type, EventArgs args)
         {
 
             if (args is CloseEventArgs closeEventArgs)
