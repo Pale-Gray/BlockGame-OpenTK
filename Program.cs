@@ -10,6 +10,7 @@ using Tomlet;
 using Tomlet.Models;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Networking;
+using Blockgame_OpenTK.Core.Worlds;
 
 namespace Blockgame_OpenTK
 {
@@ -153,10 +154,7 @@ namespace Blockgame_OpenTK
             if (args.Length == 0)
             {
                 GameLogger.Log("Starting in client mode");
-                InitializeWindow(contextSettings);
-                EventQueue.EventRaised += EventRaised;
-                Input.Initialize(_window);
-                BlockGame.Load();
+                NetworkingValues.Client = new NewClient();
             } else
             {
                 if (args.Length >= 1)
@@ -165,27 +163,30 @@ namespace Blockgame_OpenTK
                     {
                         GameLogger.Log("Starting in server mode.");
                         // make server
-                        NetworkingValues.Server = new PhysicalServer();
+                        NetworkingValues.Server = new NewServer();
                         NetworkingValues.Server.Start();
-                    } else if (args[0].ToLower() == "client")
-                    {
-                        GameLogger.Log("Starting in client mode.");
-                        InitializeWindow(contextSettings);
-                        EventQueue.EventRaised += EventRaised;
-                        Input.Initialize(_window);
-                        BlockGame.Load();
                     } else
                     {
                         GameLogger.Log("There were no valid arguments, so starting in client mode.");
-                        InitializeWindow(contextSettings);
-                        EventQueue.EventRaised += EventRaised;
-                        Input.Initialize(_window);
-                        BlockGame.Load();
+                        NetworkingValues.Client = new NewClient();
                     }
                 }
             }
 
             GlobalValues.CurrentTime = Stopwatch.GetTimestamp();
+
+            if (NetworkingValues.Client != null)
+            {
+
+                EventQueue.EventRaised += EventRaised;
+                InitializeWindow(contextSettings);
+
+                Input.Initialize(_window);
+                AudioPlayer.Initialize();
+
+                NetworkingValues.Client.Load();
+
+            }
 
             while (GlobalValues.IsRunning)
             {
@@ -195,32 +196,32 @@ namespace Blockgame_OpenTK
                 long currentTime = Stopwatch.GetTimestamp();
                 GlobalValues.DeltaTime = (GlobalValues.CurrentTime - currentTime) / Stopwatch.Frequency;
                 GlobalValues.CurrentTime = currentTime;
-// 
-                NetworkingValues.Server?.Update();
-                NetworkingValues.Client?.Update(); 
-// 
+
                 Toolkit.Window.ProcessEvents(false);
 
-                // call general render loop in client update method? 
-                if (NetworkingValues.Server is not PhysicalServer)
+                NetworkingValues.Server?.Update();
+                NetworkingValues.Client?.Update();
+
+                if (NetworkingValues.Client != null)
                 {
 
-                    NetworkingValues.Client?.Update();
-                    BlockGame.Render();
-
-                    Input.Poll(_window);
                     AudioPlayer.Poll();
+                    Input.Poll(_window);
                     Toolkit.OpenGL.SwapBuffers(_glContext);
 
                 }
 
             }
+            
+            NetworkingValues.Server?.Unload();
+            NetworkingValues.Client?.Unload();
 
-            if (NetworkingValues.Server is not PhysicalServer)
+            if (NetworkingValues.Client != null)
             {
+
                 AudioPlayer.Unload();
-                BlockGame.Unload();
                 Toolkit.Window.Destroy(_window);
+
             }
 
             GameLogger.SaveToFile("log");
@@ -256,7 +257,7 @@ namespace Blockgame_OpenTK
 
             ReadOnlySpan<byte> icon = new ReadOnlySpan<byte>([ 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255]);
             IconHandle handle = Toolkit.Icon.Create(2, 2, icon);
-            Toolkit.Window.SetIcon(_window, handle);
+            // Toolkit.Window.SetIcon(_window, handle);
 
         }
 

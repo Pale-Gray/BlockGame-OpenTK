@@ -58,8 +58,8 @@ public class PackedWorldGenerator
         {
             
             Console.WriteLine("uploading");
-            NetworkingValues.Server?.SendChunk(columnPosition);
-            NetworkingValues.Client?.SendChunk(columnPosition);
+            // NetworkingValues.Server?.SendChunk(columnPosition);
+            // NetworkingValues.Client?.SendChunk(columnPosition);
             /*
             if (NetworkingValues.Server != null)
             {

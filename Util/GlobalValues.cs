@@ -20,8 +20,8 @@ namespace Blockgame_OpenTK.Util
     public class NetworkingValues
     {
 
-        public static IServer Server;
-        public static IClient Client;
+        public static NewServer Server;
+        public static NewClient Client;
 
     }
     public class GlobalValues

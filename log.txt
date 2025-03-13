@@ -2,86 +2,15 @@
 [Info] Supports raw mouse? False
 [Info] Opened a file for writing to at data.dat
 [Info] Finished writing to file.
-[Info] Created Chunks folder because it did not exist.
 [Info] loading blocks
-m file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
-[Info] Finished reading from file.
+[Info] Connected to server.
+ed to join.
+[Info] Peer id 0 joined.
+[Info] 2, Poo
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at Blockgame_OpenTK.Core.PlayerUtil.PlayerChunkLoader.QueuePosition(World world, Vector2i position) in ./Player/PlayerChunkLoader.cs:line 68
+   at Blockgame_OpenTK.Core.Networking.NewServer.<Start>b__11_3(NetPeer peer, NetPacketReader reader, Byte channel, DeliveryMethod deliveryMethod) in ./Network/NewServer.cs:line 135
+   at LiteNetLib.EventBasedNetListener.LiteNetLib.INetEventListener.OnNetworkReceive(NetPeer peer, NetPacketReader reader, Byte channelNumber, DeliveryMethod deliveryMethod)
+   at LiteNetLib.NetManager.ProcessEvent(NetEvent evt)
+   at LiteNetLib.NetManager.PollEvents(Int32 maxProcessedEvents)
+   at Blockgame_OpenTK.Program.Main(String[] args) in ./Program.cs:line 24

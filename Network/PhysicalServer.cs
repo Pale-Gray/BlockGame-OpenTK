@@ -15,25 +15,6 @@ using Tomlet.Exceptions;
 
 namespace Blockgame_OpenTK.Core.Networking;
 
-public struct ServerProperties
-{
-
-    [TomlProperty("address")]
-    public string AddressOrHost { get; set; }
-    
-    [TomlProperty("port")]
-    public int Port { get; set; }
-
-    [TomlProperty("max_players")]
-    public int MaxPlayers { get; set; }
-
-    [TomlProperty("world_name")]
-    public string WorldName { get; set; }
-
-    public ServerProperties(ServerProperties properties) {}
-
-}
-
 public class PhysicalServer : IServer
 {
     private NetManager _manager;

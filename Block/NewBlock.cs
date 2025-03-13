@@ -95,8 +95,8 @@ public class NewBlock
         T block = new();
 
         block.DisplayName = LanguageManager.GetTranslation(properties.DisplayName);
-        if (NetworkingValues.Server is not PhysicalServer) block.BlockModel = NewBlockModel.FromToml(properties._blockModelPath);
-
+        if (!NetworkingValues.Server?.IsNetworked ?? false) block.BlockModel = NewBlockModel.FromToml(properties._blockModelPath);
+        
         return block;
 
     }

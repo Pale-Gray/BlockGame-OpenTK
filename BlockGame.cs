@@ -460,8 +460,8 @@ namespace Blockgame_OpenTK
                     GameLogger.Log("uid is invalid");
                 } else
                 {
-                    NetworkingValues.Client = new PhysicalClient();
-                    NetworkingValues.Client.Start(network[0], port, new NewPlayer() { UserId = uid, DisplayName = "Poo" });
+                    // NetworkingValues.Client = new PhysicalClient();
+                    // NetworkingValues.Client.Start(network[0], port, new NewPlayer() { UserId = uid, DisplayName = "Poo" });
                 }
                 // NetworkingValues.Client.JoinWorld(network[0], int.Parse(network[1]), long.Parse(userIdString));
 
