@@ -136,6 +136,8 @@ public class PackedChunkMesh
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "view"), 1, true, ref viewMatrix);
             Matrix4 projectionMatrix = player.Camera.ProjectionMatrix;
             GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref projectionMatrix);
+            Matrix4 conversionMatrix = player.Camera.ConversionMatrix;
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "conversion"), 1, true, ref conversionMatrix);
 
             GL.BindVertexArray(Vao);
             GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);

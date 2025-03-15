@@ -205,6 +205,8 @@ namespace Blockgame_OpenTK
                 if (NetworkingValues.Client != null)
                 {
 
+                    if (Input.FocusAwareMouseDelta != Vector2.Zero) Console.WriteLine(Input.FocusAwareMouseDelta);
+
                     if (Input.IsKeyPressed(Key.Escape))
                     {
 
@@ -223,7 +225,6 @@ namespace Blockgame_OpenTK
                             CursorHandle handle = Toolkit.Cursor.Create(1, 1, arr, 0, 0);
                             Toolkit.Window.SetCursor(_window, handle);
                             Toolkit.Window.SetCursorCaptureMode(_window, CursorCaptureMode.Locked);
-                            // Toolkit.Window.SetCursor(_window, Toolkit.Cursor.Create(SystemCursorType.Default));
 
                         }
 
@@ -292,7 +293,11 @@ namespace Blockgame_OpenTK
             if (args is WindowResizeEventArgs windowResizeEventArgs)
             { 
 
+                GlobalValues.Width = windowResizeEventArgs.NewClientSize.X;
+                GlobalValues.Height = windowResizeEventArgs.NewClientSize.Y;
+
                 BlockGame.UpdateScreenSize(windowResizeEventArgs);
+                NetworkingValues.Client?.OnResize();
 
                 Toolkit.OpenGL.SwapBuffers(_glContext);
 

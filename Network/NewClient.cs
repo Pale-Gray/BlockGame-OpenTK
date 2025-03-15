@@ -5,6 +5,7 @@ using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Gui;
 using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.Worlds;
+using Blockgame_OpenTK.FramebufferUtil;
 using Blockgame_OpenTK.Gui;
 using Blockgame_OpenTK.Util;
 using LiteNetLib;
@@ -24,11 +25,16 @@ public class NewClient
     private World _world;
     public bool IsNetworked { get; private set; } = false;
     public NewPlayer Player { get; private set; }
+    private Framebuffer _terrainBuffer;
+    private FramebufferQuad _terrainBufferQuad;
     public void Load()
     {
 
         BlockGame.Load();
         GlobalValues.Base.OnLoad(GlobalValues.Register);
+
+        _terrainBuffer = new Framebuffer();
+        _terrainBufferQuad = new FramebufferQuad();
 
     }
 
@@ -138,46 +144,58 @@ public class NewClient
     {
 
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
-        GL.ClearColor(new Color4<Rgba>(0, 0, 0, 1.0f));
+        GL.ClearColor(Color4.Black);
 
         Player?.UpdateInputs();
+        if (Input.IsMouseFocused) Player?.Camera.Update();
+        _terrainBuffer.Bind();
+        GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+        GL.ClearColor(Color4.Black);
         _world?.Draw(Player);
+        _terrainBuffer.Unbind();
+        _terrainBufferQuad.Draw(_terrainBuffer, 0.0f);
+        
         PackedWorldGenerator.Update();
 
-        GuiRenderer.Begin("thing");
-        GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
-        GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
-        GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
-        GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
-        GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
-        if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
+        if (!Input.IsMouseFocused)
         {
 
-            string[] network = addressString.Split(':');
-
-            if (network.Length != 2) 
+            GuiRenderer.Begin("thing");
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
+            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
+            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
             {
-                
-                GameLogger.Log("invalid address");
 
-            } else
-            {
+                string[] network = addressString.Split(':');
 
-                if (!int.TryParse(network[1], out int port))
+                if (network.Length != 2) 
                 {
-                    GameLogger.Log("port is invalid");
-                } else if (!long.TryParse(userIdString, out long uid))
-                {
-                    GameLogger.Log("uid is invalid");
+                    
+                    GameLogger.Log("invalid address");
+
                 } else
                 {
-                    NetworkingValues.Client.JoinWorld(network[0], port, new NewPlayer() { UserId = uid, DisplayName = "Poo" });
+
+                    if (!int.TryParse(network[1], out int port))
+                    {
+                        GameLogger.Log("port is invalid");
+                    } else if (!long.TryParse(userIdString, out long uid))
+                    {
+                        GameLogger.Log("uid is invalid");
+                    } else
+                    {
+                        NetworkingValues.Client.JoinWorld(network[0], port, new NewPlayer() { UserId = uid, DisplayName = "Poo" });
+                    }
+
                 }
 
             }
+            GuiRenderer.End();
 
         }
-        GuiRenderer.End();
 
         _manager?.PollEvents();
 
@@ -189,6 +207,14 @@ public class NewClient
         PackedWorldGenerator.Unload();
 
         BlockGame.Unload();
+
+    }
+
+    public void OnResize()
+    {
+
+        Player?.Camera.UpdateProjectionMatrix();
+        _terrainBuffer.UpdateAspect();
 
     }
 

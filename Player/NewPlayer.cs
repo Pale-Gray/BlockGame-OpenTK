@@ -17,7 +17,7 @@ public class NewPlayer
     public Vector3 Position;
     public HashSet<Vector2i> ChunkArea = new();
     public HashSet<Vector2i> SentChunks = new();
-    public PlayerCamera Camera = new PlayerCamera(90.0f);
+    public PlayerCamera Camera = new PlayerCamera(90.0f, Vector3.UnitY, Vector3.UnitX, Vector3.UnitZ);
     public PlayerChunkLoader Loader;
 
     public void UpdateInputs()
@@ -25,37 +25,37 @@ public class NewPlayer
 
         if (Input.IsKeyDown(Key.E))
         {
-            Camera.Position += Vector3.UnitY;
+            Camera.Position.Y += 10 * (float)GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.Q))
         {
-            Camera.Position -= Vector3.UnitY;
+            Camera.Position.Y -= 10 * (float)GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.W))
         {
-            Camera.Position -= Vector3.UnitZ;
+            Camera.Position -= Camera.ForwardVector * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.S))
         {
-            Camera.Position += Vector3.UnitZ;
+            Camera.Position += Camera.ForwardVector * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.A))
         {
-            Camera.Position -= Vector3.UnitX;
+            Camera.Position -= Camera.ForwardVector * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.D))
         {
-            Camera.Position += Vector3.UnitX;
+            Camera.Position += Camera.ForwardVector * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 

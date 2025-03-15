@@ -6,6 +6,7 @@ layout (location = 2) in vec4 aLightColor;
 
 uniform mat4 projection;
 uniform mat4 view;
+uniform mat4 conversion;
 
 uniform vec3 chunkPosition;
 
@@ -54,6 +55,6 @@ void main() {
     vTextureCoordinates = textureCoordinates[gl_VertexID % 4];
     vLightColor = aLightColor;
     vTextureIndex = int(aPackedColorData & 65535);
-    gl_Position = vec4(vPosition + (chunkPosition * 32), 1) * view * projection;
+    gl_Position = vec4(vPosition + (chunkPosition * 32), 1) * view * conversion * projection;
     
 }

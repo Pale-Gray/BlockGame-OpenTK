@@ -38,6 +38,25 @@ namespace Blockgame_OpenTK.Util
 
         }
 
+        public static float Rand(int seed, int a, int b)
+        {
+
+            uint bitcastSeed = Unsafe.BitCast<int, uint>(seed);
+            uint bitcastA = Unsafe.BitCast<int, uint>(a);
+            uint bitcastB = Unsafe.BitCast<int, uint>(b);
+
+            uint value = bitcastSeed << 15 | bitcastA >> 5 | bitcastB << 2;
+            value ^= bitcastA >> 15;
+            value = value << 4;
+            value |= bitcastB >> 40;
+            value ^= bitcastA & bitcastB;
+            value ^= bitcastB << 15 | bitcastA >> 27;
+            value = value << 14;
+
+            return unchecked(value / (float)uint.MaxValue);
+
+        }
+
         public static Color4<Rgba> Mix(Color4<Rgba> a, Color4<Rgba> b, float mixValue)
         {
 

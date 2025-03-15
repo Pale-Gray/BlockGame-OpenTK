@@ -20,8 +20,8 @@ namespace Blockgame_OpenTK.Core.Worlds;
 public class PackedWorldGenerator
 {
 
-    public static int WorldGenerationRadius = 6;
-    public static int WorldGenerationHeight = 8; // The height starting from 0
+    public static int WorldGenerationRadius = 8;
+    public static int WorldGenerationHeight = 8; // The height starting from y = 0
     public static int MaxChunkUploadCount = 5;
 
     private static int _currentRadius = 0;

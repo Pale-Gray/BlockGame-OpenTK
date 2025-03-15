@@ -142,7 +142,11 @@ namespace Blockgame_OpenTK
             {
                 FocusAwareMouseDelta = _focusAwareMousePosition - mousePosition;
                 _focusAwareMousePosition = mousePosition;  
-            }      
+            } else 
+            {
+                FocusAwareMouseDelta = Vector2.Zero;
+                _focusAwareMousePosition = mousePosition;
+            }
 
             MouseDelta = MousePosition - mousePosition;
             MousePosition = mousePosition;
