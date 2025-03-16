@@ -11,6 +11,7 @@ using Tomlet.Models;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Networking;
 using Blockgame_OpenTK.Core.Worlds;
+using Blockgame_OpenTK.Core.Image;
 
 namespace Blockgame_OpenTK
 {
@@ -128,6 +129,8 @@ namespace Blockgame_OpenTK
 
             }
             */
+
+            ImageLoader.LoadPng("Resources/Textures/test.png");
 
             Console.OutputEncoding = Encoding.Unicode;
 
