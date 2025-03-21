@@ -54,6 +54,10 @@ public class ColumnBuilder
 
         }
 
+        column.QueueType = ColumnQueueType.Mesh;
+        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(column.Position);
+
+        /*
         if (NetworkingValues.Server == null)
         {
             column.QueueType = ColumnQueueType.Mesh;
@@ -63,6 +67,7 @@ public class ColumnBuilder
             column.QueueType = ColumnQueueType.Upload;
             PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueLast(column.Position);
         }
+        */
 
     }
 
@@ -77,6 +82,7 @@ public class ColumnBuilder
 
             if (columns[Vector2i.Zero].Chunks[chunkY].HasUpdates)
             {
+
 
                 vertices.Clear();
                 indices.Clear();

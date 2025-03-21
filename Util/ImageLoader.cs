@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using FreeTypeSharp;
+using Blockgame_OpenTK.Util;
+using OpenTK.Graphics.OpenGL;
+using StbImageSharp;
 
 namespace Blockgame_OpenTK.Core.Image;
 
@@ -18,6 +21,13 @@ public enum ColorType : byte
     Indexed = 3,
     GrayscaleWithAlpha = 4,
     Rgba = 6
+
+}
+
+public enum ColorFormat
+{
+    Rgb,
+    Rgba
 
 }
 public enum BitDepthType : byte
@@ -37,6 +47,7 @@ public struct ImageProperties
     public int Height;
     public ColorType ColorType;
     public BitDepthType BitDepth;
+    public PixelFormat PixelFormat;
     public byte CompressionMethod;
     public byte FilterMethod;
     public bool IsInterlaced;
@@ -54,6 +65,16 @@ public struct ImageProperties
     }
 
 }
+
+public struct Pimage
+{
+
+    public ImageProperties Properties;
+    public int TextureID;
+    public byte[] Data;
+
+}
+
 public class ImageLoader
 {
 
@@ -61,11 +82,16 @@ public class ImageLoader
 
     // notes
     // png data is big endian
-    public static void LoadPng(string pathToFile)
+    public static Pimage LoadPng(string pathToFile, ColorFormat format = ColorFormat.Rgba)
     {
+
+        Pimage img = new Pimage();
 
         Stopwatch sw = Stopwatch.StartNew();
         ImageProperties properties = new ImageProperties();
+
+        List<byte> compressedData = new();
+        List<byte> convertedData = new();
 
         using (Stream stream = File.OpenRead(pathToFile))
         {
@@ -79,7 +105,6 @@ public class ImageLoader
 
             Span<byte> length = stackalloc byte[4];
             Span<byte> chunkType = stackalloc byte[4];
-            byte[] data;
             Span<byte> checksum = stackalloc byte[4];
 
             Span<byte> buffer = stackalloc byte[4];
@@ -94,9 +119,8 @@ public class ImageLoader
                 stream.ReadExactly(chunkType);
                 lengthValue = BinaryPrimitives.ReadInt32BigEndian(length);
                 chunkTypeString = Encoding.ASCII.GetString(chunkType);
-                data = new byte[lengthValue];
+                Span<byte> data = new byte[lengthValue];
                 stream.ReadExactly(data);
-                MemoryStream dat = new MemoryStream(data);
                 stream.ReadExactly(checksum);
 
                 Console.WriteLine($"{lengthValue}, {chunkTypeString}");
@@ -105,16 +129,18 @@ public class ImageLoader
                 {
 
                     case "IHDR": // Image properties
-                        dat.ReadExactly(buffer);
-                        properties.Width = BinaryPrimitives.ReadInt32BigEndian(buffer);
-                        dat.ReadExactly(buffer);
-                        properties.Height = BinaryPrimitives.ReadInt32BigEndian(buffer);
-                        properties.BitDepth = (BitDepthType)dat.ReadByte();
-                        properties.ColorType = (ColorType)dat.ReadByte();
-                        properties.CompressionMethod = (byte) dat.ReadByte();
-                        properties.FilterMethod = (byte) dat.ReadByte();
-                        properties.IsInterlaced = dat.ReadByte() == 1 ? true : false;
+                        properties.Width = BinaryPrimitives.ReadInt32BigEndian(data.Slice(0, 4));
+                        properties.Height = BinaryPrimitives.ReadInt32BigEndian(data.Slice(4, 4));
+                        properties.BitDepth = (BitDepthType)data[8];
+                        properties.ColorType = (ColorType)data[9];
+                        properties.CompressionMethod = data[10];
+                        properties.FilterMethod = data[11];
+                        properties.IsInterlaced = data[12] == 1 ? true : false;
                         Console.WriteLine(properties);
+                        img.Properties = properties;
+                        break;
+                    case "IDAT": // image data
+                        compressedData.AddRange(data);
                         break;
 
                 }
@@ -122,8 +148,31 @@ public class ImageLoader
             }
 
         }
+
+        MemoryStream decompressedData = new MemoryStream();
+        ZLibStream compressedStream = new ZLibStream(new MemoryStream(compressedData.ToArray()), CompressionMode.Decompress);
+        compressedStream.CopyTo(decompressedData);
+
+        List<byte> decompressedImage = new();
+        byte[] decompressedDataArray = decompressedData.ToArray();
+
+        Console.WriteLine($"{decompressedData.Length}, {img.Properties.Width * img.Properties.Height}");
+
+        while (decompressedImage.Count != img.Properties.Width * img.Properties.Height * (int)img.Properties.BitDepth) decompressedImage.Add(0);
+
+        img.Data = decompressedImage.ToArray();
+
         sw.Stop();
         Console.WriteLine($"Image loading took {sw.Elapsed.TotalMilliseconds}ms");
+
+        return img;
+
+    }
+
+    public static void AddPixel(byte[] data, int ax, int ay, int bx, int by, int size, int width, int height)
+    {
+
+        
 
     }
 

@@ -130,7 +130,7 @@ namespace Blockgame_OpenTK
             }
             */
 
-            ImageLoader.LoadPng("Resources/Textures/test.png");
+            // ImageLoader.LoadPng("Resources/Textures/test.png");
 
             Console.OutputEncoding = Encoding.Unicode;
 

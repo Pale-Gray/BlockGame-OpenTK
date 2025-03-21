@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.TexturePack;
 using Blockgame_OpenTK.Core.Worlds;
@@ -109,8 +110,9 @@ public class PackedChunkMesh
     // public PackedChunkVertex[] PackedChunkVertices;
     public List<PackedChunkVertex> ChunkVertices;
     public List<int> ChunkIndices;
+    public List<Rectangle> Solids;
     public int[] PackedChunkBindlessTextureIndices;
-    public int Vbo, Vao, Ibo, Ssbo, Ssbo2;
+    public int Vbo, Vao, Ibo, SolidsHandle;
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
 
@@ -127,6 +129,7 @@ public class PackedChunkMesh
         if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)
         {
 
+            GL.Disable(EnableCap.CullFace);
             GlobalValues.PackedChunkShader.Use();
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
@@ -141,6 +144,7 @@ public class PackedChunkMesh
 
             GL.BindVertexArray(Vao);
             GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
+            GL.Enable(EnableCap.CullFace);
             
         }
         

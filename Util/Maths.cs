@@ -104,6 +104,13 @@ namespace Blockgame_OpenTK.Util
             return a;
 
         }
+
+        public static int EuclideanMod(int a, int n)
+        {
+
+            return (int) (a - Math.Abs(n) * Math.Floor(a / (float) Math.Abs(n)));
+
+        }
         public static float FloatRandom2(uint seed, int x, int y)
         {
 

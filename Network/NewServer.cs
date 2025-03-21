@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -38,7 +39,7 @@ public class NewServer
     private EventBasedNetListener _listener;
     private NetManager _manager;
     private ServerProperties _properties;
-    private World _world;
+    public World World;
     private Dictionary<int, NewPlayer> _connectedPlayers;
     private NetDataWriter _writer;
     public bool IsNetworked { get; private set; } = false;
@@ -48,13 +49,28 @@ public class NewServer
 
         // mod loading (base)
         GlobalValues.Base.OnLoad(GlobalValues.Register);
-
         // start threads
         PackedWorldGenerator.Initialize();
-
         // world loading
-        _world = new World(_properties.WorldName);
-        PackedWorldGenerator.CurrentWorld = _world;
+        World = new World(_properties.WorldName);
+        PackedWorldGenerator.CurrentWorld = World;
+
+    }
+
+    public void StartSingleplayer(string worldName, NewPlayer player)
+    {
+
+        IsNetworked = false;
+
+        _connectedPlayers = new Dictionary<int, NewPlayer>();
+        player.Loader = new PlayerChunkLoader((0, 0));
+        _connectedPlayers.Add(0, player);
+
+        World = new World(worldName);
+        PackedWorldGenerator.CurrentWorld = World;
+        PackedWorldGenerator.Initialize();
+
+        _connectedPlayers[0].Loader.QueuePosition(World, (0,0));
 
     }
     public void StartNetworked()
@@ -77,8 +93,8 @@ public class NewServer
         GameLogger.Log($"Max players: {_properties.MaxPlayers}");
         GameLogger.Log($"World save: {_properties.WorldName}");
 
-        _world = new World(_properties.WorldName);
-        PackedWorldGenerator.CurrentWorld = _world;
+        World = new World(_properties.WorldName);
+        PackedWorldGenerator.CurrentWorld = World;
         PackedWorldGenerator.Initialize();
 
         _manager.IPv6Enabled = false;
@@ -142,7 +158,7 @@ public class NewServer
                     } else
                     {
                         _connectedPlayers.Add(peer.Id, new NewPlayer() { UserId = packet.UserId, DisplayName = packet.DisplayName, Loader = new PlayerChunkLoader(Vector2i.Zero) }); 
-                        _connectedPlayers[peer.Id].Loader.QueuePosition(_world, Vector2i.Zero);
+                        _connectedPlayers[peer.Id].Loader.QueuePosition(World, Vector2i.Zero);
                         _writer.Put((ushort)PacketType.ConnectSuccessPacket);
                         peer.Send(_writer, DeliveryMethod.ReliableOrdered);
                         _writer.Reset();
@@ -160,12 +176,14 @@ public class NewServer
     public void Update()
     {
 
+        // Console.WriteLine("update");
+
         PackedWorldGenerator.Update();
 
         foreach (NewPlayer player in _connectedPlayers.Values)
         {
 
-            player.Loader.Tick(_world);
+            player.Loader.Tick(World);
 
         }
 
@@ -192,7 +210,7 @@ public class NewServer
                 player.SentChunks.Add(position);
                 ChunkSendPacket packet = new ChunkSendPacket();
                 packet.Position = position;
-                packet.Data = ColumnSerializer.SerializeColumnToBytes(_world.WorldColumns[position]);
+                packet.Data = ColumnSerializer.SerializeColumnToBytes(World.WorldColumns[position]);
                 packet.Serialize(_writer);
                 _manager.GetPeerById(player.NetPeerId).Send(_writer, DeliveryMethod.ReliableOrdered);
                 _writer.Reset();

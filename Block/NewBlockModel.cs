@@ -30,6 +30,18 @@ public enum Direction : byte
     
 }
 
+public struct Rectangle
+{
+
+    public Vector3 Position;
+    public Vector2 Size;
+    public Vector3 Tangent;
+    public Vector3 Bitangent;
+    public Vector2 TextureCoordinateDimensions;
+    public Vector2 TextureCoordinateOffset;
+
+}
+
 public struct FaceProperties
 {
     

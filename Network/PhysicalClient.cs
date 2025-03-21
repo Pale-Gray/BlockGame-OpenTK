@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Core.Chunks;
+using Blockgame_OpenTK.Core.Image;
 using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.Util;
@@ -21,6 +22,8 @@ public class PhysicalClient : IClient
     private NetDataWriter _writer = new NetDataWriter();
     private NewPlayer _player;
     private World _world;
+
+    private Pimage _image = new Pimage();
 
     public void Start(string addressOrHost = "", int port = 0, NewPlayer player = null)
     {

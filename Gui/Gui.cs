@@ -16,6 +16,7 @@ namespace Blockgame_OpenTK.Core.Gui
     struct GuiVertex {
 
         public Vector2 Position;
+        public Vector2 TextureCoordinate;
         public Color4<Rgba> Color;
 
     }
@@ -51,6 +52,7 @@ namespace Blockgame_OpenTK.Core.Gui
         public static readonly Vector2 Center = (0.5f, 0.5f);
         private static readonly Color4<Rgba> _default = Color4.White;
         private static Shader _guiShader;
+        private static Shader _guiImageShader;
         private static Camera _guiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90);
         private static Dictionary<string, GuiStates> _guiStates = new();
         private static int _currentIndex = 0;
@@ -60,6 +62,7 @@ namespace Blockgame_OpenTK.Core.Gui
         {
 
             _guiShader = new Shader("immediategui.vert", "immediategui.frag");
+            _guiImageShader = new Shader("immediateguitextured.vert", "immediateguitextured.frag");
 
         }
 
@@ -81,6 +84,67 @@ namespace Blockgame_OpenTK.Core.Gui
             {
                 _guiStates.Add(guiName, new GuiStates());
             }
+
+        }
+ 
+        public static void RenderTexture(Vector2 position, Vector2 dimensions, Vector2 origin, int textureId)
+        {
+
+            GuiElement element = new GuiElement()
+            {
+                Position = position,
+                Dimensions = dimensions,
+                Origin = origin,
+            };
+
+            Vector2 lowerLeftBound;
+            lowerLeftBound.X = element.Position.X - (element.Dimensions.X * element.Origin.X);
+            lowerLeftBound.Y = element.Position.Y - (element.Dimensions.Y * element.Origin.Y) + element.Dimensions.Y;
+
+            lowerLeftBound.Y = GlobalValues.Height - lowerLeftBound.Y;
+
+            GL.Scissor((int)lowerLeftBound.X, (int)lowerLeftBound.Y, (int)element.Dimensions.X, (int)element.Dimensions.Y);
+            
+            GL.DeleteBuffer(_vbo);
+            GL.DeleteBuffer(_ibo);
+            GL.DeleteVertexArray(_vao);
+            _elementVertices.Clear();
+
+            _vbo = GL.GenBuffer();
+            _ibo = GL.GenBuffer();
+            _vao = GL.GenVertexArray();
+
+            _elementVertices.AddRange(
+                new GuiVertex() { Position = element.Position - (element.Dimensions * element.Origin), Color = element.Color, TextureCoordinate = (0.0f, 0.0f) },
+                new GuiVertex() { Position = element.Position - (element.Dimensions * element.Origin) + (0, element.Dimensions.Y), Color = element.Color, TextureCoordinate = (0.0f, 1.0f) },
+                new GuiVertex() { Position = element.Position - (element.Dimensions * element.Origin) + element.Dimensions, Color = element.Color, TextureCoordinate = (1.0f, 1.0f) },
+                new GuiVertex() { Position = element.Position - (element.Dimensions * element.Origin) + (element.Dimensions.X, 0), Color = element.Color, TextureCoordinate = (1.0f, 0.0f) }   
+            );
+
+            GL.BindVertexArray(_vao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
+            GL.BufferData<GuiVertex>(BufferTarget.ArrayBuffer, _elementVertices.Count * Marshal.SizeOf<GuiVertex>(), CollectionsMarshal.AsSpan(_elementVertices), BufferUsage.DynamicDraw);
+
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ibo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, _elementIndices.Length * sizeof(int), _elementIndices, BufferUsage.DynamicDraw);
+
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Position)));
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.Color)));
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<GuiVertex>(), Marshal.OffsetOf<GuiVertex>(nameof(GuiVertex.TextureCoordinate)));
+            GL.EnableVertexAttribArray(2);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2d, textureId);
+            _guiImageShader.Use();
+
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.id, "view"), 1, true, ref _guiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.id, "projection"), 1, true, ref _guiCamera.ProjectionMatrix);
+            // GL.Uniform1f(GL.GetUniformLocation(_guiImageShader.id, "uTexture"), 0);
+
+            GL.DrawElements(PrimitiveType.Triangles, _elementIndices.Length, DrawElementsType.UnsignedInt, 0);
+
 
         }
 

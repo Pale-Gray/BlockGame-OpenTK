@@ -1,8 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
 using Blockgame_OpenTK.Audio;
 using Blockgame_OpenTK.Core.Chunks;
 using Blockgame_OpenTK.Core.Gui;
+using Blockgame_OpenTK.Core.Image;
 using Blockgame_OpenTK.Core.PlayerUtil;
 using Blockgame_OpenTK.Core.Worlds;
 using Blockgame_OpenTK.FramebufferUtil;
@@ -22,13 +25,17 @@ public class NewClient
     private NetManager _manager;
     private EventBasedNetListener _listener;
     private NetDataWriter _writer = new NetDataWriter();
-    private World _world;
+    public World World;
     public bool IsNetworked { get; private set; } = false;
     public NewPlayer Player { get; private set; }
     private Framebuffer _terrainBuffer;
     private FramebufferQuad _terrainBufferQuad;
+    private int _id;
     public void Load()
     {
+
+        // GL.Enable(EnableCap.DebugOutput);
+        // GL.DebugMessageCallback(_delegate, IntPtr.Zero);
 
         BlockGame.Load();
         GlobalValues.Base.OnLoad(GlobalValues.Register);
@@ -36,8 +43,55 @@ public class NewClient
         _terrainBuffer = new Framebuffer();
         _terrainBufferQuad = new FramebufferQuad();
 
+        // Stopwatch sw = Stopwatch.StartNew();
+
+        // PngImage image = new PngImage();
+        // // image = ImageFile.Load("Resources/Textures/happy-super-happy1080inter.png");
+        // // PngImage image = ImageFile.Load("Resources/Textures/happy-super-happy1080.png");
+        // // sw.Stop();
+        // // Console.WriteLine($"img load took {sw.Elapsed.TotalMilliseconds}ms");
+// 
+        // _id = GL.GenTexture();
+        // GL.BindTexture(TextureTarget.Texture2d, _id);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+// 
+        // GL.TexStorage2D(TextureTarget.Texture2d, 1, SizedInternalFormat.Rgba8, image.Width, image.Height);
+        // GL.TexSubImage2D(TextureTarget.Texture2d, 0, 0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+// 
+        // GL.BindTexture(TextureTarget.Texture2d, 0);
+
     }
 
+    private static GLDebugProc _delegate = OnDebugMessage;
+
+    private static void OnDebugMessage(
+    DebugSource source,     // Source of the debugging message.
+    DebugType type,         // Type of the debugging message.
+    uint id,                 // ID associated with the message.
+    DebugSeverity severity, // Severity of the message.
+    int length,             // Length of the string in pMessage.
+    nint pMessage,        // Pointer to message string.
+    nint pUserParam)      // The pointer you gave to OpenGL, explained later.
+        {
+            // In order to access the string pointed to by pMessage, you can use Marshal
+            // class to copy its contents to a C# string without unsafe code. You can
+            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+            string message = Marshal.PtrToStringAnsi(pMessage, length);
+
+            // The rest of the function is up to you to implement, however a debug output
+            // is always useful.
+            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+            // Potentially, you may want to throw from the function for certain severity
+            // messages.
+            if (type == DebugType.DebugTypeError)
+            {
+                // throw new Exception(message);
+            }
+        }
     public void JoinWorld(string worldSave, NewPlayer player)
     {
 
@@ -46,7 +100,8 @@ public class NewClient
 
         Player = player;
 
-
+        NetworkingValues.Server = new NewServer();
+        NetworkingValues.Server.StartSingleplayer(worldSave, Player);
 
     }
 
@@ -61,8 +116,8 @@ public class NewClient
         _listener = new EventBasedNetListener();
         _manager = new NetManager(_listener);
 
-        _world = new World("");
-        PackedWorldGenerator.CurrentWorld = _world;
+        World = new World("");
+        PackedWorldGenerator.CurrentWorld = World;
         PackedWorldGenerator.Initialize();
 
         _manager.Start();
@@ -120,11 +175,11 @@ public class NewClient
                 case PacketType.ChunkSendPacket:
                     ChunkSendPacket sendPacket = new ChunkSendPacket();
                     sendPacket.Deserialize(reader);
-                    _world.WorldColumns.TryAdd(sendPacket.Position, new ChunkColumn(sendPacket.Position) { QueueType = ColumnQueueType.Mesh });
-                    ColumnSerializer.DeserializeColumnFromBytes(_world.WorldColumns[sendPacket.Position], sendPacket.Data);
+                    World.WorldColumns.TryAdd(sendPacket.Position, new ChunkColumn(sendPacket.Position) { QueueType = ColumnQueueType.Mesh });
+                    ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[sendPacket.Position], sendPacket.Data);
                     for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
                     {
-                        _world.WorldColumns[sendPacket.Position].Chunks[i].HasUpdates = true;
+                        World.WorldColumns[sendPacket.Position].Chunks[i].HasUpdates = true;
                     }
                     // column.QueueType = ColumnQueueType.Mesh;
                     // bool added = _world.WorldColumns.TryAdd(sendPacket.Position, column);
@@ -151,7 +206,13 @@ public class NewClient
         _terrainBuffer.Bind();
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
         GL.ClearColor(Color4.Black);
-        _world?.Draw(Player);
+        if (NetworkingValues.Server?.IsNetworked ?? true) 
+        {
+            World?.Draw(Player);
+        } else
+        {
+            NetworkingValues.Server?.World.Draw(Player);
+        }
         _terrainBuffer.Unbind();
         _terrainBufferQuad.Draw(_terrainBuffer, 0.0f);
         
@@ -193,6 +254,15 @@ public class NewClient
                 }
 
             }
+            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.8f), (150, 24), (0.5f, 0.5f), "Start Client Instance", Color4.White))
+            {
+
+                NetworkingValues.Client.JoinWorld("Shit", new NewPlayer());
+                // NetworkingValues.Server = new NewServer();
+                // NetworkingValues.Server.StartSingleplayer("Shit", new NewPlayer());
+
+            }
+            // GuiRenderer.RenderTexture(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (150, 150), (0.5f, 0.5f), _id);
             GuiRenderer.End();
 
         }
