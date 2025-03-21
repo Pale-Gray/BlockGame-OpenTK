@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 
-namespace Blockgame_OpenTK.Util;
+namespace Game.Util;
 
 public class Zip : IDisposable
 {
