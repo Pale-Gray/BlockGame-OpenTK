@@ -1,109 +1,195 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.Audio;
+using Game.Core.Chunks;
+using Game.Core.GuiRendering;
+using Game.Core.Image;
+using Game.Core.PlayerUtil;
+using Game.Core.Worlds;
+using Game.FramebufferUtil;
+using Game.Gui;
+using Game.Util;
 using LiteNetLib;
-using LiteNetLib.Layers;
 using LiteNetLib.Utils;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+using OpenTK.Platform;
 
-namespace Blockgame_OpenTK.Core.Networking;
+namespace Game.Core.Networking;
 
 public class Client
 {
 
-    public bool IsMultiplayer { get; private set; }
-    public EventBasedNetListener Listener;
-    public NetManager NetworkManager;
-    // public World World = new();
-
-    public Client(bool isMultiplayer = false)
+    private NetManager _manager;
+    private EventBasedNetListener _listener;
+    private NetDataWriter _writer = new NetDataWriter();
+    public World World;
+    public bool IsNetworked { get; private set; } = false;
+    public Player Player { get; private set; }
+    private Framebuffer _terrainBuffer;
+    private FramebufferQuad _terrainBufferQuad;
+    private int _id;
+    public void Load()
     {
 
-        IsMultiplayer = isMultiplayer;
-        Listener = new EventBasedNetListener();
-        NetworkManager = new NetManager(Listener);
+        // GL.Enable(EnableCap.DebugOutput);
+        // GL.DebugMessageCallback(_delegate, IntPtr.Zero);
+
+        BlockGame.Load();
+        GlobalValues.Base.OnLoad(GlobalValues.Register);
+
+        _terrainBuffer = new Framebuffer();
+        _terrainBufferQuad = new FramebufferQuad();
+
+        // Stopwatch sw = Stopwatch.StartNew();
+
+        // PngImage image = new PngImage();
+        // // image = ImageFile.Load("Resources/Textures/happy-super-happy1080inter.png");
+        // // PngImage image = ImageFile.Load("Resources/Textures/happy-super-happy1080.png");
+        // // sw.Stop();
+        // // Console.WriteLine($"img load took {sw.Elapsed.TotalMilliseconds}ms");
+// 
+        // _id = GL.GenTexture();
+        // GL.BindTexture(TextureTarget.Texture2d, _id);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+// 
+        // GL.TexStorage2D(TextureTarget.Texture2d, 1, SizedInternalFormat.Rgba8, image.Width, image.Height);
+        // GL.TexSubImage2D(TextureTarget.Texture2d, 0, 0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+// 
+        // GL.BindTexture(TextureTarget.Texture2d, 0);
 
     }
 
-    public void JoinWorld(string worldName)
+    private static GLDebugProc _delegate = OnDebugMessage;
+
+    private static void OnDebugMessage(
+    DebugSource source,     // Source of the debugging message.
+    DebugType type,         // Type of the debugging message.
+    uint id,                 // ID associated with the message.
+    DebugSeverity severity, // Severity of the message.
+    int length,             // Length of the string in pMessage.
+    nint pMessage,        // Pointer to message string.
+    nint pUserParam)      // The pointer you gave to OpenGL, explained later.
+        {
+            // In order to access the string pointed to by pMessage, you can use Marshal
+            // class to copy its contents to a C# string without unsafe code. You can
+            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+            string message = Marshal.PtrToStringAnsi(pMessage, length);
+
+            // The rest of the function is up to you to implement, however a debug output
+            // is always useful.
+            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+            // Potentially, you may want to throw from the function for certain severity
+            // messages.
+            if (type == DebugType.DebugTypeError)
+            {
+                // throw new Exception(message);
+            }
+        }
+    public void JoinWorld(string worldSave, Player player)
     {
 
-        IsMultiplayer = false;
+        // singleplayer
+        IsNetworked = false;
+
+        Player = player;
+
+        NetworkingValues.Server = new Server();
+        NetworkingValues.Server.StartSingleplayer(worldSave, Player);
 
     }
 
-    public void JoinWorld(string address, int port, long uid)
+    public void JoinWorld(string addressOrHost, int port, Player player)
     {
 
-        IsMultiplayer = true;
-        NetworkManager.Start();
-        NetworkManager.Connect(address, port, "BlockGame");
-        // PackedWorldGenerator.Initialize();
+        // multiplayer
+        IsNetworked = true;
 
-        Listener.NetworkReceiveEvent += (fromPeer, dataReader, deliveryMethod, channel) =>
+        Player = player;
+
+        _listener = new EventBasedNetListener();
+        _manager = new NetManager(_listener);
+
+        World = new World("");
+        PackedWorldGenerator.CurrentWorld = World;
+        PackedWorldGenerator.Initialize();
+
+        _manager.Start();
+        _manager.Connect(addressOrHost, port, "BlockGame");
+
+        _listener.PeerConnectedEvent += (peer) =>
         {
 
-            PacketType packetType = (PacketType)dataReader.GetUShort();
-            IPacket packet;
+            // GameLogger.Log("Connected to server.");
 
-            Console.WriteLine(packetType);
+        };
+
+        _listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>
+        {
+
+            PacketType packetType = default;//(PacketType)disconnectInfo.AdditionalData.GetUShort();
 
             switch (packetType)
             {
-
-                case PacketType.PlayerDataRequestPacket:
-                    NetDataWriter writer = new NetDataWriter();
-                    writer.Put((byte)PacketType.PlayerDataSendPacket);
-                    writer.Put(uid);
-                    fromPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+                case PacketType.ConnectRejectPacket:
+                    // ConnectRejectPacket packet = new ConnectRejectPacket();
+                    // packet.Deserialize(disconnectInfo.AdditionalData);
+                    // GameLogger.Log($"{packet.Type}: {packet.Reason}");
                     break;
-                case PacketType.BlockPlacePacket:
-                    packet = new BlockPlacePacket();
-                    packet.Deserialize(dataReader);
-                    // GlobalValues.Register.GetBlockFromId(((BlockPlacePacket)packet).BlockId).OnBlockPlace(World, ((BlockPlacePacket)packet).BlockPosition);
+            }
+
+            disconnectInfo.AdditionalData.Recycle();
+
+        };
+
+        _listener.NetworkReceiveEvent += (peer, reader, channel, deliveryMethod) =>
+        {
+
+            PacketType packetType = (PacketType)reader.GetUShort();
+
+            switch (packetType)
+            {
+            
+                case PacketType.PlayerDataRequestPacket:
+                    PlayerDataSendPacket packet = new PlayerDataSendPacket();
+                    packet.UserId = Player.UserId;
+                    packet.DisplayName = Player.DisplayName;
+                    packet.Serialize(_writer);
+                    peer.Send(_writer, DeliveryMethod.ReliableOrdered);
+                    break;
+                case PacketType.ConnectSuccessPacket:
+                    GameLogger.Log("Connected to server.");
+                    break;
+                case PacketType.ConnectRejectPacket:
+                    ConnectRejectPacket rejectPacket = new ConnectRejectPacket();
+                    rejectPacket.Deserialize(reader);
+                    GameLogger.Log($"{rejectPacket.Type}: {rejectPacket.Reason}");
+                    _manager.DisconnectAll();
                     break;
                 case PacketType.ChunkSendPacket:
-                    packet = new ChunkSendPacket();
-                    packet.Deserialize(dataReader);
-                    // GameLogger.Log($"Received a {PacketType.ChunkSendPacket} at chunk position {((ChunkSendPacket)packet).Position}");
-                    // GameLogger.Log("need to add a chunk");
-                    // bool added = World.WorldColumns.TryAdd(((ChunkSendPacket)packet).Position, new ChunkColumn(((ChunkSendPacket)packet).Position) { QueueType = ColumnQueueType.Mesh } );
-                    // ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[((ChunkSendPacket)packet).Position], ((ChunkSendPacket)packet).Data);
-                    // for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
-                    // {
-                    //     World.WorldColumns[((ChunkSendPacket)packet).Position].Chunks[i].HasUpdates = true;
-                    // }
-                    // PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(((ChunkSendPacket)packet).Position);
-
-                    ChunkReceivePacket received = new ChunkReceivePacket();
-                    received.Position = ((ChunkSendPacket)packet).Position;
-                    NetDataWriter dataWriter = new NetDataWriter();
-                    received.Serialize(dataWriter);
-                    fromPeer.Send(dataWriter, DeliveryMethod.ReliableOrdered);
-                    break;
-                case PacketType.ChunkRemovePacket:
-                    packet = new ChunkRemovePacket();
-                    packet.Deserialize(dataReader);
-                    // NetworkingValues.Client.World.WorldColumns.Remove(((ChunkRemovePacket)packet).ChunkPosition, out _);
+                    ChunkSendPacket sendPacket = new ChunkSendPacket();
+                    sendPacket.Deserialize(reader);
+                    World.WorldColumns.TryAdd(sendPacket.Position, new ChunkColumn(sendPacket.Position) { QueueType = ColumnQueueType.Mesh });
+                    ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[sendPacket.Position], sendPacket.Data);
+                    for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+                    {
+                        World.WorldColumns[sendPacket.Position].Chunks[i].HasUpdates = true;
+                    }
+                    // column.QueueType = ColumnQueueType.Mesh;
+                    // bool added = _world.WorldColumns.TryAdd(sendPacket.Position, column);
+                    // Console.WriteLine(added);
+                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(sendPacket.Position);
                     break;
 
             }
 
-            dataReader.Recycle();
-
-        };
-
-        Listener.PeerDisconnectedEvent += (fromPeer, disconnectInfo) =>
-        {
-
-            PacketType packetType = (PacketType)disconnectInfo.AdditionalData.GetByte();
-            string reason = disconnectInfo.AdditionalData.GetString();
-
-            if (packetType != PacketType.DisconnectSuccessPacket) GameLogger.Log($"failed to connect with reason {reason}");
+            reader.Recycle();
 
         };
 
@@ -112,34 +198,93 @@ public class Client
     public void Update()
     {
 
-        if (IsMultiplayer)
+        GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+        GL.ClearColor(Color4.Black);
+
+        Player?.UpdateInputs();
+        if (Input.IsMouseFocused) Player?.Camera.Update();
+        _terrainBuffer.Bind();
+        GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+        GL.ClearColor(Color4.Black);
+        if (NetworkingValues.Server?.IsNetworked ?? true) 
         {
-
-            NetworkManager.PollEvents();
-
+            World?.Draw(Player);
         } else
         {
+            NetworkingValues.Server?.World.Draw(Player);
+        }
+        _terrainBuffer.Unbind();
+        _terrainBufferQuad.Draw(_terrainBuffer, 0.0f);
+        
+        PackedWorldGenerator.Update();
 
+        if (!Input.IsMouseFocused)
+        {
 
+            GuiRendering.Gui.Begin("thing");
+            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
+            GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
+            if (GuiRendering.Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
+            {
+
+                string[] network = addressString.Split(':');
+
+                if (network.Length != 2) 
+                {
+
+                    GameLogger.Log("invalid address");
+
+                } else
+                {
+
+                    if (!int.TryParse(network[1], out int port))
+                    {
+                        GameLogger.Log("port is invalid");
+                    } else if (!long.TryParse(userIdString, out long uid))
+                    {
+                        GameLogger.Log("uid is invalid");
+                    } else
+                    {
+                        NetworkingValues.Client.JoinWorld(network[0], port, new Player() { UserId = uid, DisplayName = "Poo" });
+                    }
+
+                }
+
+            }
+            if (GuiRendering.Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.8f), (150, 24), (0.5f, 0.5f), "Start Client Instance", Color4.White))
+            {
+
+                NetworkingValues.Client.JoinWorld("Shit", new Player());
+                // NetworkingValues.Server = new NewServer();
+                // NetworkingValues.Server.StartSingleplayer("Shit", new NewPlayer());
+
+            }
+            // GuiRenderer.RenderTexture(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (150, 150), (0.5f, 0.5f), _id);
+            GuiRendering.Gui.End();
 
         }
 
+        _manager?.PollEvents();
+
     }
 
-    public void Stop()
+    public void Unload()
     {
 
-        if (IsMultiplayer)
-        {
+        PackedWorldGenerator.Unload();
 
-            NetworkManager.Stop();
+        BlockGame.Unload();
 
-        } else
-        {
+    }
 
+    public void OnResize()
+    {
 
-
-        }   
+        Player?.Camera.UpdateProjectionMatrix();
+        _terrainBuffer.UpdateAspect();
 
     }
 

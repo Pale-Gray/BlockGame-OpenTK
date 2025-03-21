@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Font;
-using Blockgame_OpenTK.Gui;
-using Blockgame_OpenTK.Util;
+using Game.Gui;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Platform;
 
-namespace Blockgame_OpenTK.Core.Gui 
+namespace Game.Core.GuiRendering 
 {
 
     struct GuiVertex {
@@ -46,7 +45,7 @@ namespace Blockgame_OpenTK.Core.Gui
 
     }
 
-    public class GuiRenderer 
+    public class Gui 
     {
 
         public static readonly Vector2 Center = (0.5f, 0.5f);

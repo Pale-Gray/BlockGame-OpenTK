@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
-using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.BlockUtil;
+using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public class ColumnBuilder
 {
@@ -96,7 +96,7 @@ public class ColumnBuilder
                             {
 
                                 Vector3i globalBlockPosition = (x,y,z) + (columns[Vector2i.Zero].Chunks[chunkY].ChunkPosition * GlobalValues.ChunkSize);
-                                NewBlock block = GlobalValues.Register.GetBlockFromId(columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z))]);
+                                Block block = GlobalValues.Register.GetBlockFromId(columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z))]);
 
                                 if (y + 1 < GlobalValues.ChunkSize)
                                 {

@@ -6,10 +6,10 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.BlockProperty;
+namespace Game.BlockProperty;
 
 public class DataReader : IDisposable
 {

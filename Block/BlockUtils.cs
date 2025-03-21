@@ -1,4 +1,4 @@
-﻿using Blockgame_OpenTK.Core.Chunks;
+﻿using Game.Core.Chunks;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.BlockUtil
+namespace Game.BlockUtil
 {
     public class BlockUtils
     {

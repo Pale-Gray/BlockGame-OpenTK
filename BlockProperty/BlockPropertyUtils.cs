@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Blockgame_OpenTK.BlockProperty;
+namespace Game.BlockProperty;
 
 public class BlockPropertyUtils
 {

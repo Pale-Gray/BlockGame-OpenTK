@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using StbImageSharp;
 using Tomlet;
 
-namespace Blockgame_OpenTK.Core.TexturePack 
+namespace Game.Core.TexturePack 
 {
 
     public struct TexturePackInfo

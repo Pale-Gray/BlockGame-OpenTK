@@ -1,9 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-using Blockgame_OpenTK.Util;
+using Game.Util;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public class Model
     {

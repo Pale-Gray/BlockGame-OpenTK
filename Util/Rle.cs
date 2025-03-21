@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Rle
     {

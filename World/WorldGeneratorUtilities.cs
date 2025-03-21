@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Worlds;
+namespace Game.Core.Worlds;
 
 public class WorldGeneratorUtilities
 {

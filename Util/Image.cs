@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Image
     {

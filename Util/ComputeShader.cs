@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.IO;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class ComputeShader
     {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Blockgame_OpenTK.Util;
+namespace Game.Util;
 
 public class ThreadSafeDoubleEndedQueue<T>
 {

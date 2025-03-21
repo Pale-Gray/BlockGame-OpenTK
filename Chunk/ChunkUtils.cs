@@ -2,45 +2,45 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blockgame_OpenTK.Util;
-using Blockgame_OpenTK.Core.Worlds;
+using Game.Util;
+using Game.Core.Worlds;
 
-namespace Blockgame_OpenTK.Core.Chunks
+namespace Game.Core.Chunks
 {
     public class ChunkUtils
     {
 
         static Vector3 SpiralOrigin = Vector3.Zero;
 
-        public static LightColor GetLightColor(PackedChunk chunk, Vector3i localBlockPosition)
+        public static LightColor GetLightColor(Chunk chunk, Vector3i localBlockPosition)
         {
 
             return new LightColor(chunk.LightData[VecToIndex(localBlockPosition)]);
 
         }
 
-        public static ushort GetLightRedColor(PackedChunk chunk, Vector3i localBlockPosition)
+        public static ushort GetLightRedColor(Chunk chunk, Vector3i localBlockPosition)
         {
 
             return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 12 & 15);
 
         }
 
-        public static ushort GetLightGreenColor(PackedChunk chunk, Vector3i localBlockPosition) 
+        public static ushort GetLightGreenColor(Chunk chunk, Vector3i localBlockPosition) 
         {
 
             return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 8 & 15);
 
         }
 
-        public static ushort GetLightBlueColor(PackedChunk chunk, Vector3i localBlockPosition)
+        public static ushort GetLightBlueColor(Chunk chunk, Vector3i localBlockPosition)
         {
 
             return (ushort) (chunk.LightData[VecToIndex(localBlockPosition)] >> 4 & 15);
 
         }
 
-        public static void SetLightRedColor(PackedChunk chunk, Vector3i localBlockPosition, ushort redValue)
+        public static void SetLightRedColor(Chunk chunk, Vector3i localBlockPosition, ushort redValue)
         {
 
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] &= 0x0FFF;
@@ -48,39 +48,39 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static void SetLightGreenColor(PackedChunk chunk, Vector3i localBlockPosition, ushort greenValue)
+        public static void SetLightGreenColor(Chunk chunk, Vector3i localBlockPosition, ushort greenValue)
         {
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] &= 0xF0FF;
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] |= (ushort) (greenValue << 8);
         }
 
-        public static void SetLightBlueColor(PackedChunk chunk, Vector3i localBlockPosition, ushort blueValue)
+        public static void SetLightBlueColor(Chunk chunk, Vector3i localBlockPosition, ushort blueValue)
         {
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] &= 0xFF0F;
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] |= (ushort) (blueValue << 4);
         }
 
-        public static void SetSunlightValue(PackedChunk chunk, Vector3i localBlockPosition, ushort sunValue)
+        public static void SetSunlightValue(Chunk chunk, Vector3i localBlockPosition, ushort sunValue)
         {
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] &= 0xFFF0;
             chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] |= sunValue;
         }
 
-        public static ushort GetSunlightValue(PackedChunk chunk, Vector3i localBlockPosition)
+        public static ushort GetSunlightValue(Chunk chunk, Vector3i localBlockPosition)
         {
 
             return (ushort) (chunk.LightData[ChunkUtils.VecToIndex(localBlockPosition)] & 15);
             
         }
 
-        public static void SetLightColor(PackedChunk chunk, Vector3i localBlockPosition, LightColor light) {
+        public static void SetLightColor(Chunk chunk, Vector3i localBlockPosition, LightColor light) {
 
             ushort currentLight = chunk.LightData[VecToIndex(localBlockPosition)];
             chunk.LightData[VecToIndex(localBlockPosition)] = light.LightData;
 
         }
 
-        public static void SubtractLightColor(PackedChunk chunk, Vector3i localBlockPosition, LightColor light)
+        public static void SubtractLightColor(Chunk chunk, Vector3i localBlockPosition, LightColor light)
         {
 
             LightColor currentLightColor = GetLightColor(chunk, localBlockPosition);
@@ -89,14 +89,14 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static bool GetSolidBlock(PackedChunk chunk, Vector3i localBlockPosition) 
+        public static bool GetSolidBlock(Chunk chunk, Vector3i localBlockPosition) 
         {
 
             return (chunk.SolidMask[VecToIndex((localBlockPosition.X, localBlockPosition.Z))] & (1u << localBlockPosition.Y)) != 0;
 
         }
 
-        public static void SetSolidBlock(PackedChunk chunk, Vector3i localBlockPosition, bool isSolid)
+        public static void SetSolidBlock(Chunk chunk, Vector3i localBlockPosition, bool isSolid)
         {
 
             if (isSolid)
@@ -127,10 +127,10 @@ namespace Blockgame_OpenTK.Core.Chunks
 
         }
 
-        public static Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(World world, Vector3i chunkPosition)
+        public static Dictionary<Vector3i, Chunk> GetChunkNeighbors(World world, Vector3i chunkPosition)
         {
             
-            Dictionary<Vector3i, PackedChunk> neighbors = new();
+            Dictionary<Vector3i, Chunk> neighbors = new();
 
             for (int x = -1; x <= 1; x++)
             {

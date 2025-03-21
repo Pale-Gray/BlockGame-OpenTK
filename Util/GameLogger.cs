@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public enum Severity
     { 

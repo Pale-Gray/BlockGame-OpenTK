@@ -3,14 +3,14 @@ using System.Data.SqlTypes;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Transactions;
-using Blockgame_OpenTK.BlockProperty;
-using Blockgame_OpenTK.Core.Serialization;
-using Blockgame_OpenTK.Core.Worlds;
+using Game.BlockProperty;
+using Game.Core.Serialization;
+using Game.Core.Worlds;
 using LiteNetLib.Utils;
 using OpenTK.Mathematics;
 using OpenTK.Platform.Native.X11;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public class ColumnSerializer
 {

@@ -8,12 +8,12 @@ using System.Net;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Image;
+namespace Game.Core.Image;
 
 public enum BitDepth : byte
 {

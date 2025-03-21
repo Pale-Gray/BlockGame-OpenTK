@@ -5,10 +5,10 @@ using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using System.IO;
 
-namespace Blockgame_OpenTK.Gui
+namespace Game.Gui
 {
 
     struct TextVertex 

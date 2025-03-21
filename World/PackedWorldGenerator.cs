@@ -7,15 +7,15 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Networking;
-using Blockgame_OpenTK.PlayerUtil;
-using Blockgame_OpenTK.Util;
+using Game.Core.Chunks;
+using Game.Core.Networking;
+using Game.PlayerUtil;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Worlds;
+namespace Game.Core.Worlds;
 
 public class PackedWorldGenerator
 {

@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using Blockgame_OpenTK.Core.Chunks;
+using Game.Core.Chunks;
 using LiteNetLib.Utils;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Networking;
+namespace Game.Core.Networking;
 
 public enum PacketType : ushort
 {

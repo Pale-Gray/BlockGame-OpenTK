@@ -1,15 +1,15 @@
-﻿using Blockgame_OpenTK.Registry;
+﻿using Game.Registry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.Core.Modding;
+namespace Game.Core.Modding;
 
 public interface IModLoader
 {
 
-    public abstract void OnLoad(NewRegister register);
+    public abstract void OnLoad(Register register);
 
 }

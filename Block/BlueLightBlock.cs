@@ -1,10 +1,10 @@
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Worlds;
+using Game.Core.Chunks;
+using Game.Core.Worlds;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.BlockUtil;
+namespace Game.BlockUtil;
 
-public class BlueLightBlock : NewBlock 
+public class BlueLightBlock : Block 
 {
 
     public override void OnBlockPlace(World world, Vector3i globalBlockPosition)

@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Blockgame_OpenTK.Core.PlayerUtil;
-using Blockgame_OpenTK.Core.TexturePack;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.PlayerUtil;
-using Blockgame_OpenTK.Util;
+using Game.Core.PlayerUtil;
+using Game.Core.TexturePack;
+using Game.Core.Worlds;
+using Game.PlayerUtil;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public enum Direction : uint
 {
@@ -103,7 +103,7 @@ public struct ChunkVertex
 
 }
 
-public class PackedChunkMesh
+public class ChunkMesh
 {
 
     // public int[] PackedChunkMeshIndices;
@@ -116,14 +116,14 @@ public class PackedChunkMesh
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
 
-    public PackedChunkMesh(Vector3i chunkPosition)
+    public ChunkMesh(Vector3i chunkPosition)
     {
         
         ChunkPosition = chunkPosition;
         
     }
 
-    public void Draw(NewPlayer player)
+    public void Draw(Player player)
     {
         
         if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)

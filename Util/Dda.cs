@@ -1,13 +1,13 @@
-﻿using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Worlds;
+﻿using Game.BlockUtil;
+using Game.Core.Chunks;
+using Game.Core.Worlds;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Dda
     {
@@ -36,7 +36,7 @@ namespace Blockgame_OpenTK.Util
         public static bool hit = false;
 
         // private static List<Vector3i> _newLightPropagationPositions = new List<Vector3i>();
-        public static void ComputeVisibility(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
+        public static void ComputeVisibility(World world, Chunk chunk, Vector3i globalLightPosition, Vector3i lightColor)
         {
 
             ComputeLightCorner(world, chunk, globalLightPosition, lightColor, (1, 1, 1));
@@ -51,7 +51,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void ComputeSunlightVisibility(World world, PackedChunk chunk, Vector3i position)
+        public static void ComputeSunlightVisibility(World world, Chunk chunk, Vector3i position)
         {
 
             ComputeSunlightCorner(world, chunk, position, (1, 1));
@@ -61,7 +61,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeSunlightCorner(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector2i direction)
+        private static void ComputeSunlightCorner(World world, Chunk chunk, Vector3i globalLightPosition, Vector2i direction)
         {
 
             uint[] expectedSunlightValues = new uint[15 * 15];
@@ -156,7 +156,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        private static void ComputeLightCorner(World world, PackedChunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
+        private static void ComputeLightCorner(World world, Chunk chunk, Vector3i globalLightPosition, Vector3i lightColor, Vector3i direction)
         {
 
             int max = Math.Max(lightColor.X, Math.Max(lightColor.Y, lightColor.Z)) + 1;
@@ -901,7 +901,7 @@ namespace Blockgame_OpenTK.Util
 
         }
 
-        public static void TraceChunksWhile(Dictionary<Vector3i, PackedChunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
+        public static void TraceChunksWhile(Dictionary<Vector3i, Chunk> chunkDictionary, Vector3 position, Vector3 direction, int maxSteps)
         {
 
             FaceHit = Vector3i.Zero;

@@ -4,7 +4,7 @@ using StbImageSharp;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Texture
     {

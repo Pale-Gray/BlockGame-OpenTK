@@ -1,26 +1,26 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Blockgame_OpenTK.BlockUtil;
+using Game.BlockUtil;
 using OpenTK.Mathematics;
 
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Util;
+using Game.Core.Chunks;
+using Game.Util;
 using System;
 using System.ComponentModel;
 using OpenTK.Graphics.OpenGL;
 using System.Reflection.Metadata;
 using System.Net;
-using Blockgame_OpenTK.PlayerUtil;
-using Blockgame_OpenTK.Core.PlayerUtil;
+using Game.PlayerUtil;
+using Game.Core.PlayerUtil;
 using System.IO;
 
-namespace Blockgame_OpenTK.Core.Worlds;
+namespace Game.Core.Worlds;
 
 public class World
 {
     
-    public ConcurrentDictionary<Vector3i, PackedChunk> PackedWorldChunks = new();
-    public ConcurrentDictionary<Vector3i, PackedChunkMesh> PackedWorldMeshes = new();
+    public ConcurrentDictionary<Vector3i, Chunk> PackedWorldChunks = new();
+    public ConcurrentDictionary<Vector3i, ChunkMesh> PackedWorldMeshes = new();
     public ConcurrentDictionary<Vector2i, uint[]> MaxColumnBlockHeight = new();
     public ConcurrentDictionary<Vector2i, ChunkColumn> WorldColumns = new();
     public string WorldPath { get; private set; }
@@ -32,7 +32,7 @@ public class World
         if (!Directory.Exists(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))))) Directory.CreateDirectory(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))));
 
     }
-    public void Draw(NewPlayer player)
+    public void Draw(Player player)
     {
 
         foreach (ChunkColumn column in WorldColumns.Values)
@@ -48,17 +48,17 @@ public class World
         }
 
     }
-    public Dictionary<Vector3i, PackedChunk> GetChunkNeighbors(Vector3i chunkPosition)
+    public Dictionary<Vector3i, Chunk> GetChunkNeighbors(Vector3i chunkPosition)
     {
 
-        Dictionary<Vector3i, PackedChunk> neighbors = new();
+        Dictionary<Vector3i, Chunk> neighbors = new();
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
                 for (int z = -1; z <= 1; z++)
                 {
-                    if (PackedWorldGenerator.CurrentWorld.PackedWorldChunks.TryGetValue((x,y,z) + chunkPosition, out PackedChunk chunk)) neighbors.TryAdd((x, y, z), chunk);
+                    if (PackedWorldGenerator.CurrentWorld.PackedWorldChunks.TryGetValue((x,y,z) + chunkPosition, out Chunk chunk)) neighbors.TryAdd((x, y, z), chunk);
                 }
             }
         }
@@ -148,7 +148,7 @@ public class World
 
     }
 
-    public void SetBlock(Vector3i globalBlockPosition, NewBlock block)
+    public void SetBlock(Vector3i globalBlockPosition, Block block)
     {
 
         ColumnUtils.SetBlockId(WorldColumns[ChunkUtils.PositionToChunk(globalBlockPosition).Xz], globalBlockPosition, block.Id);

@@ -1,12 +1,12 @@
 ﻿using OpenTK.Mathematics;
-using Blockgame_OpenTK.Registry;
+using Game.Registry;
 using System.IO;
 using System.Collections.Generic;
-using Blockgame_OpenTK.Gui;
-using Blockgame_OpenTK.Core.Networking;
-using Blockgame_OpenTK.Core.Modding;
+using Game.Gui;
+using Game.Core.Networking;
+using Game.Core.Modding;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
 
     public struct GameSettings
@@ -20,8 +20,8 @@ namespace Blockgame_OpenTK.Util
     public class NetworkingValues
     {
 
-        public static NewServer Server;
-        public static NewClient Client;
+        public static Server Server;
+        public static Client Client;
 
     }
     public class GlobalValues
@@ -58,8 +58,6 @@ namespace Blockgame_OpenTK.Util
         public static bool ShouldHideHud = false;
 
         public static int AverageFps = 0;
-
-        public static List<GuiElement> GlobalGuiElements = new List<GuiElement>();
         public static bool RenderAmbientOcclusion = true;
         public static bool ShouldRenderWireframe = false;
         public static bool IsCursorLocked = true;
@@ -70,7 +68,7 @@ namespace Blockgame_OpenTK.Util
         public static float FogOffset = 0.0f;
         public static bool ShouldRenderBounds = false;
 
-        public static NewRegister Register = new NewRegister();
+        public static Register Register = new Register();
         public static Shader ChunkShader;
         public static Shader DefaultShader;
         public static Shader GuiShader;

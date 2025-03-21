@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blockgame_OpenTK.BlockProperty
+namespace Game.BlockProperty
 {
 
     public enum BranchDirection

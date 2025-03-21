@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class CMTexture
     {

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public enum PackedChunkQueueType : int
 {
@@ -192,7 +192,7 @@ public struct SunLight
     }
 
 }
-public class PackedChunk
+public class Chunk
 {
 
     public Vector3i ChunkPosition;
@@ -208,7 +208,7 @@ public class PackedChunk
     public Queue<SunLight> SunlightAdditionQueue = new();
     public Queue<SunLight> SunlightRemovalQueue = new();
 
-    public PackedChunk(Vector3i chunkPosition)
+    public Chunk(Vector3i chunkPosition)
     {
         
         ChunkPosition = chunkPosition;

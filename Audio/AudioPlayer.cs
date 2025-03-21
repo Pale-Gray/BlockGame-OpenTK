@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using NVorbis;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
 using WaveLoader;
 
-namespace Blockgame_OpenTK.Audio;
+namespace Game.Audio;
 
 public class AudioPlayer
 {

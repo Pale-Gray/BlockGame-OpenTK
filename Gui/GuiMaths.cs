@@ -1,9 +1,9 @@
-﻿using Blockgame_OpenTK.Util;
+﻿using Game.Util;
 using OpenTK.Mathematics;
 using System;
 using System.Formats.Asn1;
 
-namespace Blockgame_OpenTK.Gui
+namespace Game.Gui
 {
     public class GuiMaths
     {

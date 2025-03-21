@@ -1,9 +1,9 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using System;
 
-using Blockgame_OpenTK.Util;
+using Game.Util;
 
-namespace Blockgame_OpenTK.FramebufferUtil
+namespace Game.FramebufferUtil
 {
     public class Framebuffer
     {

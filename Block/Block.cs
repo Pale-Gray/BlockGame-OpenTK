@@ -6,18 +6,18 @@ using System.IO;
 using System.Net;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Language;
-using Blockgame_OpenTK.Core.Networking;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.Core.Chunks;
+using Game.Core.Language;
+using Game.Core.Networking;
+using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Tomlet;
 using Tomlet.Attributes;
 using Tomlet.Models;
 
-namespace Blockgame_OpenTK.BlockUtil;
+namespace Game.BlockUtil;
 
 public struct Namespace
 {
@@ -65,14 +65,14 @@ public struct Namespace
     }
 
 }
-public class NewBlock
+public class Block
 {
 
     [TomlProperty("is_solid")]
     public bool IsSolid { get; set; } = true;
 
     [TomlNonSerialized]
-    public NewBlockModel BlockModel { get; set; }
+    public BlockModel BlockModel { get; set; }
     [TomlNonSerialized]
     public ushort Id;
     [TomlProperty("display_name")]
@@ -83,19 +83,19 @@ public class NewBlock
 
     [TomlProperty("block_model")]
     private string _blockModelPath { get; set; }
-    public NewBlock()
+    public Block()
     {
         
     }
 
-    public static NewBlock FromToml<T>(string file) where T : NewBlock, new()
+    public static Block FromToml<T>(string file) where T : Block, new()
     {
 
-        NewBlock properties = TomletMain.To<NewBlock>(File.ReadAllText(file));
+        Block properties = TomletMain.To<Block>(File.ReadAllText(file));
         T block = new();
 
         block.DisplayName = LanguageManager.GetTranslation(properties.DisplayName);
-        if (NetworkingValues.Server == null) block.BlockModel = NewBlockModel.FromToml(properties._blockModelPath);
+        if (NetworkingValues.Server == null) block.BlockModel = BlockModel.FromToml(properties._blockModelPath);
         
         return block;
 
@@ -109,7 +109,7 @@ public class NewBlock
     public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition)
     {
         
-        world.SetBlock(globalBlockPosition, new NewBlock() {IsSolid = false});
+        world.SetBlock(globalBlockPosition, new Block() {IsSolid = false});
         // world.RemoveLight(globalBlockPosition);
         world.QueueChunk(globalBlockPosition);
         

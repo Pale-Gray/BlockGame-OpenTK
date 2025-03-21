@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public class BoundingBox
     {

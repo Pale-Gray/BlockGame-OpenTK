@@ -5,9 +5,9 @@ using System.Data.Common;
 using System.IO;
 using System.Net;
 using System.Security;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.TexturePack;
-using Blockgame_OpenTK.Util;
+using Game.Core.Chunks;
+using Game.Core.TexturePack;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Tomlet;
@@ -15,7 +15,7 @@ using Tomlet.Attributes;
 using Tomlet.Models;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
-namespace Blockgame_OpenTK.BlockUtil;
+namespace Game.BlockUtil;
 
 public enum Direction : byte
 {
@@ -112,7 +112,7 @@ public class PrimitiveModelData
 
 }
 
-public class NewBlockModel
+public class BlockModel
 {
     
     private Dictionary<Direction, List<PackedChunkVertex>> _computedModelPackedVertices = new();
@@ -158,16 +158,16 @@ public class NewBlockModel
 
     }
 
-    public static NewBlockModel FromCubes(List<Cube> cubes)
+    public static BlockModel FromCubes(List<Cube> cubes)
     {
         
-        NewBlockModel blockModel = new NewBlockModel();
+        BlockModel blockModel = new BlockModel();
         
         return blockModel;
 
     }
 
-    public static NewBlockModel FromToml(string tomlPath)
+    public static BlockModel FromToml(string tomlPath)
     {
 
         Console.WriteLine(tomlPath);
@@ -183,7 +183,7 @@ public class NewBlockModel
         return Parse(modelData);
     }
 
-    public static NewBlockModel FromTomlNew(string tomlPath)
+    public static BlockModel FromTomlNew(string tomlPath)
     {
         
         // find all inherit paths
@@ -202,10 +202,10 @@ public class NewBlockModel
         return ParseNew(modelData);
     }
 
-    private static NewBlockModel ParseNew(PrimitiveModelData modelData)
+    private static BlockModel ParseNew(PrimitiveModelData modelData)
     {
 
-        NewBlockModel model = new NewBlockModel();
+        BlockModel model = new BlockModel();
 
         foreach (Cube cube in modelData.Cubes)
         {
@@ -228,10 +228,10 @@ public class NewBlockModel
 
     }
 
-    private static NewBlockModel Parse(PrimitiveModelData modelData)
+    private static BlockModel Parse(PrimitiveModelData modelData)
     {
 
-        NewBlockModel model = new NewBlockModel();
+        BlockModel model = new BlockModel();
 
         foreach (Cube cube in modelData.Cubes)
         {

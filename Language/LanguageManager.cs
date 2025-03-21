@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Tomlet;
 
-namespace Blockgame_OpenTK.Core.Language;
+namespace Game.Core.Language;
 
 public class LanguageManager
 {

@@ -7,7 +7,7 @@ using System.Reflection;
 using FreeTypeSharp;
 using OpenTK.Audio.OpenAL;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public struct KeyState
     {

@@ -1,8 +1,8 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
-using Blockgame_OpenTK.Util;
+using Game.Util;
 
-namespace Blockgame_OpenTK.FramebufferUtil
+namespace Game.FramebufferUtil
 {
     public class FramebufferQuad
     {

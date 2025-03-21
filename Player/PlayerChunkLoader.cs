@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.Core.Chunks;
+using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.PlayerUtil;
+namespace Game.Core.PlayerUtil;
 
 public class PlayerChunkLoader
 {

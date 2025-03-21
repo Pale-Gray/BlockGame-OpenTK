@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
-using Blockgame_OpenTK.Core.Worlds;
+using Game.Core.Worlds;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public enum ColumnQueueType : byte
 {
@@ -18,8 +18,8 @@ public class ChunkColumn
 {
 
     public Vector2i Position;
-    public PackedChunk[] Chunks = new PackedChunk[PackedWorldGenerator.WorldGenerationHeight];
-    public PackedChunkMesh[] ChunkMeshes = new PackedChunkMesh[PackedWorldGenerator.WorldGenerationHeight]; 
+    public Chunk[] Chunks = new Chunk[PackedWorldGenerator.WorldGenerationHeight];
+    public ChunkMesh[] ChunkMeshes = new ChunkMesh[PackedWorldGenerator.WorldGenerationHeight]; 
     public ColumnQueueType QueueType = ColumnQueueType.PassOne;
     public bool HasPriority = false;
 
@@ -28,8 +28,8 @@ public class ChunkColumn
         Position = position;
         for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
         {
-            Chunks[i] = new PackedChunk((position.X, i, position.Y));
-            ChunkMeshes[i] = new PackedChunkMesh((position.X, i, position.Y));
+            Chunks[i] = new Chunk((position.X, i, position.Y));
+            ChunkMeshes[i] = new ChunkMesh((position.X, i, position.Y));
         }
     }
     

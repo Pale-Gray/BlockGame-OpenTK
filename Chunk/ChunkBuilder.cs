@@ -5,19 +5,19 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.BlockUtil;
+using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
-public class PackedChunkBuilder
+public class ChunkBuilder
 {
 
-    public static void GeneratePassOne(PackedChunk chunk)
+    public static void GeneratePassOne(Chunk chunk)
     {
 
         Array.Fill<ushort>(chunk.LightData, 0);
@@ -58,7 +58,7 @@ public class PackedChunkBuilder
 
     private static Vector3i[] blockLightOffsets = [ Vector3i.UnitX, Vector3i.UnitZ, Vector3i.UnitY, -Vector3i.UnitX, -Vector3i.UnitZ, -Vector3i.UnitY ];
     private static Vector3i[] sunlightOffsets = [ Vector3i.UnitX, Vector3i.UnitZ, Vector3i.UnitY, -Vector3i.UnitX, -Vector3i.UnitZ, -Vector3i.UnitY ];
-    public static void QueueSunlightValues(World world, PackedChunk chunk)
+    public static void QueueSunlightValues(World world, Chunk chunk)
     {
 
         for (int x = 0; x < GlobalValues.ChunkSize; x++)
@@ -100,7 +100,7 @@ public class PackedChunkBuilder
 
     }
 
-    public static void ComputeLights(Dictionary<Vector3i, PackedChunk> chunks, PackedChunk chunk) 
+    public static void ComputeLights(Dictionary<Vector3i, Chunk> chunks, Chunk chunk) 
     {
 
         /*
@@ -307,7 +307,7 @@ public class PackedChunkBuilder
 
     }
 
-    public static void Mesh(Dictionary<Vector3i, PackedChunk> chunks, PackedChunk chunk)
+    public static void Mesh(Dictionary<Vector3i, Chunk> chunks, Chunk chunk)
     {
         
         List<PackedChunkVertex> vertices = new();
@@ -321,7 +321,7 @@ public class PackedChunkBuilder
                 {
                     if (chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))] != 0)
                     {
-                        NewBlock block = GlobalValues.Register.GetBlockFromId(chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))]);
+                        Block block = GlobalValues.Register.GetBlockFromId(chunk.BlockData[ChunkUtils.VecToIndex((x, y, z))]);
                 
                         // if (chunks.ContainsKey(ChunkUtils.PositionToChunk((x,y+1,z))) && chunks[ChunkUtils.PositionToChunk((x,y+1,z))].BlockData[ChunkUtils.VecToIndex(ChunkUtils.PositionToBlockLocal((x,y+1,z)))] == 0)
                         // {

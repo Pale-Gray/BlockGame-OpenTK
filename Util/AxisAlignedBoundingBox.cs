@@ -1,7 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using System;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class AxisAlignedBoundingBox
     {

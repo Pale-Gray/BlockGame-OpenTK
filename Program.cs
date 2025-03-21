@@ -2,18 +2,18 @@
 using System.Text;
 using OpenTK.Platform;
 using OpenTK.Graphics;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
 using Tomlet;
 using Tomlet.Models;
-using Blockgame_OpenTK.Audio;
-using Blockgame_OpenTK.Core.Networking;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Core.Image;
+using Game.Audio;
+using Game.Core.Networking;
+using Game.Core.Worlds;
+using Game.Core.Image;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public class Program
     {
@@ -157,7 +157,7 @@ namespace Blockgame_OpenTK
             if (args.Length == 0)
             {
                 GameLogger.Log("Starting in client mode");
-                NetworkingValues.Client = new NewClient();
+                NetworkingValues.Client = new Client();
             } else
             {
                 if (args.Length >= 1)
@@ -166,12 +166,12 @@ namespace Blockgame_OpenTK
                     {
                         GameLogger.Log("Starting in server mode.");
                         // make server
-                        NetworkingValues.Server = new NewServer();
+                        NetworkingValues.Server = new Server();
                         NetworkingValues.Server.StartNetworked();
                     } else
                     {
                         GameLogger.Log("There were no valid arguments, so starting in client mode.");
-                        NetworkingValues.Client = new NewClient();
+                        NetworkingValues.Client = new Client();
                     }
                 }
             }

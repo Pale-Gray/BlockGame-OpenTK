@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <PathMap>$(MSBuildThisFileDirectory)=/</PathMap>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Blockgame_OpenTK</RootNamespace>
+    <RootNamespace>Game</RootNamespace>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BaseOutputPath>bin\</BaseOutputPath>

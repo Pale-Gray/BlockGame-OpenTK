@@ -1,16 +1,16 @@
 using System;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Audio;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.Core.Worlds;
-using Blockgame_OpenTK.Util;
+using Game.Audio;
+using Game.Core.Chunks;
+using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.BlockUtil 
+namespace Game.BlockUtil 
 {
 
-    public class PlimboBlock : NewBlock 
+    public class PlimboBlock : Block 
     {
 
         public override void OnBlockPlace(World world, Vector3i globalBlockPosition)

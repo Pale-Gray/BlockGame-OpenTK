@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Core.TexturePack;
-using Blockgame_OpenTK.Util;
+using Game.Core.TexturePack;
+using Game.Util;
 using FreeTypeSharp;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Platform.Native.X11;
 
-namespace Blockgame_OpenTK.Core.Gui;
+namespace Game.Core.GuiRendering;
 
 public struct GlyphData
 {

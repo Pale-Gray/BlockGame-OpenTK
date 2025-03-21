@@ -5,7 +5,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Maths
     {

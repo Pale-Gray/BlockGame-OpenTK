@@ -1,4 +1,4 @@
-﻿using Blockgame_OpenTK.Util;
+﻿using Game.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Linq;
 using OpenTK.Platform;
 using System.Text.Json;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public class Translator
     {

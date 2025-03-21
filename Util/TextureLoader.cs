@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class TextureLoader
     {

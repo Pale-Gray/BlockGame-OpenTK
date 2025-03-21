@@ -1,30 +1,22 @@
-﻿using Blockgame_OpenTK.Util;
-using Blockgame_OpenTK.Core.Chunks;
-using Blockgame_OpenTK.PlayerUtil;
-using Blockgame_OpenTK.Gui;
-using Blockgame_OpenTK.FramebufferUtil;
-using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Core.Worlds;
+﻿using Game.Util;
+using Game.PlayerUtil;
+using Game.Gui;
+using Game.FramebufferUtil;
 using OpenTK.Mathematics;
 using System;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
-using System.Diagnostics;
-using Blockgame_OpenTK.Font;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Collections.Generic;
-using Blockgame_OpenTK.Audio;
-using Blockgame_OpenTK.Core.TexturePack;
-using Blockgame_OpenTK.BlockProperty;
-using Blockgame_OpenTK.Core.Language;
-using Blockgame_OpenTK.Core.Gui;
-using System.Drawing;
-using Blockgame_OpenTK.Core.Networking;
-using Blockgame_OpenTK.Core.PlayerUtil;
-using LiteNetLib.Utils;
+using Game.Audio;
+using Game.Core.TexturePack;
+using Game.BlockProperty;
+using Game.Core.Language;
+using Game.Core.GuiRendering;
+using Game.Core.PlayerUtil;
 
-namespace Blockgame_OpenTK
+namespace Game
 {
     public class BlockGame
     {
@@ -178,7 +170,7 @@ namespace Blockgame_OpenTK
         static bool debug = false;
         // Chunk c;
 
-        static NewPlayer Player;
+        static Player Player;
         // GUIElement texx;
 
         static double TickTime = 0;
@@ -274,24 +266,12 @@ namespace Blockgame_OpenTK
             // Player = new Player();
             // Player.SetHeight(1.8f);
             // Player.SetPosition((0, 68, 0));
-            Player = new NewPlayer() { Camera = new PlayerCamera(90.0f) };
+            Player = new Player() { Camera = new PlayerCamera(90.0f) };
             Console.WriteLine(Player.Camera.FieldOfView);
-
-            FontFamily font = new FontFamily();
-            font.AddFontPath(Path.Combine("Resources", "Fonts", "LanaPixel", "LanaPixel.ttf"));
-            CachedFontRenderer.FontFamily = font;
             
             e = new Model(v, null, "billboard.vert", "billboard.frag");
 
             // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
-
-            GuiTextbox box = new GuiTextbox();
-            box.AbsoluteDimensions = (500, 400);
-            box.Origin = (0.5f, 0.5f);
-            box.RelativePosition = (0.5f, 0.5f);
-            // box.IsVisible = true;
-            box.Text = "";
-            box.Color = Color4.White;
 
             // WorldGenerator.InitThreads();
             GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
@@ -332,11 +312,10 @@ namespace Blockgame_OpenTK
             }
 
             GLDebugProc debugMessageDel = OnDebugMessage;
-            GuiRendere.Init();
             AudioPlayer.Initialize();
 
-            CachedFontRenderer.Init();
-            GuiRenderer.Initialize();
+            // CachedFontRenderer.Init();
+            Core.GuiRendering.Gui.Initialize();
             FontRenderer.Initialize();
 
             TexturePackManager.IterateAvailableTexturePacks();
@@ -441,13 +420,13 @@ namespace Blockgame_OpenTK
 
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-            GuiRenderer.Begin("thing");
-            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
-            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
-            GuiRenderer.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
-            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
-            GuiRenderer.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
-            if (GuiRenderer.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
+            Core.GuiRendering.Gui.Begin("thing");
+            Core.GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            Core.GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            Core.GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            Core.GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
+            Core.GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
+            if (Core.GuiRendering.Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
             {
 
                 string[] network = addressString.Split(':');
@@ -466,7 +445,7 @@ namespace Blockgame_OpenTK
                 // NetworkingValues.Client.JoinWorld(network[0], int.Parse(network[1]), long.Parse(userIdString));
 
             }
-            GuiRenderer.End();
+            Core.GuiRendering.Gui.End();
 
             // if (Input.IsKeyPressed(Key.H)) FontRenderer.ClearCache();
 
@@ -486,8 +465,7 @@ namespace Blockgame_OpenTK
 
             Player.Camera.UpdateProjectionMatrix();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
-            GuiRendere.GuiCamera.UpdateProjectionMatrix();
-            GuiRenderer.UpdateProjectionMatrix();
+            Core.GuiRendering.Gui.UpdateProjectionMatrix();
             FontRenderer.Update();
 
             TextRenderer.Camera.UpdateProjectionMatrix();

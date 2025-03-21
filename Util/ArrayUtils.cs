@@ -1,4 +1,4 @@
-﻿namespace Blockgame_OpenTK.Util
+﻿namespace Game.Util
 {
     public class ArrayUtils
     {

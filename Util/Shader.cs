@@ -2,9 +2,9 @@
 using System;
 using System.IO;
 
-using Blockgame_OpenTK.Util;
+using Game.Util;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class Shader
     {

@@ -12,7 +12,7 @@ using OpenTK.Graphics.Glx;
 using OpenTK.Platform;
 using Tomlet.Models;
 
-namespace Blockgame_OpenTK.Core.Serialization;
+namespace Game.Core.Serialization;
 
 public class Compressor
 {

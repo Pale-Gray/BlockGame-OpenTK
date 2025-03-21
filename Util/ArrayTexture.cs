@@ -5,7 +5,7 @@ using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using StbImageSharp;
 
-namespace Blockgame_OpenTK.Util
+namespace Game.Util
 {
     public class ArrayTexture
     {

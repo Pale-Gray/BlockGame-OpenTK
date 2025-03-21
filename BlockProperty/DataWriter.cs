@@ -6,10 +6,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.BlockProperty;
+namespace Game.BlockProperty;
 public class DataWriter : IDisposable
 {
 

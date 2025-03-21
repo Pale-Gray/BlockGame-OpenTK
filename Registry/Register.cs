@@ -1,21 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Blockgame_OpenTK.BlockUtil;
-using Blockgame_OpenTK.Util;
+using Game.BlockUtil;
+using Game.Util;
 
-namespace Blockgame_OpenTK.Registry;
+namespace Game.Registry;
 
-public class NewRegister
+public class Register
 {
 
     private Dictionary<string, ushort> _namespaceLookup = new();
-    private List<NewBlock> _blocks = new();
+    private List<Block> _blocks = new();
     
     public int BlockCount => _blocks.Count;
     
-    private static NewBlock _missingBlock = new NewBlock();
+    private static Block _missingBlock = new Block();
     
-    public void RegisterBlock(Namespace nameSpace, NewBlock block)
+    public void RegisterBlock(Namespace nameSpace, Block block)
     {
         
         // GameLogger.Log($"NewRegistering block {nameSpace}");
@@ -31,7 +31,7 @@ public class NewRegister
         
     }
 
-    public NewBlock GetBlockFromId(ushort id)
+    public Block GetBlockFromId(ushort id)
     {
 
         if (_blocks.Count > id)
@@ -44,7 +44,7 @@ public class NewRegister
         
     }
 
-    public NewBlock GetBlockFromNamespace(Namespace name)
+    public Block GetBlockFromNamespace(Namespace name)
     {
 
         if (_namespaceLookup.TryGetValue(name.ToString(), out ushort id))
@@ -57,7 +57,7 @@ public class NewRegister
         
     }
 
-    public NewBlock GetBlockFromNamespace(string name)
+    public Block GetBlockFromNamespace(string name)
     {
 
         if (_namespaceLookup.TryGetValue(name, out ushort id)) return _blocks[id];

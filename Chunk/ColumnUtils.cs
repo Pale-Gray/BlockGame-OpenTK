@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Blockgame_OpenTK.Core.Worlds;
+using Game.Core.Worlds;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Chunks;
+namespace Game.Core.Chunks;
 
 public class ColumnUtils
 {

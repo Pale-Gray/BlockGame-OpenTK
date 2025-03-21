@@ -3,7 +3,7 @@ using FreeTypeSharp;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace Blockgame_OpenTK.Core.Gui;
+namespace Game.Core.GuiRendering;
 
 public class FontArrayTexture
 {

@@ -7,11 +7,11 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Blockgame_OpenTK.Util;
+using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using StbImageSharp;
 
-namespace Blockgame_OpenTK.Core.Image;
+namespace Game.Core.Image;
 
 public enum ColorType : byte
 {
