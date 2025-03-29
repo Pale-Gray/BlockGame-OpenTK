@@ -22,6 +22,8 @@ public class Base : IModLoader
         register.RegisterBlock(new Namespace("Game", "BlueLightBlock"), Block.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
         register.RegisterBlock(new Namespace("Game", "LightBlock"), Block.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
         register.RegisterBlock(new Namespace("Game", "LeafBlock"), Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
+        register.RegisterBlock(new Namespace("Game", "GhastlingBlock"), Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "ghastling_block.toml")));
+        register.RegisterBlock(new Namespace("Game", "AspenLog"), Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "aspen_log.toml")));
         
     }
 

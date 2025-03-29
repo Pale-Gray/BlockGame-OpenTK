@@ -2,7 +2,7 @@
 using Game.Registry;
 using System.IO;
 using System.Collections.Generic;
-using Game.Gui;
+using Game.GuiRendering;
 using Game.Core.Networking;
 using Game.Core.Modding;
 

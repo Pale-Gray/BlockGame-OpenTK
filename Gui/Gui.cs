@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Game.Gui;
+using Game.GuiRendering;
 using Game.Util;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -65,7 +65,7 @@ namespace Game.Core.GuiRendering
 
         }
 
-        public static void UpdateProjectionMatrix() {
+        public static void Resize() {
 
             _guiCamera.UpdateProjectionMatrix();
 
@@ -75,7 +75,7 @@ namespace Game.Core.GuiRendering
         {
 
             GL.Disable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.ScissorTest);
+            // GL.Enable(EnableCap.ScissorTest);
             GL.Scissor(0, 0, (int)GlobalValues.Width, (int)GlobalValues.Height);
             _currentIndex = 0;
             _currentKey = guiName;
@@ -138,8 +138,8 @@ namespace Game.Core.GuiRendering
             GL.BindTexture(TextureTarget.Texture2d, textureId);
             _guiImageShader.Use();
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.id, "view"), 1, true, ref _guiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.id, "projection"), 1, true, ref _guiCamera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.Handle, "view"), 1, true, ref _guiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiImageShader.Handle, "projection"), 1, true, ref _guiCamera.ProjectionMatrix);
             // GL.Uniform1f(GL.GetUniformLocation(_guiImageShader.id, "uTexture"), 0);
 
             GL.DrawElements(PrimitiveType.Triangles, _elementIndices.Length, DrawElementsType.UnsignedInt, 0);
@@ -370,8 +370,8 @@ namespace Game.Core.GuiRendering
             GL.EnableVertexAttribArray(1);
 
             _guiShader.Use();
-            GL.UniformMatrix4f(GL.GetUniformLocation(_guiShader.id, "view"), 1, true, ref _guiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(_guiShader.id, "projection"), 1, true, ref _guiCamera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiShader.Handle, "view"), 1, true, ref _guiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(_guiShader.Handle, "projection"), 1, true, ref _guiCamera.ProjectionMatrix);
 
             GL.DrawElements(PrimitiveType.Triangles, _elementIndices.Length, DrawElementsType.UnsignedInt, 0);
 

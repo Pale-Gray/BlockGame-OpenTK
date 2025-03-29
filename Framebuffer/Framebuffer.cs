@@ -73,7 +73,7 @@ namespace Game.FramebufferUtil
 
         }
 
-        public void UpdateAspect()
+        public void Resize()
         {
 
             Destroy();

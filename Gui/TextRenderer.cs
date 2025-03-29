@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using Game.Util;
 using System.IO;
 
-namespace Game.Gui
+namespace Game.GuiRendering
 {
 
     struct TextVertex 
@@ -55,7 +55,7 @@ namespace Game.Gui
         // NOTE can be in Globals class
         public static Camera Camera = new Camera((0.0f, 0.0f, 1.0f), (0.0f, 0.0f, -1.0f), (0.0f, 1.0f, 0.0f), CameraType.Orthographic, 90);
 
-        public static void InitTextRenderer()
+        public static void Initialize()
         {
 
             FontTexture = new Texture(Path.Combine("Resources", "Textures", "fatlas.png"));
@@ -351,12 +351,12 @@ namespace Game.Gui
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2d, FontTexture.GetID());
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.id, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
-            GL.Uniform3f(GL.GetUniformLocation(FontShader.id, "textPosition"), 1, position);
-            GL.Uniform1i(GL.GetUniformLocation(FontShader.id, "fontTexture"), 0);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.Handle, "view"), 1, true, ref GlobalValues.GuiCamera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(FontShader.Handle, "projection"), 1, true, ref GlobalValues.GuiCamera.ProjectionMatrix);
+            GL.Uniform3f(GL.GetUniformLocation(FontShader.Handle, "textPosition"), 1, position);
+            GL.Uniform1i(GL.GetUniformLocation(FontShader.Handle, "fontTexture"), 0);
             // Console.Log(Globals.Time);
-            GL.Uniform1f(GL.GetUniformLocation(FontShader.id, "time"), (float) GlobalValues.Time);
+            GL.Uniform1f(GL.GetUniformLocation(FontShader.Handle, "time"), (float) GlobalValues.Time);
 
             GL.BindVertexArray(Vao);
 

@@ -425,10 +425,8 @@ public class AudioPlayer
     /// <summary>
     /// Cleans up audio sources, etc
     /// </summary>
-    public static void Unload() {
-
-        ALC.CloseDevice(_alDevice);
-        ALC.DestroyContext(_alContext);
+    public static void Unload() 
+    {
 
         foreach (AudioSource source in _playingAudioSources) {
 
@@ -441,6 +439,9 @@ public class AudioPlayer
             source.Free();
 
         }
+
+        ALC.DestroyContext(_alContext);
+        ALC.CloseDevice(_alDevice);
 
     }
     

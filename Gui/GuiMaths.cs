@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using System;
 using System.Formats.Asn1;
 
-namespace Game.Gui
+namespace Game.GuiRendering
 {
     public class GuiMaths
     {

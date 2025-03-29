@@ -7,6 +7,7 @@ using Game.BlockUtil;
 using Game.Core.Worlds;
 using Game.Util;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
 
 namespace Game.Core.Chunks;
@@ -17,9 +18,9 @@ public class ColumnBuilder
     public static void GeneratePassOne(ChunkColumn column)
     {
 
-        Console.WriteLine("generating chunk column");
+        // Console.WriteLine("generating chunk column");
 
-        for (int chunkY = PackedWorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
+        for (int chunkY = WorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
         {
 
             for (int x = 0; x < GlobalValues.ChunkSize; x++)
@@ -36,13 +37,13 @@ public class ColumnBuilder
                         globalBlockPosition.Y = y + (column.Chunks[chunkY].ChunkPosition.Y * GlobalValues.ChunkSize);
                         if (globalBlockPosition.Y <= height - 4)
                         {
-                            GlobalValues.Register.GetBlockFromNamespace("Game.StoneBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.StoneBlock").OnBlockSet(WorldGenerator.World, globalBlockPosition);
                         } else if (globalBlockPosition.Y <= height - 1)
                         {
-                            GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockSet(WorldGenerator.World, globalBlockPosition);
                         } else if (globalBlockPosition.Y <= height)
                         {
-                            GlobalValues.Register.GetBlockFromNamespace("Game.GrassBlock").OnBlockSet(PackedWorldGenerator.CurrentWorld, globalBlockPosition);
+                            GlobalValues.Register.GetBlockFromNamespace("Game.GrassBlock").OnBlockSet(WorldGenerator.World, globalBlockPosition);
                         }
 
                     }
@@ -55,7 +56,8 @@ public class ColumnBuilder
         }
 
         column.QueueType = ColumnQueueType.Mesh;
-        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(column.Position);
+        WorldGenerator.WorldGenerationQueue.Enqueue(column.Position);
+        // WorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(column.Position);
 
         /*
         if (NetworkingValues.Server == null)
@@ -74,17 +76,18 @@ public class ColumnBuilder
     public static void Mesh(ConcurrentDictionary<Vector2i, ChunkColumn> columns)
     {
 
-        List<PackedChunkVertex> vertices = new();
+        // List<PackedChunkVertex> vertices = new();
         List<int> indices = new();
+        List<Rectangle> rectangles = new();
 
-        for (int chunkY = PackedWorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
+        for (int chunkY = WorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
         {
 
             if (columns[Vector2i.Zero].Chunks[chunkY].HasUpdates)
             {
 
-
-                vertices.Clear();
+                // vertices.Clear();
+                rectangles.Clear();
                 indices.Clear();
                 for (int x = 0; x < GlobalValues.ChunkSize; x++)
                 {
@@ -103,21 +106,24 @@ public class ColumnBuilder
 
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y+1,z))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Top, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
                                     }
 
                                 } else
                                 {
 
-                                    if (chunkY + 1 < PackedWorldGenerator.WorldGenerationHeight)
+                                    if (chunkY + 1 < WorldGenerator.WorldGenerationHeight)
                                     {   
                                         if (columns[Vector2i.Zero].Chunks[chunkY + 1].BlockData[ChunkUtils.VecToIndex((x,0,z))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Top, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Top, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Top, (x,y,z), LightColor.Zero));
                                     }
 
                                 }
@@ -127,7 +133,8 @@ public class ColumnBuilder
 
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y-1,z))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Bottom, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
                                     }
 
                                 } else
@@ -137,11 +144,13 @@ public class ColumnBuilder
                                     {
                                         if (columns[Vector2i.Zero].Chunks[chunkY - 1].BlockData[ChunkUtils.VecToIndex((x,GlobalValues.ChunkSize - 1,z))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Bottom, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Bottom, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Bottom, (x,y,z), LightColor.Zero));
                                     }
 
                                 }
@@ -150,7 +159,8 @@ public class ColumnBuilder
                                 {
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x+1,y,z))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Left, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
                                     }
                                 } else
                                 {
@@ -158,11 +168,13 @@ public class ColumnBuilder
                                     {
                                         if (column.Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((0,y,z))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Left, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Left, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Left, (x,y,z), LightColor.Zero));
                                     }
                                 }
 
@@ -170,7 +182,8 @@ public class ColumnBuilder
                                 {
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x-1,y,z))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Right, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
                                     }
                                 } else
                                 {
@@ -178,11 +191,13 @@ public class ColumnBuilder
                                     {
                                         if (column.Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((GlobalValues.ChunkSize-1,y,z))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Right, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Right, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Right, (x,y,z), LightColor.Zero));
                                     }
                                 }
 
@@ -190,7 +205,8 @@ public class ColumnBuilder
                                 {
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z+1))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Back, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
                                     }
                                 } else
                                 {
@@ -198,11 +214,13 @@ public class ColumnBuilder
                                     {
                                         if (column.Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,0))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Back, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Back, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Back, (x,y,z), LightColor.Zero));
                                     }
                                 }
 
@@ -210,7 +228,8 @@ public class ColumnBuilder
                                 {
                                     if (columns[Vector2i.Zero].Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,z-1))] == 0)
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Front, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
                                     }
                                 } else
                                 {
@@ -218,11 +237,13 @@ public class ColumnBuilder
                                     {
                                         if (column.Chunks[chunkY].BlockData[ChunkUtils.VecToIndex((x,y,GlobalValues.ChunkSize-1))] == 0)
                                         {
-                                            vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
+                                            block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Front, (x,y,z));
+                                            // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
                                         }
                                     } else
                                     {
-                                        vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
+                                        block.BlockModel.QueryFace(rectangles, BlockUtil.Direction.Front, (x,y,z));
+                                        // vertices.AddRange(block.BlockModel.QueryPackedFace(BlockUtil.Direction.Front, (x,y,z), LightColor.Zero));
                                     }
                                 }
 
@@ -231,28 +252,23 @@ public class ColumnBuilder
                     }
                 }
 
-                for (int i = 0; i < vertices.Count / 4; i++)
+                for (int i = 0; i < rectangles.Count; i++)
                 {
 
                     indices.AddRange(0 + (i * 4), 1 + (i * 4), 2 + (i * 4), 2 + (i * 4), 3 + (i * 4), 0 + (i * 4));
 
                 }
 
-                columns[Vector2i.Zero].ChunkMeshes[chunkY].ChunkVertices = new List<PackedChunkVertex>(vertices);
+                // columns[Vector2i.Zero].ChunkMeshes[chunkY].ChunkVertices = new List<PackedChunkVertex>(vertices);
                 columns[Vector2i.Zero].ChunkMeshes[chunkY].ChunkIndices = new List<int>(indices);
+                columns[Vector2i.Zero].ChunkMeshes[chunkY].Solids = new List<Rectangle>(rectangles);
 
             }
 
         }
 
         columns[Vector2i.Zero].QueueType = ColumnQueueType.Upload;
-        if (columns[Vector2i.Zero].HasPriority)
-        {
-            PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueFirst(columns[Vector2i.Zero].Position);
-        } else
-        {
-            PackedWorldGenerator.ColumnWorldUploadQueue.EnqueueLast(columns[Vector2i.Zero].Position);
-        }
+        WorldGenerator.ColumnWorldUploadQueue.EnqueueLast(columns[Vector2i.Zero].Position);
 
     }
 
@@ -260,7 +276,7 @@ public class ColumnBuilder
     {
 
         column.HasPriority = false;
-        for (int chunkY = PackedWorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
+        for (int chunkY = WorldGenerator.WorldGenerationHeight - 1; chunkY >= 0; chunkY--)
         {
 
             if (column.Chunks[chunkY].HasUpdates)
@@ -269,22 +285,27 @@ public class ColumnBuilder
                 column.Chunks[chunkY].HasUpdates = false;
                 GL.DeleteBuffer(column.ChunkMeshes[chunkY].Vbo);
                 GL.DeleteVertexArray(column.ChunkMeshes[chunkY].Vao);
+                GL.DeleteBuffer(column.ChunkMeshes[chunkY].SolidsHandle);
                 GL.DeleteBuffer(column.ChunkMeshes[chunkY].Ibo);
                 
                 column.ChunkMeshes[chunkY].Vbo = GL.GenBuffer();
                 column.ChunkMeshes[chunkY].Ibo = GL.GenBuffer();
+                column.ChunkMeshes[chunkY].SolidsHandle = GL.GenBuffer();
                 column.ChunkMeshes[chunkY].Vao = GL.GenVertexArray();
 
                 GL.BindVertexArray(column.ChunkMeshes[chunkY].Vao);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].Vbo);
-                GL.BufferData<PackedChunkVertex>(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].ChunkVertices.Count * Marshal.SizeOf<PackedChunkVertex>(), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].ChunkVertices), BufferUsage.DynamicDraw);
+                // GL.BindBuffer(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].Vbo);
+                // GL.BufferData<PackedChunkVertex>(BufferTarget.ArrayBuffer, column.ChunkMeshes[chunkY].ChunkVertices.Count * Marshal.SizeOf<PackedChunkVertex>(), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].ChunkVertices), BufferUsage.DynamicDraw);
 
-                GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), 0);
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribIPointer(1, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.PackedExtraInfo)));
-                GL.EnableVertexAttribArray(1);
-                GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.LightColor)));
-                GL.EnableVertexAttribArray(2);
+                // GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), 0);
+                // GL.EnableVertexAttribArray(0);
+                // GL.VertexAttribIPointer(1, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.PackedExtraInfo)));
+                // GL.EnableVertexAttribArray(1);
+                // GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.LightColor)));
+                // GL.EnableVertexAttribArray(2);
+                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, column.ChunkMeshes[chunkY].SolidsHandle);
+                GL.BufferData<Rectangle>(BufferTarget.ShaderStorageBuffer, column.ChunkMeshes[chunkY].Solids.Count * Marshal.SizeOf<Rectangle>(), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].Solids), BufferUsage.DynamicDraw);
+                GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, column.ChunkMeshes[chunkY].SolidsHandle);
 
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, column.ChunkMeshes[chunkY].Ibo);
                 GL.BufferData<int>(BufferTarget.ElementArrayBuffer, column.ChunkMeshes[chunkY].ChunkIndices.Count * sizeof(int), CollectionsMarshal.AsSpan(column.ChunkMeshes[chunkY].ChunkIndices), BufferUsage.DynamicDraw);

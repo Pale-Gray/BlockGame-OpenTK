@@ -12,6 +12,7 @@ using Game.Audio;
 using Game.Core.Networking;
 using Game.Core.Worlds;
 using Game.Core.Image;
+using Game.Core.TexturePack;
 
 namespace Game
 {
@@ -95,6 +96,35 @@ namespace Game
                 }
             );
 
+            TomletMain.RegisterMapper(
+                mode => 
+                {
+                    switch (mode)
+                    {
+                        case AnimatedTextureMode.Loop:
+                            return new TomlString("loop");
+                        case AnimatedTextureMode.PingPong:
+                            return new TomlString("ping_pong");
+                        default:
+                            return new TomlString("loop");
+                    }
+                },
+
+                value => 
+                {
+                    if (value is not TomlString) return AnimatedTextureMode.Loop;
+                    switch (((TomlString)value).Value)
+                    {
+                        case "loop":
+                            return AnimatedTextureMode.Loop;
+                        case "ping_pong":
+                            return AnimatedTextureMode.PingPong;
+                        default:
+                            return AnimatedTextureMode.Loop;
+                    }   
+                }
+            );
+
             // account stuff
             /* 
             Console.WriteLine("Please specify a username");
@@ -131,12 +161,9 @@ namespace Game
             */
 
             // ImageLoader.LoadPng("Resources/Textures/test.png");
-
             Console.OutputEncoding = Encoding.Unicode;
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
-
-            // ThreadPool.SetMaxThreads(8, 8);
             
             ToolkitOptions toolkitOptions = new ToolkitOptions();
             toolkitOptions.ApplicationName = "Game";
@@ -167,7 +194,7 @@ namespace Game
                         GameLogger.Log("Starting in server mode.");
                         // make server
                         NetworkingValues.Server = new Server();
-                        NetworkingValues.Server.StartNetworked();
+                        NetworkingValues.Server.StartMultiplayer();
                     } else
                     {
                         GameLogger.Log("There were no valid arguments, so starting in client mode.");
@@ -185,19 +212,32 @@ namespace Game
                 InitializeWindow(contextSettings);
 
                 Input.Initialize(_window);
-                AudioPlayer.Initialize();
-
-                NetworkingValues.Client.Load();
 
             }
+
+            NetworkingValues.Client?.Load();
+
+            double currentTickTime = 0.0;
 
             while (GlobalValues.IsRunning)
             {
 
+                // Console.WriteLine(GlobalValues.DeltaTime);
+
+                if (currentTickTime > 1 / 30.0)
+                {
+
+                    currentTickTime -= 1 / 30.0;
+                    NetworkingValues.Server?.TickUpdate();
+                    NetworkingValues.Client?.TickUpdate();
+
+                }
+
                 GlobalValues.Time += GlobalValues.DeltaTime;
+                currentTickTime += GlobalValues.DeltaTime;
 
                 long currentTime = Stopwatch.GetTimestamp();
-                GlobalValues.DeltaTime = (GlobalValues.CurrentTime - currentTime) / Stopwatch.Frequency;
+                GlobalValues.DeltaTime = (currentTime - GlobalValues.CurrentTime) / Stopwatch.Frequency;
                 GlobalValues.CurrentTime = currentTime;
 
                 Toolkit.Window.ProcessEvents(false);
@@ -208,7 +248,7 @@ namespace Game
                 if (NetworkingValues.Client != null)
                 {
 
-                    if (Input.FocusAwareMouseDelta != Vector2.Zero) Console.WriteLine(Input.FocusAwareMouseDelta);
+                    // if (Input.FocusAwareMouseDelta != Vector2.Zero) Console.WriteLine(Input.FocusAwareMouseDelta);
 
                     if (Input.IsKeyPressed(Key.Escape))
                     {
@@ -247,7 +287,7 @@ namespace Game
             if (NetworkingValues.Client != null)
             {
 
-                AudioPlayer.Unload();
+                // AudioPlayer.Unload();
                 Toolkit.Window.Destroy(_window);
 
             }
@@ -269,6 +309,7 @@ namespace Game
             Toolkit.Window.SetSize(_window, (640, 480));
             Toolkit.Window.SetMode(_window, WindowMode.Normal);
             Toolkit.Window.SetCursorCaptureMode(_window, CursorCaptureMode.Normal);
+            Toolkit.OpenGL.SetSwapInterval(0);
             
             GameLogger.Log($"Supports raw mouse? {Toolkit.Mouse.SupportsRawMouseMotion}");
             CursorHandle visibleCursor = Toolkit.Cursor.Create(SystemCursorType.Default);
@@ -299,8 +340,8 @@ namespace Game
                 GlobalValues.Width = windowResizeEventArgs.NewClientSize.X;
                 GlobalValues.Height = windowResizeEventArgs.NewClientSize.Y;
 
-                BlockGame.UpdateScreenSize(windowResizeEventArgs);
-                NetworkingValues.Client?.OnResize();
+                // BlockGame.UpdateScreenSize(windowResizeEventArgs);
+                NetworkingValues.Client?.OnResize(windowResizeEventArgs.Window);
 
                 Toolkit.OpenGL.SwapBuffers(_glContext);
 
@@ -338,6 +379,15 @@ namespace Game
             {
 
                 Input.CurrentTypedChars.AddRange(textInput.Text.Replace(Environment.NewLine, "\r").Replace("\r", "\n"));
+
+            }
+
+            if (args is MouseMoveEventArgs mouseMove)
+            {
+
+                // Console.WriteLine(mouseMove.ClientPosition);
+
+                // Input.OnMouseMove(mouseMove.ClientPosition);
 
             }
 

@@ -52,9 +52,9 @@ namespace Game.FramebufferUtil
             GL.ActiveTexture(TextureUnit.Texture1);
             GL.BindTexture(TextureTarget.Texture2d, framebuffer.textureDepthStencilBufferId);
 
-            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "time"), (float)time);
-            GL.Uniform1i(GL.GetUniformLocation(shader.getID(), "framebufferColorTexture"), 0);
-            GL.Uniform1i(GL.GetUniformLocation(shader.getID(), "framebufferDepthStencilTexture"), 1);
+            GL.Uniform1f(GL.GetUniformLocation(shader.Handle, "time"), (float)time);
+            GL.Uniform1i(GL.GetUniformLocation(shader.Handle, "framebufferColorTexture"), 0);
+            GL.Uniform1i(GL.GetUniformLocation(shader.Handle, "framebufferDepthStencilTexture"), 1);
 
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length/5);

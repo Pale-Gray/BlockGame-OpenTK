@@ -1,11 +1,9 @@
-﻿using OpenTK.Platform;
+﻿
+
 using System;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
-using OpenTK.Platform.Native.Windows;
-using System.Reflection;
-using FreeTypeSharp;
-using OpenTK.Audio.OpenAL;
+using OpenTK.Platform;
 
 namespace Game
 {
@@ -133,6 +131,9 @@ namespace Game
         public static void Poll(WindowHandle window)
         {
 
+            // MouseDelta = Vector2.Zero;
+            // FocusAwareMouseDelta = Vector2.Zero;
+
             if (window == null) return;
 
             if (CurrentTypedChars.Count > 0) CurrentTypedChars.Clear();
@@ -140,14 +141,12 @@ namespace Game
             Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
             if (IsMouseFocused)
             {
-                FocusAwareMouseDelta = _focusAwareMousePosition - mousePosition;
-                _focusAwareMousePosition = mousePosition;  
+                FocusAwareMouseDelta = MousePosition - mousePosition;
             } else 
             {
                 FocusAwareMouseDelta = Vector2.Zero;
-                _focusAwareMousePosition = mousePosition;
             }
-
+ 
             MouseDelta = MousePosition - mousePosition;
             MousePosition = mousePosition;
 
@@ -327,6 +326,25 @@ namespace Game
             CurrentMouseButtonDown = null;
             state.IsMouseButtonDown = false;
             _mouseStates[button] = state;
+
+        }
+
+        public static void OnMouseMove(Vector2 mousePosition)
+        {
+
+            // Toolkit.Mouse.GetPosition(window, out Vector2 mousePosition);
+            if (IsMouseFocused)
+            {
+                FocusAwareMouseDelta = _focusAwareMousePosition - mousePosition;
+                _focusAwareMousePosition = mousePosition;  
+            } else 
+            {
+                FocusAwareMouseDelta = Vector2.Zero;
+                _focusAwareMousePosition = mousePosition;
+            }
+
+            MouseDelta = MousePosition - mousePosition;
+            MousePosition = mousePosition;
 
         }
 

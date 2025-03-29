@@ -1,8 +1,8 @@
 [Info] Starting in client mode
 [Info] Supports raw mouse? False
-[Info] Opened a file for writing to at data.dat
-[Info] Finished writing to file.
-[Info] loading blocks
+[Info] loading array texture
 System.NullReferenceException: Object reference not set to an instance of an object.
-   at Blockgame_OpenTK.Core.Networking.NewClient.Update() in /Network/NewClient.cs:line 214
-   at Blockgame_OpenTK.Program.Main(String[] args) in /Program.cs:line 206
+   at Game.Core.Networking.Server.StartSingleplayer(String worldName, Player player) in /Network/Server.cs:line 73
+   at Game.Core.Networking.Client.StartSingleplayer(String worldSave, Player player) in /Network/Client.cs:line 114
+   at Game.Core.Networking.Client.Update() in /Network/Client.cs:line 303
+   at Game.Program.Main(String[] args) in /Program.cs:line 246

@@ -40,9 +40,10 @@ namespace Game.Core.TexturePack
     {
         private static Dictionary<string, int> _textureArrayIndices = new();
 
-        public static int ArrayTextureName { get; private set; }
+        public static int ArrayTextureHandle { get; private set; }
         private static Dictionary<string, TexturePackInfo> _availableTexturePacks = new();
         public static Dictionary<string, TexturePackInfo> AvailableTexturePacks => _availableTexturePacks;
+        private static List<byte[]> _loadedTextures = new();
 
         public static int GetTextureIndex(string textureName) 
         {
@@ -66,12 +67,12 @@ namespace Game.Core.TexturePack
 
                     List<ZipArchiveEntry> blockFiles = archive.GetFilesInDirectory(Path.Combine("Blocks"));
                     StbImage.stbi_set_flip_vertically_on_load(1);
-                    ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
-                    GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, blockFiles.Count);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+                    ArrayTextureHandle = GL.CreateTexture(TextureTarget.Texture2dArray);
+                    GL.TextureStorage3D(ArrayTextureHandle, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, blockFiles.Count);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
                     foreach (ZipArchiveEntry entry in blockFiles)
                     {
                         
@@ -83,7 +84,7 @@ namespace Game.Core.TexturePack
 
                             ImageResult image = ImageResult.FromMemory(imageBytes);
                             int currentCount = _textureArrayIndices.Count;
-                            GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                            GL.TextureSubImage3D(ArrayTextureHandle, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
                             string fileName = entry.FullName.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
                             Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
@@ -91,7 +92,7 @@ namespace Game.Core.TexturePack
                         }
 
                     }
-                    GL.GenerateTextureMipmap(ArrayTextureName);
+                    GL.GenerateTextureMipmap(ArrayTextureHandle);
 
                 }
 
@@ -106,29 +107,106 @@ namespace Game.Core.TexturePack
                 if (Directory.Exists(blockTexturePath))
                 {
 
-                    ArrayTextureName = GL.CreateTexture(TextureTarget.Texture2dArray);
-                    GL.TextureStorage3D(ArrayTextureName, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, Directory.GetFiles(blockTexturePath).Length);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
-                    GL.TextureParameteri(ArrayTextureName, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
-                    foreach (string file in Directory.GetFiles(blockTexturePath)) 
+                    ArrayTextureHandle = GL.CreateTexture(TextureTarget.Texture2dArray);
+                    // GL.TextureStorage3D(ArrayTextureHandle, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, Directory.GetFiles(blockTexturePath).Length);
+                    // GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
+                    // GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+                    // GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+                    // GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+                    foreach (string file in Directory.GetFiles(blockTexturePath).Where(file => file.EndsWith(".toml")))
                     {
+
+                        // Console.WriteLine(file);
+                        AnimatedTextureProperties abstractProperties = TomletMain.To<AnimatedTextureProperties>(File.ReadAllText(file));
+                        abstractProperties.Size = (16, 16);
+                        abstractProperties.Frames = new();
+                        AnimatedTextureManager.AnimatedTextureIndices.Add(abstractProperties.TextureHandle, AnimatedTextureManager.AnimatexTextures.Count);
+                        AnimatedTextureManager.AnimatexTextures.Add(abstractProperties);
+
+                    }
+
+                    foreach (string file in Directory.GetFiles(blockTexturePath).Where(file => file.EndsWith(".png"))) 
+                    {
+
+                        string fileName = file.Split(Path.DirectorySeparatorChar).Last().Split('.')[0];
+                        string fileNamePrefix = fileName.Split('_')[0];
+
+                        Console.WriteLine($"file name: {fileName}, prefix: {fileNamePrefix}");
+
+                        using (FileStream imageStream = File.OpenRead(file))
+                        {
+
+                            ImageResult image = ImageResult.FromStream(imageStream);
+
+                            if (AnimatedTextureManager.AnimatedTextureIndices.ContainsKey(fileNamePrefix))
+                            {
+
+                                if (fileName.Split('_').Last() == "1")
+                                {
+
+                                    Console.WriteLine($"filename: {fileName}");
+
+                                    _textureArrayIndices.Add(fileNamePrefix, _textureArrayIndices.Count);
+                                    AnimatedTextureProperties properties = AnimatedTextureManager.AnimatexTextures[AnimatedTextureManager.AnimatedTextureIndices[fileNamePrefix]];
+                                    properties.TextureSlotIndex = _loadedTextures.Count;
+                                    AnimatedTextureManager.AnimatexTextures[AnimatedTextureManager.AnimatedTextureIndices[fileNamePrefix]] = properties;
+                                    _loadedTextures.Add(image.Data);
+
+                                } 
+                                AnimatedTextureManager.AnimatexTextures[AnimatedTextureManager.AnimatedTextureIndices[fileNamePrefix]].Frames.Add(int.Parse(fileName.Split('_').Last()) - 1, image.Data);
+
+                            } else
+                            {
+
+                                _textureArrayIndices.TryAdd(fileNamePrefix, _textureArrayIndices.Count);
+                                _loadedTextures.Add(image.Data);
+
+                            }
+
+                        }
+
+                        /*
+                        if (AnimatedTextureManager.AnimatedTextures.ContainsKey(fileNamePrefix))
+                        {
+
+                            // image is part of an animated texture.
+                            if (fileName.EndsWith('1'))
+                            {
+
+
+
+                            }
+
+                        }
+
+                        Console.WriteLine(file.Split('/').Last().Split('.')[0]);
+                        
 
                         using (FileStream imageFile = File.OpenRead(file))
                         {
 
                             ImageResult image = ImageResult.FromStream(imageFile);
                             int currentCount = _textureArrayIndices.Count;
-                            GL.TextureSubImage3D(ArrayTextureName, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-                            string fileName = file.Split('/').Last().Split('.')[0];
+                            GL.TextureSubImage3D(ArrayTextureHandle, 0, 0, 0, currentCount, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                            // string fileName = file.Split('/').Last().Split('.')[0];
                             _textureArrayIndices.Add(fileName, currentCount);
-                            Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
+                            // Console.WriteLine($"{fileName}, {_textureArrayIndices[fileName]}");
 
                         }
+                        */
 
                     }
-                    GL.GenerateTextureMipmap(ArrayTextureName);
+
+                    GL.TextureStorage3D(ArrayTextureHandle, 4, SizedInternalFormat.Srgb8Alpha8, 16, 16, _loadedTextures.Count());
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
+                    GL.TextureParameteri(ArrayTextureHandle, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+                    for (int i = 0; i < _loadedTextures.Count(); i++)
+                    {
+                        GL.TextureSubImage3D(ArrayTextureHandle, 0, 0, 0, i, 16, 16, 1, PixelFormat.Rgba, PixelType.UnsignedByte, _loadedTextures[i]);
+                    }
+                    GL.GenerateTextureMipmap(ArrayTextureHandle);
 
                 } else 
                 {
@@ -213,7 +291,7 @@ namespace Game.Core.TexturePack
 
         public static void Free() {
 
-            GL.DeleteTexture(ArrayTextureName);
+            GL.DeleteTexture(ArrayTextureHandle);
 
         }
 

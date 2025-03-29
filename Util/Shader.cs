@@ -3,13 +3,17 @@ using System;
 using System.IO;
 
 using Game.Util;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Game.Util
 {
     public class Shader
     {
 
-        public int id;
+        public int Handle { get; private set; }
+        private Dictionary<string, int> _uniforms = new();
 
         public Shader(string vertexFile, string fragmentFile)
         {
@@ -48,49 +52,53 @@ namespace Game.Util
             }
 
             // attaching to program
-            id = GL.CreateProgram();
-            GL.AttachShader(id, vertshader);
-            GL.AttachShader(id, fragshader);
+            Handle = GL.CreateProgram();
+            GL.AttachShader(Handle, vertshader);
+            GL.AttachShader(Handle, fragshader);
 
-            GL.LinkProgram(id);
+            GL.LinkProgram(Handle);
             // GL.GetProgram(id, GetProgramParameterName.LinkStatus, out int Cs);
-            int Cs = GL.GetProgrami(id, ProgramProperty.LinkStatus);
+            int Cs = GL.GetProgrami(Handle, ProgramProperty.LinkStatus);
             if (Cs == 0)
             {
 
                 //Console.WriteLine(GL.GetProgramInfoLog(id));
-                GL.GetProgramInfoLog(id, out string info);
+                GL.GetProgramInfoLog(Handle, out string info);
                 Console.WriteLine(info);
             }
 
             // cleanup
-            GL.DetachShader(id, vertshader);
-            GL.DetachShader(id, fragshader);
+            GL.DetachShader(Handle, vertshader);
+            GL.DetachShader(Handle, fragshader);
             GL.DeleteShader(vertshader);
             GL.DeleteShader(fragshader);
+
+        }
+
+        public void Compile()
+        {
+
+
 
         }
 
         public void Use()
         {
 
-            GL.UseProgram(id);
+            GL.UseProgram(Handle);
 
         }
-        public void UnUse()
+
+        public int GetUniformLocation(string uniformName)
         {
 
-            // GL.UseProgram(0);
+            if (_uniforms.TryGetValue(uniformName, out int value)) return value;
+
+            int location = GL.GetUniformLocation(Handle, uniformName);
+            _uniforms.Add(uniformName, location);
+            return location;
 
         }
-
-        public int getID()
-        {
-
-            return id;
-
-        }
-
 
         // fancy stuff for disposing shader
         private bool disposev = false;
@@ -100,7 +108,7 @@ namespace Game.Util
             if (!disposev)
             {
 
-                GL.DeleteProgram(id);
+                GL.DeleteProgram(Handle);
                 disposev = true;
 
             }

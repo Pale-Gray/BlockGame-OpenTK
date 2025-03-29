@@ -27,7 +27,7 @@ public class ColumnUtils
         Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
         Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
 
-        if (chunkPosition.Y < 0 || chunkPosition.Y > PackedWorldGenerator.WorldGenerationHeight) return false;
+        if (chunkPosition.Y < 0 || chunkPosition.Y > WorldGenerator.WorldGenerationHeight) return false;
 
         return (column.Chunks[chunkPosition.Y].SolidMask[ChunkUtils.VecToIndex(localBlockPosition.Xz)] & (1u << localBlockPosition.Y)) != 0u;
 

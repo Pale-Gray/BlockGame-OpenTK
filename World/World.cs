@@ -38,7 +38,7 @@ public class World
         foreach (ChunkColumn column in WorldColumns.Values)
         {
 
-            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
             {
 
                 column.ChunkMeshes[i].Draw(player);
@@ -58,7 +58,7 @@ public class World
             {
                 for (int z = -1; z <= 1; z++)
                 {
-                    if (PackedWorldGenerator.CurrentWorld.PackedWorldChunks.TryGetValue((x,y,z) + chunkPosition, out Chunk chunk)) neighbors.TryAdd((x, y, z), chunk);
+                    if (WorldGenerator.World.PackedWorldChunks.TryGetValue((x,y,z) + chunkPosition, out Chunk chunk)) neighbors.TryAdd((x, y, z), chunk);
                 }
             }
         }
@@ -164,7 +164,7 @@ public class World
         WorldColumns[chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
         WorldColumns[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
         WorldColumns[chunkPosition.Xz].HasPriority = true;
-        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst(chunkPosition.Xz);
+        WorldGenerator.WorldGenerationQueue.Enqueue(chunkPosition.Xz);
 
         for (int x = -1; x <= 1; x++)
         {
@@ -177,7 +177,7 @@ public class World
                     WorldColumns[(x,z) + chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
                     WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
                     WorldColumns[(x,z) + chunkPosition.Xz].HasPriority = true;
-                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueFirst((x,z) + chunkPosition.Xz);
+                    WorldGenerator.WorldGenerationQueue.Enqueue((x,z) + chunkPosition.Xz);
                 }
 
             }

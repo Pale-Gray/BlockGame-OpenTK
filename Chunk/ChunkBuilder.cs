@@ -31,13 +31,13 @@ public class ChunkBuilder
                 {
                     if (y + (chunk.ChunkPosition.Y * 32) <= height)
                     {
-                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
+                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(WorldGenerator.World, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
                     }
 
                     if (y == 31 && x > 8 && z > 8)
                     {
 
-                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(PackedWorldGenerator.CurrentWorld, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
+                        GlobalValues.Register.GetBlockFromId(1).OnBlockSet(WorldGenerator.World, (x,y,z) + (chunk.ChunkPosition * GlobalValues.ChunkSize));
 
                     }
                 }
@@ -47,11 +47,11 @@ public class ChunkBuilder
         chunk.QueueType = PackedChunkQueueType.SunlightCalculation;
         if (chunk.HasPriority)
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
         }
         else
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
         }
         
     }
@@ -91,11 +91,11 @@ public class ChunkBuilder
         chunk.QueueType = PackedChunkQueueType.LightPropagation;
         if (chunk.HasPriority)
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
         }
         else
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
         }
 
     }
@@ -298,11 +298,11 @@ public class ChunkBuilder
         chunk.QueueType = PackedChunkQueueType.Mesh;
         if (chunk.HasPriority)
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueFirst(chunk.ChunkPosition);
         }
         else
         {
-            PackedWorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldGenerationQueue.EnqueueLast(chunk.ChunkPosition);
         }
 
     }
@@ -378,11 +378,11 @@ public class ChunkBuilder
         chunk.QueueType = PackedChunkQueueType.Renderable;
         if (chunk.HasPriority)
         {
-            PackedWorldGenerator.PackedChunkWorldUploadQueue.EnqueueFirst(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldUploadQueue.EnqueueFirst(chunk.ChunkPosition);
         }
         else
         {
-            PackedWorldGenerator.PackedChunkWorldUploadQueue.EnqueueLast(chunk.ChunkPosition);
+            WorldGenerator.PackedChunkWorldUploadQueue.EnqueueLast(chunk.ChunkPosition);
         }
 
     }
@@ -390,16 +390,16 @@ public class ChunkBuilder
     public static void Upload(Vector3i chunkPosition)
     {
 
-        GL.DeleteBuffer(PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vbo);
-        GL.DeleteVertexArray(PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vao);
-        GL.DeleteBuffer(PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Ibo);
+        GL.DeleteBuffer(WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vbo);
+        GL.DeleteVertexArray(WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vao);
+        GL.DeleteBuffer(WorldGenerator.World.PackedWorldMeshes[chunkPosition].Ibo);
         
-        PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vbo = GL.GenBuffer();
-        PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Ibo = GL.GenBuffer();
-        PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vao = GL.GenVertexArray();
+        WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vbo = GL.GenBuffer();
+        WorldGenerator.World.PackedWorldMeshes[chunkPosition].Ibo = GL.GenBuffer();
+        WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vao = GL.GenVertexArray();
 
-        GL.BindVertexArray(PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Vbo);
+        GL.BindVertexArray(WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, WorldGenerator.World.PackedWorldMeshes[chunkPosition].Vbo);
         // GL.BufferData(BufferTarget.ArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices.Length * Marshal.SizeOf<PackedChunkVertex>(), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkVertices, BufferUsage.DynamicDraw);
 
         GL.VertexAttribIPointer(0, 1, VertexAttribIType.UnsignedInt, Marshal.SizeOf<PackedChunkVertex>(), 0);
@@ -409,11 +409,11 @@ public class ChunkBuilder
         GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, Marshal.SizeOf<PackedChunkVertex>(), Marshal.OffsetOf<PackedChunkVertex>(nameof(PackedChunkVertex.LightColor)));
         GL.EnableVertexAttribArray(2);
 
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].Ibo);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, WorldGenerator.World.PackedWorldMeshes[chunkPosition].Ibo);
         // GL.BufferData(BufferTarget.ElementArrayBuffer, PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices.Length * sizeof(int), PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].PackedChunkMeshIndices, BufferUsage.DynamicDraw);
         
-        PackedWorldGenerator.CurrentWorld.PackedWorldMeshes[chunkPosition].IsRenderable = true;
-        PackedWorldGenerator.CurrentWorld.PackedWorldChunks[chunkPosition].HasPriority = false;
+        WorldGenerator.World.PackedWorldMeshes[chunkPosition].IsRenderable = true;
+        WorldGenerator.World.PackedWorldChunks[chunkPosition].HasPriority = false;
 
     }
     

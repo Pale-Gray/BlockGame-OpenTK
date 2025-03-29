@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security;
 using Game.Core.Chunks;
 using Game.Core.TexturePack;
@@ -30,16 +31,31 @@ public enum Direction : byte
     
 }
 
+[StructLayout(LayoutKind.Explicit, Size = 144)]
 public struct Rectangle
 {
-
+    [FieldOffset(0)]
+    public Vector4 LightTopLeft;
+    [FieldOffset(16)]
+    public Vector4 LightBottomLeft;
+    [FieldOffset(32)]
+    public Vector4 LightBottomRight;
+    [FieldOffset(48)]
+    public Vector4 LightTopRight;
+    [FieldOffset(64)]
     public Vector3 Position;
-    public Vector2 Size;
+    [FieldOffset(80)]
     public Vector3 Tangent;
+    [FieldOffset(96)]
     public Vector3 Bitangent;
+    [FieldOffset(112)]
     public Vector2 TextureCoordinateDimensions;
+    [FieldOffset(120)]
     public Vector2 TextureCoordinateOffset;
-
+    [FieldOffset(128)]
+    public Vector2 Size;
+    [FieldOffset(136)]
+    public uint TextureIndex;
 }
 
 public struct FaceProperties
@@ -117,6 +133,7 @@ public class BlockModel
     
     private Dictionary<Direction, List<PackedChunkVertex>> _computedModelPackedVertices = new();
     private Dictionary<Direction, List<ChunkVertex>> _computedModelVertices = new();
+    private Dictionary<Direction, List<Rectangle>> _solidModelFaces = new();
     // private Dictionary<Direction, List<CustomVertex>> _computedModelGeneralVertices = new();
     public bool IsFullBlock = true;
 
@@ -138,22 +155,17 @@ public class BlockModel
 
     }
 
-    // TODO: implement this because column meshing is taking like 80ms
-    public void QueryFace(List<ChunkVertex> vertices, Direction direction, Vector3i offset)
+    public void QueryFace(List<Rectangle> rectangles, Direction direction, Vector3i offset)
     {
 
-        if (_computedModelVertices.ContainsKey(direction))
+        if (_solidModelFaces.ContainsKey(direction))
         {
-
-            for (int i = 0; i < _computedModelVertices[direction].Count; i++)
+            foreach (Rectangle rectangle in _solidModelFaces[direction])
             {
-
-                ChunkVertex vertex = _computedModelVertices[direction][i];
-                vertex.Position += offset;
-                vertices.Add(vertex);
-
+                Rectangle rect = rectangle;
+                rect.Position += offset;
+                rectangles.Add(rect);
             }
-
         }
 
     }
@@ -183,41 +195,6 @@ public class BlockModel
         return Parse(modelData);
     }
 
-    public static BlockModel FromTomlNew(string tomlPath)
-    {
-        
-        // find all inherit paths
-        // get all textures in inherit paths
-        // get all cubes in inherit paths
-        // parse the cubes with the texture array
-
-        PrimitiveModelData modelData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(Path.Combine(GlobalValues.BlockModelPath, tomlPath)));
-        if (modelData.InheritPath != null)
-        {
-            string inheritPath = Path.Combine(GlobalValues.BlockModelPath, Path.Combine(modelData.InheritPath.Split('/')));
-            if (modelData.Cubes == null) modelData.Cubes = [];
-            CheckInheritCubes(modelData.Cubes, inheritPath);
-        }
-
-        return ParseNew(modelData);
-    }
-
-    private static BlockModel ParseNew(PrimitiveModelData modelData)
-    {
-
-        BlockModel model = new BlockModel();
-
-        foreach (Cube cube in modelData.Cubes)
-        {
-
-            
-
-        }
-
-        return model;
-
-    }
-
     private static void CheckInheritCubes(List<Cube> cubes, string inheritPath) {
 
         PrimitiveModelData inheritData = TomletMain.To<PrimitiveModelData>(File.ReadAllText(inheritPath));
@@ -236,6 +213,151 @@ public class BlockModel
         foreach (Cube cube in modelData.Cubes)
         {
 
+            if (model._solidModelFaces.ContainsKey(Direction.Top))
+            {
+                model._solidModelFaces[Direction.Top].Add(new Rectangle() { 
+                    Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f,
+                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Tangent = (0, 0, 1), 
+                    Bitangent = (1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xz / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["top"].TextureName])
+                });
+            } else
+            {
+                model._solidModelFaces.Add(Direction.Top, [new Rectangle() { 
+                    Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f, 
+                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Tangent = (0, 0, 1), 
+                    Bitangent = (1, 0, 0), 
+                    TextureCoordinateOffset = cube.Start.Xz / 16.0f, 
+                    TextureCoordinateDimensions = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["top"].TextureName])
+                }]);
+            }
+
+            if (model._solidModelFaces.ContainsKey(Direction.Front))
+            {
+                model._solidModelFaces[Direction.Front].Add(new Rectangle() {
+                    Position = cube.Start / 15.0f,
+                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["front"].TextureName])
+                });
+            } else
+            {
+                model._solidModelFaces.Add(Direction.Front, [new Rectangle() {
+                    Position = cube.Start / 16.0f,
+                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["front"].TextureName])
+                }]);
+            }
+
+            if (model._solidModelFaces.ContainsKey(Direction.Left))
+            {
+                model._solidModelFaces[Direction.Left].Add(new Rectangle() {
+                    Position = new Vector3(cube.End.X, cube.Start.Y, cube.Start.Z) / 16.0f,
+                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (0, 0, 1),
+                    TextureCoordinateOffset = cube.Start.Zy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["left"].TextureName])
+                });
+            } else
+            {
+                model._solidModelFaces.Add(Direction.Left, [new Rectangle() {
+                    Position = new Vector3(cube.End.X, cube.Start.Y, cube.Start.Z) / 16.0f,
+                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (0, 0, 1),
+                    TextureCoordinateOffset = cube.Start.Zy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["left"].TextureName])
+                }]);
+            }
+
+            if (model._solidModelFaces.ContainsKey(Direction.Back))
+            {
+                model._solidModelFaces[Direction.Back].Add(new Rectangle() {
+                    Position = new Vector3(cube.End.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (-1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["back"].TextureName])
+                });
+            } else 
+            {
+                model._solidModelFaces.Add(Direction.Back, [new Rectangle() {
+                    Position = new Vector3(cube.End.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (-1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["back"].TextureName])
+                }]);
+            }
+
+            if (model._solidModelFaces.ContainsKey(Direction.Right))
+            {
+                model._solidModelFaces[Direction.Right].Add(new Rectangle() {
+                    Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (0, 0, -1),
+                    TextureCoordinateOffset = cube.Start.Zy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["right"].TextureName])
+                });
+            } else
+            {
+                model._solidModelFaces.Add(Direction.Right, [new Rectangle() {
+                    Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Tangent = (0, 1, 0),
+                    Bitangent = (0, 0, -1),
+                    TextureCoordinateOffset = cube.Start.Zy / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["right"].TextureName])
+                }]);
+            }
+
+            if (model._solidModelFaces.ContainsKey(Direction.Bottom))
+            {
+                model._solidModelFaces[Direction.Bottom].Add(new Rectangle() {
+                    Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Tangent = (0, 0, -1),
+                    Bitangent = (1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xz / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["bottom"].TextureName])
+                });
+            } else
+            {
+                model._solidModelFaces.Add(Direction.Bottom, [new Rectangle() {
+                    Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
+                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Tangent = (0, 0, -1),
+                    Bitangent = (1, 0, 0),
+                    TextureCoordinateOffset = cube.Start.Xz / 16.0f,
+                    TextureCoordinateDimensions = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["bottom"].TextureName])
+                }]);
+            }
+
+            /*
             // can go in packed dictionary
             if (cube.Start == (0, 0, 0) && cube.End == (32, 32, 32) && 
                 cube.Rotation == (0, 0, 0) && cube.Origin == (0, 0, 0))
@@ -314,6 +436,7 @@ public class BlockModel
                 
                 
             }
+            */
             
         }
         

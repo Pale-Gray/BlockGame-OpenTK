@@ -1,6 +1,6 @@
 ﻿using Game.Util;
 using Game.PlayerUtil;
-using Game.Gui;
+using Game.GuiRendering;
 using Game.FramebufferUtil;
 using OpenTK.Mathematics;
 using System;
@@ -227,7 +227,7 @@ namespace Game
             int major = GL.GetInteger(GetPName.MajorVersion);
             int minor = GL.GetInteger(GetPName.MinorVersion);
 
-            TextRenderer.InitTextRenderer();
+            TextRenderer.Initialize();
             Translator.LoadKeymap();
 
             GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
@@ -274,7 +274,7 @@ namespace Game
             // CachedFontRenderer.FontPath = Path.Combine("Resources", "Fonts", "alagard.ttf");
 
             // WorldGenerator.InitThreads();
-            GlobalValues.PackedChunkShader = new Shader("packedChunk.vert", "packedChunk.frag");
+            GlobalValues.PackedChunkShader = new Shader("chunkTerrain.vert", "chunkTerrain.frag");
             // WorldGenerator.StartThreads(World);
             // PackedWorldGenerator.CurrentWorld = NetworkingValues.Client.World;
             // PackedWorldGenerator.Initialize();
@@ -319,8 +319,7 @@ namespace Game
             FontRenderer.Initialize();
 
             TexturePackManager.IterateAvailableTexturePacks();
-            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Archive"]);
-
+            TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Default"]);
 
             LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
 
@@ -463,13 +462,13 @@ namespace Game
             // Console.WriteLine((GlobalValues.WIDTH, GlobalValues.HEIGHT));
             GlobalValues.Center = (GlobalValues.Width / 2f, GlobalValues.Height / 2f);
 
-            Player.Camera.UpdateProjectionMatrix();
+            Player.Camera.Resize();
             GlobalValues.GuiCamera.UpdateProjectionMatrix();
-            Core.GuiRendering.Gui.UpdateProjectionMatrix();
-            FontRenderer.Update();
+            Core.GuiRendering.Gui.Resize();
+            FontRenderer.Resize();
 
             TextRenderer.Camera.UpdateProjectionMatrix();
-            frameBuffer.UpdateAspect();
+            frameBuffer.Resize();
 
             // this shitty call
             // Render();

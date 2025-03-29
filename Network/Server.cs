@@ -40,7 +40,7 @@ public class Server
     private NetManager _manager;
     private ServerProperties _properties;
     public World World;
-    private Dictionary<int, Player> _connectedPlayers;
+    public Dictionary<int, Player> ConnectedPlayers = new ();
     private NetDataWriter _writer;
     public bool IsNetworked { get; private set; } = false;
 
@@ -50,10 +50,10 @@ public class Server
         // mod loading (base)
         GlobalValues.Base.OnLoad(GlobalValues.Register);
         // start threads
-        PackedWorldGenerator.Initialize();
+        WorldGenerator.Initialize();
         // world loading
         World = new World(_properties.WorldName);
-        PackedWorldGenerator.CurrentWorld = World;
+        WorldGenerator.World = World;
 
     }
 
@@ -62,18 +62,25 @@ public class Server
 
         IsNetworked = false;
 
-        _connectedPlayers = new Dictionary<int, Player>();
+        /*
+            TODO
+            load shit involving world generator,
+            dont load blocks or anything, the client already did.
+            add unauthed player to the "connected players" list.
+            queue the player's position for generation.
+        */
+
         player.Loader = new PlayerChunkLoader((0, 0));
-        _connectedPlayers.Add(0, player);
+        ConnectedPlayers.Add(0, player);
 
         World = new World(worldName);
-        PackedWorldGenerator.CurrentWorld = World;
-        PackedWorldGenerator.Initialize();
+        WorldGenerator.World = World;
+        WorldGenerator.Initialize();
 
-        _connectedPlayers[0].Loader.QueuePosition(World, (0,0));
+        ConnectedPlayers[0].Loader.QueuePosition(World, (0,0));
 
     }
-    public void StartNetworked()
+    public void StartMultiplayer()
     {
 
         IsNetworked = true;
@@ -81,7 +88,7 @@ public class Server
         _listener = new EventBasedNetListener();
         _manager = new NetManager(_listener);
         _writer = new NetDataWriter();
-        _connectedPlayers = new Dictionary<int, Player>();
+        ConnectedPlayers = new Dictionary<int, Player>();
         
         _properties = TomletMain.To<ServerProperties>(File.ReadAllText("server.toml"));
 
@@ -94,8 +101,8 @@ public class Server
         GameLogger.Log($"World save: {_properties.WorldName}");
 
         World = new World(_properties.WorldName);
-        PackedWorldGenerator.CurrentWorld = World;
-        PackedWorldGenerator.Initialize();
+        WorldGenerator.World = World;
+        WorldGenerator.Initialize();
 
         _manager.IPv6Enabled = false;
         _manager.Start(_properties.AddressOrHost, _properties.AddressOrHost, _properties.Port);
@@ -116,7 +123,7 @@ public class Server
         {
 
             GameLogger.Log($"Peer id {peer.Id} disconnected.");
-            _connectedPlayers.Remove(peer.Id);
+            ConnectedPlayers.Remove(peer.Id);
 
         };
 
@@ -140,14 +147,14 @@ public class Server
                     PlayerDataSendPacket packet = new PlayerDataSendPacket();
                     packet.Deserialize(reader);
                     GameLogger.Log($"{packet.UserId}, {packet.DisplayName}");
-                    if (_connectedPlayers.Where(player => player.Value.UserId == packet.UserId).Count() != 0)
+                    if (ConnectedPlayers.Where(player => player.Value.UserId == packet.UserId).Count() != 0)
                     {
                         ConnectRejectPacket reject = new ConnectRejectPacket();
                         reject.Reason = "Someone with the user id is already joined";
                         reject.Serialize(_writer);
                         peer.Send(_writer, DeliveryMethod.ReliableOrdered); 
                         _writer.Reset();
-                    } else if (_connectedPlayers.Count >= _properties.MaxPlayers)
+                    } else if (ConnectedPlayers.Count >= _properties.MaxPlayers)
                     {
                         ConnectRejectPacket reject = new ConnectRejectPacket();
                         reject.Reason = "Player count exceeded";
@@ -157,8 +164,8 @@ public class Server
                         _writer.Reset();
                     } else
                     {
-                        _connectedPlayers.Add(peer.Id, new Player() { UserId = packet.UserId, DisplayName = packet.DisplayName, Loader = new PlayerChunkLoader(Vector2i.Zero) }); 
-                        _connectedPlayers[peer.Id].Loader.QueuePosition(World, Vector2i.Zero);
+                        ConnectedPlayers.Add(peer.Id, new Player() { UserId = packet.UserId, DisplayName = packet.DisplayName, Loader = new PlayerChunkLoader(Vector2i.Zero) }); 
+                        ConnectedPlayers[peer.Id].Loader.QueuePosition(World, Vector2i.Zero);
                         _writer.Put((ushort)PacketType.ConnectSuccessPacket);
                         peer.Send(_writer, DeliveryMethod.ReliableOrdered);
                         _writer.Reset();
@@ -173,14 +180,19 @@ public class Server
 
     }
 
+    public void TickUpdate()
+    {
+
+
+
+    }
+
     public void Update()
     {
 
-        // Console.WriteLine("update");
+        WorldGenerator.Update();
 
-        PackedWorldGenerator.Update();
-
-        foreach (Player player in _connectedPlayers.Values)
+        foreach (Player player in ConnectedPlayers.Values)
         {
 
             player.Loader.Tick(World);
@@ -201,7 +213,7 @@ public class Server
     public void SendChunk(Vector2i position)
     {
 
-        foreach (Player player in _connectedPlayers.Values)
+        foreach (Player player in ConnectedPlayers.Values)
         {
 
             if (!player.SentChunks.Contains(position))

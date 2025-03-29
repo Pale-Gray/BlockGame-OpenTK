@@ -271,8 +271,8 @@ public unsafe class FontRenderer
         _glyphShader.Use();
         GL.BindTextureUnit(0, _faces[pixelSize].FaceTexture.TextureId);
 
-        GL.UniformMatrix4f(GL.GetUniformLocation(_glyphShader.id, "uView"), 1, true, ref _glyphCamera.ViewMatrix);
-        GL.UniformMatrix4f(GL.GetUniformLocation(_glyphShader.id, "uProjection"), 1, true, ref _glyphCamera.ProjectionMatrix);
+        GL.UniformMatrix4f(GL.GetUniformLocation(_glyphShader.Handle, "uView"), 1, true, ref _glyphCamera.ViewMatrix);
+        GL.UniformMatrix4f(GL.GetUniformLocation(_glyphShader.Handle, "uProjection"), 1, true, ref _glyphCamera.ProjectionMatrix);
 
         GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
 
@@ -347,7 +347,7 @@ public unsafe class FontRenderer
 
     }
 
-    public static void Update()
+    public static void Resize()
     {
 
         _glyphCamera.UpdateProjectionMatrix();

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using Game.BlockUtil;
 using Game.Core.PlayerUtil;
 using Game.Core.TexturePack;
 using Game.Core.Worlds;
@@ -109,12 +109,14 @@ public class ChunkMesh
     // public int[] PackedChunkMeshIndices;
     // public PackedChunkVertex[] PackedChunkVertices;
     public List<PackedChunkVertex> ChunkVertices;
-    public List<int> ChunkIndices;
-    public List<Rectangle> Solids;
+    public List<int> ChunkIndices = new();
+    public int ChunkIndicesCount;
+    public List<Rectangle> Solids = new();
     public int[] PackedChunkBindlessTextureIndices;
     public int Vbo, Vao, Ibo, SolidsHandle;
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
+    public int IndexCount = 0;
 
     public ChunkMesh(Vector3i chunkPosition)
     {
@@ -125,26 +127,30 @@ public class ChunkMesh
 
     public void Draw(Player player)
     {
-        
+
         if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)
         {
 
             GL.Disable(EnableCap.CullFace);
             GlobalValues.PackedChunkShader.Use();
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureName);
+            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureHandle);
+            // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Point);
+            // GL.PointSize(10.0f);
             
-            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
+            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
             Matrix4 viewMatrix = player.Camera.ViewMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "view"), 1, true, ref viewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "view"), 1, true, ref viewMatrix);
             Matrix4 projectionMatrix = player.Camera.ProjectionMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "projection"), 1, true, ref projectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "projection"), 1, true, ref projectionMatrix);
             Matrix4 conversionMatrix = player.Camera.ConversionMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.id, "conversion"), 1, true, ref conversionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "conversion"), 1, true, ref conversionMatrix);
 
             GL.BindVertexArray(Vao);
+            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, SolidsHandle);
             GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
             GL.Enable(EnableCap.CullFace);
+            // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
             
         }
         

@@ -61,12 +61,12 @@ namespace Game
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2d, texture.GetID());
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "model"), 1, true, ref model);
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "view"), 1, true, ref camera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "projection"), 1, true, ref camera.ProjectionMatrix);
-            GL.Uniform3f(GL.GetUniformLocation(shader.getID(), "sunVec"), 1, ref sunVec);
-            GL.Uniform1f(GL.GetUniformLocation(shader.getID(), "time"), (float)GlobalValues.Time);
-            GL.Uniform3f(GL.GetUniformLocation(shader.getID(), "cameraPosition"), 1, ref camera.Position);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "model"), 1, true, ref model);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "view"), 1, true, ref camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "projection"), 1, true, ref camera.ProjectionMatrix);
+            GL.Uniform3f(GL.GetUniformLocation(shader.Handle, "sunVec"), 1, ref sunVec);
+            GL.Uniform1f(GL.GetUniformLocation(shader.Handle, "time"), (float)GlobalValues.Time);
+            GL.Uniform3f(GL.GetUniformLocation(shader.Handle, "cameraPosition"), 1, ref camera.Position);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             // GL.BindVertexArray(0);

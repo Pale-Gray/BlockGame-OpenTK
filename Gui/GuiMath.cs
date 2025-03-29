@@ -1,7 +1,7 @@
 ﻿using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Game.Gui
+namespace Game.GuiRendering
 {
     public class GuiMath
     {

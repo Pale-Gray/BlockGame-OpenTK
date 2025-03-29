@@ -1,15 +1,20 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using Game.Audio;
 using Game.Core.Chunks;
 using Game.Core.GuiRendering;
 using Game.Core.Image;
+using Game.Core.Language;
 using Game.Core.PlayerUtil;
+using Game.Core.TexturePack;
 using Game.Core.Worlds;
 using Game.FramebufferUtil;
-using Game.Gui;
+using Game.GuiRendering;
 using Game.Util;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -37,31 +42,39 @@ public class Client
         // GL.Enable(EnableCap.DebugOutput);
         // GL.DebugMessageCallback(_delegate, IntPtr.Zero);
 
-        BlockGame.Load();
+        TextRenderer.Initialize();
+        Translator.LoadKeymap();
+
+        GlobalValues.GuiBlockShader = new Shader("guiblock.vert", "guiblock.frag");
+        GlobalValues.ChunkShader = new Shader("chunk.vert", "chunk.frag");
+        GlobalValues.DefaultShader = new Shader("default.vert", "default.frag");
+        GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
+        GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
+        GlobalValues.PackedChunkShader = new Shader("chunkTerrain.vert", "chunkTerrain.frag");
+
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+        GL.Enable(EnableCap.DepthTest);
+        GL.DepthFunc(DepthFunction.Less);
+        GL.Enable(EnableCap.CullFace);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.Enable(EnableCap.PolygonOffsetFill);
+
+        // AudioPlayer.Initialize();
+        Gui.Initialize();
+        FontRenderer.Initialize();
+
+        TexturePackManager.IterateAvailableTexturePacks();
+        TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Default"]);
+
+        LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
+        Translator.LoadGameSettings();
+
         GlobalValues.Base.OnLoad(GlobalValues.Register);
 
         _terrainBuffer = new Framebuffer();
         _terrainBufferQuad = new FramebufferQuad();
-
-        // Stopwatch sw = Stopwatch.StartNew();
-
-        // PngImage image = new PngImage();
-        // // image = ImageFile.Load("Resources/Textures/happy-super-happy1080inter.png");
-        // // PngImage image = ImageFile.Load("Resources/Textures/happy-super-happy1080.png");
-        // // sw.Stop();
-        // // Console.WriteLine($"img load took {sw.Elapsed.TotalMilliseconds}ms");
-// 
-        // _id = GL.GenTexture();
-        // GL.BindTexture(TextureTarget.Texture2d, _id);
-        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        // GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-// 
-        // GL.TexStorage2D(TextureTarget.Texture2d, 1, SizedInternalFormat.Rgba8, image.Width, image.Height);
-        // GL.TexSubImage2D(TextureTarget.Texture2d, 0, 0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-// 
-        // GL.BindTexture(TextureTarget.Texture2d, 0);
 
     }
 
@@ -92,20 +105,21 @@ public class Client
                 // throw new Exception(message);
             }
         }
-    public void JoinWorld(string worldSave, Player player)
+    public void StartSingleplayer(string worldSave, Player player)
     {
 
-        // singleplayer
         IsNetworked = false;
 
-        Player = player;
-
         NetworkingValues.Server = new Server();
-        NetworkingValues.Server.StartSingleplayer(worldSave, Player);
+        NetworkingValues.Server.StartSingleplayer(worldSave, player);
+
+        // hook
+        Player = NetworkingValues.Server.ConnectedPlayers.First().Value;
+        World = NetworkingValues.Server.World;
 
     }
 
-    public void JoinWorld(string addressOrHost, int port, Player player)
+    public void StartMultiplayer(string addressOrHost, int port, Player player)
     {
 
         // multiplayer
@@ -117,8 +131,8 @@ public class Client
         _manager = new NetManager(_listener);
 
         World = new World("");
-        PackedWorldGenerator.CurrentWorld = World;
-        PackedWorldGenerator.Initialize();
+        WorldGenerator.World = World;
+        WorldGenerator.Initialize();
 
         _manager.Start();
         _manager.Connect(addressOrHost, port, "BlockGame");
@@ -177,14 +191,14 @@ public class Client
                     sendPacket.Deserialize(reader);
                     World.WorldColumns.TryAdd(sendPacket.Position, new ChunkColumn(sendPacket.Position) { QueueType = ColumnQueueType.Mesh });
                     ColumnSerializer.DeserializeColumnFromBytes(World.WorldColumns[sendPacket.Position], sendPacket.Data);
-                    for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+                    for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
                     {
                         World.WorldColumns[sendPacket.Position].Chunks[i].HasUpdates = true;
                     }
                     // column.QueueType = ColumnQueueType.Mesh;
                     // bool added = _world.WorldColumns.TryAdd(sendPacket.Position, column);
                     // Console.WriteLine(added);
-                    PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(sendPacket.Position);
+                    WorldGenerator.WorldGenerationQueue.Enqueue(sendPacket.Position);
                     break;
 
             }
@@ -195,6 +209,12 @@ public class Client
 
     }
 
+    public void TickUpdate()
+    {
+
+        AnimatedTextureManager.Update();
+
+    }
     public void Update()
     {
 
@@ -203,31 +223,55 @@ public class Client
 
         Player?.UpdateInputs();
         if (Input.IsMouseFocused) Player?.Camera.Update();
+
         _terrainBuffer.Bind();
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
         GL.ClearColor(Color4.Black);
-        if (NetworkingValues.Server?.IsNetworked ?? true) 
-        {
-            World?.Draw(Player);
-        } else
-        {
-            NetworkingValues.Server?.World.Draw(Player);
-        }
+        World?.Draw(Player);
         _terrainBuffer.Unbind();
         _terrainBufferQuad.Draw(_terrainBuffer, 0.0f);
-        
-        PackedWorldGenerator.Update();
+
+        if (Player != null)
+        {
+
+            if (WorldGenerator.World != null)
+            {
+
+                Dda.TraceChunks(WorldGenerator.World.WorldColumns, Player.Camera.Position, -Player.Camera.ForwardVector, 20);
+
+                if (Dda.hit && Input.IsMouseFocused)
+                {
+
+                    if (Input.IsMouseButtonDown(MouseButton.Button2))
+                    {
+
+                        GlobalValues.Register.GetBlockFromNamespace("Game.AspenLog").OnBlockPlace(WorldGenerator.World, Dda.PreviousPositionAtHit);
+
+                    }
+
+                    if (Input.IsMouseButtonDown(MouseButton.Button1))
+                    {
+
+                        GlobalValues.Register.GetBlockFromNamespace("Game.AspenLog").OnBlockDestroy(WorldGenerator.World, Dda.PositionAtHit);
+
+                    }
+                    
+                }                
+
+            }
+
+        }
 
         if (!Input.IsMouseFocused)
         {
 
-            GuiRendering.Gui.Begin("thing");
-            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
-            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
-            GuiRendering.Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
-            GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
-            GuiRendering.Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
-            if (GuiRendering.Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
+            Gui.Begin("thing");
+            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
+            Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
+            if (Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
             {
 
                 string[] network = addressString.Split(':');
@@ -248,24 +292,25 @@ public class Client
                         GameLogger.Log("uid is invalid");
                     } else
                     {
-                        NetworkingValues.Client.JoinWorld(network[0], port, new Player() { UserId = uid, DisplayName = "Poo" });
+                        NetworkingValues.Client.StartMultiplayer(network[0], port, new Player() { UserId = uid, DisplayName = "Poo" });
                     }
 
                 }
 
             }
-            if (GuiRendering.Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.8f), (150, 24), (0.5f, 0.5f), "Start Client Instance", Color4.White))
+            if (Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.8f), (150, 24), (0.5f, 0.5f), "Start Client Instance", Color4.White))
             {
 
-                NetworkingValues.Client.JoinWorld("Shit", new Player());
+                NetworkingValues.Client.StartSingleplayer("Shit", new Player());
                 // NetworkingValues.Server = new NewServer();
                 // NetworkingValues.Server.StartSingleplayer("Shit", new NewPlayer());
 
             }
-            // GuiRenderer.RenderTexture(GuiMath.RelativeToAbsolute(0.5f, 0.5f), (150, 150), (0.5f, 0.5f), _id);
-            GuiRendering.Gui.End();
+            Gui.End();
 
         }
+
+        FontRenderer.Text((0, 25), (25, 25), 15, Color4.White, $"Memory usage: {Math.Round(Process.GetCurrentProcess().WorkingSet64 * 9.3132257461548E-10, 2)}GB");
 
         _manager?.PollEvents();
 
@@ -274,17 +319,27 @@ public class Client
     public void Unload()
     {
 
-        PackedWorldGenerator.Unload();
-
-        BlockGame.Unload();
+        WorldGenerator.Unload();
+        TexturePackManager.Free();
+        FontRenderer.Free();
+        AudioPlayer.Unload();
+        // BlockGame.Unload();
 
     }
 
-    public void OnResize()
+    public void OnResize(WindowHandle window)
     {
 
-        Player?.Camera.UpdateProjectionMatrix();
-        _terrainBuffer.UpdateAspect();
+        Toolkit.Window.GetFramebufferSize(window, out Vector2i framebufferSize);
+        GL.Viewport(0, 0, framebufferSize.X, framebufferSize.Y);
+        GlobalValues.Width = framebufferSize.X;
+        GlobalValues.Height = framebufferSize.Y;
+        GlobalValues.Center = (GlobalValues.Width / 2f, GlobalValues.Height / 2f);
+
+        Player?.Camera.Resize();
+        _terrainBuffer.Resize();
+        Gui.Resize();
+        FontRenderer.Resize();
 
     }
 

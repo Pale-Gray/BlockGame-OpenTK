@@ -73,9 +73,9 @@ namespace Game
             //GL.Disable(EnableCap.CullFace);
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "model"), 1, true, ref model);
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "view"), 1, true, ref camera.ViewMatrix);
-            GL.UniformMatrix4f(GL.GetUniformLocation(shader.getID(), "projection"), 1, true, ref camera.ProjectionMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "model"), 1, true, ref model);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "view"), 1, true, ref camera.ViewMatrix);
+            GL.UniformMatrix4f(GL.GetUniformLocation(shader.Handle, "projection"), 1, true, ref camera.ProjectionMatrix);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, vertices.Length);
             GL.BindVertexArray(0);
@@ -83,7 +83,7 @@ namespace Game
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             //GL.Enable(EnableCap.CullFace);
 
-            shader.UnUse();
+            // shader.UnUse();
 
         }
         public void SetScale(float x, float y, float z)

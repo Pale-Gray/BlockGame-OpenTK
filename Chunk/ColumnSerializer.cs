@@ -24,7 +24,7 @@ public class ColumnSerializer
         using (DataWriter writer = new DataWriter())
         {
 
-            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
             {
 
                 Span<byte> span = Compressor.RleCompress<ushort, ushort>(column.Chunks[i].BlockData);
@@ -56,7 +56,7 @@ public class ColumnSerializer
         using (DataReader reader = new DataReader(data))
         {
 
-            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
             {
 
                 Span<byte> rle = reader.GetByteSpan();
@@ -83,12 +83,12 @@ public class ColumnSerializer
 
         if (!Directory.Exists("Worlds")) Directory.CreateDirectory("Worlds");
 
-        if (!Directory.Exists(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath))) Directory.CreateDirectory(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath));
+        if (!Directory.Exists(Path.Combine("Worlds", WorldGenerator.World.WorldPath))) Directory.CreateDirectory(Path.Combine("Worlds", WorldGenerator.World.WorldPath));
 
-        using (DataWriter writer = DataWriter.OpenFile(Path.Combine("Worlds", PackedWorldGenerator.CurrentWorld.WorldPath, fileName)))
+        using (DataWriter writer = DataWriter.OpenFile(Path.Combine("Worlds", WorldGenerator.World.WorldPath, fileName)))
         {
 
-            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
             {
 
                 Span<byte> span = Compressor.RleCompress<ushort, ushort>(column.Chunks[i].BlockData);
@@ -116,7 +116,7 @@ public class ColumnSerializer
         using (DataReader reader = DataReader.OpenFile(fileName))
         {
 
-            for (int i = 0; i < PackedWorldGenerator.WorldGenerationHeight; i++)
+            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
             {
 
                 Span<byte> span = reader.GetByteSpan();

@@ -1,0 +1,9 @@
+inherit = "cube_distinct.toml"
+
+[textures]
+'$up' = 'AspenCore'
+'$down' = 'AspenCore'
+'$left' = 'AspenBark'
+'$right' = 'AspenBark'
+'$back' = 'AspenBark'
+'$front' = 'AspenBark'

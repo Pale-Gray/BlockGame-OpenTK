@@ -1,4 +1,4 @@
 inherit = "cube_all.toml"
 
 [textures]
-'$all' = "Bricks"
+'$all' = "BrickBlock"

@@ -36,14 +36,14 @@ public class PlayerChunkLoader
                 foreach (Vector2i neighbor in _neighbors)
                 {
 
-                    if (Maths.ChebyshevDistance2D(sample + neighbor, PlayerPosition) <= PackedWorldGenerator.WorldGenerationRadius && !_existingChunks.Contains(sample + neighbor))
+                    if (Maths.ChebyshevDistance2D(sample + neighbor, PlayerPosition) <= WorldGenerator.WorldGenerationRadius && !_existingChunks.Contains(sample + neighbor))
                     {
 
                         _existingChunks.Add(sample + neighbor);
                         _samples.Enqueue(sample + neighbor);
                         // add a new chunk to the generation queue
                         world.WorldColumns.TryAdd(sample + neighbor, new ChunkColumn(sample + neighbor) { QueueType = ColumnQueueType.PassOne });
-                        PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(sample + neighbor);
+                        WorldGenerator.WorldGenerationQueue.Enqueue(sample + neighbor);
 
                     }
 
@@ -66,7 +66,7 @@ public class PlayerChunkLoader
             _existingChunks.Add(position);
             // add a new chunk to the generation queue 
             world.WorldColumns.TryAdd(position, new ChunkColumn(position) { QueueType = ColumnQueueType.PassOne });
-            PackedWorldGenerator.ColumnWorldGenerationQueue.EnqueueLast(position);
+            WorldGenerator.WorldGenerationQueue.Enqueue(position);
 
         }
 

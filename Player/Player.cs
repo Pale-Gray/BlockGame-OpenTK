@@ -25,37 +25,37 @@ public class Player
 
         if (Input.IsKeyDown(Key.E))
         {
-            Camera.Position.Y += 10 * (float)GlobalValues.DeltaTime;
+            Camera.Position.Y += 20 * (float)GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.Q))
         {
-            Camera.Position.Y -= 10 * (float)GlobalValues.DeltaTime;
+            Camera.Position.Y -= 20 * (float)GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.W))
         {
-            Camera.Position -= Camera.ForwardVector * (float) GlobalValues.DeltaTime;
+            Camera.Position -= 20.0f * new Vector3(Camera.FlattenedForwardVector.X, 0.0f, Camera.FlattenedForwardVector.Z) * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.S))
         {
-            Camera.Position += Camera.ForwardVector * (float) GlobalValues.DeltaTime;
+            Camera.Position += 20 * new Vector3(Camera.FlattenedForwardVector.X, 0.0f, Camera.FlattenedForwardVector.Z) * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.A))
         {
-            Camera.Position -= Camera.ForwardVector * (float) GlobalValues.DeltaTime;
+            Camera.Position -= 20 * new Vector3(Camera.FlattenedLeftVector.X, 0.0f, Camera.FlattenedLeftVector.Z) * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
         if (Input.IsKeyDown(Key.D))
         {
-            Camera.Position += Camera.ForwardVector * (float) GlobalValues.DeltaTime;
+            Camera.Position += 20 * new Vector3(Camera.FlattenedLeftVector.X, 0.0f, Camera.FlattenedLeftVector.Z) * (float) GlobalValues.DeltaTime;
             Camera.UpdateViewMatrix();
         }
 
@@ -65,9 +65,9 @@ public class Player
 
         if (ChunkArea.Count == 0)
         {
-            for (int x = -PackedWorldGenerator.WorldGenerationRadius; x <= PackedWorldGenerator.WorldGenerationRadius; x++)
+            for (int x = -WorldGenerator.WorldGenerationRadius; x <= WorldGenerator.WorldGenerationRadius; x++)
             {
-                for (int z = -PackedWorldGenerator.WorldGenerationRadius; z <= PackedWorldGenerator.WorldGenerationRadius; z++)
+                for (int z = -WorldGenerator.WorldGenerationRadius; z <= WorldGenerator.WorldGenerationRadius; z++)
                 {
                     ChunkArea.Add((x,z) + playerChunkPosition);
                     // if (NetworkingValues.Server.World.WorldColumns.ContainsKey((x,z) + playerChunkPosition))
