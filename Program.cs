@@ -13,6 +13,12 @@ using Game.Core.Networking;
 using Game.Core.Worlds;
 using Game.Core.Image;
 using Game.Core.TexturePack;
+using System.Runtime.CompilerServices;
+using Game.Core.Chrono;
+using System.Runtime.InteropServices;
+using System.Reflection;
+using System.Linq;
+using Game.Core.Modding;
 
 namespace Game
 {
@@ -125,6 +131,14 @@ namespace Game
                 }
             );
 
+            Console.WriteLine(Game.e.Namespace.GetPrefix("Game.GrassBlock"));
+            Console.WriteLine(Game.e.Namespace.GetSuffix("Game.GrassBlock"));
+
+            Console.WriteLine(Path.Combine("Hello", "Fucking", "World", "hi.txt"));
+            CreateFile(Path.Combine("Hello", "Fucking", "World", "hi.txt"));
+
+            // Console.WriteLine(Path.GetDirectoryName(Path.Combine("bin", "Release", "net9.0", "Blockgame-OpenTK.dll")));
+
             // account stuff
             /* 
             Console.WriteLine("Please specify a username");
@@ -222,17 +236,13 @@ namespace Game
             while (GlobalValues.IsRunning)
             {
 
-                // Console.WriteLine(GlobalValues.DeltaTime);
-
-                if (currentTickTime > 1 / 30.0)
+                while (currentTickTime >= 1 / GlobalValues.TickRate)
                 {
-
-                    currentTickTime -= 1 / 30.0;
                     NetworkingValues.Server?.TickUpdate();
                     NetworkingValues.Client?.TickUpdate();
-
+                    currentTickTime -= 1 / GlobalValues.TickRate;
                 }
-
+                
                 GlobalValues.Time += GlobalValues.DeltaTime;
                 currentTickTime += GlobalValues.DeltaTime;
 
@@ -418,6 +428,14 @@ namespace Game
 
             }
 
+        }
+
+        public static void CreateFile(string pathToFile)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(pathToFile));
+            File.Create(pathToFile);
+
+            Console.WriteLine($"Created file at {pathToFile}");
         }
 
     }

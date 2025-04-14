@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Game.BlockProperty
+namespace Game.Core.BlockStorage
 {
 
     public enum BranchDirection

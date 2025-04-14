@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Game.GuiRendering;
 using Game.Core.Networking;
 using Game.Core.Modding;
+using Game.Core.Worlds;
 
 namespace Game.Util
 {
@@ -17,6 +18,13 @@ namespace Game.Util
 
     }
 
+    public class GameState
+    {
+
+        public static World World;
+
+    }   
+
     public class NetworkingValues
     {
 
@@ -27,7 +35,7 @@ namespace Game.Util
     public class GlobalValues
     {
 
-        public static IModLoader Base = new Base();
+        // public static IModLoader Base = new Base();
         public static string TexturePath => Path.Combine("Resources", "Textures") + Path.DirectorySeparatorChar; //"Resources/Textures/";
         public static string ShaderPath => Path.Combine("Resources", "Shaders") + Path.DirectorySeparatorChar;//"Resources/Shaders/";
         public static string MissingTexture => Path.Combine("Resources", "Textures", "missing.png");//"Resources/Textures/missing.png";
@@ -77,10 +85,15 @@ namespace Game.Util
         public static Shader GuiLineShader;
 
         public static Shader PackedChunkShader;
+        public static Shader LineShader;
+        public static Shader SkyboxShader;
 
         public static ushort BlockSelectorID = 1;
 
         public static Camera GuiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90f);
+
+        public static float TickRate = 1000;
+        public static int IterationsPerTick = 1;
 
     }
 }

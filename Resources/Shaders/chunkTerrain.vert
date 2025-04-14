@@ -12,6 +12,7 @@ out vec4 vLightTopLeft;
 out vec4 vLightBottomLeft;
 out vec4 vLightBottomRight;
 out vec4 vLightTopRight;
+out vec4 vLight;
 
 struct Rectangle
 {
@@ -74,7 +75,7 @@ void main()
     vLightBottomLeft = solids[index].lightBottomLeft;
     vLightBottomRight = solids[index].lightBottomRight;
     vLightTopRight = solids[index].lightTopRight;
-    
+
     vec3 pos = position + ((tangent * size.y) * factor.y) + ((bitangent * size.x) * factor.x);
 
     gl_Position = vec4(pos + (chunkPosition * 32.0), 1) * view * projection;

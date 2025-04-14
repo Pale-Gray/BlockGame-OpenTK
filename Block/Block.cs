@@ -18,7 +18,6 @@ using Tomlet.Attributes;
 using Tomlet.Models;
 
 namespace Game.BlockUtil;
-
 public struct Namespace
 {
 
@@ -46,6 +45,15 @@ public struct Namespace
         Suffix = split[1];
 
     }   
+
+    public static implicit operator Namespace(string name)
+    {
+
+        string[] namespaceString = name.Split('.');
+
+        return new Namespace(namespaceString[0], namespaceString[1]);
+
+    }
 
     public override int GetHashCode()
     {
@@ -95,33 +103,39 @@ public class Block
         T block = new();
 
         block.DisplayName = LanguageManager.GetTranslation(properties.DisplayName);
+        block.IsSolid = properties.IsSolid;
         if (NetworkingValues.Server == null) block.BlockModel = BlockModel.FromToml(properties._blockModelPath);
         
         return block;
 
     }
 
-    public virtual void OnBlockSet(World world, Vector3i globalBlockPosition)
-    {
-        // if (IsSolid) ChunkUtils.SetLightColor(world.PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), LightColor.Zero);
-        world.SetBlock(globalBlockPosition, this);
-    }
-    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition)
+    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
     {
         
-        world.SetBlock(globalBlockPosition, new Block() {IsSolid = false});
-        // world.RemoveLight(globalBlockPosition);
-        world.QueueChunk(globalBlockPosition);
+        world.SetBlock(globalBlockPosition, GlobalValues.Register.GetBlockFromId(0), isPlayerPlaced);
         
     }
 
-    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition)
+    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
     {
 
-        world.SetBlock(globalBlockPosition, this);
-        // if (IsSolid) world.RemoveLight(globalBlockPosition);
-        world.QueueChunk(globalBlockPosition);
+        world.SetBlock(globalBlockPosition, this, isPlayerPlaced);
         
+    }
+
+    public virtual void OnBlockMesh(World world, Vector3i globalBlockPosition)
+    {
+
+        
+
+    }
+
+    public virtual void OnRandomTick(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
+    {
+
+
+
     }
 
 }

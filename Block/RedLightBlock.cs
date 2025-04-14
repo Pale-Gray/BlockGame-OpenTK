@@ -7,10 +7,10 @@ namespace Game.BlockUtil;
 public class RedLightBlock : Block 
 {
 
-    public override void OnBlockPlace(World world, Vector3i globalBlockPosition)
+    public override void OnBlockPlace(World world, Vector3i globalBlockPosition, bool e = true)
     {
-        base.OnBlockPlace(world, globalBlockPosition);
-        world.AddLight(globalBlockPosition, new BlockLight(new LightColor(15, 0, 0)));
+        base.OnBlockPlace(world, globalBlockPosition, e);
+        world.AddLight(globalBlockPosition, 15, 0, 0);
     }
 
 }

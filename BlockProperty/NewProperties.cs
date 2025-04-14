@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OpenTK.Mathematics;
 
-namespace Game.BlockProperty
+namespace Game.Core.BlockStorage
 {
     public class NewProperties : IBlockProperties
     {

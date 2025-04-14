@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Game.BlockUtil;
 using Game.Core.PlayerUtil;
 using Game.Core.TexturePack;
@@ -106,14 +108,14 @@ public struct ChunkVertex
 public class ChunkMesh
 {
 
-    // public int[] PackedChunkMeshIndices;
-    // public PackedChunkVertex[] PackedChunkVertices;
-    public List<PackedChunkVertex> ChunkVertices;
-    public List<int> ChunkIndices = new();
-    public int ChunkIndicesCount;
     public List<Rectangle> Solids = new();
+    public List<int> SolidIndices = new();
+    public int SolidIndicesCount;
+    public List<Rectangle> Cutouts = new();
+    public List<int> CutoutIndices = new();
+    public int CutoutIndicesCount;
     public int[] PackedChunkBindlessTextureIndices;
-    public int Vbo, Vao, Ibo, SolidsHandle;
+    public int SolidsVao, SolidsIbo, SolidsHandle, CutoutVao, CutoutIbo, CutoutHandle;
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
     public int IndexCount = 0;
@@ -128,30 +130,36 @@ public class ChunkMesh
     public void Draw(Player player)
     {
 
-        if (ChunkIndices != null && ChunkIndices.Count > 0 && IsRenderable)
+        GlobalValues.PackedChunkShader.Use();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureHandle);
+        
+        GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
+        Matrix4 viewMatrix = player.Camera.ViewMatrix;
+        GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "view"), 1, true, ref viewMatrix);
+        Matrix4 projectionMatrix = player.Camera.ProjectionMatrix;
+        GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "projection"), 1, true, ref projectionMatrix);
+        Matrix4 conversionMatrix = player.Camera.ConversionMatrix;
+        GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "conversion"), 1, true, ref conversionMatrix);
+
+        if (SolidIndicesCount > 0)
+        {
+
+            GL.BindVertexArray(SolidsVao);
+            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, SolidsHandle);
+            GL.DrawElements(PrimitiveType.Triangles, SolidIndicesCount, DrawElementsType.UnsignedInt, 0);
+            
+        }
+
+        if (CutoutIndicesCount > 0)
         {
 
             GL.Disable(EnableCap.CullFace);
-            GlobalValues.PackedChunkShader.Use();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2dArray, TexturePackManager.ArrayTextureHandle);
-            // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Point);
-            // GL.PointSize(10.0f);
-            
-            GL.Uniform3f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "chunkPosition"), ChunkPosition.X, ChunkPosition.Y, ChunkPosition.Z);
-            Matrix4 viewMatrix = player.Camera.ViewMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "view"), 1, true, ref viewMatrix);
-            Matrix4 projectionMatrix = player.Camera.ProjectionMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "projection"), 1, true, ref projectionMatrix);
-            Matrix4 conversionMatrix = player.Camera.ConversionMatrix;
-            GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "conversion"), 1, true, ref conversionMatrix);
-
-            GL.BindVertexArray(Vao);
-            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, SolidsHandle);
-            GL.DrawElements(PrimitiveType.Triangles, ChunkIndices.Count, DrawElementsType.UnsignedInt, 0);
+            GL.BindVertexArray(CutoutVao);
+            GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, 0, CutoutHandle);
+            GL.DrawElements(PrimitiveType.Triangles, CutoutIndicesCount, DrawElementsType.UnsignedInt, 0);
             GL.Enable(EnableCap.CullFace);
-            // GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-            
+
         }
         
     }

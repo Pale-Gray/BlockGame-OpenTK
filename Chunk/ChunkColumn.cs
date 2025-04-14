@@ -1,17 +1,23 @@
+using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Game.Core.Worlds;
+using Game.Util;
 using OpenTK.Mathematics;
 
 namespace Game.Core.Chunks;
 
-public enum ColumnQueueType : byte
+public enum QueueType : byte
 {
 
     PassOne,
+    SunlightCalculation,
     LightPropagation,
     Mesh,
     Upload,
-    Done
+    Done,
+    Unload
 
 }
 public class ChunkColumn
@@ -19,9 +25,19 @@ public class ChunkColumn
 
     public Vector2i Position;
     public Chunk[] Chunks = new Chunk[WorldGenerator.WorldGenerationHeight];
-    public ChunkMesh[] ChunkMeshes = new ChunkMesh[WorldGenerator.WorldGenerationHeight]; 
-    public ColumnQueueType QueueType = ColumnQueueType.PassOne;
+    public ChunkMesh[] ChunkMeshes = new ChunkMesh[WorldGenerator.WorldGenerationHeight];
+    public int[] SolidHeightmap = new int[GlobalValues.ChunkSize * GlobalValues.ChunkSize];
+    public QueueType QueueType = QueueType.PassOne;
     public bool HasPriority = false;
+    public bool IsUpdating = false;
+    public ConcurrentQueue<Vector3i> SunlightAdditionQueue = new();
+    public ConcurrentQueue<(Vector3i position, ushort value)> SunlightRemovalQueue = new();
+    public ConcurrentQueue<Vector3i> RedBlocklightAdditionQueue = new();
+    public ConcurrentQueue<(Vector3i position, ushort value)> RedBlocklightRemovalQueue = new();
+    public ConcurrentQueue<Vector3i> GreenBlocklightAdditionQueue = new();
+    public ConcurrentQueue<(Vector3i position, ushort value)> GreenBlocklightRemovalQueue = new();
+    public ConcurrentQueue<Vector3i> BlueBlocklightAdditionQueue = new();
+    public ConcurrentQueue<(Vector3i position, ushort value)> BlueBlocklightRemovalQueue = new();
 
     public ChunkColumn(Vector2i position)
     {

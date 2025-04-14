@@ -9,7 +9,7 @@ using System.Threading;
 using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Game.BlockProperty;
+namespace Game.Core.BlockStorage;
 public class DataWriter : IDisposable
 {
 
@@ -20,7 +20,7 @@ public class DataWriter : IDisposable
     public DataWriter()
     {
 
-        _stream = new MemoryStream(); 
+        _stream = new MemoryStream();
 
     }
 
@@ -175,6 +175,7 @@ public class DataWriter : IDisposable
     {
 
         GameLogger.Log("Finished writing to file.");
+        _stream.Flush();
         _stream.Dispose();
 
     }

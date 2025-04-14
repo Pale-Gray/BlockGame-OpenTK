@@ -11,7 +11,7 @@ using System.IO;
 using System.Collections.Generic;
 using Game.Audio;
 using Game.Core.TexturePack;
-using Game.BlockProperty;
+using Game.Core.BlockStorage;
 using Game.Core.Language;
 using Game.Core.GuiRendering;
 using Game.Core.PlayerUtil;
@@ -217,7 +217,7 @@ namespace Game
         {
 
             Translator.LoadGameSettings();
-            GlobalValues.Base.OnLoad(GlobalValues.Register);
+            // GlobalValues.Base.OnLoad(GlobalValues.Register);
 
         }
         

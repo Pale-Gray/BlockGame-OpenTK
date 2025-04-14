@@ -96,28 +96,8 @@ namespace Game.Util
 
         }
 
-        public static int Mod(int a, int b)
-        {
-
-            a %= b;
-            if (a < 0) a += b;
-            return a;
-
-        }
-
-        public static int EuclideanMod(int a, int n)
-        {
-
-            return (int) (a - Math.Abs(n) * Math.Floor(a / (float) Math.Abs(n)));
-
-        }
-        public static float FloatRandom2(uint seed, int x, int y)
-        {
-
-            return (Random2(seed, x, y) / (float)uint.MaxValue);
-
-        }
-
+        public static int Mod(float a, float n) => (int) (a - n * Math.Floor(a / Math.Abs(n)));
+        public static float FloatRandom2(uint seed, int x, int y) => Random2(seed, x, y) / (float)uint.MaxValue;
         public static float Noise2(uint seed, float x, float y)
         {
 

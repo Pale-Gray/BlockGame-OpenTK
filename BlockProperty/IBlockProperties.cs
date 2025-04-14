@@ -1,4 +1,4 @@
-﻿namespace Game.BlockProperty;
+﻿namespace Game.Core.BlockStorage;
 public interface IBlockProperties
 {
 

@@ -3,12 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Game.Core.Chunks;
 using Game.Core.Networking;
+using Game.Core.PlayerUtil;
 using Game.PlayerUtil;
 using Game.Util;
 using OpenTK.Graphics.OpenGL;
@@ -20,42 +22,61 @@ namespace Game.Core.Worlds;
 public class WorldGenerator
 {
 
-    public static int WorldGenerationRadius = 8;
+    public static int WorldGenerationPadding = 3;
+    public static int WorldGenerationRadius = 8 + WorldGenerationPadding; // padding
     public static int WorldGenerationHeight = 8; // The height starting from y = 0
-    public static int MaxChunkUploadCount = 5;
-    public static int GenerationThreadCount = 2;
-
+    public static int MaxChunkUploadCount = 999999999;
+    public static int GenerationThreadCount = 10;
     private static int _currentRadius = 0;
-
-    public static World World;
-
+    public static bool IsSmoothLightingEnabled = true;
     public static DoubleEndedQueue<Vector3i> PackedChunkWorldGenerationQueue = new();
     public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldUploadQueue = new();
-
     public static ThreadSafeDoubleEndedQueue<Vector2i> ColumnWorldUploadQueue = new();
-    
-    private static List<Thread> _chunkGenerationThreads = new();
-    private static ConcurrentDictionary<int, AutoResetEvent> _chunkGenerationAutoResetEvents = new();
-
     private static ManualResetEvent _generationResetEvent = new ManualResetEvent(true);
-    private static Thread _generationThread = new Thread(HandleGenerationQueue);
-    public static ConcurrentQueue<Vector2i> WorldGenerationQueue = new();
-
-    public static List<Thread> _generationThreads = new();
+    public static ConcurrentQueue<Vector2i> LowPriorityWorldGenerationQueue = new();
+    public static ConcurrentQueue<Vector2i> HighPriorityWorldGenerationQueue = new();
+    public static ConcurrentQueue<Vector2i> UnloadQueue = new();
+    public static Thread[] _generationThreads = new Thread[GenerationThreadCount];
+    public static Dictionary<int, ManualResetEvent> _manualResetEvents = new();
 
     public static void Unload()
     {
 
-        if (_generationThreads.Count == 0) return;
+        if (_manualResetEvents.Count != GenerationThreadCount) return;
 
         for (int i = 0; i < GenerationThreadCount; i++)
         {
 
-            while (_generationThreads[i].IsAlive) _generationResetEvent.Set();
+            while (_generationThreads[i].IsAlive) _manualResetEvents[_generationThreads[i].ManagedThreadId].Set();
+            _manualResetEvents.Remove(_generationThreads[i].ManagedThreadId);
 
         }
 
-        // while (_generationThread.IsAlive) _generationResetEvent.Set();
+    }
+    private static void HandleUnloadQueue()
+    {
+
+        while (UnloadQueue.TryDequeue(out Vector2i position))
+        {
+
+            if (HighPriorityWorldGenerationQueue.Contains(position) || LowPriorityWorldGenerationQueue.Contains(position) || GameState.World.WorldColumns[position].IsUpdating)
+            {
+
+                UnloadQueue.Enqueue(position);
+
+            } else
+            {
+
+                if (GameState.World.WorldColumns.TryRemove(position, out ChunkColumn column) && column.QueueType >= QueueType.Mesh)
+                {
+
+                    ColumnSerializer.SerializeColumn(column);
+
+                } 
+
+            }
+
+        }
 
     }
     private static void HandleUploadQueue()
@@ -72,7 +93,12 @@ public class WorldGenerator
             } else
             {
 
-                ColumnBuilder.Upload(World.WorldColumns[columnPosition]);
+                if (GameState.World.WorldColumns.TryGetValue(columnPosition, out ChunkColumn column))
+                {
+
+                    ColumnBuilder.Upload(column);
+
+                }
 
             }
 
@@ -85,46 +111,146 @@ public class WorldGenerator
         while (GlobalValues.IsRunning)
         {
             
-            _generationResetEvent.WaitOne();
-            if (WorldGenerationQueue.TryDequeue(out Vector2i columnPosition))
+            _manualResetEvents[Thread.CurrentThread.ManagedThreadId].WaitOne();
+            if (HighPriorityWorldGenerationQueue.TryDequeue(out Vector2i columnPosition) || LowPriorityWorldGenerationQueue.TryDequeue(out columnPosition))
             {
 
-                switch (World.WorldColumns[columnPosition].QueueType)
+                if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) continue;
+                switch (GameState.World.WorldColumns[columnPosition].QueueType)
                 {
 
-                    case ColumnQueueType.PassOne:
-                        ColumnBuilder.GeneratePassOne(World.WorldColumns[columnPosition]);
+                    case QueueType.PassOne:
+                        if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) break;
+                        ColumnBuilder.GeneratePassOne(GameState.World.WorldColumns[columnPosition]);
                         break;
-                    case ColumnQueueType.Mesh:
-                        if (NetworkingValues.Server?.IsNetworked ?? false)
+                    case QueueType.SunlightCalculation:
+                        if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) break;
                         {
-                            World.WorldColumns[columnPosition].QueueType = ColumnQueueType.Upload;
-                            WorldGenerationQueue.Enqueue(columnPosition);
-                        } else 
-                        {
-                            if (Maths.ChebyshevDistance2D(columnPosition, Vector2i.Zero) < WorldGenerationRadius)
+                            bool shouldQueue = false;
+                            foreach (Player player in NetworkingValues.Server?.ConnectedPlayers.Values)
                             {
-                                if (AreNeighborColumnsTheSameQueueType(columnPosition, ColumnQueueType.Mesh))
+
+                                if (Maths.ChebyshevDistance2D(columnPosition, player.Loader.PlayerPosition) < WorldGenerationRadius)
                                 {
-                                    ColumnBuilder.Mesh(GetSurroundingColumns(columnPosition));
+
+                                    shouldQueue = true;
+                                    break;
+
+                                }
+
+                            }
+                            if (shouldQueue)
+                            {
+
+                                if (AreNeighborColumnsTheSameQueueType(columnPosition, QueueType.SunlightCalculation))
+                                {
+                                    ColumnBuilder.PrecalculateSunlight(GameState.World.WorldColumns, columnPosition);
                                 } else
                                 {
-                                    WorldGenerationQueue.Enqueue(columnPosition);
+                                    if (GameState.World.WorldColumns[columnPosition].HasPriority)
+                                    {
+                                        HighPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    } else
+                                    {
+                                        LowPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    }
+                                }
+
+                            }
+                        }
+                        break;
+                    case QueueType.LightPropagation:
+                        if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) break;
+                        {
+                            bool shouldQueue = false;
+                            foreach (Player player in NetworkingValues.Server?.ConnectedPlayers.Values)
+                            {
+
+                                if (Maths.ChebyshevDistance2D(columnPosition, player.Loader.PlayerPosition) < WorldGenerationRadius - 1)
+                                {
+
+                                    shouldQueue = true;
+                                    break;
+
+                                }
+
+                            }
+                            if (shouldQueue)
+                            {
+                                if (AreNeighborColumnsTheSameQueueType(columnPosition, QueueType.LightPropagation))
+                                {
+                                    ColumnBuilder.PropagateLights(GameState.World.WorldColumns, columnPosition);
+                                } else
+                                {
+                                    if (GameState.World.WorldColumns[columnPosition].HasPriority)
+                                    {
+                                        HighPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    } else
+                                    {
+                                        LowPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    }
                                 }
                             }
+                        }
+                        break;
+                    case QueueType.Mesh:
+                        if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) break;
+                        if (NetworkingValues.Server?.IsNetworked ?? false)
+                        {
+                            GameState.World.WorldColumns[columnPosition].QueueType = QueueType.Upload;
+                            LowPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                        } else 
+                        {
+                            bool shouldQueue = false;
+                            foreach (Player player in NetworkingValues.Server?.ConnectedPlayers.Values)
+                            {
+
+                                if (Maths.ChebyshevDistance2D(columnPosition, player.Loader.PlayerPosition) < WorldGenerationRadius - 2)
+                                {
+
+                                    shouldQueue = true;
+                                    break;
+
+                                }
+
+                            }
+                            if (shouldQueue)
+                            {
+                                if (AreNeighborColumnsTheSameQueueType(columnPosition, QueueType.Mesh))
+                                {
+                                    ColumnBuilder.Mesh(GameState.World.WorldColumns, columnPosition);
+                                } else
+                                {
+                                    if (GameState.World.WorldColumns[columnPosition].HasPriority)
+                                    {
+                                        HighPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    } else
+                                    {
+                                        LowPriorityWorldGenerationQueue.Enqueue(columnPosition);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case QueueType.Unload:
+                        if (!GameState.World.WorldColumns.ContainsKey(columnPosition)) break;
+                        if (GameState.World.WorldColumns.TryRemove(columnPosition, out ChunkColumn column))
+                        {
+
+                            ColumnSerializer.SerializeColumn(column);
+
                         }
                         break;
 
                 }
 
             }
-            if (WorldGenerationQueue.Count == 0) _generationResetEvent.Reset();
+            if (LowPriorityWorldGenerationQueue.Count == 0 && HighPriorityWorldGenerationQueue.Count == 0) _manualResetEvents[Thread.CurrentThread.ManagedThreadId].Reset();
 
         }
         
     }
-
-    private static bool AreNeighborColumnsTheSameQueueType(Vector2i position, ColumnQueueType queueType)
+    private static bool AreNeighborColumnsTheSameQueueType(Vector2i position, QueueType queueType)
     {
 
         for (int x = -1; x <= 1; x++)
@@ -133,49 +259,30 @@ public class WorldGenerator
             {
                 if ((x,z) != Vector2i.Zero) 
                 {
-                    if (!World.WorldColumns.ContainsKey(position + (x,z)))
+                    if (!GameState.World.WorldColumns.ContainsKey(position + (x,z)))
                     {
                         return false;
-                    } else if (!IsColumnTheSameQueueType(World.WorldColumns[position + (x,z)], queueType)) return false;
-                    // if (!CurrentWorld.WorldColumns.ContainsKey(position + (x,z))) return false;
-                } // else if (!IsColumnTheSameQueueType(CurrentWorld.WorldColumns[position + (x,z)], queueType)) return false;
+                    } else if (!IsColumnTheSameQueueType(GameState.World.WorldColumns[position + (x,z)], queueType)) return false;
+                }
             }
         }
         return true;
 
     }
-
-    private static bool IsColumnTheSameQueueType(ChunkColumn column, ColumnQueueType queueType)
+    private static bool IsColumnTheSameQueueType(ChunkColumn column, QueueType queueType)
     {
 
         return column.QueueType >= queueType;
 
     }
-
-    private static ConcurrentDictionary<Vector2i, ChunkColumn> GetSurroundingColumns(Vector2i position)
-    {
-
-        ConcurrentDictionary<Vector2i, ChunkColumn> columns = new();
-
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int z = -1; z <= 1; z++)
-            {
-                columns.TryAdd((x,z), World.WorldColumns[position + (x,z)]);
-            }
-        }
-
-        return columns;
-
-    }
-
     public static void Initialize()
     {
 
         for (int i = 0; i < GenerationThreadCount; i++)
         {
 
-            _generationThreads.Add(new Thread(HandleGenerationQueue));
+            _generationThreads[i] = new Thread(HandleGenerationQueue);
+            _manualResetEvents.Add(_generationThreads[i].ManagedThreadId, new ManualResetEvent(true));
             _generationThreads[i].Start();
 
         }
@@ -185,154 +292,44 @@ public class WorldGenerator
     public static void Update()
     {
 
-        if (WorldGenerationQueue.Count > 0 && !_generationResetEvent.WaitOne(0)) _generationResetEvent.Set();
-
-        /*
-        if (ColumnWorldGenerationQueue.Count > 0)
+        if (LowPriorityWorldGenerationQueue.Count > 0 || HighPriorityWorldGenerationQueue.Count > 0)
         {
 
-            for (int i = 0; i < (ColumnWorldGenerationQueue.Count >= _chunkGenerationAutoResetEvents.Count ? _chunkGenerationAutoResetEvents.Count : ColumnWorldGenerationQueue.Count); i++) {
-                _chunkGenerationAutoResetEvents.ElementAt(i).Value.Set();
+            for (int i = 0; i < GenerationThreadCount; i++)
+            {
+
+                if (!_manualResetEvents[_generationThreads[i].ManagedThreadId].WaitOne(0)) _manualResetEvents[_generationThreads[i].ManagedThreadId].Set();
+
             }
-            
+
         }
-        */
        
         HandleUploadQueue();
+        // HandleUnloadQueue();
         
-        // foreach (PackedChunkMesh m in CurrentWorld.PackedWorldMeshes.Values) m.Draw(player);
-        /*
-        foreach (ChunkColumn column in CurrentWorld.WorldColumns.Values)
+        foreach (ChunkColumn column in GameState.World.WorldColumns.Values)
         {
 
-            for (int i = 0; i < column.ChunkMeshes.Length; i++)
+            bool shouldUnload = true;
+            foreach (Player player in NetworkingValues.Server?.ConnectedPlayers.Values)
             {
 
-                column.ChunkMeshes[i].Draw(player);
-                
+                if (Maths.ChebyshevDistance2D(player.Loader.PlayerPosition, column.Position) <= WorldGenerationRadius) shouldUnload = false;
+
             }
 
-        }
-        */
-
-    }
-
-    static bool c = false;
-
-    public static List<Vector2i> GetArea(int radius, Vector2i playerPosition)
-    {
-
-        List<Vector2i> area = new();
-
-        for (int x = -radius; x <= radius; x++)
-        {
-
-            for (int z = -radius; z <= radius; z++)
+            if (shouldUnload)
             {
 
-                area.Add((x,z));
+                if (column.QueueType < QueueType.Mesh) continue; 
+
+                column.QueueType = QueueType.Unload;
+                LowPriorityWorldGenerationQueue.Enqueue(column.Position);
 
             }
 
         }
 
-        return area;
-
-    }
-
-    static int currentIndex = 0;
-    static Queue<Vector2i> _queue = new();
-    static Vector2i[] _offset = { (-1, 0), (1, 0), (0, 1), (0, -1) };
-    static bool hello = false;
-
-    public static void QueueGeneration()
-    {
-
-        if (!hello) 
-        {
-
-            _queue.Enqueue(Vector2i.Zero); 
-            World.WorldColumns.TryAdd(Vector2i.Zero, new ChunkColumn(Vector2i.Zero));
-            WorldGenerationQueue.Enqueue(Vector2i.Zero);
-
-            hello = true;
-
-        }
-
-        int c = 0;
-        while (_queue.Count != 0 && c < 20)
-        {
-
-            if (_queue.TryDequeue(out Vector2i res))
-            {
-
-                for (int i = 0; i < _offset.Length; i++)
-                {
-
-                    if (Maths.ChebyshevDistance2D(res + _offset[i], Vector2i.Zero) <= WorldGenerationRadius && World.WorldColumns.TryAdd(res + _offset[i], new ChunkColumn(res + _offset[i])))
-                    {
-
-                        WorldGenerationQueue.Enqueue(res + _offset[i]);
-                        _queue.Enqueue(res + _offset[i]);
-
-                    }
-
-                }
-
-            }
-            c++;
-
-        }   
-
-        /*
-        int maxPolledChunks = 8;
-
-        if (!c)
-        {
-
-            List<Vector2i> positions = GetArea(WorldGenerationRadius, Vector2i.Zero);
-
-            if (currentIndex < positions.Count)
-            {
-
-                int i = 0;
-                while (i <= maxPolledChunks && currentIndex < positions.Count)
-                {
-
-                    CurrentWorld.WorldColumns.TryAdd(positions[currentIndex], new ChunkColumn(positions[currentIndex]));
-                    ColumnWorldGenerationQueue.EnqueueLast(positions[currentIndex]);
-                    currentIndex++;
-                    i++;
-
-                }
-
-            } else
-            {
-
-                c = true;
-
-            }
-
-        }
-
-        /*
-        if (_currentRadius <= WorldGenerationRadius)
-        {
-
-            foreach (Vector2i columnPosition in ColumnUtils.GetRing(_currentRadius))
-            {
-
-                CurrentWorld.WorldColumns.TryAdd(columnPosition, new ChunkColumn(columnPosition));
-
-                ColumnWorldGenerationQueue.EnqueueLast(columnPosition);
-
-            }
-
-            _currentRadius++;
-
-        }
-        */
-        
     }
 
 }

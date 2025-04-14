@@ -10,6 +10,6 @@ namespace Game.Core.Modding;
 public interface IModLoader
 {
 
-    public abstract void OnLoad(Register register);
+    public abstract static void OnLoad(Register register);
 
 }

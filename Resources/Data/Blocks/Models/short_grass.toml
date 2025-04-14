@@ -1,0 +1,4 @@
+inherit = 'cross_base.toml'
+
+[textures]
+'$side' = ""

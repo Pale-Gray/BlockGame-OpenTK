@@ -3,13 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
 using Game.Core.Chunks;
 using Game.Core.TexturePack;
 using Game.Util;
+using LiteNetLib.Utils;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.Wgl;
 using OpenTK.Mathematics;
 using Tomlet;
 using Tomlet.Attributes;
@@ -62,8 +66,9 @@ public struct FaceProperties
 {
     
     [TomlProperty("texture_name")] public string TextureName { get; set; }
-    [TomlProperty("should_render_ao")] public bool? ShouldRenderAo { get; set; }
-    [TomlProperty("is_visible")] public bool? IsVisible { get; set; }
+    [TomlProperty("should_render_ao")] public bool ShouldRenderAo { get; set; } = true;
+    [TomlProperty("is_visible")] public bool IsVisible { get; set; } = true;
+    [TomlProperty("cull_direction")] public Direction? CullDirection { get; set; } = null;
 
     public FaceProperties() {}
 
@@ -75,16 +80,9 @@ public struct Cube
     [TomlProperty("end")] public Vector3 End { get; set; }
 
     [TomlProperty("rotation")] public Vector3 Rotation { get; set; }
-    [TomlProperty("origin")] public Vector3 Origin { get; set; }
+    [TomlProperty("origin")] public Vector3 Origin { get; set; } = (8, 8, 8);
     
     [TomlProperty("properties")] public Dictionary<string, FaceProperties> Properties { get; set; }
-
-    public string TopTextureName;
-    public string BottomTextureName;
-    public string LeftTextureName;
-    public string RightTextureName;
-    public string BackTextureName;
-    public string FrontTextureName;
 
     public Cube() { }
     
@@ -131,31 +129,48 @@ public class PrimitiveModelData
 public class BlockModel
 {
     
-    private Dictionary<Direction, List<PackedChunkVertex>> _computedModelPackedVertices = new();
-    private Dictionary<Direction, List<ChunkVertex>> _computedModelVertices = new();
     private Dictionary<Direction, List<Rectangle>> _solidModelFaces = new();
-    // private Dictionary<Direction, List<CustomVertex>> _computedModelGeneralVertices = new();
+    private Dictionary<Direction, List<Rectangle>> _cutoutModelFaces = new();
+    private Dictionary<Direction, List<Rectangle>> _freeformModelFaces = new();
     public bool IsFullBlock = true;
 
-    // FIXME: remove this shit
-    public List<PackedChunkVertex> QueryPackedFace(Direction direction, Vector3i offset, LightColor lightColor)
+    public BlockModel()
     {
-        List<PackedChunkVertex> result = [];
-        if (_computedModelPackedVertices.TryGetValue(direction, out List<PackedChunkVertex> packedVertices))
+
+        _solidModelFaces = new()
         {
-            for (int i = 0; i < packedVertices.Count; i++)
-            {
-                PackedChunkVertex vertex = packedVertices[i];
-                vertex.Position += offset;
-                vertex.LightColor = Vector3.One;
-                result.Add(vertex);
-            }
-        }
-        return result;
+            {Direction.Top, []},
+            {Direction.Bottom, []},
+            {Direction.Front, []},
+            {Direction.Left, []},
+            {Direction.Back, []},
+            {Direction.Right, []}
+        };  
+
+        _cutoutModelFaces = new()
+        {
+            {Direction.None, []},
+            {Direction.Top, []},
+            {Direction.Bottom, []},
+            {Direction.Front, []},
+            {Direction.Left, []},
+            {Direction.Back, []},
+            {Direction.Right, []}
+        };
+
+        _freeformModelFaces = new()
+        {
+            {Direction.None, []},
+            {Direction.Top, []},
+            {Direction.Bottom, []},
+            {Direction.Front, []},
+            {Direction.Left, []},
+            {Direction.Back, []},
+            {Direction.Right, []}
+        };
 
     }
-
-    public void QueryFace(List<Rectangle> rectangles, Direction direction, Vector3i offset)
+    public void AddAmbientOcclusionFace(List<Rectangle> rectangles, Direction direction, Vector3i offset, (Vector4, Vector4, Vector4, Vector4) lightData)
     {
 
         if (_solidModelFaces.ContainsKey(direction))
@@ -164,8 +179,58 @@ public class BlockModel
             {
                 Rectangle rect = rectangle;
                 rect.Position += offset;
+                rect.LightTopLeft = lightData.Item1;
+                rect.LightBottomLeft = lightData.Item2;
+                rect.LightBottomRight = lightData.Item3;
+                rect.LightTopRight = lightData.Item4;
                 rectangles.Add(rect);
             }
+        }
+
+    }
+
+    public void AddFreeformFace(List<Rectangle> rectangles, Direction direction, Vector3i offset, Vector4 lightData)
+    {
+
+        if (_freeformModelFaces.ContainsKey(direction))
+        {
+
+            foreach (Rectangle rectangle in _freeformModelFaces[direction])
+            {
+
+                Rectangle rect = rectangle;
+                rect.Position += offset;
+                rect.LightTopLeft = lightData;
+                rect.LightBottomLeft = lightData;
+                rect.LightBottomRight = lightData;
+                rect.LightTopRight = lightData;
+                rectangles.Add(rect);
+
+            }
+
+        }
+
+    }
+
+    public void AddCutoutFace(List<Rectangle> rectangles, Direction direction, Vector3i offset, Vector4 lightData)
+    {
+
+        if (_cutoutModelFaces.ContainsKey(direction))
+        {
+
+            foreach (Rectangle rectangle in _cutoutModelFaces[direction])
+            {
+
+                Rectangle rect = rectangle;
+                rect.Position += offset;
+                rect.LightTopLeft = lightData;
+                rect.LightBottomLeft = lightData;
+                rect.LightBottomRight = lightData;
+                rect.LightTopRight = lightData;
+                rectangles.Add(rect);
+
+            }
+
         }
 
     }
@@ -213,11 +278,412 @@ public class BlockModel
         foreach (Cube cube in modelData.Cubes)
         {
 
+            if (cube.Start.Y == cube.End.Y && cube.Properties["top"].IsVisible)
+            {
+                
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f;
+                rect.Tangent = new Vector3(0, 0, cube.End.Z - cube.Start.Z).Normalized();
+                // rect.Tangent = (0, 0, 1);
+                rect.Bitangent = new Vector3(cube.End.X - cube.Start.X, 0, 0).Normalized();
+                // rect.Bitangent = (1, 0, 0);
+                rect.TextureCoordinateOffset = cube.Start.Xz / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["top"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._cutoutModelFaces[cube.Properties["top"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    model._cutoutModelFaces[cube.Properties["top"].CullDirection ?? Direction.Top].Add(rect);
+
+                }
+                continue;
+                
+            }
+
+            if (cube.Start.X == cube.End.X && cube.Properties["left"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.Start.Y, cube.Start.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                // rect.Tangent = (0, 1, 0);
+                rect.Bitangent = new Vector3(0, 0, cube.End.Z - cube.Start.Z).Normalized();
+                // rect.Bitangent = (0, 0, 1);
+                rect.TextureCoordinateOffset = cube.Start.Zy / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["left"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._cutoutModelFaces[cube.Properties["left"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    model._cutoutModelFaces[cube.Properties["left"].CullDirection ?? Direction.Left].Add(rect);
+
+                }
+                continue;
+
+            }
+
+            if (cube.Start.Z == cube.End.Z && cube.Properties["front"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.Start.Y, cube.Start.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                // rect.Tangent = (0, 1, 0);
+                rect.Bitangent = new Vector3(cube.End.X - cube.Start.X, 0, 0).Normalized();
+                // rect.Bitangent = (-1, 0, 0);
+                rect.TextureCoordinateOffset = cube.Start.Xy / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["front"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._cutoutModelFaces[cube.Properties["front"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    model._cutoutModelFaces[cube.Properties["front"].CullDirection ?? Direction.Front].Add(rect);
+
+                }
+                continue;
+                
+            }
+
+            if (cube.Properties["top"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f;
+                rect.Tangent = new Vector3(0, 0, cube.End.Z - cube.Start.Z).Normalized();
+                // rect.Tangent = (0, 0, 1);
+                rect.Bitangent = new Vector3(cube.End.X - cube.Start.X, 0, 0).Normalized();
+                // rect.Bitangent = (1, 0, 0);
+                rect.TextureCoordinateOffset = cube.Start.Xz / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["top"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["top"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["top"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["top"].CullDirection ?? Direction.Top].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["top"].CullDirection ?? Direction.Top].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+            if (cube.Properties["bottom"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f;
+                rect.Tangent = new Vector3(0, 0, cube.Start.Z - cube.End.Z).Normalized();
+                rect.Bitangent = new Vector3(cube.End.X - cube.Start.Z, 0, 0).Normalized();
+                rect.TextureCoordinateOffset = cube.Start.Xz / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["bottom"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["bottom"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["bottom"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["bottom"].CullDirection ?? Direction.Bottom].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["bottom"].CullDirection ?? Direction.Bottom].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+            if (cube.Properties["front"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = cube.Start / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                rect.Bitangent = new Vector3(cube.End.X - cube.Start.X, 0, 0).Normalized();
+                rect.TextureCoordinateOffset = cube.Start.Xy / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["front"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["front"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["front"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["front"].CullDirection ?? Direction.Front].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["front"].CullDirection ?? Direction.Front].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+            if (cube.Properties["left"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.End.X, cube.Start.Y, cube.Start.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                rect.Bitangent = new Vector3(0, 0, cube.End.Z - cube.Start.Z).Normalized();
+                rect.TextureCoordinateOffset = cube.Start.Zy / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["left"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["left"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["left"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["left"].CullDirection ?? Direction.Left].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["left"].CullDirection ?? Direction.Left].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+            if (cube.Properties["back"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.End.X, cube.Start.Y, cube.End.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                rect.Bitangent = new Vector3(cube.Start.Z - cube.End.Z, 0, 0).Normalized();
+                rect.TextureCoordinateOffset = new Vector2(16.0f - cube.End.X, cube.Start.Y) / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["back"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["back"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["back"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["back"].CullDirection ?? Direction.Back].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["back"].CullDirection ?? Direction.Back].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+            if (cube.Properties["right"].IsVisible)
+            {
+
+                Rectangle rect = new Rectangle();
+                rect.Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f;
+                rect.Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f;
+                rect.Tangent = new Vector3(0, cube.End.Y - cube.Start.Y, 0).Normalized();
+                rect.Bitangent = new Vector3(0, 0, cube.Start.Z - cube.End.Z).Normalized();
+                rect.TextureCoordinateOffset = cube.Start.Zy / 16.0f;
+                rect.TextureCoordinateDimensions = rect.Size;
+                rect.TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["right"].TextureName]);
+
+                if (cube.Rotation != Vector3.Zero)
+                {
+
+                    Matrix3 rotation = Matrix3.CreateRotationZ(Maths.ToRadians(cube.Rotation.Z))
+                                     * Matrix3.CreateRotationY(Maths.ToRadians(cube.Rotation.Y))
+                                     * Matrix3.CreateRotationX(Maths.ToRadians(cube.Rotation.X));
+
+                    rect.Position -= cube.Origin / 16.0f;
+                    rect.Position *= rotation;
+                    rect.Tangent *= rotation;
+                    rect.Bitangent *= rotation;
+                    rect.Position += cube.Origin / 16.0f;
+
+                    model._freeformModelFaces[cube.Properties["right"].CullDirection ?? ResolveDirection(rect)].Add(rect);
+
+                } else
+                {
+
+                    if (cube.Properties["right"].ShouldRenderAo)
+                    {
+
+                        model._solidModelFaces[cube.Properties["right"].CullDirection ?? Direction.Right].Add(rect);
+
+                    } else
+                    {
+
+                        model._freeformModelFaces[cube.Properties["right"].CullDirection ?? Direction.Right].Add(rect);
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        /*
+        foreach (Cube cube in modelData.Cubes)
+        {
+
             if (model._solidModelFaces.ContainsKey(Direction.Top))
             {
                 model._solidModelFaces[Direction.Top].Add(new Rectangle() { 
                     Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f,
-                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f,
                     Tangent = (0, 0, 1), 
                     Bitangent = (1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xz / 16.0f,
@@ -228,7 +694,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Top, [new Rectangle() { 
                     Position = new Vector3(cube.Start.X, cube.End.Y, cube.Start.Z) / 16.0f, 
-                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f,
                     Tangent = (0, 0, 1), 
                     Bitangent = (1, 0, 0), 
                     TextureCoordinateOffset = cube.Start.Xz / 16.0f, 
@@ -240,8 +706,8 @@ public class BlockModel
             if (model._solidModelFaces.ContainsKey(Direction.Front))
             {
                 model._solidModelFaces[Direction.Front].Add(new Rectangle() {
-                    Position = cube.Start / 15.0f,
-                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Position = cube.Start / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xy / 16.0f,
@@ -252,7 +718,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Front, [new Rectangle() {
                     Position = cube.Start / 16.0f,
-                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xy / 16.0f,
@@ -265,7 +731,7 @@ public class BlockModel
             {
                 model._solidModelFaces[Direction.Left].Add(new Rectangle() {
                     Position = new Vector3(cube.End.X, cube.Start.Y, cube.Start.Z) / 16.0f,
-                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (0, 0, 1),
                     TextureCoordinateOffset = cube.Start.Zy / 16.0f,
@@ -276,7 +742,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Left, [new Rectangle() {
                     Position = new Vector3(cube.End.X, cube.Start.Y, cube.Start.Z) / 16.0f,
-                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (0, 0, 1),
                     TextureCoordinateOffset = cube.Start.Zy / 16.0f,
@@ -289,7 +755,7 @@ public class BlockModel
             {
                 model._solidModelFaces[Direction.Back].Add(new Rectangle() {
                     Position = new Vector3(cube.End.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (-1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xy / 16.0f,
@@ -300,7 +766,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Back, [new Rectangle() {
                     Position = new Vector3(cube.End.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Xy - cube.Start.Xy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xy - cube.Start.Xy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (-1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xy / 16.0f,
@@ -313,7 +779,7 @@ public class BlockModel
             {
                 model._solidModelFaces[Direction.Right].Add(new Rectangle() {
                     Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (0, 0, -1),
                     TextureCoordinateOffset = cube.Start.Zy / 16.0f,
@@ -324,7 +790,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Right, [new Rectangle() {
                     Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Zy - cube.Start.Zy) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Zy - cube.Start.Zy) / 16.0f,
                     Tangent = (0, 1, 0),
                     Bitangent = (0, 0, -1),
                     TextureCoordinateOffset = cube.Start.Zy / 16.0f,
@@ -337,7 +803,7 @@ public class BlockModel
             {
                 model._solidModelFaces[Direction.Bottom].Add(new Rectangle() {
                     Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f,
                     Tangent = (0, 0, -1),
                     Bitangent = (1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xz / 16.0f,
@@ -348,7 +814,7 @@ public class BlockModel
             {
                 model._solidModelFaces.Add(Direction.Bottom, [new Rectangle() {
                     Position = new Vector3(cube.Start.X, cube.Start.Y, cube.End.Z) / 16.0f,
-                    Size = (cube.End.Xz - cube.Start.Xz) / 16.0f,
+                    Size = Vector2.Abs(cube.End.Xz - cube.Start.Xz) / 16.0f,
                     Tangent = (0, 0, -1),
                     Bitangent = (1, 0, 0),
                     TextureCoordinateOffset = cube.Start.Xz / 16.0f,
@@ -356,91 +822,38 @@ public class BlockModel
                     TextureIndex = (uint) TexturePackManager.GetTextureIndex(modelData.Textures[cube.Properties["bottom"].TextureName])
                 }]);
             }
-
-            /*
-            // can go in packed dictionary
-            if (cube.Start == (0, 0, 0) && cube.End == (32, 32, 32) && 
-                cube.Rotation == (0, 0, 0) && cube.Origin == (0, 0, 0))
-            {
-
-                Vector3i normalizedEnd = (Vector3i) (cube.End / 32.0f);
-                Vector3i normalizedStart = (Vector3i) (cube.Start / 32.0f);
-                foreach (KeyValuePair<string, FaceProperties> faceProperties in cube.Properties)
-                {
-
-                    if (faceProperties.Value.IsVisible ?? true)
-                    {
-
-                        switch (faceProperties.Key)
-                        {
-                            case "top":
-                                // Console.WriteLine($"{modelData.Textures[faceProperties.Value.TextureName]}, {TexturePackManager.GetTextureHandleIndex(modelData.Textures[faceProperties.Value.TextureName])}");
-                                model._computedModelPackedVertices.Add(Direction.Top, [
-                                    new PackedChunkVertex(normalizedEnd, Core.Chunks.Direction.Up, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd - (0, 0, 1),Core.Chunks.Direction.Up, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 0), Core.Chunks.Direction.Up, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 1), Core.Chunks.Direction.Up, 3, modelData.Textures[faceProperties.Value.TextureName]),
-                                ]);
-                                break;
-                            case "bottom":
-                                model._computedModelPackedVertices.Add(Direction.Bottom, [
-                                    new PackedChunkVertex(normalizedStart + (1, 0, 0), Core.Chunks.Direction.Down, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd - (0, 1, 0), Core.Chunks.Direction.Down, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 0, 1), Core.Chunks.Direction.Down, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart, Core.Chunks.Direction.Down, 3, modelData.Textures[faceProperties.Value.TextureName])
-                                ]);
-                                break;
-                            case "right":
-                                model._computedModelPackedVertices.Add(Direction.Right, [
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 0), Core.Chunks.Direction.Right, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart, Core.Chunks.Direction.Right, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 0, 1), Core.Chunks.Direction.Right, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 1), Core.Chunks.Direction.Right, 3, modelData.Textures[faceProperties.Value.TextureName])
-                                ]);
-                                break;
-                            case "left":
-                                model._computedModelPackedVertices.Add(Direction.Left, [
-                                    new PackedChunkVertex(normalizedEnd, Core.Chunks.Direction.Left, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd - (0, 1, 0), Core.Chunks.Direction.Left, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (1, 0, 0), Core.Chunks.Direction.Left, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd - (0, 0, 1), Core.Chunks.Direction.Left, 3, modelData.Textures[faceProperties.Value.TextureName])
-                                ]);
-                                break;
-                            case "back":
-                                model._computedModelPackedVertices.Add(Direction.Back, [
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 1), Core.Chunks.Direction.Back, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 0, 1), Core.Chunks.Direction.Back, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd - (0, 1, 0), Core.Chunks.Direction.Back, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedEnd, Core.Chunks.Direction.Back, 3, modelData.Textures[faceProperties.Value.TextureName])
-                                ]);
-                                break;
-                            case "front":
-                                model._computedModelPackedVertices.Add(Direction.Front, [
-                                    new PackedChunkVertex(normalizedStart + (1, 1, 0), Core.Chunks.Direction.Front, 0, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (1, 0, 0), Core.Chunks.Direction.Front, 1, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart, Core.Chunks.Direction.Front, 2, modelData.Textures[faceProperties.Value.TextureName]),
-                                    new PackedChunkVertex(normalizedStart + (0, 1, 0), Core.Chunks.Direction.Front, 3, modelData.Textures[faceProperties.Value.TextureName])
-                                ]);
-                                break;
-                            
-                        }
-                        
-                    }
-                    
-                }
-                
-            }
-            else
-            {
-                
-                
-                
-            }
-            */
-            
         }
+        */
         
         return model;
+
+    }
+
+    private static Direction ResolveDirection(Rectangle rect)
+    {
+
+        Vector3 normal = Vector3.Cross(rect.Tangent, rect.Bitangent).Normalized();
+        if (normal.X == -0) normal.X = 0;
+        if (normal.Y == -0) normal.Y = 0;
+        if (normal.Z == -0) normal.Z = 0;
+
+        switch (normal)
+        {
+            case (0, 1, 0):
+                return Direction.Top;
+            case (0, -1, 0):
+                return Direction.Bottom;
+            case (1, 0, 0):
+                return Direction.Left;
+            case (-1, 0, 0):
+                return Direction.Right;
+            case (0, 0, 1):
+                return Direction.Back;
+            case (0, 0, -1):
+                return Direction.Front;
+            default:
+                return Direction.None;
+        }
 
     }
 

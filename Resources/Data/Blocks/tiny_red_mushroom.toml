@@ -1,0 +1,3 @@
+display_name = "Game.Block.RedMushroom"
+block_model = "tiny_red_mushroom.toml"
+is_solid = false

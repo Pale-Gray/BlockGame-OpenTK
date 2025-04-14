@@ -9,6 +9,7 @@
 [[cubes]]
 start = [0, 0, 0]
 end = [16, 16, 16]
+rotation = [0, 45, 0]
 [cubes.properties]
 top.texture_name = '$up'
 bottom.texture_name = '$down'

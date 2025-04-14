@@ -13,6 +13,7 @@ using System.Net;
 using Game.PlayerUtil;
 using Game.Core.PlayerUtil;
 using System.IO;
+using Game.Core.Chrono;
 
 namespace Game.Core.Worlds;
 
@@ -20,151 +21,128 @@ public class World
 {
     
     public ConcurrentDictionary<Vector3i, Chunk> PackedWorldChunks = new();
-    public ConcurrentDictionary<Vector3i, ChunkMesh> PackedWorldMeshes = new();
-    public ConcurrentDictionary<Vector2i, uint[]> MaxColumnBlockHeight = new();
     public ConcurrentDictionary<Vector2i, ChunkColumn> WorldColumns = new();
+    public long TickTime;
+    public Skybox Skybox;
     public string WorldPath { get; private set; }
 
     public World(string worldPath)
     {
 
         WorldPath = worldPath;
-        if (!Directory.Exists(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))))) Directory.CreateDirectory(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))));
+        Skybox = new Skybox();
+        Directory.CreateDirectory(Path.Combine("Worlds", worldPath, "Chunks"));
+        // if (!Directory.Exists(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))))) Directory.CreateDirectory(Path.Combine("Worlds", Path.Combine(worldPath.Split('/'))));
+
+    }
+
+    public void TickUpdate()
+    {
+
+        TickTime++;
 
     }
     public void Draw(Player player)
     {
 
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+        GL.Disable(EnableCap.CullFace);
+        Skybox.Draw(player);
+        GL.Enable(EnableCap.CullFace);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
         foreach (ChunkColumn column in WorldColumns.Values)
         {
 
-            for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++)
+            if (Maths.ChebyshevDistance2D(column.Position, player.Loader.PlayerPosition) <= WorldGenerator.WorldGenerationRadius - 3)
             {
 
-                column.ChunkMeshes[i].Draw(player);
+                for (int i = 0; i < WorldGenerator.WorldGenerationHeight; i++) column.ChunkMeshes[i].Draw(player);
 
             }
 
         }
 
     }
-    public Dictionary<Vector3i, Chunk> GetChunkNeighbors(Vector3i chunkPosition)
+
+    public void AddModel(BlockModel model, Vector3i globalBlockPosition)
     {
 
-        Dictionary<Vector3i, Chunk> neighbors = new();
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                for (int z = -1; z <= 1; z++)
-                {
-                    if (WorldGenerator.World.PackedWorldChunks.TryGetValue((x,y,z) + chunkPosition, out Chunk chunk)) neighbors.TryAdd((x, y, z), chunk);
-                }
-            }
-        }
-        return neighbors;
+        Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
+        Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
+
+        ChunkMesh mesh = WorldColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y];
+
+        
 
     }
 
-    private Vector3i[] _offsets = [ Vector3i.UnitX, -Vector3i.UnitX, Vector3i.UnitY, -Vector3i.UnitY, Vector3i.UnitZ, -Vector3i.UnitZ];
-    public void RemoveLight(Vector3i globalBlockPosition)
+    public void AddLight(Vector3i globalBlockPosition, ushort red, ushort green, ushort blue) 
     {
 
-        BlockLight light = new BlockLight();
-        light.Position = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
-        light.LightColor = ChunkUtils.GetLightColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition));
-        Console.WriteLine(light.LightColor);
+        Vector2i columnPosition = ColumnUtils.PositionToChunk(globalBlockPosition);
+        Vector3i columnLocalPosition = ColumnUtils.GlobalToLocal(globalBlockPosition);
 
-        if (light.LightColor.R != 0)
+        if (red != 0)
         {
-            ChunkUtils.SetLightRedColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], light.Position, 0);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightRemovalQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition), new LightColor(light.LightColor.R, 0, 0)));
-        } else
-        {
-            for (int i = 0; i < _offsets.Length; i++)
-            {
-                ushort redvalue = ChunkUtils.GetLightRedColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + _offsets[i]));
-                if (redvalue != 0)
-                {
-                    PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])].BlockLightAdditionQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]), new LightColor(redvalue, 0, 0)));
-                }
-            }
+            ColumnUtils.SetRedBlocklightValue(WorldColumns[columnPosition], columnLocalPosition, red);
+            WorldColumns[columnPosition].RedBlocklightAdditionQueue.Enqueue(globalBlockPosition);
         }
-        if (light.LightColor.G != 0)
+
+        if (green != 0)
         {
-            ChunkUtils.SetLightGreenColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], light.Position, 0);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightRemovalQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition), new LightColor(0, light.LightColor.G, 0)));
-        } else 
-        {
-            for (int i = 0; i < _offsets.Length; i++)
-            {
-                ushort greenValue = ChunkUtils.GetLightGreenColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + _offsets[i]));
-                if (greenValue != 0)
-                {
-                    PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])].BlockLightAdditionQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]), new LightColor(0, greenValue, 0)));
-                }
-            }
+            ColumnUtils.SetGreenBlocklightValue(WorldColumns[columnPosition], columnLocalPosition, green);
+            WorldColumns[columnPosition].GreenBlocklightAdditionQueue.Enqueue(globalBlockPosition);
         }
-        if (light.LightColor.B != 0)
+
+        if (blue != 0)
         {
-            ChunkUtils.SetLightBlueColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], light.Position, 0);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightRemovalQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition), new LightColor(0, 0, light.LightColor.B)));
-        } else
-        {
-            for (int i = 0; i < _offsets.Length; i++)
-            {
-                ushort blueValue = ChunkUtils.GetLightBlueColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])], ChunkUtils.PositionToBlockLocal(light.Position + _offsets[i]));
-                if (blueValue != 0)
-                {
-                    PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition + _offsets[i])].BlockLightAdditionQueue.Enqueue(new BlockLight(ChunkUtils.PositionToBlockLocal(globalBlockPosition + _offsets[i]), new LightColor(0, 0, blueValue)));
-                }
-            }
+            ColumnUtils.SetBlueBlocklightValue(WorldColumns[columnPosition], columnLocalPosition, blue);
+            WorldColumns[columnPosition].BlueBlocklightAdditionQueue.Enqueue(globalBlockPosition);
         }
 
     }
 
-    public void AddLight(Vector3i globalBlockPosition, BlockLight light) 
+    public void SetBlock(Vector3i globalBlockPosition, Block block, bool isPlayerPlaced = true)
     {
 
-        light.Position = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
+        ColumnUtils.SetBlockId(WorldColumns[ColumnUtils.PositionToChunk(globalBlockPosition)], globalBlockPosition, block.Id);
+        ColumnUtils.SetSolidBlock(WorldColumns[ColumnUtils.PositionToChunk(globalBlockPosition)], globalBlockPosition, block.IsSolid);
+        ColumnUtils.SetHeightmap(WorldColumns[ColumnUtils.PositionToChunk(globalBlockPosition)], globalBlockPosition);
 
-        if (light.LightColor.R != 0)
+        if (isPlayerPlaced)
         {
-            ChunkUtils.SetLightRedColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), light.LightColor.R);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position, new LightColor(light.LightColor.R, 0, 0)));
-        }
 
-        if (light.LightColor.G != 0)
-        {
-            ChunkUtils.SetLightGreenColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), light.LightColor.G);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position, new LightColor(0, light.LightColor.G, 0)));
-        }
+            Vector2i chunkPosition = ColumnUtils.PositionToChunk(globalBlockPosition);
 
-        if (light.LightColor.B != 0)
-        {
-            ChunkUtils.SetLightBlueColor(PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)], ChunkUtils.PositionToBlockLocal(globalBlockPosition), light.LightColor.B);
-            PackedWorldChunks[ChunkUtils.PositionToChunk(globalBlockPosition)].BlockLightAdditionQueue.Enqueue(new BlockLight(light.Position, new LightColor(0, 0, light.LightColor.B)));
+            ushort sunlightValue = ColumnUtils.GetSunlightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition));
+            ushort redLightValue = ColumnUtils.GetRedBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition));
+            ushort greenLightValue = ColumnUtils.GetGreenBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition));
+            ushort blueLightValue = ColumnUtils.GetBlueBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition));
+            ColumnUtils.SetSunlightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition), 0);
+            WorldColumns[chunkPosition].SunlightRemovalQueue.Enqueue((globalBlockPosition, sunlightValue));
+            ColumnUtils.SetRedBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition), 0);
+            WorldColumns[chunkPosition].RedBlocklightRemovalQueue.Enqueue((globalBlockPosition, redLightValue));
+            ColumnUtils.SetGreenBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition), 0);
+            WorldColumns[chunkPosition].GreenBlocklightRemovalQueue.Enqueue((globalBlockPosition, greenLightValue));
+            ColumnUtils.SetBlueBlocklightValue(WorldColumns[chunkPosition], ColumnUtils.GlobalToLocal(globalBlockPosition), 0);
+            WorldColumns[chunkPosition].BlueBlocklightRemovalQueue.Enqueue((globalBlockPosition, blueLightValue));
+
+            Commit(globalBlockPosition);
+
         }
 
     }
 
-    public void SetBlock(Vector3i globalBlockPosition, Block block)
-    {
-
-        ColumnUtils.SetBlockId(WorldColumns[ChunkUtils.PositionToChunk(globalBlockPosition).Xz], globalBlockPosition, block.Id);
-        ColumnUtils.SetSolidBlock(WorldColumns[ChunkUtils.PositionToChunk(globalBlockPosition).Xz], globalBlockPosition, block.IsSolid);
-
-    }
-
-    public void QueueChunk(Vector3i globalBlockPosition)
+    private void Commit(Vector3i globalBlockPosition)
     {
 
         Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
 
-        WorldColumns[chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
+        WorldColumns[chunkPosition.Xz].QueueType = QueueType.LightPropagation;
         WorldColumns[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
         WorldColumns[chunkPosition.Xz].HasPriority = true;
-        WorldGenerator.WorldGenerationQueue.Enqueue(chunkPosition.Xz);
+        WorldGenerator.HighPriorityWorldGenerationQueue.Enqueue(chunkPosition.Xz);
 
         for (int x = -1; x <= 1; x++)
         {
@@ -174,10 +152,14 @@ public class World
 
                 if ((x,z) != Vector2i.Zero)
                 {
-                    WorldColumns[(x,z) + chunkPosition.Xz].QueueType = ColumnQueueType.Mesh;
-                    WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
-                    WorldColumns[(x,z) + chunkPosition.Xz].HasPriority = true;
-                    WorldGenerator.WorldGenerationQueue.Enqueue((x,z) + chunkPosition.Xz);
+
+                    WorldColumns[(x,z) + chunkPosition.Xz].QueueType = QueueType.LightPropagation;
+                    if ((x,z) != Vector2i.Zero) WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates = true;
+                    if (chunkPosition.Y + 1 < WorldGenerator.WorldGenerationHeight) WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y + 1].HasUpdates = true;
+                    if (chunkPosition.Y - 1 > 0) WorldColumns[(x,z) + chunkPosition.Xz].Chunks[chunkPosition.Y - 1].HasUpdates = true;
+                    WorldColumns[(x,z) + chunkPosition.Xz].HasPriority = false;
+                    WorldGenerator.LowPriorityWorldGenerationQueue.Enqueue((x,z) + chunkPosition.Xz);
+
                 }
 
             }

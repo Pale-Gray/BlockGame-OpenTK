@@ -1,0 +1,3 @@
+display_name = "Game.Block.ShortGrass"
+block_model = "short_grass.toml"
+is_solid = false

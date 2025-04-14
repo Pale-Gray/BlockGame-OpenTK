@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Game.BlockProperty;
+namespace Game.Core.BlockStorage;
 
 public class DataReader : IDisposable
 {

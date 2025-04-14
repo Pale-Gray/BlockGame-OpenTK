@@ -18,7 +18,6 @@ public class Register
     public void RegisterBlock(Namespace nameSpace, Block block)
     {
         
-        // GameLogger.Log($"NewRegistering block {nameSpace}");
         _blocks.Add(block);
         block.Id = (ushort)_blocks.IndexOf(block);
         block.Namespace = nameSpace;

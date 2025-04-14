@@ -632,7 +632,7 @@ namespace Game.Util
 
                 Vector3i chunkPosition = ChunkUtils.PositionToChunk(GlobalBlockPosition);
 
-                if (chunkPosition.Y <= WorldGenerator.WorldGenerationHeight && chunkPosition.Y >= 0 && chunkDictionary.ContainsKey(chunkPosition.Xz) && !chunkDictionary[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates)
+                if (chunkPosition.Y < WorldGenerator.WorldGenerationHeight && chunkPosition.Y >= 0 && chunkDictionary.ContainsKey(chunkPosition.Xz) && !chunkDictionary[chunkPosition.Xz].Chunks[chunkPosition.Y].HasUpdates)
                 {
                         
                     // if its not air...

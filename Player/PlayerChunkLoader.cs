@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Game.Core.Chunks;
 using Game.Core.Worlds;
@@ -13,8 +14,9 @@ public class PlayerChunkLoader
 
     private HashSet<Vector2i> _existingChunks = new();
     private Queue<Vector2i> _samples = new();
+
+    private Vector2i _previousPlayerPosition;
     public Vector2i PlayerPosition;
-    private Vector2i[] _neighbors = { (1, 0), (-1, 0), (0, 1), (0, -1) };
 
     public PlayerChunkLoader(Vector2i playerPosition)
     {
@@ -23,50 +25,41 @@ public class PlayerChunkLoader
 
     }
 
-    public void Tick(World world)
+    public void Tick(World world, bool initialState = false)
     {
 
-        int updates = 0;
-        while (_samples.Count > 0 && updates < 5)
+        if (Maths.ChebyshevDistance2D(_previousPlayerPosition, PlayerPosition) >= 2 || initialState)
         {
 
-            if (_samples.TryDequeue(out Vector2i sample))
+            _previousPlayerPosition = PlayerPosition;
+
+            for (int x = -WorldGenerator.WorldGenerationRadius; x <= WorldGenerator.WorldGenerationRadius; x++)
             {
 
-                foreach (Vector2i neighbor in _neighbors)
+                for (int z = -WorldGenerator.WorldGenerationRadius; z <= WorldGenerator.WorldGenerationRadius; z++)
                 {
 
-                    if (Maths.ChebyshevDistance2D(sample + neighbor, PlayerPosition) <= WorldGenerator.WorldGenerationRadius && !_existingChunks.Contains(sample + neighbor))
+                    if (GameState.World.WorldColumns.ContainsKey((x,z) + _previousPlayerPosition))
                     {
 
-                        _existingChunks.Add(sample + neighbor);
-                        _samples.Enqueue(sample + neighbor);
-                        // add a new chunk to the generation queue
-                        world.WorldColumns.TryAdd(sample + neighbor, new ChunkColumn(sample + neighbor) { QueueType = ColumnQueueType.PassOne });
-                        WorldGenerator.WorldGenerationQueue.Enqueue(sample + neighbor);
+                        if (GameState.World.WorldColumns[(x,z) + _previousPlayerPosition].QueueType < QueueType.Done)
+                        {
+
+                            WorldGenerator.LowPriorityWorldGenerationQueue.Enqueue((x,z) + _previousPlayerPosition);
+
+                        }
+
+                    } else
+                    {
+
+                        GameState.World.WorldColumns.TryAdd((x,z) + _previousPlayerPosition, new ChunkColumn((x,z) + _previousPlayerPosition));
+                        WorldGenerator.LowPriorityWorldGenerationQueue.Enqueue((x,z) + _previousPlayerPosition);
 
                     }
 
                 }
 
             }
-            updates++;
-
-        }
-
-    }
-
-    public void QueuePosition(World world, Vector2i position)
-    {
-
-        _samples.Enqueue(position);
-        if (!_existingChunks.Contains(position))
-        {
-
-            _existingChunks.Add(position);
-            // add a new chunk to the generation queue 
-            world.WorldColumns.TryAdd(position, new ChunkColumn(position) { QueueType = ColumnQueueType.PassOne });
-            WorldGenerator.WorldGenerationQueue.Enqueue(position);
 
         }
 
