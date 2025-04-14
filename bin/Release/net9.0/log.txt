@@ -1,0 +1,12 @@
+[Info] Starting in client mode
+[Info] Supports raw mouse? False
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/home/pale/CSharp/BlockGame-OpenTK/bin/Release/net9.0/Resources/Textures/fatlas.png'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenRead(String path)
+   at Game.Util.Texture..ctor(String imageFile) in /Util/Texture.cs:line 42
+   at Game.GuiRendering.TextRenderer.Initialize() in /Gui/TextRenderer.cs:line 61
+   at Game.Core.Networking.Client.Load() in /Networking/Client.cs:line 37
+   at Game.Program.Main(String[] args) in /Program.cs:line 225

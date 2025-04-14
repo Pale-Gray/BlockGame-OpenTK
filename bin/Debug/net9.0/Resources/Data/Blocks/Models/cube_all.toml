@@ -1,0 +1,13 @@
+[textures]
+'$all' = 'MissingTexture'
+
+[[cubes]]
+start = [0, 0, 0]
+end = [32, 32, 32]
+[cubes.properties]
+top.texture_name = '$all'
+bottom.texture_name = '$all'
+left.texture_name = '$all'
+right.texture_name = '$all'
+front.texture_name = '$all'
+back.texture_name = '$all'

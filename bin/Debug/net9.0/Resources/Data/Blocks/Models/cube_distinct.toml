@@ -1,0 +1,18 @@
+[textures]
+'$up' = 'MissingTexture'
+'$down' = 'MissingTexture'
+'$left' = 'MissingTexture'
+'$right' = 'MissingTexture'
+'$back' = 'MissingTexture'
+'$front' = 'MissingTexture'
+
+[[cubes]]
+start = [0, 0, 0]
+end = [32, 32, 32]
+[cubes.properties]
+top.texture_name = '$up'
+bottom.texture_name = '$down'
+left.texture_name = '$left'
+right.texture_name = '$right'
+front.texture_name = '$front'
+back.texture_name = '$back'

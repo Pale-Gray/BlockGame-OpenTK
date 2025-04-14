@@ -1,0 +1,9 @@
+inherit = "cube_distinct.toml"
+
+[textures]
+'$up' = "EmptyCrateTop"
+'$down' = "CrateBottom"
+'$left' = "CrateSide"
+'$right' = "CrateSide"
+'$back' = "CrateSide"
+'$front' = "CrateSide"
