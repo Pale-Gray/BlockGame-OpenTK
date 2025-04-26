@@ -279,7 +279,7 @@ namespace Game
             // PackedWorldGenerator.CurrentWorld = NetworkingValues.Client.World;
             // PackedWorldGenerator.Initialize();
             
-            GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
+            // GlobalValues.GuiLineShader = new Shader("lines2.vert", "lines2.frag");
 
             int extensionCount = GL.GetInteger(GetPName.NumExtensions);
             List<string> requestedExtensions = [ "GL_ATI_meminfo", "GL_NVX_gpu_memory_info" ];

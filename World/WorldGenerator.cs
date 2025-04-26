@@ -27,15 +27,12 @@ public class WorldGenerator
     public static int WorldGenerationHeight = 8; // The height starting from y = 0
     public static int MaxChunkUploadCount = 999999999;
     public static int GenerationThreadCount = 10;
-    private static int _currentRadius = 0;
     public static bool IsSmoothLightingEnabled = true;
-    public static DoubleEndedQueue<Vector3i> PackedChunkWorldGenerationQueue = new();
-    public static ThreadSafeDoubleEndedQueue<Vector3i> PackedChunkWorldUploadQueue = new();
-    public static ThreadSafeDoubleEndedQueue<Vector2i> ColumnWorldUploadQueue = new();
     private static ManualResetEvent _generationResetEvent = new ManualResetEvent(true);
     public static ConcurrentQueue<Vector2i> LowPriorityWorldGenerationQueue = new();
     public static ConcurrentQueue<Vector2i> HighPriorityWorldGenerationQueue = new();
     public static ConcurrentQueue<Vector2i> UnloadQueue = new();
+    public static ConcurrentQueue<Vector2i> UploadQueue = new();
     public static Thread[] _generationThreads = new Thread[GenerationThreadCount];
     public static Dictionary<int, ManualResetEvent> _manualResetEvents = new();
 
@@ -82,7 +79,7 @@ public class WorldGenerator
     private static void HandleUploadQueue()
     {
 
-        if (ColumnWorldUploadQueue.TryDequeueFirst(out Vector2i columnPosition))
+        if (UploadQueue.TryDequeue(out Vector2i columnPosition))
         {
         
             if (NetworkingValues.Server?.IsNetworked ?? false)
@@ -259,10 +256,8 @@ public class WorldGenerator
             {
                 if ((x,z) != Vector2i.Zero) 
                 {
-                    if (!GameState.World.WorldColumns.ContainsKey(position + (x,z)))
-                    {
-                        return false;
-                    } else if (!IsColumnTheSameQueueType(GameState.World.WorldColumns[position + (x,z)], queueType)) return false;
+                    if (!GameState.World.WorldColumns.ContainsKey(position + (x,z)) 
+                    || !IsColumnTheSameQueueType(GameState.World.WorldColumns[position + (x,z)], queueType)) return false;
                 }
             }
         }
@@ -272,7 +267,7 @@ public class WorldGenerator
     private static bool IsColumnTheSameQueueType(ChunkColumn column, QueueType queueType)
     {
 
-        return column.QueueType >= queueType;
+        return column.QueueType >= queueType && column.QueueType != QueueType.Unload;
 
     }
     public static void Initialize()
@@ -305,7 +300,6 @@ public class WorldGenerator
         }
        
         HandleUploadQueue();
-        // HandleUnloadQueue();
         
         foreach (ChunkColumn column in GameState.World.WorldColumns.Values)
         {
@@ -323,6 +317,7 @@ public class WorldGenerator
 
                 if (column.QueueType < QueueType.Mesh) continue; 
 
+                column.FreeResources();
                 column.QueueType = QueueType.Unload;
                 LowPriorityWorldGenerationQueue.Enqueue(column.Position);
 

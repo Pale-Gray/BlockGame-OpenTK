@@ -4,6 +4,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 conversion;
 uniform vec3 chunkPosition;
+uniform float uTime;
 
 out vec3 vNormal;
 out vec2 vTextureCoordinate;
@@ -76,8 +77,12 @@ void main()
     vLightBottomRight = solids[index].lightBottomRight;
     vLightTopRight = solids[index].lightTopRight;
 
-    vec3 pos = position + ((tangent * size.y) * factor.y) + ((bitangent * size.x) * factor.x);
+    vec3 pos = position + ((tangent * size.x) * factor.x) + ((bitangent * size.y) * factor.y);
 
-    gl_Position = vec4(pos + (chunkPosition * 32.0), 1) * view * projection;
+    float easeOutExpo = clamp(1 - pow(2, -10 * uTime), 0.0, 1.0);
+
+    float fac = mix(10, 0, easeOutExpo);
+
+    gl_Position = vec4(pos + ((chunkPosition - vec3(0, fac, 0)) * 32.0), 1) * view * projection;
 
 }

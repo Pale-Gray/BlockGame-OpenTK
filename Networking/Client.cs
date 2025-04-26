@@ -1,9 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using Game.Audio;
+using Game.Core.Chrono;
 using Game.Core.Chunks;
+using Game.Core.Generation;
 using Game.Core.GuiRendering;
 using Game.Core.Language;
 using Game.Core.Modding;
@@ -44,7 +47,6 @@ public class Client
         GlobalValues.GuiShader = new Shader("gui.vert", "gui.frag");
         GlobalValues.CachedFontShader = new Shader("cachedFont.vert", "cachedFont.frag");
         GlobalValues.PackedChunkShader = new Shader("chunkTerrain.vert", "chunkTerrain.frag");
-        GlobalValues.LineShader = new Shader("line.vert", "line.frag");
         GlobalValues.SkyboxShader = new Shader("skybox.vert", "skybox.frag");
 
         GL.Enable(EnableCap.Blend);
@@ -62,11 +64,7 @@ public class Client
         TexturePackManager.IterateAvailableTexturePacks();
         TexturePackManager.LoadTexturePack(TexturePackManager.AvailableTexturePacks["Default"]);
 
-        LanguageManager.LoadLanguage(Path.Combine("Resources", "Data", "Languages", "english_us.toml"));
-        Translator.LoadGameSettings();
-
-        // GlobalValues.Base.OnLoad(GlobalValues.Register);
-        ModLoader.LoadMods();
+        ModLoader.Load();
 
         _terrainBuffer = new Framebuffer();
         _terrainBufferQuad = new FramebufferQuad();
@@ -83,23 +81,23 @@ public class Client
     int length,             // Length of the string in pMessage.
     nint pMessage,        // Pointer to message string.
     nint pUserParam)      // The pointer you gave to OpenGL, explained later.
+    {
+        // In order to access the string pointed to by pMessage, you can use Marshal
+        // class to copy its contents to a C# string without unsafe code. You can
+        // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
+        string message = Marshal.PtrToStringAnsi(pMessage, length);
+
+        // The rest of the function is up to you to implement, however a debug output
+        // is always useful.
+        Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
+
+        // Potentially, you may want to throw from the function for certain severity
+        // messages.
+        if (type == DebugType.DebugTypeError)
         {
-            // In order to access the string pointed to by pMessage, you can use Marshal
-            // class to copy its contents to a C# string without unsafe code. You can
-            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
-            string message = Marshal.PtrToStringAnsi(pMessage, length);
-
-            // The rest of the function is up to you to implement, however a debug output
-            // is always useful.
-            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
-
-            // Potentially, you may want to throw from the function for certain severity
-            // messages.
-            if (type == DebugType.DebugTypeError)
-            {
-                // throw new Exception(message);
-            }
+            // throw new Exception(message);
         }
+    }
     public void StartSingleplayer(string worldSave, Player player)
     {
 
@@ -110,13 +108,13 @@ public class Client
 
         // hook
         Player = NetworkingValues.Server.ConnectedPlayers[0];
+        NetworkingValues.Client.Player = player;
 
     }
 
     public void StartMultiplayer(string addressOrHost, int port, Player player)
     {
 
-        // multiplayer
         IsNetworked = true;
 
         Player = player;
@@ -230,22 +228,85 @@ public class Client
             if (GameState.World != null)
             {
 
+                if (Input.IsKeyDown(Key.LeftControl) && Input.IsKeyPressed(Key.F))
+                {
+
+                    GlobalValues.Register.GetStructureFromNamespace("Game.RedMushroomTree")?.OnStructurePlace(GameState.World, VectorMath.Floor(NetworkingValues.Client.Player.Position));
+
+                }
+
+                if (Input.IsKeyDown(Key.LeftControl) && Input.IsKeyPressed(Key.G))
+                {
+
+                    string command;
+                    do
+                    {
+                        command = Console.ReadLine();
+                    } while (command == null);
+                    GameLogger.Log($"Command {command} written.");
+                    string[] values = command.Split(' ');
+                    Vector3i globalStart = (int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]));
+                    Vector3i globalEnd = (int.Parse(values[3]), int.Parse(values[4]), int.Parse(values[5]));
+                    Vector3i localOrigin = (int.Parse(values[6]), int.Parse(values[7]), int.Parse(values[8]));
+                    string fileName = values[9];
+
+                    Structure.WriteDataToStructFile(GameState.World, globalStart, globalEnd, localOrigin, fileName);
+                    
+
+                }
+
                 Dda.TraceChunks(GameState.World.WorldColumns, Player.Camera.Position, -Player.Camera.ForwardVector, 20);
 
-                if (Dda.hit && Input.IsMouseFocused)
+                if (Input.IsKeyPressed(Key.DownArrow))
+                {
+
+                    NetworkingValues.Client.Player.CurrentSelectedIndex--;
+                    if (NetworkingValues.Client.Player.CurrentSelectedIndex <= 0)
+                    {
+
+                        NetworkingValues.Client.Player.CurrentSelectedIndex = GlobalValues.Register.BlockCount - 1;
+
+                    }
+
+                }
+
+                if (Input.IsKeyPressed(Key.UpArrow))
+                {
+
+                    NetworkingValues.Client.Player.CurrentSelectedIndex++;
+                    if (NetworkingValues.Client.Player.CurrentSelectedIndex >= GlobalValues.Register.BlockCount)
+                    {
+
+                        NetworkingValues.Client.Player.CurrentSelectedIndex = 1;
+
+                    }
+
+                }
+
+                if (Dda.DidHit && Input.IsMouseFocused)
                 {
 
                     if (Input.IsMouseButtonPressed(MouseButton.Button2))
                     {
 
-                        GlobalValues.Register.GetBlockFromNamespace("Game.ShortGrass").OnBlockPlace(GameState.World, Dda.PreviousPositionAtHit);
+                        if (Input.IsKeyDown(Key.LeftControl))
+                        {
+
+                            GlobalValues.Register.GetBlockFromId(GameState.World.GetBlockId(Dda.PositionAtHit)).OnRandomTick(GameState.World, Dda.PositionAtHit, true, true);
+
+                        } else
+                        {
+
+                            GlobalValues.Register.GetBlockFromId((ushort)NetworkingValues.Client.Player.CurrentSelectedIndex).OnBlockPlace(GameState.World, Dda.PreviousPositionAtHit, true, true);
+
+                        }
 
                     }
 
                     if (Input.IsMouseButtonPressed(MouseButton.Button1))
                     {
 
-                        GlobalValues.Register.GetBlockFromNamespace("Game.ShortGrass").OnBlockDestroy(GameState.World, Dda.PositionAtHit);
+                        GlobalValues.Register.GetBlockFromId((ushort)NetworkingValues.Client.Player.CurrentSelectedIndex).OnBlockDestroy(GameState.World, Dda.PositionAtHit, true, true);
 
                     }
                     
@@ -259,9 +320,10 @@ public class Client
         {
 
             Gui.Begin("thing");
-            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
-            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
-            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
+            Gui.RenderElement(GuiMath.RelativeToAbsolute(0.75f, 0.0f), (500, 0) + GuiMath.RelativeToAbsolute(0, 1), (0.5f, 0.0f), new Color4<Rgba>(1.0f, 1.0f, 1.0f, 0.5f));
+            // Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time), (float)Math.Cos(GlobalValues.Time)) / 2), (50, 50), (0.5f, 0.5f));
+            // Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.1), (float)Math.Cos(GlobalValues.Time + 0.1)) / 2), (50, 50), (0.5f, 0.5f), Color4.Bisque);
+            // Gui.RenderElement(GuiMath.RelativeToAbsolute(0.5f, 0.5f) + (GuiMath.RelativeToAbsolute((float)Math.Sin(GlobalValues.Time + 0.25), (float)Math.Cos(GlobalValues.Time + 0.25)) / 2), (50, 50), (0.5f, 0.5f), Color4.Purple);
             Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.4f), new Vector2i(200, 24), (0.5f, 0.5f), "Address", out string addressString, Color4.White);
             Gui.RenderTextbox(GuiMath.RelativeToAbsolute(0.5f, 0.6f), (200, 24), (0.5f, 0.5f), "User Id", out string userIdString, Color4.White);
             if (Gui.RenderButton(GuiMath.RelativeToAbsolute(0.5f, 0.7f), (150, 24), (0.5f, 0.5f), "Join Server", Color4.White))
@@ -302,6 +364,16 @@ public class Client
         }
 
         FontRenderer.Text((0, 25), (25, 25), 15, Color4.White, $"Memory usage: {Math.Round(Process.GetCurrentProcess().WorkingSet64 * 9.3132257461548E-10, 2)}GB");
+        FontRenderer.Text((0, 50), (25, 25), 15, Color4.White, Time.TicksToDateTime(GameState.World?.TickTime ?? 0));
+        FontRenderer.Text((0, 75), (25, 25), 15, Color4.White, $"Draw time: {GameState.World?.DrawTime}");
+        FontRenderer.Text((0, 100), (25, 25), 15, Color4.White, $"Chunks drawn: {GameState.World?.ChunksDrawn}");
+        FontRenderer.Text((0, 125), (25, 25), 15, Color4.White, $"Looking at: {Dda.PositionAtHit}");
+        if (NetworkingValues.Client.Player != null)
+        {
+
+            FontRenderer.Text((0, 150), (25, 25), 15, Color4.White, $"Holding: {GlobalValues.Register.GetBlockFromId((ushort) NetworkingValues.Client.Player.CurrentSelectedIndex).DisplayName}");
+
+        }
 
         _manager?.PollEvents();
 

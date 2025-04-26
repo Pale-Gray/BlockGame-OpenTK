@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
+using System.Threading;
 using Game.Util;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Platform;
 
@@ -200,6 +204,171 @@ public class Noise
         float down = float.Lerp(downBottom, downTop, Smoothstep(0.0f, 1.0f, yInterp));
 
         return (float.Lerp(down, up, Smoothstep(0.0f, 1.0f, zInterp)) + 1.0f) / 2.0f;
+
+    }
+
+    private static ConcurrentDictionary<(int seed, Vector3i coordinate), float> _cachedValues = new();
+
+    public static float UpsampledValue3(int seed, Vector3 coordinates, Vector3i cellSize)
+    {
+
+        Vector3i upTopLeft = ((int)Math.Floor(coordinates.X / cellSize.X), (int)Math.Floor(coordinates.Y / cellSize.Y) + cellSize.Y, (int)Math.Floor(coordinates.Z / cellSize.Z) + cellSize.Z);
+        Vector3i upTopRight = ((int)Math.Floor(coordinates.X / cellSize.X) + cellSize.X, (int)Math.Floor(coordinates.Y / cellSize.Y) + cellSize.Y, (int)Math.Floor(coordinates.Z / cellSize.Z) + cellSize.Z);
+        Vector3i upBottomLeft = ((int)Math.Floor(coordinates.X / cellSize.X), (int)Math.Floor(coordinates.Y / cellSize.Y), (int)Math.Floor(coordinates.Z / cellSize.Z) + cellSize.Z);
+        Vector3i upBottomRight = ((int)Math.Floor(coordinates.X / cellSize.X) + cellSize.X, (int)Math.Floor(coordinates.Y / cellSize.Y), (int)Math.Floor(coordinates.Z / cellSize.Z) + cellSize.Z);
+
+        Vector3i downTopLeft = ((int)Math.Floor(coordinates.X / cellSize.X), (int)Math.Floor(coordinates.Y / cellSize.Y) + cellSize.Y, (int)Math.Floor(coordinates.Z / cellSize.Z));
+        Vector3i downTopRight = ((int)Math.Floor(coordinates.X / cellSize.X) + cellSize.X, (int)Math.Floor(coordinates.Y / cellSize.Y) + cellSize.Y, (int)Math.Floor(coordinates.Z / cellSize.Z));
+        Vector3i downBottomLeft = ((int)Math.Floor(coordinates.X / cellSize.X), (int)Math.Floor(coordinates.Y / cellSize.Y), (int)Math.Floor(coordinates.Z / cellSize.Z));
+        Vector3i downBottomRight = ((int)Math.Floor(coordinates.X / cellSize.X) + cellSize.X, (int)Math.Floor(coordinates.Y / cellSize.Y), (int)Math.Floor(coordinates.Z / cellSize.Z));
+
+        float valueUpTopLeft = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, upTopLeft), out valueUpTopLeft))
+        {
+            valueUpTopLeft = Value3(seed, upTopLeft);
+            _cachedValues.TryAdd((seed, upTopLeft), valueUpTopLeft);
+        }
+        float valueUpTopRight = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, upTopRight), out valueUpTopRight))
+        {
+            valueUpTopRight = Value3(seed, upTopRight);
+            _cachedValues.TryAdd((seed, upTopRight), valueUpTopRight);
+        }
+        float valueUpBottomLeft = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, upBottomLeft), out valueUpBottomLeft))
+        {
+            valueUpBottomLeft = Value3(seed, upBottomLeft);
+            _cachedValues.TryAdd((seed, upBottomLeft), valueUpBottomLeft);
+        }
+        float valueUpBottomRight = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, upBottomRight), out valueUpBottomRight))
+        {
+            valueUpBottomRight = Value3(seed, upBottomRight);
+            _cachedValues.TryAdd((seed, upBottomRight), valueUpBottomRight);
+        }
+
+        float valueDownTopLeft = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, downTopLeft), out valueDownTopLeft))
+        {
+            valueDownTopLeft = Value3(seed, downTopLeft);
+            _cachedValues.TryAdd((seed, downTopLeft), valueDownTopLeft);
+        }
+        float valueDownTopRight = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, downTopRight), out valueDownTopRight))
+        {
+            valueDownTopRight = Value3(seed, downTopRight);
+            _cachedValues.TryAdd((seed, downTopRight), valueDownTopRight);
+        }
+        float valueDownBottomLeft = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, downBottomLeft), out valueDownBottomLeft))
+        {
+            valueDownBottomLeft = Value3(seed, downBottomLeft);
+            _cachedValues.TryAdd((seed, downBottomLeft), valueDownBottomLeft);
+        }
+        float valueDownBottomRight = 0.0f;
+        if (!_cachedValues.TryGetValue((seed, downBottomRight), out valueDownBottomRight))
+        {
+            valueDownBottomRight = Value3(seed, downBottomRight);
+            _cachedValues.TryAdd((seed, downBottomRight), valueDownBottomRight);
+        }
+
+        float xInterp = FlooredRemainder(coordinates.X / cellSize.X, 1.0f);
+        float yInterp = FlooredRemainder(coordinates.Y / cellSize.Y, 1.0f);
+        float zInterp = FlooredRemainder(coordinates.Z / cellSize.Z, 1.0f);
+
+        float upTop = float.Lerp(valueUpTopLeft, valueUpTopRight, xInterp);
+        float upBottom = float.Lerp(valueUpBottomLeft, valueUpBottomRight, xInterp);
+
+        float up = float.Lerp(upBottom, upTop, yInterp);
+
+        float downTop = float.Lerp(valueDownTopLeft, valueDownTopRight, xInterp);
+        float downBottom = float.Lerp(valueDownBottomLeft, valueDownBottomRight, xInterp);
+
+        float down = float.Lerp(downBottom, downTop, yInterp);
+
+        return float.Lerp(down, up, zInterp);
+
+    }
+
+    public static float OctaveValue3(int seed, Vector3 coordinates, int octaves)
+    {
+
+        float value = 0.0f;
+
+        for (float o = 1; o <= octaves; o++)
+        {
+
+            value += Value3(seed, coordinates * o) / (octaves / (octaves + o));
+
+        }
+
+        return value / octaves;
+
+    }
+
+    private static Vector3 FlooredRemainder(Vector3 a, float b)
+    {
+
+        return (FlooredRemainder(a.X, b), FlooredRemainder(a.Y, b), FlooredRemainder(a.Z, b));
+
+    } 
+
+    public static float[] CoarseValue3(int seed, Vector3i originalSize, Vector3i factor, Vector3i startingPosition, Vector3 positionFactor)
+    {
+
+        Vector3i size = (originalSize / factor) + Vector3i.One;
+
+        float[] values = new float[size.X * size.Y * size.Z];
+
+        for (int x = 0; x < size.X; x++)
+        {
+
+            for (int y = 0; y < size.Y; y++)
+            {
+
+                for (int z = 0; z < size.Z; z++)
+                {
+
+                    values[Maths.VecToIndex(x,y,z,size.X,size.Y)] = Value3(seed, ((Vector3)startingPosition / positionFactor) + ((x,y,z) * ((Vector3)factor / positionFactor)));
+                    
+                }
+
+            }
+
+        }
+
+        return values;
+
+    }
+
+    public static float InterpolatedValue3(float[] samples, Vector3i originalSize, Vector3i factor, Vector3 localPosition)
+    {
+
+        Vector3i size = (originalSize / factor) + Vector3i.One;
+        Vector3 interpolant = FlooredRemainder(localPosition / (Vector3) factor, 1.0f);
+        Vector3i cell = VectorMath.Floor(localPosition / (Vector3) factor);
+
+        float valueUpTopLeft = samples[Maths.VecToIndex(cell.X, cell.Y + 1, cell.Z + 1, size.X, size.Y)];
+        float valueUpTopRight = samples[Maths.VecToIndex(cell.X+1, cell.Y + 1, cell.Z + 1, size.X, size.Y)];
+        float valueUpBottomLeft = samples[Maths.VecToIndex(cell.X, cell.Y, cell.Z + 1, size.X, size.Y)];
+        float valueUpBottomRight = samples[Maths.VecToIndex(cell.X+1, cell.Y, cell.Z + 1, size.X, size.Y)];
+
+        float valueDownTopLeft = samples[Maths.VecToIndex(cell.X, cell.Y + 1, cell.Z, size.X, size.Y)];
+        float valueDownTopRight = samples[Maths.VecToIndex(cell.X+1, cell.Y + 1, cell.Z, size.X, size.Y)];
+        float valueDownBottomLeft = samples[Maths.VecToIndex(cell.X, cell.Y, cell.Z, size.X, size.Y)];
+        float valueDownBottomRight = samples[Maths.VecToIndex(cell.X+1, cell.Y, cell.Z, size.X, size.Y)];
+
+        float valueUpTop = float.Lerp(valueUpTopLeft, valueUpTopRight, interpolant.X);
+        float valueUpBottom = float.Lerp(valueUpBottomLeft, valueUpBottomRight, interpolant.X);
+
+        float valueUp = float.Lerp(valueUpBottom, valueUpTop, interpolant.Y);
+
+        float valueDownTop = float.Lerp(valueDownTopLeft, valueDownTopRight, interpolant.X);
+        float valueDownBottom = float.Lerp(valueDownBottomLeft, valueDownBottomRight, interpolant.X);
+
+        float valueDown = float.Lerp(valueDownBottom, valueDownTop, interpolant.Y);
+
+        return float.Lerp(valueDown, valueUp, interpolant.Z);
 
     }
 

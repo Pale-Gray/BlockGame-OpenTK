@@ -1,78 +1,10 @@
-using System;
-using System.Collections;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading;
-using Game.Core.Chunks;
-using Game.Core.Language;
-using Game.Core.Networking;
+using System.Collections.Generic;
 using Game.Core.Worlds;
 using Game.Util;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using Tomlet;
 using Tomlet.Attributes;
-using Tomlet.Models;
 
 namespace Game.BlockUtil;
-public struct Namespace
-{
-
-    public string Prefix;
-    public string Suffix;
-
-    public override string ToString()
-    {
-        return $"{Prefix}.{Suffix}";
-    }
-
-    public Namespace(string prefix, string suffix)
-    {
-        
-        Prefix = prefix;
-        Suffix = suffix;
-        
-    }
-
-    public Namespace(string fullName)
-    {
-
-        string[] split = fullName.Split('.');
-        Prefix = split[0];
-        Suffix = split[1];
-
-    }   
-
-    public static implicit operator Namespace(string name)
-    {
-
-        string[] namespaceString = name.Split('.');
-
-        return new Namespace(namespaceString[0], namespaceString[1]);
-
-    }
-
-    public override int GetHashCode()
-    {
-        
-        return ToString().GetHashCode();
-
-    }
-
-    public override bool Equals([NotNullWhen(true)] object obj)
-    {
-        
-        Namespace? value = obj as Namespace?;
-        if (value == null) return false;
-        if (value?.ToString() == ToString()) return true;
-        return false;
-
-    }
-
-}
 public class Block
 {
 
@@ -82,12 +14,12 @@ public class Block
     [TomlNonSerialized]
     public BlockModel BlockModel { get; set; }
     [TomlNonSerialized]
-    public ushort Id;
+    public ushort Id { get; set; } = 0;
     [TomlProperty("display_name")]
     public string DisplayName { get; set; } = string.Empty;
 
     [TomlNonSerialized]
-    public Namespace Namespace;
+    public string Namespace;
 
     [TomlProperty("block_model")]
     private string _blockModelPath { get; set; }
@@ -96,42 +28,45 @@ public class Block
         
     }
 
-    public static Block FromToml<T>(string file) where T : Block, new()
+    public Block(string translationKey, BlockModel model)
     {
 
-        Block properties = TomletMain.To<Block>(File.ReadAllText(file));
-        T block = new();
-
-        block.DisplayName = LanguageManager.GetTranslation(properties.DisplayName);
-        block.IsSolid = properties.IsSolid;
-        if (NetworkingValues.Server == null) block.BlockModel = BlockModel.FromToml(properties._blockModelPath);
-        
-        return block;
+        DisplayName = translationKey;
+        BlockModel = model;
 
     }
 
-    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
+    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
     {
         
-        world.SetBlock(globalBlockPosition, GlobalValues.Register.GetBlockFromId(0), isPlayerPlaced);
+        world.SetBlock(globalBlockPosition, GlobalValues.Register.GetBlockFromId(0), shouldUpdateMesh, hasPriority);
+        world.RemoveBlockProperty(globalBlockPosition);
+        world.RemoveBlockTicker(globalBlockPosition);
         
     }
 
-    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
+    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
     {
 
-        world.SetBlock(globalBlockPosition, this, isPlayerPlaced);
+        world.SetBlock(globalBlockPosition, this, shouldUpdateMesh, hasPriority);
         
     }
 
-    public virtual void OnBlockMesh(World world, Vector3i globalBlockPosition)
+    public virtual void OnBlockMesh(World world, Vector3i globalBlockPosition, List<Rectangle> solids, List<Rectangle> cutouts)
     {
 
-        
+        world.AddModel(BlockModel, globalBlockPosition, solids, cutouts);
 
     }
 
-    public virtual void OnRandomTick(World world, Vector3i globalBlockPosition, bool isPlayerPlaced = true)
+    public virtual void OnRandomTick(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
+    {
+
+
+
+    }
+
+    public virtual void OnFixedTick(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
     {
 
 

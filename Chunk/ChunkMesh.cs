@@ -119,6 +119,7 @@ public class ChunkMesh
     public Vector3i ChunkPosition = Vector3i.Zero;
     public bool IsRenderable = false;
     public int IndexCount = 0;
+    public float Time = 0;
 
     public ChunkMesh(Vector3i chunkPosition)
     {
@@ -141,6 +142,15 @@ public class ChunkMesh
         GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "projection"), 1, true, ref projectionMatrix);
         Matrix4 conversionMatrix = player.Camera.ConversionMatrix;
         GL.UniformMatrix4f(GL.GetUniformLocation(GlobalValues.PackedChunkShader.Handle, "conversion"), 1, true, ref conversionMatrix);
+        GL.Uniform1f(GlobalValues.PackedChunkShader.GetUniformLocation("uTime"), Time);
+        
+        if (SolidIndicesCount > 0 || CutoutIndicesCount > 0) 
+        {
+
+            Time += (float) GlobalValues.DeltaTime;
+            GameState.World.ChunksDrawn++;
+
+        }
 
         if (SolidIndicesCount > 0)
         {

@@ -1,11 +1,12 @@
 ﻿using OpenTK.Mathematics;
-using Game.Registry;
 using System.IO;
 using System.Collections.Generic;
-using Game.GuiRendering;
 using Game.Core.Networking;
 using Game.Core.Modding;
 using Game.Core.Worlds;
+using System;
+using Game.BlockUtil;
+using OpenTK.Graphics.OpenGL;
 
 namespace Game.Util
 {
@@ -30,6 +31,18 @@ namespace Game.Util
 
         public static Server Server;
         public static Client Client;
+
+    }
+
+    public class BlockModels
+    {
+
+        public static readonly BlockModel CrossModel = 
+            new BlockModel()
+            .AddCube(new Cube((0, 0, 8), (16, 16, 8)))
+            .SetRotation(0, (0, 45, 0))
+            .AddCube(new Cube((8, 0, 0), (8, 16, 16)))
+            .SetRotation(1, (0, 45, 0));
 
     }
     public class GlobalValues
@@ -82,18 +95,17 @@ namespace Game.Util
         public static Shader GuiShader;
         public static Shader GuiBlockShader;
         public static Shader CachedFontShader;
-        public static Shader GuiLineShader;
 
         public static Shader PackedChunkShader;
-        public static Shader LineShader;
         public static Shader SkyboxShader;
 
         public static ushort BlockSelectorID = 1;
 
         public static Camera GuiCamera = new Camera((0, 0, 1), (0, 0, -1), (0, 1, 0), CameraType.Orthographic, 90f);
 
-        public static float TickRate = 1000;
-        public static int IterationsPerTick = 1;
+        public static readonly float TickRate = 30;
+        public static readonly float GameDayTicks = 36000;
+        public static Random RandomGenerator = new Random();
 
     }
 }

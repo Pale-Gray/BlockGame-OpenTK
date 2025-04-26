@@ -28,7 +28,7 @@ public class DataReader : IDisposable
     public static DataReader OpenFile(string path)
     {
 
-        GameLogger.Log($"Opened a file for reading to at {path}");
+        // GameLogger.Log($"Opened a file for reading to at {path}");
         DataReader reader = new DataReader();
         reader._stream = File.OpenRead(path);
         return reader;
@@ -192,7 +192,7 @@ public class DataReader : IDisposable
     public void Dispose()
     {
 
-        GameLogger.Log("Finished reading from file.");
+        // GameLogger.Log("Finished reading from file.");
         _stream.Dispose();
 
     }

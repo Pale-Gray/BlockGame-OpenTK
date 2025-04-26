@@ -10,6 +10,12 @@ namespace Game.Util
     public class VectorMath
     {
 
+        public static Vector3 Mod(Vector3 a, float b)
+        {
+
+            return (Maths.Mod(a.X,b), Maths.Mod(a.Y,b), Maths.Mod(a.Z,b));
+
+        }
         public static Vector3i Floor(Vector3 vec)
         {
 

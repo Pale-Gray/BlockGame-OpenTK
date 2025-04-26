@@ -45,14 +45,14 @@ namespace Game.Core.TexturePack
         public static Dictionary<string, TexturePackInfo> AvailableTexturePacks => _availableTexturePacks;
         private static List<byte[]> _loadedTextures = new();
 
-        public static int GetTextureIndex(string textureName) 
+        public static uint GetTextureIndex(string textureName) 
         {
 
             if (_textureArrayIndices.TryGetValue(textureName, out int index)) 
             {
-                return index;
+                return (uint) index;
             }
-            return _textureArrayIndices["MissingTexture"];
+            return (uint) _textureArrayIndices["MissingTexture"];
 
         }
 

@@ -1,6 +1,0 @@
-Worlds
-    SaveName
-        Chunks
-            - holes cdat files
-        info.data
-            - holds seed, player positions, etc?

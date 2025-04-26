@@ -1,3 +1,0 @@
-display_name = "Game.Block.AspenLog"
-block_model = "thin_block.toml"
-is_solid = false

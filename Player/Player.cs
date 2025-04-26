@@ -18,6 +18,7 @@ public class Player
     public HashSet<Vector2i> ChunkArea = new();
     public HashSet<Vector2i> SentChunks = new();
     public PlayerCamera Camera = new PlayerCamera(90.0f, Vector3.UnitY, Vector3.UnitX, Vector3.UnitZ);
+    public int CurrentSelectedIndex = 1;
     public PlayerChunkLoader Loader;
 
     public void UpdateInputs()

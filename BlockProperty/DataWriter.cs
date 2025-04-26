@@ -27,7 +27,7 @@ public class DataWriter : IDisposable
     public static DataWriter OpenFile(string path)
     {
 
-        GameLogger.Log($"Opened a file for writing to at {path}");
+        // GameLogger.Log($"Opened a file for writing to at {path}");
         DataWriter writer = new DataWriter();
         writer._stream = File.Open(path, FileMode.Create);
         return writer;
@@ -174,7 +174,7 @@ public class DataWriter : IDisposable
     public void Dispose()
     {
 
-        GameLogger.Log("Finished writing to file.");
+        // GameLogger.Log("Finished writing to file.");
         _stream.Flush();
         _stream.Dispose();
 

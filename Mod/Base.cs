@@ -1,6 +1,7 @@
 using System.IO;
 using Game.BlockUtil;
-using Game.Registry;
+using Game.Core.Generation;
+using Game.Util;
 
 namespace Game.Core.Modding;
 
@@ -10,24 +11,20 @@ public class Base : IModLoader
     {
         
         register.RegisterBlock("Game.Air", new Block() { IsSolid = false });
-        register.RegisterBlock("Game.GrassBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "grass_block.toml")));
-        register.RegisterBlock("Game.DirtBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "dirt_block.toml")));
-        register.RegisterBlock("Game.StoneBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "stone_block.toml")));
-        register.RegisterBlock("Game.BrickBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "bricks.toml")));
-        register.RegisterBlock("Game.PlimboBlock", Block.FromToml<PlimboBlock>(Path.Combine("Resources", "Data", "Blocks", "plimbo_block.toml")));
-        register.RegisterBlock("Game.EmptyCrate", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "empty_crate.toml")));
-        register.RegisterBlock("Game.TomatoCrate", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "tomato_crate.toml")));
-        register.RegisterBlock("Game.RedLightBlock", Block.FromToml<RedLightBlock>(Path.Combine("Resources", "Data", "Blocks", "red_light_block.toml")));
-        register.RegisterBlock("Game.GreenLightBlock", Block.FromToml<GreenLightBlock>(Path.Combine("Resources", "Data", "Blocks", "green_light_block.toml")));
-        register.RegisterBlock("Game.BlueLightBlock", Block.FromToml<BlueLightBlock>(Path.Combine("Resources", "Data", "Blocks", "blue_light_block.toml")));
-        register.RegisterBlock("Game.LightBlock", Block.FromToml<LightBlock>(Path.Combine("Resources", "Data", "Blocks", "light_block.toml")));
-        register.RegisterBlock("Game.LeafBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "leaf_block.toml")));
-        register.RegisterBlock("Game.GhastlingBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "ghastling_block.toml")));
-        register.RegisterBlock("Game.AspenLog", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "aspen_log.toml")));
-        register.RegisterBlock("Game.ThinBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "thin_block.toml")));
-        register.RegisterBlock("Game.RedMushroom", Block.FromToml<TinyMushroomBlock>(Path.Combine("Resources", "Data", "Blocks", "tiny_red_mushroom.toml")));
-        register.RegisterBlock("Game.StairBlock", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "stair_block.toml")));
-        register.RegisterBlock("Game.ShortGrass", Block.FromToml<Block>(Path.Combine("Resources", "Data", "Blocks", "short_grass.toml")));
+        register.RegisterBlock("Game.GrassBlock", new Block() { DisplayName = "Game.Block.GrassBlock", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "GrassBlockTop").Generate() });
+        register.RegisterBlock("Game.DirtBlock", new Block() { DisplayName = "Game.Block.DirtBlock", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "DirtBlock").Generate() });
+        register.RegisterBlock("Game.StoneBlock", new Block() { DisplayName = "Game.Block.StoneBlock", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "Stone").Generate()});
+        register.RegisterBlock("Game.ShortGrass", new Block() { DisplayName = "Game.Block.ShortGrass", IsSolid = false, BlockModel = BlockModels.CrossModel.Copy().Generate() });
+        register.RegisterBlock("Game.RedMushroomMycelium", new RedMushroomMyceliumBlock() { DisplayName = "Game.Block.RedMushroomMycelium", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "MyceliumInfestedSoil").Generate() });
+        register.RegisterBlock("Game.RedMushroomStem", new RedMushroomStemBlock() { DisplayName = "Game.Block.RedMushroomStem" });
+        register.RegisterBlock("Game.RedMushroomCap", new RedMushroomCapBlock() { DisplayName = "Game.Block.RedMushroomCap" });
+        register.RegisterBlock("Game.AirIgnoreBlock", new Block() { DisplayName = "Game.Block.AirIgnoreBlock", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "Birb").Generate() });
+        register.RegisterBlock("Game.Fixed", new FixedTickBlock() { DisplayName = "Game.Block.Fixed", BlockModel = new BlockModel().AddCube(new Cube()).SetAllTextures(0, "Birb").Generate() });
+        register.RegisterBlock("Game.TinyRedMushroom", new TinyRedMushroomBlock() { DisplayName = "Game.Block.TinyRedMushroom", IsSolid = false });
+        register.RegisterBlock("Game.LightBlock", new LightBlock() { DisplayName = "Game.Block.LightBlock" });
+
+        register.RegisterBiome("Game.RedMushroomBiome", new RedMushroomBiome());
+
     }
 
 }

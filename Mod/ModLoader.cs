@@ -9,7 +9,7 @@ namespace Game.Core.Modding;
 public class ModLoader
 {
 
-    public static void LoadMods()
+    public static void Load()
     {
 
         Base.OnLoad(GlobalValues.Register);

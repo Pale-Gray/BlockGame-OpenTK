@@ -175,6 +175,16 @@ public class ColumnUtils
 
     }
 
+    public static ushort GetBlockId(ChunkColumn column, Vector3i globalBlockPosition)
+    {
+
+        Vector3i localBlockPosition = ChunkUtils.PositionToBlockLocal(globalBlockPosition);
+        Vector3i chunkPosition = ChunkUtils.PositionToChunk(globalBlockPosition);
+
+        return column.Chunks[chunkPosition.Y].BlockData[ChunkUtils.VecToIndex(localBlockPosition)];
+
+    }
+
     public static string PositionToFilename(Vector2i columnPosition) => $"{columnPosition.X}_{columnPosition.Y}.cdat";
     public static Vector2i FilenameToPosition(string fileName)
     {

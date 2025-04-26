@@ -14,8 +14,13 @@ vec3 sunDir = vec3(0.5, 0.3, 0.4);
 
 uniform sampler2DArray terrainTextures;
 
+uniform float uTime;
+
 void main()
 {
+
+    vec3 normal = vNormal;
+    if (!gl_FrontFacing) normal *= -1.0;
 
     float texelScale = 16;
 
@@ -24,12 +29,14 @@ void main()
 
     vec4 light = mix(bottomLight, topLight, floor(vTextureCoordinate.y * texelScale) / texelScale);
 
-    float intensity = dot(vNormal, normalize(sunDir));
+    float intensity = dot(-normal, normalize(sunDir));
 
     vec4 albedo = texture(terrainTextures, vec3(vTextureCoordinate, vTextureIndex)).rgba;
 
     vec3 diffuseColor = vec3(0.5, 0.5, 0.5);
 
-    outColor = vec4((albedo.rgb) * pow(intensity + light.rgb + light.www + vec3(0.1), vec3(2.2)), 1.0);
+    float easeOutExpo = clamp(1 - pow(2, -10 * uTime), 0.0, 1.0);
+
+    outColor = vec4(albedo.rgb * pow(light.rgb + (light.www), vec3(2.2)), max(mix(-0.5, 1.0, easeOutExpo), 0.0));
 
 }

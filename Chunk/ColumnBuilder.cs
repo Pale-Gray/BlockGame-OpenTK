@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using Game.BlockUtil;
 using Game.Core.Generation;
@@ -35,24 +37,13 @@ public class ColumnBuilder
 
         }
 
-        /*
-        if (File.Exists(Path.Combine("Worlds", GameState.World.WorldPath, ColumnUtils.PositionToFilename(column.Position))))
-        {
+        float[] coarseDensity = Noise.CoarseValue3(0
+                                                 , (GlobalValues.ChunkSize, GlobalValues.ChunkSize * WorldGenerator.WorldGenerationHeight, GlobalValues.ChunkSize)
+                                                 , (8, 8, 8)
+                                                 , new Vector3i(column.Position.X, 0, column.Position.Y) * GlobalValues.ChunkSize
+                                                 , (24.0f, 32.0f, 24.0f));
 
-            ColumnSerializer.DeserializeColumn(column, ColumnUtils.PositionToFilename(column.Position));
-            column.QueueType = QueueType.Mesh;
-            column.IsUpdating = false;
-            if (column.HasPriority)
-            {
-                WorldGenerator.HighPriorityWorldGenerationQueue.Enqueue(column.Position);
-            } else
-            {
-                WorldGenerator.LowPriorityWorldGenerationQueue.Enqueue(column.Position);
-            }
-            return;
-
-        }
-        */
+        Biome biome = GlobalValues.Register.GetBiomeFromNamespace("Game.RedMushroomBiome");
 
         for (int x = 0; x < GlobalValues.ChunkSize; x++)
         {
@@ -62,22 +53,49 @@ public class ColumnBuilder
 
                 Vector3i globalPosition = (x,0,z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * GlobalValues.ChunkSize);
 
-                // int height = (int) ((32.0 * Noise.OctaveValue2(0, ((Vector2)globalPosition.Xz) / 64.0f)) + (64.0 * Noise.Value2(0, ((Vector2)globalPosition.Xz) / (180.0f, 64.0f),))) + 64;
+                float height = Noise.OctaveValue2(0, globalPosition.Xz / new Vector2(128.0f, 64.0f), 2);
 
-                int height = (int) (32.0 * Noise.OctaveValue2(0, (Vector2)globalPosition.Xz / 64.0f, 2)) + 64;
+                float e = Noise.Value2(0, globalPosition.Xz / new Vector2(64.0f, 128.0f)) + (0.5f * Noise.Value2(0, (globalPosition.Xz + (123, 50913)) / new Vector2(256.0f, 256.0f)));
 
                 for (int y = (WorldGenerator.WorldGenerationHeight * GlobalValues.ChunkSize) - 1; y >= 0; y--)
                 {
 
                     globalPosition = (x,y,z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * GlobalValues.ChunkSize);
 
-                    // float d = Noise.Value3(0, (Vector3)globalPosition / 64.0f);
+                    float d = Noise.InterpolatedValue3(coarseDensity
+                                                     , (GlobalValues.ChunkSize, GlobalValues.ChunkSize * WorldGenerator.WorldGenerationHeight, GlobalValues.ChunkSize)
+                                                     , (8, 8, 8)
+                                                     , new Vector3(x,y,z));
 
-                    // if (d > 0.5f) GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockPlace(GameState.World, globalPosition, false);
+                    // float d = Noise.UpsampledValue3(0, (Vector3) globalPosition / new Vector3(24.0f, 32.0f, 24.0f), (8, 8, 8));
 
-                    if (globalPosition.Y < height) GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockPlace(GameState.World, globalPosition, false);
+                    float val = y / (float) (WorldGenerator.WorldGenerationHeight * GlobalValues.ChunkSize);
 
-                    if (globalPosition.X > -10 && globalPosition.X < 10 && globalPosition.Y == height + 16) GlobalValues.Register.GetBlockFromNamespace("Game.DirtBlock").OnBlockPlace(GameState.World, globalPosition, false);
+                    if (d + float.Lerp(-2.0f, 0.6f, (1.0f - val) * float.Lerp(1.0f, 2.0f, e)) + height > 0.5f)
+                    {
+
+                        GlobalValues.Register.GetBlockFromNamespace("Game.StoneBlock").OnBlockPlace(GameState.World, globalPosition, false, false);
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        for (int x = 0; x < GlobalValues.ChunkSize; x++)
+        {
+
+            for (int z = 0; z < GlobalValues.ChunkSize; z++)
+            {
+
+                for (int y = (WorldGenerator.WorldGenerationHeight * GlobalValues.ChunkSize) - 1; y >= 0; y--)
+                {
+
+                    Vector3i globalPosition = (x,y,z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * GlobalValues.ChunkSize);
+
+                    biome.OnTerrainPass(GameState.World, globalPosition);
 
                 }
 
@@ -521,268 +539,7 @@ public class ColumnBuilder
                             {
 
                                 Block block = GlobalValues.Register.GetBlockFromId(id);
-
-                                block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.None, (x,y,z), ColumnUtils.GetNormalizedLightValues(columns[columnPosition], ColumnUtils.GlobalToLocal(globalBlockPosition)));
-                                block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.None, (x,y,z), ColumnUtils.GetNormalizedLightValues(columns[columnPosition], ColumnUtils.GlobalToLocal(globalBlockPosition)));
-
-                                for (int i = 0; i < _offsets.Length; i++)
-                                {
-
-                                    Vector2i sampleColumnPosition = ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i]);
-                                    Vector3i sampleLocalPosition = ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i]);
-
-                                    if (!ColumnUtils.GetSolidBlock(columns[sampleColumnPosition], sampleLocalPosition))
-                                    {
-
-                                        switch (_offsets[i])
-                                        {
-
-                                            case (0, 1, 0):
-                                                {
-
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 1)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 0)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, -1)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, 1)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, -1)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 1)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 0)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, -1)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Top, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Top, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Top, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Top, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-                                            case (0, -1, 0):
-                                                {
-
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, -1)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 0)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 1)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, -1)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, 1)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, -1)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 0)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 1)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Bottom, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Bottom, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Bottom, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Bottom, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-                                            case (1, 0, 0):
-                                                {
-
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 1)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, 1)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 1)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 0)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 0)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, -1)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, -1)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, -1)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Left, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Left, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Left, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Left, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-                                            case (-1, 0, 0):
-                                                {
-
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, -1)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, -1)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, -1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, -1)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 0)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 0)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 1)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 0, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 0, 1)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 1))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 1)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Right, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Right, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Right, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Right, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-                                            case (0, 0, 1):
-                                                {
-                                                    
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 1, 0)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 0)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, -1, 0)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 0)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 0)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 1, 0)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 0)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, -1, 0)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Back, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Back, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Back, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Back, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-                                            case (0, 0, -1):
-                                                {
-                                                    
-                                                    Vector4 centerLight = ColumnUtils.GetNormalizedLightValues(columns[sampleColumnPosition], sampleLocalPosition);
-
-                                                    if (WorldGenerator.IsSmoothLightingEnabled)
-                                                    {
-
-                                                        Vector4 topLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 1, 0)));
-                                                        Vector4 centerLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, 0, 0)));
-                                                        Vector4 bottomLeftLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (1, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (1, -1, 0)));
-                                                        Vector4 centerTopLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, 1, 0)));
-                                                        Vector4 centerBottomLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (0, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (0, -1, 0)));
-                                                        Vector4 topRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 1, 0)));
-                                                        Vector4 centerRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, 0, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, 0, 0)));
-                                                        Vector4 bototmRightLight = ColumnUtils.GetNormalizedLightValues(columns[ColumnUtils.PositionToChunk(globalBlockPosition + _offsets[i] + (-1, -1, 0))], ColumnUtils.GlobalToLocal(globalBlockPosition + _offsets[i] + (-1, -1, 0)));
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Front, (x,y,z), (
-                                                            (topLeftLight + centerLeftLight + centerTopLight + centerLight) / 4.0f,
-                                                            (centerLeftLight + bottomLeftLight + centerLight + centerBottomLight) / 4.0f,
-                                                            (centerLight + centerBottomLight + centerRightLight + bototmRightLight) / 4.0f, 
-                                                            (centerTopLight + centerLight + topRightLight + centerRightLight) / 4.0f
-                                                            ));
-
-                                                    } else
-                                                    {
-
-                                                        block.BlockModel.AddAmbientOcclusionFace(solidRectangles, BlockUtil.Direction.Front, (x,y,z), (
-                                                            centerLight,
-                                                            centerLight,
-                                                            centerLight, 
-                                                            centerLight
-                                                            ));
-
-                                                    }
-
-                                                    block.BlockModel.AddFreeformFace(solidRectangles, BlockUtil.Direction.Front, (x,y,z), centerLight);
-                                                    block.BlockModel.AddCutoutFace(cutoutRectangles, BlockUtil.Direction.Front, (x,y,z), centerLight);
-
-                                                }
-                                                break;
-
-                                        }
-
-                                    }
-
-                                }
+                                block.OnBlockMesh(GameState.World, globalBlockPosition, solidRectangles, cutoutRectangles);
                                 
                             }
 
@@ -821,7 +578,7 @@ public class ColumnBuilder
 
         columns[columnPosition].QueueType = QueueType.Upload;
         columns[columnPosition].IsUpdating = false;
-        WorldGenerator.ColumnWorldUploadQueue.EnqueueLast(columnPosition);
+        WorldGenerator.UploadQueue.Enqueue(columnPosition);
 
     }
 

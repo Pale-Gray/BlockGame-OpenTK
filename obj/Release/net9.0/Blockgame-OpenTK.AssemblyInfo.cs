@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Blockgame-OpenTK")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.2.2")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90a06a9c1e37a8e254b07d24e023134fb1332ceb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d5262f9c3e3a5978496b867fb92b207648e1d74f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Blockgame-OpenTK")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Blockgame-OpenTK")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.2.2")]

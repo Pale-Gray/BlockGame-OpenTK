@@ -75,6 +75,13 @@ namespace Game.Util
             return x + (y * size) + (z * size * size);
 
         }
+
+        public static int VecToIndex(int x, int y, int z, int sx, int sy)
+        {
+
+            return x + (y * sx) + (z * sx * sy);
+
+        }
         public static uint Random2(uint seed, int x, int y)
         {
 

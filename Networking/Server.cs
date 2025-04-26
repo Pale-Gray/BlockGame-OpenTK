@@ -81,7 +81,7 @@ public class Server
 
         // mod loading (base)
         // GlobalValues.Base.OnLoad(GlobalValues.Register);
-        ModLoader.LoadMods();
+        ModLoader.Load();
 
         GameLogger.Log($"String address: {_properties.AddressOrHost}");
         GameLogger.Log($"Port: {_properties.Port}");

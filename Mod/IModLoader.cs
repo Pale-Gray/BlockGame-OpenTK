@@ -1,11 +1,4 @@
-﻿using Game.Registry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Game.Core.Modding;
+﻿namespace Game.Core.Modding;
 
 public interface IModLoader
 {

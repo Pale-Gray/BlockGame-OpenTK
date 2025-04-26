@@ -17,7 +17,7 @@ namespace Game.Util
     public class GameLogger
     {
 
-        public static void Log(string message, Severity type = Severity.Info)
+        public static void Log(object message, Severity type = Severity.Info)
         {
 
             string infoType = EvaluateDebugMessageType(type);
