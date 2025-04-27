@@ -3,22 +3,10 @@ using System.Text;
 using OpenTK.Platform;
 using OpenTK.Graphics;
 using Game.Util;
-using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using Tomlet;
-using Tomlet.Models;
 using Game.Audio;
 using Game.Core.Networking;
-using Game.Core.Worlds;
-using Game.Core.Image;
-using Game.Core.TexturePack;
-using System.Runtime.CompilerServices;
-using Game.Core.Chrono;
-using System.Runtime.InteropServices;
-using System.Reflection;
-using System.Linq;
-using Game.Core.Modding;
 
 namespace Game
 {
@@ -30,112 +18,10 @@ namespace Game
         public static void Main(string[] args)
         {
 
-            TomletMain.RegisterMapper(
-
-                vector =>
-                {
-                    TomlArray arr = new TomlArray();
-                    arr.Add(vector.X);
-                    arr.Add(vector.Y);
-                    arr.Add(vector.Z);
-                    return arr;
-                },
-
-                value =>
-                {
-                    if (value is not TomlArray) return Vector3.Zero;
-                    if (((TomlArray)value).Count != 3) return Vector3.Zero;
-
-                    float x = float.Parse(((TomlArray)value)[0].StringValue);
-                    float y = float.Parse(((TomlArray)value)[1].StringValue);
-                    float z = float.Parse(((TomlArray)value)[2].StringValue);
-                    
-                    return (x, y, z);
-
-                } 
-            );
-
-            TomletMain.RegisterMapper(
-                direction =>
-                {
-                    switch (direction)
-                    {
-                        case BlockUtil.Direction.Top:
-                            return new TomlString("top");
-                        case BlockUtil.Direction.Bottom:
-                            return new TomlString("bottom");
-                        case BlockUtil.Direction.Left:
-                            return new TomlString("left");
-                        case BlockUtil.Direction.Right:
-                            return new TomlString("right");
-                        case BlockUtil.Direction.Front:
-                            return new TomlString("front");
-                        case BlockUtil.Direction.Back:
-                            return new TomlString("back");
-                        default:
-                            return new TomlString("none");
-                    }
-                },
-
-                value =>
-                {
-
-                    if (value is not TomlString) return BlockUtil.Direction.None;
-                    switch (((TomlString)value).Value)
-                    {
-                        case "top":
-                            return BlockUtil.Direction.Top;
-                        case "bottom":
-                            return BlockUtil.Direction.Bottom;
-                        case "left":
-                            return BlockUtil.Direction.Left;
-                        case "right":
-                            return BlockUtil.Direction.Right;
-                        case "front":
-                            return BlockUtil.Direction.Front;
-                        case "back":
-                            return BlockUtil.Direction.Back;
-                        default:
-                            return BlockUtil.Direction.None;
-                    }
-
-                }
-            );
-
-            TomletMain.RegisterMapper(
-                mode => 
-                {
-                    switch (mode)
-                    {
-                        case AnimatedTextureMode.Loop:
-                            return new TomlString("loop");
-                        case AnimatedTextureMode.PingPong:
-                            return new TomlString("ping_pong");
-                        default:
-                            return new TomlString("loop");
-                    }
-                },
-
-                value => 
-                {
-                    if (value is not TomlString) return AnimatedTextureMode.Loop;
-                    switch (((TomlString)value).Value)
-                    {
-                        case "loop":
-                            return AnimatedTextureMode.Loop;
-                        case "ping_pong":
-                            return AnimatedTextureMode.PingPong;
-                        default:
-                            return AnimatedTextureMode.Loop;
-                    }   
-                }
-            );
-
             Console.WriteLine(Game.e.Namespace.GetPrefix("Game.GrassBlock"));
             Console.WriteLine(Game.e.Namespace.GetSuffix("Game.GrassBlock"));
 
             Console.WriteLine(Path.Combine("Hello", "Fucking", "World", "hi.txt"));
-            CreateFile(Path.Combine("Hello", "Fucking", "World", "hi.txt"));
 
             // Console.WriteLine(Path.GetDirectoryName(Path.Combine("bin", "Release", "net9.0", "Blockgame-OpenTK.dll")));
 

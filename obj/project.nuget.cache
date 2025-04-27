@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yw5tmFeJ63k=",
+  "dgSpecHash": "LMYxKZl6nQw=",
   "success": true,
   "projectFilePath": "/home/pale/CSharp/BlockGame-OpenTK/Blockgame-OpenTK.csproj",
   "expectedPackageFiles": [
@@ -24,7 +24,8 @@
     "/home/pale/.nuget/packages/stbimagewritesharp/1.16.7/stbimagewritesharp.1.16.7.nupkg.sha512",
     "/home/pale/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
     "/home/pale/.nuget/packages/system.runtime.compilerservices.unsafe/5.0.0/system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512",
-    "/home/pale/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512"
+    "/home/pale/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
+    "/home/pale/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.4/microsoft.aspnetcore.app.ref.9.0.4.nupkg.sha512"
   ],
   "logs": []
 }

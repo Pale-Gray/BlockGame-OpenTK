@@ -1,11 +1,13 @@
 [Info] Starting in client mode
 [Info] Supports raw mouse? False
 [Info] loading array texture
-System.InvalidOperationException: Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.
-   at System.Collections.Generic.Dictionary`2.TryInsert(TKey key, TValue value, InsertionBehavior behavior)
-   at System.Collections.Generic.Dictionary`2.Add(TKey key, TValue value)
-   at Game.Core.Generation.Noise.UpsampledValue3(Int32 seed, Vector3 coordinates, Vector3i cellSize) in /Util/Noise.cs:line 230
-   at Game.Core.Chunks.ColumnBuilder.GeneratePassOne(ChunkColumn column) in /Chunk/ColumnBuilder.cs:line 74
-   at Game.Core.Worlds.WorldGenerator.HandleGenerationQueue() in /World/WorldGenerator.cs:line 121Noise.cs:line 230
-   at Game.Core.Chunks.ColumnBuilder.GeneratePassOne(ChunkColumn column) in /Chunk/ColumnBuilder.cs:line 74
-   at Game.Core.Worlds.WorldGenerator.HandleGenerationQueue() in /World/WorldGenerator.cs:line 121
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/home/pale/CSharp/BlockGame-OpenTK/Mods'.
+   at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+   at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserDirectories(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions options)
+   at System.IO.Directory.GetDirectories(String path, String searchPattern, EnumerationOptions enumerationOptions)
+   at Game.Core.Modding.ModLoader.Load() in /Mod/ModLoader.cs:line 17
+   at Game.Core.Networking.Client.Load() in /Networking/Client.cs:line 67
+   at Game.Program.Main(String[] args) in /Program.cs:line 232

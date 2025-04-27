@@ -2,26 +2,16 @@ using System.Collections.Generic;
 using Game.Core.Worlds;
 using Game.Util;
 using OpenTK.Mathematics;
-using Tomlet.Attributes;
 
 namespace Game.BlockUtil;
 public class Block
 {
 
-    [TomlProperty("is_solid")]
     public bool IsSolid { get; set; } = true;
-
-    [TomlNonSerialized]
     public BlockModel BlockModel { get; set; }
-    [TomlNonSerialized]
     public ushort Id { get; set; } = 0;
-    [TomlProperty("display_name")]
     public string DisplayName { get; set; } = string.Empty;
-
-    [TomlNonSerialized]
     public string Namespace;
-
-    [TomlProperty("block_model")]
     private string _blockModelPath { get; set; }
     public Block()
     {

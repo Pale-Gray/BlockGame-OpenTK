@@ -1,16 +1,8 @@
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.Glx;
-using OpenTK.Platform;
-using Tomlet.Models;
 
 namespace Game.Core.Serialization;
 
