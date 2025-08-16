@@ -5,9 +5,11 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using OpenTK.Graphics.Vulkan.VulkanVideoCodecH265stdEncode;
 using OpenTK.Mathematics;
 
 namespace VoxelGame.Networking;
@@ -19,12 +21,14 @@ public class Server
 
     private EventBasedNetListener _listener;
     private NetManager _server;
-    private NetDataWriter _writer = new NetDataWriter();
+    private DataWriter _writer = new DataWriter();
 
     private World _world;
     private WorldGenerator _worldGenerator;
 
     private Dictionary<NetPeer, Player> _connectedPlayers = new();
+
+    public NetPeer? CurrentReceivingPeer { get; private set; } = null;
     
     public Server(string ip, int port)
     {
@@ -35,13 +39,46 @@ public class Server
         _server = new NetManager(_listener);
     }
 
-    public Server Start(bool isInternal = false)
+    public Server(string settingsFile)
     {
-        if (isInternal)
+        using (FileStream stream = File.OpenRead("server_settings.json"))
         {
-            // load assets
+            Dictionary<string, object> serverSettings = JsonSerializer.Deserialize<Dictionary<string, object>>(stream)!;
+            Ip = serverSettings["ip"].ToString()!;
+            Port = int.Parse(serverSettings["port"].ToString()!);
         }
         
+        _listener = new EventBasedNetListener();
+        _server = new NetManager(_listener);
+    }
+
+    public Server Start(bool isInternal = false)
+    {
+        if (!isInternal)
+        {
+            Config.Register.RegisterBlock("air", new Block());
+            Config.Register.RegisterBlock("grass", 
+                new Block()
+                    .SetBlockModel(new BlockModel()
+                        .AddCube(new Cube())
+                        .SetTextureFace(0, Direction.Top, "grass_top")
+                        .SetTextureSides(0, "grass_side")
+                        .SetTextureFace(0, Direction.Bottom, "dirt")));
+            Config.Register.RegisterBlock("sand",
+                new Block()
+                    .SetBlockModel(new BlockModel()
+                        .AddCube(new Cube())
+                        .SetAllTextureFaces(0, "sand")));
+            Config.Register.RegisterBlock("pumpkin",
+                new Block()
+                    .SetBlockModel(new BlockModel()
+                        .AddCube(new Cube())
+                        .SetTextureFace(0, Direction.Top, "pumpkin_top")
+                        .SetTextureFace(0, Direction.Bottom, "pumpkin_bottom")
+                        .SetTextureSides(0, "pumpkin_face")));
+        }
+        
+        _server.ChannelsCount = 2;
         _server.Start(Ip, string.Empty, Port);
         Console.WriteLine($"Started server at {Ip}:{Port}");
         _world = new World();
@@ -73,18 +110,25 @@ public class Server
         
         _listener.NetworkReceiveEvent += (fromPeer, dataReader, channel, deliveryMethod) =>
         {
-            PacketType type = (PacketType)dataReader.GetInt();
+            CurrentReceivingPeer = fromPeer;
+            
+            DataReader reader = new DataReader(dataReader.GetRemainingBytes());
+            int t = reader.ReadInt32();
+            PacketType type = (PacketType)t;
+            Console.WriteLine($"{type} packet received");
             switch (type)
             {
                 case PacketType.BlockDestroy:
+                    BlockDestroyPacket blockDestroy = (BlockDestroyPacket) new BlockDestroyPacket().Deserialize(reader);
+                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(_world, blockDestroy.GlobalBlockPosition);
                     
-                    BlockDestroyPacket blockDestroy = (BlockDestroyPacket) new BlockDestroyPacket().Deserialize(dataReader);
-                    Console.WriteLine($"SERVER: block needs to be destroyed: {blockDestroy.GlobalBlockPosition}");
-                    _world.SetBlockId(blockDestroy.GlobalBlockPosition, 0);
+                    SendPacket(blockDestroy, fromPeer);
+                    break;
+                case PacketType.BlockPlace:
+                    BlockPlacePacket packet = (BlockPlacePacket)new BlockPlacePacket().Deserialize(reader);
+                    Config.Register.GetBlockFromId(packet.Id).OnBlockPlace(_world, packet.GlobalBlockPosition);
                     
-                    _writer.Reset();
-                    blockDestroy.Serialize(_writer);
-                    _server.SendToAll(_writer, DeliveryMethod.ReliableUnordered);
+                    SendPacket(packet, fromPeer);
                     break;
             }
             
@@ -92,6 +136,22 @@ public class Server
         };
         
         return this;
+    }
+    
+    public void SendPacket(IPacket packet, NetPeer? fromPeer = null)
+    {
+        _writer.Clear();
+        _writer.Write((int)packet.Type);
+        packet.Serialize(_writer);
+
+        if (fromPeer != null)
+        {
+            _server.SendToAll(_writer.Data, DeliveryMethod.ReliableOrdered, fromPeer);
+        }
+        else
+        {
+            _server.SendToAll(_writer.Data, DeliveryMethod.ReliableOrdered);
+        }
     }
 
     public void Poll()
@@ -121,12 +181,14 @@ public class Server
                         {
                             if (_world.ChunkColumns[(x,z)].Status == ChunkStatus.Mesh)
                             {
-                                _writer.Reset();
+                                _writer.Clear();
                                 ChunkDataPacket chunkData = new ChunkDataPacket();
                                 chunkData.Position = (x, z);
                                 chunkData.Column = _world.ChunkColumns[(x, z)];
-                                chunkData.Serialize(_writer);
-                                _server.SendToAll(_writer, DeliveryMethod.ReliableUnordered);
+                                SendPacket(chunkData);
+                                
+                                // chunkData.Serialize(_writer);
+                                // _server.SendToAll(_writer.Data, 1, DeliveryMethod.ReliableUnordered);
                                 playerPair.Value.LoadedChunks.Add((x, z));
                             }
                         }

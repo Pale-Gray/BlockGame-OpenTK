@@ -124,18 +124,7 @@ public class WorldGenerator
                 {
                     if (y <= 128 + height)
                     {
-                        double rand = Config.Random.NextDouble();
-                        if (rand <= 0.3)
-                        {
-                            Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("grass"));
-                        }
-                        else if (rand <= 0.6)
-                        {
-                            Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("sand"));
-                        } else if (rand <= 1.0)
-                        {
-                            Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("pumpkin"));
-                        }
+                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("pumpkin"));
                     }
                 }
             }
@@ -235,7 +224,7 @@ public class WorldGenerator
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinate)));
             GL.EnableVertexAttribArray(2);
         
-            if (mesh.Length != mesh.Data.Count) Console.WriteLine($"previous length: {mesh.Length} new length: {mesh.Data.Count}");
+            // if (mesh.Length != mesh.Data.Count) Console.WriteLine($"previous length: {mesh.Length} new length: {mesh.Data.Count}");
             
             mesh.Length = mesh.Data.Count;
             mesh.Data.Clear();
@@ -243,5 +232,11 @@ public class WorldGenerator
         }
         
         column.Status = ChunkStatus.Done;
+    }
+
+    public void EnqueueChunk(Vector2i position, ChunkStatus chunkStatus, bool hasPriority)
+    {
+        _world.ChunkColumns[position].Status = chunkStatus;
+        GenerationQueue.Enqueue(position);
     }
 }

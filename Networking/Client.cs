@@ -20,7 +20,7 @@ public class Client
 {
     private EventBasedNetListener _listener;
     public NetManager _client;
-    public NetDataWriter _writer;
+    public DataWriter _writer = new DataWriter();
     public NetPeer ClientPeer;
 
     private World _world;
@@ -39,7 +39,6 @@ public class Client
     {
         _listener = new EventBasedNetListener();
         _client = new NetManager(_listener);
-        _writer = new NetDataWriter();
     }
 
     public Client Start()
@@ -98,7 +97,10 @@ public class Client
         
         GL.Viewport(0, 0, Config.Width, Config.Height);
         GL.Enable(EnableCap.DepthTest);
+        GL.DepthFunc(DepthFunction.Lequal);
         GL.Enable(EnableCap.CullFace);
+        GL.Enable(EnableCap.PolygonOffsetFill);
+        GL.Enable(EnableCap.PolygonOffsetLine);
         GL.CullFace(TriangleFace.Back);
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.Enable(EnableCap.Blend);
@@ -116,12 +118,44 @@ public class Client
         
         vertices = new ChunkVertex[]
         {
+            // top
             new ChunkVertex((0, 1, 1), (0, 1, 0), (0, 0)),
             new ChunkVertex((0, 1, 0), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((0, 1, 0), (0, 1, 0), (0, 0)),
             new ChunkVertex((1, 1, 0), (0, 1, 0), (0, 0)),
+            
             new ChunkVertex((1, 1, 0), (0, 1, 0), (0, 0)),
             new ChunkVertex((1, 1, 1), (0, 1, 0), (0, 0)),
-            new ChunkVertex((0, 1, 1), (0, 1, 0), (0, 0))
+            
+            new ChunkVertex((1, 1, 1), (0, 1, 0), (0, 0)),
+            new ChunkVertex((0, 1, 1), (0, 1, 0), (0, 0)),
+            
+            // sides
+            new ChunkVertex((0, 1, 1), (0, 1, 0), (0, 0)),
+            new ChunkVertex((0, 0, 1), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((0, 1, 0), (0, 1, 0), (0, 0)),
+            new ChunkVertex((0, 0, 0), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((1, 1, 0), (0, 1, 0), (0, 0)),
+            new ChunkVertex((1, 0, 0), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((1, 1, 1), (0, 1, 0), (0, 0)),
+            new ChunkVertex((1, 0, 1), (0, 1, 0), (0, 0)),
+            
+            // bottom
+            new ChunkVertex((0, 0, 1), (0, 1, 0), (0, 0)),
+            new ChunkVertex((0, 0, 0), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((0, 0, 0), (0, 1, 0), (0, 0)),
+            new ChunkVertex((1, 0, 0), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((1, 0, 0), (0, 1, 0), (0, 0)),
+            new ChunkVertex((1, 0, 1), (0, 1, 0), (0, 0)),
+            
+            new ChunkVertex((1, 0, 1), (0, 1, 0), (0, 0)),
+            new ChunkVertex((0, 0, 1), (0, 1, 0), (0, 0)),
         };
 
         vao = GL.GenVertexArray();
@@ -143,6 +177,7 @@ public class Client
     
     public void JoinServer(string hostOrIp, int port)
     {
+        _client.ChannelsCount = 2;
         _client.Start();
         ClientPeer = _client.Connect(hostOrIp, port, "hello");
         
@@ -151,36 +186,37 @@ public class Client
 
         _listener.NetworkReceiveEvent += (fromPeer, dataReader, channel, deliveryMethod) =>
         {
-            PacketType type = (PacketType)dataReader.GetInt();
+            DataReader reader = new DataReader(dataReader.GetRemainingBytes());
+            PacketType type = (PacketType)reader.ReadInt32();
             switch (type)
             {
                 case PacketType.ChunkData:
-                    ChunkDataPacket chunkData = (ChunkDataPacket) new ChunkDataPacket().Deserialize(dataReader);
+                    ChunkDataPacket chunkData = (ChunkDataPacket) new ChunkDataPacket().Deserialize(reader);
                     chunkData.Column.Status = ChunkStatus.Mesh;
                     _world.ChunkColumns.TryAdd(chunkData.Position, chunkData.Column);
                     _worldGenerator.GenerationQueue.Enqueue(chunkData.Position);
                     break;
                 case PacketType.BlockDestroy:
-                    BlockDestroyPacket blockDestroy = (BlockDestroyPacket)new BlockDestroyPacket().Deserialize(dataReader);
+                    BlockDestroyPacket blockDestroy = (BlockDestroyPacket)new BlockDestroyPacket().Deserialize(reader);
                     Console.WriteLine($"CLIENT: block needs to be destroyed: {blockDestroy.GlobalBlockPosition}");
-                    _world.SetBlockId(blockDestroy.GlobalBlockPosition, 0);
+                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(_world, blockDestroy.GlobalBlockPosition);
+                    
                     Vector3i chunkPosition = ChunkMath.GlobalToChunk(blockDestroy.GlobalBlockPosition);
+                    _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                    _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+
                     for (int x = -1; x <= 1; x++)
                     {
                         for (int y = -1; y <= 1; y++)
                         {
                             for (int z = -1; z <= 1; z++)
                             {
-                                if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x, z)))
-                                {
-                                    if (chunkPosition.Y + y >= 0 && chunkPosition.Y + y < Config.ColumnSize)
-                                    {
-                                        _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y]
-                                            .NeedsUpdates = true;
-                                    }
+                                if (x == 0 && y == 0 && z == 0) continue;
 
-                                    _world.ChunkColumns[chunkPosition.Xz + (x, z)].Status = ChunkStatus.Mesh;
-                                    _worldGenerator.GenerationQueue.Enqueue(chunkPosition.Xz + (x, z));
+                                if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                                {
+                                    _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                    _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
                                 }
                             }
                         }
@@ -204,6 +240,7 @@ public class Client
     
     public void Poll()
     {
+        _client.PollEvents();
         Input.Poll();
         Toolkit.Window.ProcessEvents(false);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -242,14 +279,75 @@ public class Client
         
         if (ray.TryHit(_world, 10))
         {
+            GL.PolygonOffset(1.0f, 1);
+            GL.Disable(EnableCap.CullFace);
+            shad.Bind();
+            GL.Uniform3f(shad.GetUniformLocation("uPosition"), 1, ray.HitBlockPosition);
+            GL.UniformMatrix4f(shad.GetUniformLocation("uProjection"), 1, true, ref Camera.Projection);
+            GL.UniformMatrix4f(shad.GetUniformLocation("uView"), 1, true, ref Camera.View);
+            GL.BindVertexArray(vao);
+            GL.DrawArrays(PrimitiveType.Lines, 0, vertices.Length);
+            GL.Enable(EnableCap.CullFace);
+            GL.PolygonOffset(1.0f, 0);
+            
+            if (Input.IsMouseButtonPressed(MouseButton.Button2))
+            {
+                Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(_world, ray.PreviousHitBlockPosition);
+                BlockPlacePacket packet = new BlockPlacePacket();
+                packet.Id = Config.Register.GetBlockFromNamespace("sand").Id;
+                packet.GlobalBlockPosition = ray.PreviousHitBlockPosition;
+                
+                SendPacket(packet);
+                Vector3i chunkPosition = ChunkMath.GlobalToChunk(ray.PreviousHitBlockPosition);
+                _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        for (int z = -1; z <= 1; z++)
+                        {
+                            if (x == 0 && y == 0 && z == 0) continue;
+
+                            if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                            {
+                                _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
+                            }
+                        }
+                    }
+                }
+            }
+            
             if (Input.IsMouseButtonPressed(MouseButton.Button1))
             {
-                _writer.Reset();
-                BlockDestroyPacket blockDestroyPacket = new BlockDestroyPacket();
-                blockDestroyPacket.GlobalBlockPosition = ray.HitBlockPosition;
-                blockDestroyPacket.Serialize(_writer);
-                Console.WriteLine($"sending block break packet: {blockDestroyPacket.GlobalBlockPosition}");
-                _client.SendToAll(_writer, DeliveryMethod.ReliableOrdered);
+                Config.Register.GetBlockFromId(_world.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(_world, ray.HitBlockPosition);
+                BlockDestroyPacket packet = new BlockDestroyPacket();
+                packet.GlobalBlockPosition = ray.HitBlockPosition;
+                packet.Id = _world.GetBlockId(ray.HitBlockPosition);
+                
+                SendPacket(packet);
+                Vector3i chunkPosition = ChunkMath.GlobalToChunk(ray.HitBlockPosition);
+                _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        for (int z = -1; z <= 1; z++)
+                        {
+                            if (x == 0 && y == 0 && z == 0) continue;
+
+                            if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                            {
+                                _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -272,14 +370,21 @@ public class Client
 
         Config.DeltaTime = (float) sw.Elapsed.TotalSeconds;
         sw.Restart();
-        
-        _client.PollEvents();
     }
 
     public void Disconnect()
     {
         _client.Stop();
         _worldGenerator.Stop();
+    }
+
+    public void SendPacket(IPacket packet)
+    {
+        _writer.Clear();
+        _writer.Write((int)packet.Type);
+        packet.Serialize(_writer);
+        
+        _client.SendToAll(_writer.Data, DeliveryMethod.ReliableOrdered);
     }
     
     void EventRaised(PalHandle? handle, PlatformEventType eventType, EventArgs args)

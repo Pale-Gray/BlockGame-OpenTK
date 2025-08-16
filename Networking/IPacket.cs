@@ -1,15 +1,13 @@
-using System.Numerics;
-using LiteNetLib.Utils;
 using OpenTK.Mathematics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+using VoxelGame.Util;
 
 namespace VoxelGame.Networking;
 
 public interface IPacket
 {
     public PacketType Type { get; set; }
-    public void Serialize(NetDataWriter writer);
-    public IPacket Deserialize(NetDataReader reader);
+    public void Serialize(DataWriter writer);
+    public IPacket Deserialize(DataReader reader);
 }
 
 public enum PacketType
@@ -17,47 +15,50 @@ public enum PacketType
     ChunkData,
     PlayerMove,
     BlockDestroy,
+    BlockPlace
 }
 
-public struct PlayerMovePacket : IPacket
+public struct BlockPlacePacket() : IPacket
 {
-    public PacketType Type { get; set; } = PacketType.PlayerMove;
-    public Vector3 PositionTo;
-    
-    public void Serialize(NetDataWriter writer)
+    public PacketType Type { get; set; } = PacketType.BlockPlace;
+    public ushort Id;
+    public Vector3i GlobalBlockPosition;
+
+    public void Serialize(DataWriter writer)
     {
-        writer.Put((int)Type);
-        writer.Put(PositionTo.X);
-        writer.Put(PositionTo.Y);
-        writer.Put(PositionTo.Z);
+        writer.Write(Id);
+        writer.Write(GlobalBlockPosition.X);
+        writer.Write(GlobalBlockPosition.Y);
+        writer.Write(GlobalBlockPosition.Z);
     }
 
-    public IPacket Deserialize(NetDataReader reader)
+    public IPacket Deserialize(DataReader reader)
     {
-        PositionTo = (reader.GetFloat(), reader.GetFloat(), reader.GetFloat());
+        Id = reader.ReadUInt16();
+        GlobalBlockPosition = (reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
         
         return this;
     }
-
-    public PlayerMovePacket() {}
 }
 
 public struct BlockDestroyPacket() : IPacket
 {
     public PacketType Type { get; set; } = PacketType.BlockDestroy;
+    public ushort Id;
     public Vector3i GlobalBlockPosition;
     
-    public void Serialize(NetDataWriter writer)
+    public void Serialize(DataWriter writer)
     {
-        writer.Put((int)Type);
-        writer.Put(GlobalBlockPosition.X);
-        writer.Put(GlobalBlockPosition.Y);
-        writer.Put(GlobalBlockPosition.Z);
+        writer.Write(Id);
+        writer.Write(GlobalBlockPosition.X);
+        writer.Write(GlobalBlockPosition.Y);
+        writer.Write(GlobalBlockPosition.Z);
     }
 
-    public IPacket Deserialize(NetDataReader reader)
+    public IPacket Deserialize(DataReader reader)
     {
-        GlobalBlockPosition = (reader.GetInt(), reader.GetInt(), reader.GetInt());
+        Id = reader.ReadUInt16();
+        GlobalBlockPosition = (reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
         
         return this;
     }
@@ -69,31 +70,24 @@ public struct ChunkDataPacket : IPacket
     public Vector2i Position;
     public Chunk Column;
     
-    public void Serialize(NetDataWriter writer)
+    public void Serialize(DataWriter writer)
     {
-        writer.Put((int)Type);
-        writer.Put(Position.X);
-        writer.Put(Position.Y);
+        writer.Write(Position.X);
+        writer.Write(Position.Y);
         for (int i = 0; i < Config.ColumnSize; i++)
         {
-            for (int l = 0; l < Column.ChunkSections[i].Data.Length; l++)
-            {
-                writer.Put(Column.ChunkSections[i].Data[l]);
-            }
+            writer.WriteValues(RunLengthEncoder.Encode(Column.ChunkSections[i].Data).ToArray());
         }
     }
 
-    public IPacket Deserialize(NetDataReader reader)
+    public IPacket Deserialize(DataReader reader)
     {
-        Position = (reader.GetInt(), reader.GetInt());
+        Position = (reader.ReadInt32(), reader.ReadInt32());
         Column = new Chunk(Position);
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             Column.ChunkSections[i].Position = (Position.X, i, Position.Y);
-            for (int l = 0; l < Column.ChunkSections[i].Data.Length; l++)
-            {
-                Column.ChunkSections[i].Data[l] = reader.GetUShort();
-            }
+            Column.ChunkSections[i].Data = RunLengthEncoder.Decode(reader.ReadUInt16Values()).ToArray();
         }
         
         return this;

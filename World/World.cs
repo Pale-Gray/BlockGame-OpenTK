@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using VoxelGame.Networking;
 
 namespace VoxelGame;
 
@@ -56,5 +57,10 @@ public class World
             Vector3i pos = ChunkMath.GlobalToLocal(globalBlockPosition);
             ChunkColumns[chunkPosition.Xz].ChunkSections[chunkPosition.Y].SetBlockId(value, pos.X, pos.Y, pos.Z);
         }
+    }
+
+    public void EnqueueChunk(Vector2i chunkPosition)
+    {
+        
     }
 }

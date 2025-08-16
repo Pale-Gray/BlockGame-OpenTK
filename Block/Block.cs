@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenTK.Mathematics;
+using VoxelGame.Networking;
 
 namespace VoxelGame;
 
@@ -7,19 +8,29 @@ public class Block
 {
     public BlockModel BlockModel = new BlockModel();
     public BoundingBox BoundingBox = new BoundingBox();
-    public ushort Id;
+    public ushort Id = 0;
     
     public Block SetBlockModel(BlockModel model)
     {
         BlockModel = model;
         return this;
     }
+
+    public virtual void OnBlockPlace(World world, Vector3i blockPosition)
+    {
+        world.SetBlockId(blockPosition, Id);
+    }
+
+    public virtual void OnBlockDestroy(World world, Vector3i blockPosition)
+    {
+        world.SetBlockId(blockPosition, 0);
+    }
 }
 
 public enum Direction
 {
     Top,
-    Bottom, 
+    Bottom,
     Left,
     Right,
     Front,
@@ -42,18 +53,5 @@ public struct Cube
     {
         Position = position;
         Size = size;
-    }
-}
-
-public struct BoundingBox
-{
-    public Vector3 Size = Vector3.One;
-    public Vector3 Position = Vector3.Zero;
-    public float Bounciness = 0.0f;
-    public float Friction = 1.0f;
-    
-    public BoundingBox()
-    {
-        
     }
 }
