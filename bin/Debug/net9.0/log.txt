@@ -1,3 +1,0 @@
-[INFO] this is an info string
-[WARN] this is a warning string
-[ERR] this is an error string
