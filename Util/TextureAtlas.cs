@@ -1,21 +1,35 @@
-﻿namespace Game.Util
+using OpenTK.Mathematics;
+
+namespace VoxelGame;
+
+public class TextureAtlas
 {
-    public class TextureAtlas : Texture
+    private Texture _texture;
+    private Vector2 _tileSize;
+    public int Id => _texture.Id;
+    public TextureAtlas(string path, Vector2i tileSize)
     {
+        _texture = new Texture(path);
+        _tileSize = tileSize;
+    }
 
-        public float RatioX, RatioY;
+    public TextureAtlas Generate()
+    {
+        _texture.Generate();
+        return this;
+    }
 
-        public TextureAtlas(string fileName, int textureResolution) : base(fileName)
-        {
-
-            RatioX = 1f / (Width / (float)textureResolution);
-            RatioY = 1f / (Height / (float)textureResolution);
-
-        }
-
-        public TextureAtlas(byte[] pixeldata, int width, int height) : base(pixeldata, width, height)
-        {
-        }
-
+    public Vector2[] CoordinatesAt(Vector2i coordinate)
+    {
+        Vector2[] coordinates = new Vector2[4];
+        Vector2 tileOffset = (1 / _tileSize.X, 1 / _tileSize.Y);
+        
+        // top left, bottom left, bottom right, top right
+        coordinates[0] = (tileOffset.X * coordinate.X, 1.0f - (tileOffset.Y * coordinate.Y));
+        coordinates[1] = (tileOffset.X * coordinate.X, 1.0f - tileOffset.Y - (tileOffset.Y * coordinate.Y));
+        coordinates[2] = ((tileOffset.X * coordinate.X) + tileOffset.X, 1.0f - tileOffset.Y - (tileOffset.Y * coordinate.Y));
+        coordinates[3] = ((tileOffset.X * coordinate.X) + tileOffset.X, 1.0f - (tileOffset.Y * coordinate.Y));
+        
+        return coordinates;
     }
 }

@@ -1,121 +1,142 @@
-﻿using OpenTK.Mathematics;
 using System;
+using OpenTK.Mathematics;
+using OpenTK.Platform;
+using VoxelGame.Util;
 
-namespace Game.Util
+namespace VoxelGame;
+
+public enum CameraMode
 {
-    public enum CameraType
+    Perspective,
+    Orthographic
+}
+
+public class Camera
+{
+    private float _fov = 60.0f;
+    private int _width = 1920, _height = 1080;
+    private CameraMode _mode = CameraMode.Perspective;
+    
+    public Matrix4 Projection;
+    public Matrix4 View;
+
+    public float Fov
     {
+        get => _fov;
+        set
+        {
+            _fov = value;
+            ResetProjection();
+        }
+    }
 
-        Orthographic,
-        Perspective
-
-    };
-
-    public class Camera
+    public int Width
     {
-
-        public Vector3 Position;
-        public Vector3 UpVector;
-        public Vector3 ForwardVector;
-
-        public Matrix4 ProjectionMatrix;
-        public Matrix4 ViewMatrix;
-
-        public float Fov = 90;
-        public CameraType CameraType;
-
-        public float Yaw = 0;
-        public float Pitch = 0;
-        public float Roll = 0;
-
-        public Camera(Vector3 position, Vector3 forwards, Vector3 up, CameraType type, float fov)
+        get => _width;
+        set
         {
+            _width = value;
+            ResetProjection();
+        }
+    }
 
-            Position = position;
-            ForwardVector = forwards;
-            UpVector = up;
-            CameraType = type;
-            Fov = fov;
+    public int Height
+    {
+        get => _height;
+        set
+        {
+            _height = value;
+            ResetProjection();
+        }
+    }
 
-            UpdateProjectionMatrix();
+    public CameraMode Mode
+    {
+        get => _mode;
+        set
+        {
+            _mode = value;
+            ResetProjection();
+        }
+    }
+    
+    public Camera(float fov, int width, int height, CameraMode mode)
+    {
+        Fov = fov;
+        Width = width;
+        Height = height;
+        Mode = mode;
+    }
 
-            // sets in case you dont use Update() but won't update the view matrix of course.
-            ViewMatrix = Matrix4.LookAt(position, position + forwards, up);
+    public void ResetProjection()
+    {
+        switch (Mode)
+        {
+            case CameraMode.Perspective:
+                Projection = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(Fov), (float) Width / Height, 0.1f, 1000.0f);
+                break;
+            case CameraMode.Orthographic:
+                Projection = Matrix4.CreateOrthographic(Width, Height, 0.1f, 1000.0f);
+                break;
+        }
+    }
+}
 
+public class MoveableCamera : Camera
+{
+    private Matrix4 _rotation;
+    private Matrix4 _translation;
+    private Matrix4 _positiveZForward = Matrix4.CreateScale(0, 0, -1);
+    public Vector3 Position;
+    public Vector3 Rotation;
+    public float Speed = 25.0f;
+    
+    public MoveableCamera(float fov, int width, int height, CameraMode mode) : base(fov, width, height, mode)
+    {
+        
+    }
+
+    public void Poll()
+    {
+        Rotation.Y += Input.MouseDelta.X;
+        Rotation.X += Input.MouseDelta.Y;
+      
+        if (Input.IsKeyDown(Key.S))
+        {
+            Position.Z -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+            Position.X -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
         }
 
-        public void UpdateProjectionMatrix()
+        if (Input.IsKeyDown(Key.W))
         {
-
-            switch (CameraType)
-            {
-
-                case CameraType.Orthographic:
-                    ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, GlobalValues.Width, GlobalValues.Height, 0, 0.1f, 1000f);
-                    break;
-                case CameraType.Perspective:
-                    ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Fov), GlobalValues.Width / GlobalValues.Height, 0.1f, 100000f);
-                    break;
-
-            }
-
-        }
-        public void Update(Vector3 position, Vector3 forwards, Vector3 up)
-        {
-
-
-            Position = position;
-            ForwardVector = forwards;
-            UpVector = up;
-
-            ViewMatrix = Matrix4.LookAt(position, position + forwards, up);
-
+            Position.Z += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+            Position.X += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
         }
 
-        public void Update(Vector3 position)
+        if (Input.IsKeyDown(Key.A))
         {
-
-            Vector2 MouseDelta = -Input.FocusAwareMouseDelta;
-
-            Yaw += MouseDelta.X * GlobalValues.Settings.MouseSensitivity;
-            Pitch -= MouseDelta.Y * GlobalValues.Settings.MouseSensitivity;
-
-            // Console.WriteLine(Input.JoystickRightAxis);
-            // Yaw += Input.JoystickRightAxis.Y * GlobalValues.Settings.MouseSensitivity;
-            // Pitch += Input.JoystickRightAxis.X * GlobalValues.Settings.MouseSensitivity;
-            // Pitch = Math.Clamp(Pitch, -88, 88);
-
-            CalculateFrontFromYawPitch(Yaw, Pitch);
-            
-            Position = position;
-
-            ViewMatrix = Matrix4.LookAt(Position, Position + ForwardVector, UpVector);
-
-
+            Position.X -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+            Position.Z += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
         }
 
-        public void CalculateFrontFromYawPitch(float yaw, float pitch)
+        if (Input.IsKeyDown(Key.D))
         {
-
-            ForwardVector.X = (float)Math.Cos(Maths.ToRadians(pitch)) * (float)Math.Cos(Maths.ToRadians(yaw));
-            ForwardVector.Y = (float)Math.Sin(Maths.ToRadians(pitch));
-            ForwardVector.Z = (float)Math.Cos(Maths.ToRadians(pitch)) * (float)Math.Sin(Maths.ToRadians(yaw));
-            ForwardVector = Vector3.Normalize(ForwardVector);
+            Position.X += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+            Position.Z -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
         }
 
-        public void SetPosition(Vector3 position)
+        if (Input.IsKeyDown(Key.E))
         {
-
-            Position = position;
-
+            Position.Y += Speed * Config.DeltaTime;
         }
 
-        public void SetFov(float fov)
+        if (Input.IsKeyDown(Key.Q))
         {
-
-            Fov = fov;
-
+            Position.Y -= Speed * Config.DeltaTime;
         }
 
+        _rotation = Matrix4.CreateRotationY(float.DegreesToRadians(Rotation.Y)) * Matrix4.CreateRotationX(float.DegreesToRadians(Rotation.X));
+        _translation = Matrix4.CreateTranslation((-Position.X, -Position.Y, Position.Z));
+        View = _translation * _rotation;
     }
 }

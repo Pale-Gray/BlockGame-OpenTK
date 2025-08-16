@@ -1,66 +1,59 @@
 using System.Collections.Generic;
-using Game.Core.Worlds;
-using Game.Util;
 using OpenTK.Mathematics;
 
-namespace Game.BlockUtil;
+namespace VoxelGame;
+
 public class Block
 {
-
-    public bool IsSolid { get; set; } = true;
-    public BlockModel BlockModel { get; set; }
-    public ushort Id { get; set; } = 0;
-    public string DisplayName { get; set; } = string.Empty;
-    public string Namespace;
-    private string _blockModelPath { get; set; }
-    public Block()
+    public BlockModel BlockModel = new BlockModel();
+    public BoundingBox BoundingBox = new BoundingBox();
+    public ushort Id;
+    
+    public Block SetBlockModel(BlockModel model)
     {
-        
-    }
-
-    public Block(string translationKey, BlockModel model)
-    {
-
-        DisplayName = translationKey;
         BlockModel = model;
-
+        return this;
     }
+}
 
-    public virtual void OnBlockDestroy(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
+public enum Direction
+{
+    Top,
+    Bottom,
+    Left,
+    Right,
+    Front,
+    Back
+}
+
+public struct Cube
+{
+    public Vector3 Position = Vector3.Zero;
+    public Vector3 Size = Vector3.One;
+    public Vector2i[] FaceTextureCoordinates = new Vector2i[6];
+    public string[] FaceResourceLocations = new string[6];
+
+    public Cube()
     {
         
-        world.SetBlock(globalBlockPosition, GlobalValues.Register.GetBlockFromId(0), shouldUpdateMesh, hasPriority);
-        world.RemoveBlockProperty(globalBlockPosition);
-        world.RemoveBlockTicker(globalBlockPosition);
+    }
+    
+    public Cube(Vector3 position, Vector3 size)
+    {
+        Position = position;
+        Size = size;
+    }
+}
+
+public struct BoundingBox
+{
+    public Vector3 Size = Vector3.One;
+    public Vector3 Position = Vector3.Zero;
+    public float Bounciness = 0.0f;
+    public float Friction = 1.0f;
+    
+    public BoundingBox()
+    {
         
     }
-
-    public virtual void OnBlockPlace(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
-    {
-
-        world.SetBlock(globalBlockPosition, this, shouldUpdateMesh, hasPriority);
-        
-    }
-
-    public virtual void OnBlockMesh(World world, Vector3i globalBlockPosition, List<Rectangle> solids, List<Rectangle> cutouts)
-    {
-
-        world.AddModel(BlockModel, globalBlockPosition, solids, cutouts);
-
-    }
-
-    public virtual void OnRandomTick(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
-    {
-
-
-
-    }
-
-    public virtual void OnFixedTick(World world, Vector3i globalBlockPosition, bool shouldUpdateMesh, bool hasPriority)
-    {
-
-
-
-    }
-
 }
