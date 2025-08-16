@@ -53,5 +53,8 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-Mods/*
-Worlds/*
+.git/*
+.github/*
+.idea/*
+bin/*
+obj/*
