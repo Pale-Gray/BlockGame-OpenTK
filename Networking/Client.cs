@@ -16,32 +16,18 @@ using VoxelGame.Util;
 
 namespace VoxelGame.Networking;
 
-public class Client
+public class Client : Networked
 {
-    private EventBasedNetListener _listener;
-    public NetManager _client;
-    public DataWriter _writer = new DataWriter();
-    public NetPeer ClientPeer;
-
-    private World _world;
-    private WorldGenerator _worldGenerator;
-
     public MoveableCamera Camera;
-    
-    Stopwatch sw; // = Stopwatch.StartNew();
-    Stopwatch timer; // = Stopwatch.StartNew();
-    List<double> frameTimes = new();
+    public NetPeer ClientPeer;
     
     ChunkVertex[] vertices = new ChunkVertex[6];
     private int vbo, vao = 0;
     private Shader shad;
-    public Client()
-    {
-        _listener = new EventBasedNetListener();
-        _client = new NetManager(_listener);
-    }
+    public Client() : base()
+    {}
 
-    public Client Start()
+    public override void Start()
     {
         StbImage.stbi_set_flip_vertically_on_load(1);
         
@@ -113,9 +99,6 @@ public class Client
 
         Input.Init();
         
-        sw = Stopwatch.StartNew();
-        timer = Stopwatch.StartNew();
-        
         vertices = new ChunkVertex[]
         {
             // top
@@ -171,20 +154,28 @@ public class Client
         GL.EnableVertexAttribArray(1);
         GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinate)));
         GL.EnableVertexAttribArray(2);
-        
-        return this;
     }
-    
-    public void JoinServer(string hostOrIp, int port)
-    {
-        _client.ChannelsCount = 2;
-        _client.Start();
-        ClientPeer = _client.Connect(hostOrIp, port, "hello");
-        
-        _world = new World();
-        _worldGenerator = new WorldGenerator(_world).Start();
 
-        _listener.NetworkReceiveEvent += (fromPeer, dataReader, channel, deliveryMethod) =>
+    public override void Stop()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void TickUpdate()
+    {
+        
+    }
+
+    public override void Join()
+    {
+        Manager.ChannelsCount = 2;
+        Manager.Start();
+        ClientPeer = Manager.Connect(HostOrIp, Port, "hello");
+        
+        World = new World();
+        WorldGenerator = new WorldGenerator(World).Start();
+
+        Listener.NetworkReceiveEvent += (fromPeer, dataReader, channel, deliveryMethod) =>
         {
             DataReader reader = new DataReader(dataReader.GetRemainingBytes());
             PacketType type = (PacketType)reader.ReadInt32();
@@ -193,17 +184,17 @@ public class Client
                 case PacketType.ChunkData:
                     ChunkDataPacket chunkData = (ChunkDataPacket) new ChunkDataPacket().Deserialize(reader);
                     chunkData.Column.Status = ChunkStatus.Mesh;
-                    _world.ChunkColumns.TryAdd(chunkData.Position, chunkData.Column);
-                    _worldGenerator.GenerationQueue.Enqueue(chunkData.Position);
+                    World.ChunkColumns.TryAdd(chunkData.Position, chunkData.Column);
+                    WorldGenerator.GenerationQueue.Enqueue(chunkData.Position);
                     break;
                 case PacketType.BlockDestroy:
                     BlockDestroyPacket blockDestroy = (BlockDestroyPacket)new BlockDestroyPacket().Deserialize(reader);
                     Console.WriteLine($"CLIENT: block needs to be destroyed: {blockDestroy.GlobalBlockPosition}");
-                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(_world, blockDestroy.GlobalBlockPosition);
+                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(World, blockDestroy.GlobalBlockPosition);
                     
                     Vector3i chunkPosition = ChunkMath.GlobalToChunk(blockDestroy.GlobalBlockPosition);
-                    _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
-                    _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+                    World.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                    WorldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
 
                     for (int x = -1; x <= 1; x++)
                     {
@@ -213,10 +204,10 @@ public class Client
                             {
                                 if (x == 0 && y == 0 && z == 0) continue;
 
-                                if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                                if (World.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
                                 {
-                                    _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
-                                    _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
+                                    World.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                    WorldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
                                 }
                             }
                         }
@@ -227,20 +218,21 @@ public class Client
             dataReader.Recycle();
         };
 
-        _listener.PeerConnectedEvent += peer =>
+        Listener.PeerConnectedEvent += peer =>
         {
             Console.WriteLine("Connected.");
         };
 
-        _listener.PeerDisconnectedEvent += (peer, info) =>
+        Listener.PeerDisconnectedEvent += (peer, info) =>
         {
             Console.WriteLine($"Connection disconnected. Reason: {info.Reason}");
         };
     }
-    
-    public void Poll()
+
+    public override void Update()
     {
-        _client.PollEvents();
+        
+        Manager.PollEvents();
         Input.Poll();
         Toolkit.Window.ProcessEvents(false);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -270,14 +262,14 @@ public class Client
         }
         
         Camera.Poll();
-        _world.Draw(Camera);
-        _worldGenerator.Poll();
+        World.Draw(Camera);
+        WorldGenerator.Poll();
 
         Ray ray = new Ray();
         ray.Origin = Camera.Position;
         ray.Direction = (Matrix3.CreateRotationY(float.DegreesToRadians(Camera.Rotation.Y)) * Matrix3.CreateRotationX(float.DegreesToRadians(-Camera.Rotation.X))).Column2 * (-1, 1, 1);
         
-        if (ray.TryHit(_world, 10))
+        if (ray.TryHit(World, 10))
         {
             GL.PolygonOffset(1.0f, 1);
             GL.Disable(EnableCap.CullFace);
@@ -292,15 +284,15 @@ public class Client
             
             if (Input.IsMouseButtonPressed(MouseButton.Button2))
             {
-                Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(_world, ray.PreviousHitBlockPosition);
+                Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(World, ray.PreviousHitBlockPosition);
                 BlockPlacePacket packet = new BlockPlacePacket();
                 packet.Id = Config.Register.GetBlockFromNamespace("sand").Id;
                 packet.GlobalBlockPosition = ray.PreviousHitBlockPosition;
                 
                 SendPacket(packet);
                 Vector3i chunkPosition = ChunkMath.GlobalToChunk(ray.PreviousHitBlockPosition);
-                _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
-                _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+                World.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                WorldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
 
                 for (int x = -1; x <= 1; x++)
                 {
@@ -310,10 +302,10 @@ public class Client
                         {
                             if (x == 0 && y == 0 && z == 0) continue;
 
-                            if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                            if (World.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
                             {
-                                _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
-                                _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
+                                World.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                WorldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
                             }
                         }
                     }
@@ -322,15 +314,15 @@ public class Client
             
             if (Input.IsMouseButtonPressed(MouseButton.Button1))
             {
-                Config.Register.GetBlockFromId(_world.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(_world, ray.HitBlockPosition);
+                Config.Register.GetBlockFromId(World.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(World, ray.HitBlockPosition);
                 BlockDestroyPacket packet = new BlockDestroyPacket();
                 packet.GlobalBlockPosition = ray.HitBlockPosition;
-                packet.Id = _world.GetBlockId(ray.HitBlockPosition);
+                packet.Id = World.GetBlockId(ray.HitBlockPosition);
                 
                 SendPacket(packet);
                 Vector3i chunkPosition = ChunkMath.GlobalToChunk(ray.HitBlockPosition);
-                _world.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
-                _worldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
+                World.ChunkColumns[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].NeedsUpdates = true;
+                WorldGenerator.EnqueueChunk(chunkPosition.Xz, ChunkStatus.Mesh, true);
 
                 for (int x = -1; x <= 1; x++)
                 {
@@ -340,10 +332,10 @@ public class Client
                         {
                             if (x == 0 && y == 0 && z == 0) continue;
 
-                            if (_world.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
+                            if (World.ChunkColumns.ContainsKey(chunkPosition.Xz + (x,z)))
                             {
-                                _world.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
-                                _worldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
+                                World.ChunkColumns[chunkPosition.Xz + (x, z)].ChunkMeshes[chunkPosition.Y + y].NeedsUpdates = true;
+                                WorldGenerator.EnqueueChunk(chunkPosition.Xz + (x, z), ChunkStatus.Mesh, true);
                             }
                         }
                     }
@@ -352,39 +344,23 @@ public class Client
         }
         
         Toolkit.OpenGL.SwapBuffers(Config.OpenGLContext);
-        frameTimes.Add(sw.Elapsed.TotalMilliseconds);
-        if (timer.Elapsed.Seconds >= 1)
-        {
-            double average = 0;
-            double low = frameTimes.Max();
-            double high = frameTimes.Min();
-            foreach (double time in frameTimes) average += time;
-            average = double.Round(16.6 / (average / frameTimes.Count) * 60.0);
-            low = double.Round(16.6 / low * 60.0);
-            high = double.Round(16.6 / high * 60.0);
-            
-            Toolkit.Window.SetTitle(Config.Window, $"Size: {Config.Width}, {Config.Height} | Avg FPS: {average} | Low: {low} | High: {high} | Memory usage: {double.Round(GC.GetTotalMemory(false) * 9.3132257461548E-10, 2)}GB");
-            frameTimes.Clear();
-            timer.Restart();
-        }
 
-        Config.DeltaTime = (float) sw.Elapsed.TotalSeconds;
-        sw.Restart();
+        Toolkit.Window.SetTitle(Config.Window, $"size: ({Config.Width}, {Config.Height}), avg fps: {Config.AverageFps}, min fps: {Config.MinimumFps}, max fps: {Config.MaximumFps}");
     }
 
-    public void Disconnect()
+    public override void Disconnect()
     {
-        _client.Stop();
-        _worldGenerator.Stop();
+        Manager.Stop();
+        WorldGenerator.Stop();
     }
 
-    public void SendPacket(IPacket packet)
+    public override void SendPacket(IPacket packet, NetPeer? excludingPeer = null)
     {
-        _writer.Clear();
-        _writer.Write((int)packet.Type);
-        packet.Serialize(_writer);
-        
-        _client.SendToAll(_writer.Data, DeliveryMethod.ReliableOrdered);
+        Writer.Clear();
+        Writer.Write((int)packet.Type);
+        packet.Serialize(Writer);
+
+        Manager.FirstPeer.Send(Writer.Data, DeliveryMethod.ReliableOrdered);
     }
     
     void EventRaised(PalHandle? handle, PlatformEventType eventType, EventArgs args)
