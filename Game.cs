@@ -19,7 +19,6 @@ class Game
             Config.Client?.Poll();
         }
         
-        // Config.Client?.Disconnect();
         Config.Server?.Stop();
     }
 }
