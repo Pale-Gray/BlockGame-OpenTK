@@ -19,7 +19,7 @@ public class Block
 public enum Direction
 {
     Top,
-    Bottom,
+    Bottom, 
     Left,
     Right,
     Front,
