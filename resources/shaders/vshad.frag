@@ -10,5 +10,5 @@ in float vDirectionalLightIntensity;
 
 void main() {
     vec3 textureColor = texture(uTexture, vTextureCoordinate).rgb;
-    fColor = vec4(0.0, 0.0, 0.0, 0.8);
+    fColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

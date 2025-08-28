@@ -16,7 +16,6 @@ public class Register
         _blockIndices.Add(name, (ushort) _blocks.Count);
         block.Id = (ushort) _blocks.Count;
         _blocks.Add(block);
-        if (Config.Client != null) _blocks[_blocks.Count - 1].BlockModel.Generate();
     }
 
     public Block GetBlockFromNamespace(string name)

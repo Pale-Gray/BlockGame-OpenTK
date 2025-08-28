@@ -29,7 +29,7 @@ public class WorldGenerator
 
     public WorldGenerator Start()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 4; i++)
         {
             _generatorThreads.Add(new Thread(HandleGenerationQueue));
             _generatorThreads[i].Start();
@@ -55,7 +55,7 @@ public class WorldGenerator
         
         while (UploadQueue.TryDequeue(out Vector2i position))
         {
-            UploadMesh(_world.ChunkColumns[position]);
+            UploadMesh(_world.Chunks[position]);
         }
     }
 
@@ -64,9 +64,9 @@ public class WorldGenerator
         while (_shouldRun)
         {
             _generatorResetEvent.WaitOne();
-            if (GenerationQueue.TryDequeue(out Vector2i position))
+            while (GenerationQueue.TryDequeue(out Vector2i position))
             {
-                Chunk column = _world.ChunkColumns[position];
+                Chunk column = _world.Chunks[position];
                 switch (column.Status)
                 {
                     case ChunkStatus.Empty:
@@ -101,8 +101,8 @@ public class WorldGenerator
             {
                 if ((x, z) != Vector2i.Zero)
                 {
-                    if (!_world.ChunkColumns.ContainsKey(position + (x, z)) ||
-                        _world.ChunkColumns[position + (x, z)].Status < status)
+                    if (!_world.Chunks.ContainsKey(position + (x, z)) ||
+                        _world.Chunks[position + (x, z)].Status < status)
                     {
                         return false;
                     }
@@ -139,7 +139,9 @@ public class WorldGenerator
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             ChunkSectionMesh mesh = column.ChunkMeshes[i];
-            if (!mesh.NeedsUpdates) continue;
+            if (!mesh.ShouldUpdate) continue;
+            mesh.Vertices.Clear();
+            mesh.Indices.Clear();
             
             for (int x = 0; x < Config.ChunkSize; x++)
             {
@@ -147,52 +149,61 @@ public class WorldGenerator
                 {
                     for (int z = 0; z < Config.ChunkSize; z++)
                     {
+                        Vector3i globalBlockPosition = (x, y, z) + new Vector3i(column.Position.X, i, column.Position.Y) * Config.ChunkSize;
                         ushort id = column.ChunkSections[i].GetBlockId(x, y, z);
                         if (id != 0)
                         {
+                            Config.Register.GetBlockFromId(id).OnBlockMesh(_world, globalBlockPosition);
+                            /*
                             if (y == Config.ChunkSize - 1 && i == Config.ColumnSize - 1)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Top, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Top, (x,y,z));
                             }
                             else if (column.ChunkSections[i + ChunkMath.GlobalToChunk((x,y + 1,z)).Y].GetBlockId(ChunkMath.GlobalToLocal((x,y +1,z))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Top, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Top, (x,y,z));
                             }
                             
                             if (y == 0 && i == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Bottom, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Bottom, (x,y,z));
                             } else if (column.ChunkSections[i + ChunkMath.GlobalToChunk((x, y - 1, z)).Y ].GetBlockId(ChunkMath.GlobalToLocal((x, y - 1, z))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Bottom, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Bottom, (x,y,z));
                             }
                             
-                            if (world.ChunkColumns[column.Position + ChunkMath.GlobalToChunk((x, y, z - 1)).Xz].ChunkSections[i]
+                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x, y, z - 1)).Xz].ChunkSections[i]
                                     .GetBlockId(ChunkMath.GlobalToLocal((x, y, z - 1))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Front, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Front, (x,y,z));
                             }
                             
-                            if (world.ChunkColumns[column.Position + ChunkMath.GlobalToChunk((x, y, z + 1)).Xz].ChunkSections[i]
+                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x, y, z + 1)).Xz].ChunkSections[i]
                                     .GetBlockId(ChunkMath.GlobalToLocal((x, y, z + 1))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Back, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Back, (x,y,z));
                             }
                             
-                            if (world.ChunkColumns[column.Position + ChunkMath.GlobalToChunk((x - 1, y, z)).Xz].ChunkSections[i]
+                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x - 1, y, z)).Xz].ChunkSections[i]
                                     .GetBlockId(ChunkMath.GlobalToLocal((x - 1, y, z))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Left, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Left, (x,y,z));
                             }
                             
-                            if (world.ChunkColumns[column.Position + ChunkMath.GlobalToChunk((x+1, y, z)).Xz].ChunkSections[i]
+                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x+1, y, z)).Xz].ChunkSections[i]
                                     .GetBlockId(ChunkMath.GlobalToLocal((x+1, y, z))) == 0)
                             {
-                                Config.Register.GetBlockFromId(id).BlockModel.AddFace(mesh.Data, Direction.Right, (x,y,z));
+                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Right, (x,y,z));
                             }
+                            */
                         }
                     }
                 }
+            }
+
+            for (int m = 0; m < mesh.Vertices.Count; m += 4)
+            {
+                mesh.Indices.AddRange(0 + m, 1 + m, 2 + m, 2 + m, 3 + m, 0 + m);
             }
         }
         
@@ -205,30 +216,8 @@ public class WorldGenerator
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             ChunkSectionMesh mesh = column.ChunkMeshes[i];
-            if (!mesh.NeedsUpdates) continue;
-            
-            GL.DeleteVertexArray(mesh.Vao);
-            GL.DeleteBuffer(mesh.Vbo);
-            
-            mesh.Vao = GL.GenVertexArray();
-            GL.BindVertexArray(mesh.Vao);
-
-            mesh.Vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, mesh.Vbo);
-            GL.BufferData<ChunkVertex>(BufferTarget.ArrayBuffer, Marshal.SizeOf<ChunkVertex>() * mesh.Data.Count, CollectionsMarshal.AsSpan(mesh.Data), BufferUsage.StaticDraw);
-        
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Normal)));
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinate)));
-            GL.EnableVertexAttribArray(2);
-        
-            // if (mesh.Length != mesh.Data.Count) Console.WriteLine($"previous length: {mesh.Length} new length: {mesh.Data.Count}");
-            
-            mesh.Length = mesh.Data.Count;
-            mesh.Data.Clear();
-            mesh.NeedsUpdates = false;
+            if (!mesh.ShouldUpdate) continue;
+            mesh.Update();
         }
         
         column.Status = ChunkStatus.Done;
@@ -236,7 +225,7 @@ public class WorldGenerator
 
     public void EnqueueChunk(Vector2i position, ChunkStatus chunkStatus, bool hasPriority)
     {
-        _world.ChunkColumns[position].Status = chunkStatus;
+        _world.Chunks[position].Status = chunkStatus;
         GenerationQueue.Enqueue(position);
     }
 }

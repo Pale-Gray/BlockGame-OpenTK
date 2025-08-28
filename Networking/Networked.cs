@@ -12,7 +12,6 @@ public abstract class Networked
     public DataWriter Writer = new DataWriter();
 
     public World World = new World();
-    public WorldGenerator WorldGenerator;
     public Dictionary<NetPeer, Player> ConnectedPlayers = new();
 
     public string HostOrIp;
@@ -21,7 +20,6 @@ public abstract class Networked
     public Networked()
     {
         Manager = new NetManager(Listener);
-        WorldGenerator = new WorldGenerator(World);
     }
 
     public Networked(string hostOrIp, int port)
@@ -30,7 +28,6 @@ public abstract class Networked
         Port = port;
 
         Manager = new NetManager(Listener);
-        WorldGenerator = new WorldGenerator(World);
     }
 
     public Networked(string pathToConfig)
@@ -43,7 +40,6 @@ public abstract class Networked
         }
 
         Manager = new NetManager(Listener);
-        WorldGenerator = new WorldGenerator(World);
     }
 
     public abstract void Start();

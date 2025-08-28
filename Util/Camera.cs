@@ -96,44 +96,44 @@ public class MoveableCamera : Camera
         
     }
 
-    public void Poll()
+    public void UpdateRotation()
     {
         Rotation.Y += Input.MouseDelta.X;
         Rotation.X += Input.MouseDelta.Y;
       
-        if (Input.IsKeyDown(Key.S))
-        {
-            Position.Z -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-            Position.X -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-        }
-
-        if (Input.IsKeyDown(Key.W))
-        {
-            Position.Z += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-            Position.X += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-        }
-
-        if (Input.IsKeyDown(Key.A))
-        {
-            Position.X -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-            Position.Z += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-        }
-
-        if (Input.IsKeyDown(Key.D))
-        {
-            Position.X += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-            Position.Z -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
-        }
-
-        if (Input.IsKeyDown(Key.E))
-        {
-            Position.Y += Speed * Config.DeltaTime;
-        }
-
-        if (Input.IsKeyDown(Key.Q))
-        {
-            Position.Y -= Speed * Config.DeltaTime;
-        }
+        // if (Input.IsKeyDown(Key.S))
+        // {
+        //     Position.Z -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        //     Position.X -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        // }
+// 
+        // if (Input.IsKeyDown(Key.W))
+        // {
+        //     Position.Z += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        //     Position.X += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        // }
+// 
+        // if (Input.IsKeyDown(Key.A))
+        // {
+        //     Position.X -= (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        //     Position.Z += (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        // }
+// 
+        // if (Input.IsKeyDown(Key.D))
+        // {
+        //     Position.X += (Speed * float.Cos(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        //     Position.Z -= (Speed * float.Sin(float.DegreesToRadians(Rotation.Y))) * Config.DeltaTime;
+        // }
+// 
+        // if (Input.IsKeyDown(Key.E))
+        // {
+        //     Position.Y += Speed * Config.DeltaTime;
+        // }
+// 
+        // if (Input.IsKeyDown(Key.Q))
+        // {
+        //     Position.Y -= Speed * Config.DeltaTime;
+        // }
 
         _rotation = Matrix4.CreateRotationY(float.DegreesToRadians(Rotation.Y)) * Matrix4.CreateRotationX(float.DegreesToRadians(Rotation.X));
         _translation = Matrix4.CreateTranslation((-Position.X, -Position.Y, Position.Z));

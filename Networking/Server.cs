@@ -51,7 +51,7 @@ public class Server : Networked
         Manager.Start(HostOrIp, string.Empty, Port);
         Console.WriteLine($"Started server at {HostOrIp}:{Port}");
         World = new World();
-        WorldGenerator = new WorldGenerator(World, false).Start();
+        World.Generator.Start();
         
         Listener.ConnectionRequestEvent += request =>
         {
@@ -136,7 +136,7 @@ public class Server : Networked
     public override void Update()
     {
         Manager.PollEvents();
-        WorldGenerator.Poll();
+        World.Generator.Poll();
 
         foreach (KeyValuePair<NetPeer, Player> playerPair in ConnectedPlayers)
         {
@@ -147,14 +147,14 @@ public class Server : Networked
                 {
                     if (!playerPair.Value.LoadedChunks.Contains((x, z)))
                     {
-                        if (World.ChunkColumns.ContainsKey((x, z)))
+                        if (World.Chunks.ContainsKey((x, z)))
                         {
-                            if (World.ChunkColumns[(x,z)].Status == ChunkStatus.Mesh)
+                            if (World.Chunks[(x,z)].Status == ChunkStatus.Mesh)
                             {
                                 Writer.Clear();
                                 ChunkDataPacket chunkData = new ChunkDataPacket();
                                 chunkData.Position = (x, z);
-                                chunkData.Column = World.ChunkColumns[(x, z)];
+                                chunkData.Column = World.Chunks[(x, z)];
                                 SendPacket(chunkData);
                                 
                                 // chunkData.Serialize(_writer);
@@ -164,8 +164,8 @@ public class Server : Networked
                         }
                         else
                         {
-                            World.AddColumn((x, z), new Chunk((x, z)));
-                            WorldGenerator.GenerationQueue.Enqueue((x, z));
+                            World.AddChunk((x, z), new Chunk((x, z)));
+                            World.Generator.GenerationQueue.Enqueue((x, z));
                         }
                     }
                 }
@@ -176,6 +176,6 @@ public class Server : Networked
     public override void Stop()
     {
         Manager.Stop();
-        WorldGenerator.Stop();
+        World.Generator.Stop();
     }
 }

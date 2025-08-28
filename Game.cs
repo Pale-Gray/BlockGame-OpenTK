@@ -51,12 +51,12 @@ class Game
         
         while (Config.IsRunning)
         {
-            while (elapsed >= 1 / Config.Tickrate)
+            while (elapsed >= Config.TickRate)
             {
                 Config.LastTicksPerSecond++;
                 Config.Server?.TickUpdate();
                 Config.Client?.TickUpdate();
-                elapsed -= 1 / Config.Tickrate;
+                elapsed -= Config.TickRate;
             }
             
             Config.Server?.Update();
@@ -70,7 +70,7 @@ class Game
 
             if (t >= 1.0f)
             {
-                Console.WriteLine($"TPS: {Config.LastTicksPerSecond}, expected: {Config.Tickrate}, tick loss: {Config.Tickrate - Config.LastTicksPerSecond}");
+                Console.WriteLine($"TPS: {Config.LastTicksPerSecond}, expected: {Config.TickSpeed}, tick loss: {Config.TickSpeed - Config.LastTicksPerSecond}");
                 Config.LastTicksPerSecond = 0;
 
                 Config.MinimumFps = float.Round(16.6f / Config.FrameTimesOfLastSecond.Max() * 60.0f);

@@ -1,11 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using StbImageSharp;
+using PixelType = OpenTK.Graphics.OpenGL.PixelType;
 
 namespace VoxelGame;
 
@@ -22,12 +22,13 @@ public struct TextureSection
         Data = data;
     }
 }
+
 public class DynamicAtlas
 {
     public int Id;
     private string _lookupDirectory;
     private Vector2i _capacity;
-    private Dictionary<string, Vector2[]> _textureCoordinates = new();
+    private Dictionary<string, Rectangle> _textureCoordinates = new();
     public DynamicAtlas(string path)
     {
         _lookupDirectory = path;
@@ -35,14 +36,33 @@ public class DynamicAtlas
 
     public Vector2[] GetTextureCoordinates(string name)
     {
-        if (_textureCoordinates.TryGetValue(name, out Vector2[]? arr))
+        return null;
+    }
+
+    public Rectangle GetTextureCoordinates(string? name, Rectangle offset)
+    {
+        Rectangle rect;
+
+        if (name == null!)
         {
-            return arr;
+            rect = _textureCoordinates["missing_texture"];
         }
         else
         {
-            return _textureCoordinates["missing_texture"];
+            if (_textureCoordinates.TryGetValue(name, out rect))
+            {
+            
+            }
+            else
+            {
+                rect = _textureCoordinates["missing_texture"];
+            }
         }
+        
+        rect.Position += rect.Size * offset.Position;
+        rect.Size *= offset.Size;
+        
+        return rect;
     }
     
     public DynamicAtlas Generate()
@@ -80,11 +100,10 @@ public class DynamicAtlas
             }
             
             GL.TexSubImage2D(TextureTarget.Texture2d, 0, position.X, position.Y, section.Dimensions.X, section.Dimensions.Y, PixelFormat.Rgba, PixelType.UnsignedByte, section.Data);
-            _textureCoordinates.Add(section.Name, [(position.X / (float) _capacity.X, (position.Y + section.Dimensions.Y) / (float) _capacity.Y), (position.X / (float) _capacity.X, position.Y / (float) _capacity.Y), ((position.X + section.Dimensions.X) / (float) _capacity.X, position.Y / (float) _capacity.Y), ((position.X + section.Dimensions.X) / (float) _capacity.X, (position.Y + section.Dimensions.Y) / (float) _capacity.Y)]);
+            // _textureCoordinates.Add(section.Name, [(position.X / (float) _capacity.X, (position.Y + section.Dimensions.Y) / (float) _capacity.Y), (position.X / (float) _capacity.X, position.Y / (float) _capacity.Y), ((position.X + section.Dimensions.X) / (float) _capacity.X, position.Y / (float) _capacity.Y), ((position.X + section.Dimensions.X) / (float) _capacity.X, (position.Y + section.Dimensions.Y) / (float) _capacity.Y)]);
+            _textureCoordinates.Add(section.Name, new Rectangle(position / (Vector2) _capacity, section.Dimensions / (Vector2) _capacity));
             position.X += section.Dimensions.Y;
         }
-
-        sections = null;
         
         GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.NearestMipmapLinear);
         GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);

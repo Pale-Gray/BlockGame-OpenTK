@@ -8,13 +8,15 @@ uniform mat4 uProjection;
 uniform mat4 uView;
 uniform vec3 uChunkPosition;
 
-out vec3 vColor;
+out vec3 vPosition;
+out vec3 vNormal;
 out vec2 vTextureCoordinate;
 out float vDirectionalLightIntensity;
 
 void main() {
-    vColor = aPosition / 32.0;
+    vPosition = (vec4(aPosition + (uChunkPosition * 32.0), 1.0) * vec4(1, 1, -1, 1) * uView * uProjection).xyz;
+    vNormal = aNormal;
     vTextureCoordinate = aTextureCoordinate;
-    vDirectionalLightIntensity = dot(aNormal, normalize(-vec3(-0.75, -1, 0.5)));
+    
     gl_Position = vec4(aPosition + (uChunkPosition * 32.0), 1.0) * vec4(1, 1, -1, 1) * uView * uProjection;
 }
