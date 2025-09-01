@@ -137,33 +137,37 @@ public class WorldGenerator
     
     public void GenerateColumn(Chunk column)
     {
-        float max = 64.0f;
-        float median = max / 2.0f;
+        float seaLevel = 256.0f;
+        float maxAscent = 64.0f;
+        float median = maxAscent / 2.0f;
         
         for (int x = 0; x < Config.ChunkSize; x++)
         {
             for (int z = 0; z < Config.ChunkSize; z++)
             {
                 Vector3i globalPosition = new Vector3i(x, 0, z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize);
-                float roughness = (float.Clamp(Noise.ValueNoise2(2, (Vector2)globalPosition.Xz / 64.0f, false, 2), -1.0f, 1.0f) + 1.0f) * 0.5f;
-                float heightness = (float.Clamp(Noise.ValueNoise2(1, (Vector2)globalPosition.Xz / 128.0f, false, 2), -1.0f, 1.0f) + 1.0f) * 0.5f;
 
-                float continentality = (float.Clamp(Noise.ValueNoise2(3, (Vector2)globalPosition.Xz / 256.0f, false, 2) + 0.0f, -1.0f, 1.0f) + 1.0f * 0.5f);
-                heightness *= continentality;
-                roughness *= float.Lerp((1.0f - continentality), 0.1f, 1.0f);
-                
-                float heightVal = 64.0f * float.Lerp(-1.0f, 1.0f, heightness);
+                float roughness = (Noise.Value2(1, (Vector2)globalPosition.Xz / 64.0f, true, 2) + 1.0f) * 0.5f;
+                float heightness = (Noise.Value2(2, (Vector2)globalPosition.Xz / 64.0f, true, 2) + 1.0f) * 0.5f;
+                float continentality = Noise.Value2(3, (Vector2)globalPosition.Xz / 128.0f, true, 4);
+                continentality = (continentality + 1.0f) * 0.5f;
+                // continentality = float.Clamp(continentality, 0.0f, 1.0f);
+                // continentality = (float.Clamp(continentality, -1.0f, 1.0f) + 1.0f) * 0.5f;
+
+                float heightnessValue = float.Lerp(-32, 32, heightness * continentality);
+                float continentalityValue = float.Lerp(-seaLevel / 2.0f, 64, continentality);
+                roughness *= continentality;
                 for (int y = Config.ChunkSize * Config.ColumnSize - 1; y >= 0; y--)
                 {
                     globalPosition.Y = y;
-                    float height = Remap(globalPosition.Y, 256.0f + heightVal, 257.0f + (max * (1.0f - roughness)) + heightVal);
+                    float height = Remap(globalPosition.Y, (seaLevel + (median * (1.0f - roughness))) + (heightnessValue * roughness) + continentalityValue, (seaLevel + 1.0f + (maxAscent - (median * (1.0f - roughness)))) + (heightnessValue * roughness) + continentalityValue);
                     height = (1.0f - height);
                     
-                    float density = ((Noise.ValueNoise3(0, (Vector3)globalPosition / 32.0f, true, 3) + 1.0f) * 0.5f);
-                    if (density + height >= 0.5f)
+                    float density = ((Noise.Value3(0, (Vector3)globalPosition / 16.0f, true, 4) + 1.0f) * 0.5f);
+                    if (density + height >= 0.0f)
                     {
                         Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("grass"));
-                    } else if (y <= 256)
+                    } else if (y <= seaLevel)
                     {
                         Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("water"));
                     }

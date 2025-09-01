@@ -70,7 +70,7 @@ public class Noise
     // as defined in https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml, except it's expected t is from 0 to 1
     public static float Smoothstep(float t) => t * t * (3.0f - 2.0f * t);
     
-    public static float ValueNoise2(int seed, Vector2 position)
+    public static float Value2(int seed, Vector2 position)
     {
         Vector2 interpolant = (Maths.EuclideanRemainder(position.X, 1), Maths.EuclideanRemainder(position.Y, 1));
         Vector2i samplePosition = new Vector2i((int)float.Floor(position.X), (int)float.Floor(position.Y));
@@ -86,7 +86,7 @@ public class Noise
         return float.Lerp(bottom, top, Smoothstep(interpolant.Y));
     }
     
-    public static float ValueNoise2(int seed, Vector2 position, bool normalized, int octaves)
+    public static float Value2(int seed, Vector2 position, bool normalized, int octaves)
     {
         float val = 0.0f;
         float totalAmplitude = 0.0f;
@@ -94,14 +94,14 @@ public class Noise
         for (float i = 0; i < octaves; i++)
         {
             float v = float.Pow(2, i);
-            val += ValueNoise2(seed, position * v) / v;
+            val += Value2(seed, position * v) / v;
             totalAmplitude += 1.0f / v;
         }
 
         return normalized ? val / totalAmplitude : val;
     }
 
-    public static float ValueNoise3(int seed, Vector3 position)
+    public static float Value3(int seed, Vector3 position)
     {
         Vector3 interpolant = (Maths.EuclideanRemainder(position.X, 1), Maths.EuclideanRemainder(position.Y, 1), Maths.EuclideanRemainder(position.Z, 1));
         Vector3i samplePosition = new Vector3i((int)float.Floor(position.X), (int)float.Floor(position.Y), (int)float.Floor(position.Z));
@@ -125,7 +125,7 @@ public class Noise
         return float.Lerp(bottom, top, Smoothstep(interpolant.Y));
     }
 
-    public static float ValueNoise3(int seed, Vector3 position, bool normalized, int octaves)
+    public static float Value3(int seed, Vector3 position, bool normalized, int octaves)
     {
         float val = 0.0f;
         float totalAmplitude = 0.0f;
@@ -133,7 +133,7 @@ public class Noise
         for (float i = 0; i < octaves; i++)
         {
             float v = float.Pow(2, i);
-            val += ValueNoise3(seed, position * v) / v;
+            val += Value3(seed, position * v) / v;
             totalAmplitude += 1.0f / v;
         }
 
