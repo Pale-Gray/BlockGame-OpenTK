@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using LiteNetLib;
 using OpenTK.Graphics;
@@ -66,6 +67,7 @@ public class Client : Networked
                     .SetTextureFace(0, Direction.Top, "chicken_systems")
                     .SetTextureSides(0, "chicken_systems")
                     .SetTextureFace(0, Direction.Bottom, "chicken_systems")));
+        Config.Register.RegisterBlock("stone", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "stone")));
         Config.Register.RegisterBlock("sand",
             new Block() { IsSolid = true }
                 .SetBlockModel(new BlockModel()
@@ -369,7 +371,7 @@ public class Client : Networked
         GL.ClearColor(100.0f / 255.0f, 129.0f / 255.0f, 237.0f / 255.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         Config.Framebuffer.Draw();
-        Gui.Text($"Version 0\nPosition: {ChunkMath.PositionToBlockPosition(_player.Position)}", Gui.AsPixelPerfect((0, 0)), Gui.AsPixelPerfect(8.0f), Color3.White);
+        Gui.Text($"Last mesh time: {Config.LastMeshTime}ms, Last gen time: {Config.LastGenTime}ms\nAverage mesh time: {Config.MeshTimes.Average()}, Average gen time: {Config.GenTimes.Average()}", Gui.AsPixelPerfect((0, 0)), Gui.AsPixelPerfect(8.0f), Color3.White);
         if (Gui.Button("I am a button", Gui.AsPixelPerfect((100, 100)), Gui.AsPixelPerfect((80 + float.Floor(float.Abs(float.Sin(Config.ElapsedTime) * 10)), 20 + float.Floor(float.Abs(float.Cos(Config.ElapsedTime) * 20)))), Gui.AsPixelPerfect((4, 4)))) Console.WriteLine("I WAS PRESSED");
         Toolkit.OpenGL.SwapBuffers(Config.OpenGLContext);
         Toolkit.Window.SetTitle(Config.Window, $"position: {ChunkMath.PositionToBlockPosition(_player.Position)} size: ({Config.Width}, {Config.Height}), avg fps: {Config.AverageFps}, min fps: {Config.MinimumFps}, max fps: {Config.MaximumFps}");

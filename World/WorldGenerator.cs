@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
@@ -49,7 +50,7 @@ public class WorldGenerator
 
     public void Poll()
     {
-        if (LowPriorityGenerationQueue.Count > 0) _generatorResetEvent.Set();
+        if (LowPriorityGenerationQueue.Count > 0 || HighPriorityGenerationQueue.Count > 0) _generatorResetEvent.Set();
         
         while (UploadQueue.TryDequeue(out Vector2i position))
         {
@@ -85,9 +86,15 @@ public class WorldGenerator
                                         if (x == 0 && z == 0) continue;
                                         if (_world.Chunks.TryGetValue(position + (x, z), out Chunk chunk) && chunk.IsMeshIncomplete)
                                         {
+                                            chunk.Mutex.WaitOne();
                                             for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
                                             chunk.Status = ChunkStatus.Mesh;
                                             LowPriorityGenerationQueue.Enqueue(position + (x, z));
+                                            // GenerateMesh(_world, chunk);
+                                            chunk.Mutex.ReleaseMutex();
+                                            // for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
+                                            // chunk.Status = ChunkStatus.Mesh;
+                                            // LowPriorityGenerationQueue.Enqueue(position + (x, z));
                                         }
                                     }
                                 }
@@ -140,7 +147,10 @@ public class WorldGenerator
         float seaLevel = 256.0f;
         float maxAscent = 64.0f;
         float median = maxAscent / 2.0f;
+
+        float[] arr = Noise.Value3(0, new Vector3i(4), (Config.ChunkSize, Config.ChunkSize * Config.ColumnSize, Config.ChunkSize), new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize, 16.0f, true, 4, out Vector3i arraySize);
         
+        Stopwatch sw = Stopwatch.StartNew();
         for (int x = 0; x < Config.ChunkSize; x++)
         {
             for (int z = 0; z < Config.ChunkSize; z++)
@@ -151,8 +161,6 @@ public class WorldGenerator
                 float heightness = (Noise.Value2(2, (Vector2)globalPosition.Xz / 64.0f, true, 2) + 1.0f) * 0.5f;
                 float continentality = Noise.Value2(3, (Vector2)globalPosition.Xz / 128.0f, true, 4);
                 continentality = (continentality + 1.0f) * 0.5f;
-                // continentality = float.Clamp(continentality, 0.0f, 1.0f);
-                // continentality = (float.Clamp(continentality, -1.0f, 1.0f) + 1.0f) * 0.5f;
 
                 float heightnessValue = float.Lerp(-32, 32, heightness * continentality);
                 float continentalityValue = float.Lerp(-seaLevel / 2.0f, 64, continentality);
@@ -163,10 +171,11 @@ public class WorldGenerator
                     float height = Remap(globalPosition.Y, (seaLevel + (median * (1.0f - roughness))) + (heightnessValue * roughness) + continentalityValue, (seaLevel + 1.0f + (maxAscent - (median * (1.0f - roughness)))) + (heightnessValue * roughness) + continentalityValue);
                     height = (1.0f - height);
                     
-                    float density = ((Noise.Value3(0, (Vector3)globalPosition / 16.0f, true, 4) + 1.0f) * 0.5f);
+                    // float density = ((Noise.Value3(0, (Vector3)globalPosition / 16.0f, true, 4) + 1.0f) * 0.5f);
+                    float density = (Noise.Value3(arr, new Vector3(x, y, z) / 4.0f, arraySize) + 1.0f) * 0.5f;
                     if (density + height >= 0.0f)
                     {
-                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("grass"));
+                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("stone"));
                     } else if (y <= seaLevel)
                     {
                         Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("water"));
@@ -178,6 +187,9 @@ public class WorldGenerator
         column.Status = ChunkStatus.Mesh;
         if (column.HasPriority) HighPriorityGenerationQueue.Enqueue(column.Position);
         else LowPriorityGenerationQueue.Enqueue(column.Position);
+        sw.Stop();
+        Config.LastGenTime = (float) sw.Elapsed.TotalMilliseconds;
+        Config.GenTimes.Add(Config.LastGenTime);
     }
 
     float Remap(float a, float v1, float v2)
@@ -187,10 +199,11 @@ public class WorldGenerator
     
     public void GenerateMesh(World world, Chunk column)
     {
+        Stopwatch sw = Stopwatch.StartNew();
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             ChunkSectionMesh mesh = column.ChunkMeshes[i];
-            if (!mesh.ShouldUpdate) continue;
+            if (!mesh.ShouldUpdate || column.ChunkSections[i].IsEmpty) continue;
             mesh.Vertices.Clear();
             mesh.Indices.Clear();
             
@@ -218,6 +231,9 @@ public class WorldGenerator
         
         column.Status = ChunkStatus.Upload;
         UploadQueue.Enqueue(column.Position);
+        sw.Stop();
+        Config.LastMeshTime = (float)sw.Elapsed.TotalMilliseconds;
+        Config.MeshTimes.Add(Config.LastMeshTime);
     }
     
     public void UploadMesh(Chunk column)

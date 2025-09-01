@@ -39,6 +39,10 @@ public class Config
     public static float ElapsedTime = 0;
     public static float TickInterpolant => (ElapsedTime % TickRate) / TickRate;
     public static Stopwatch Timer = new Stopwatch();
+    public static float LastGenTime = 0.0f;
+    public static List<float> GenTimes = [0];
+    public static float LastMeshTime = 0.0f;
+    public static List<float> MeshTimes = [0];
 
     public static List<float> FrameTimesOfLastSecond = new();
     public static float MinimumFps;

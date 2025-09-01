@@ -139,4 +139,60 @@ public class Noise
 
         return normalized ? val / totalAmplitude : val;
     }
+
+    public static float[] Value3(int seed, Vector3i step, Vector3i size, Vector3 offset, float divisor, bool normalized, int octaves, out Vector3i arraySize)
+    {
+        arraySize = (size / step) + 1;
+        
+        float[] array = new float[arraySize.X * arraySize.Y * arraySize.Z];
+
+        for (int x = 0; x < arraySize.X; x++)
+        {
+            for (int y = 0; y < arraySize.Y; y++)
+            {
+                for (int z = 0; z < arraySize.Z; z++)
+                {
+                    Vector3 pos = (offset + (new Vector3(x, y, z) * step)) / divisor;
+                    array[ToIndex((x, y, z), arraySize)] = Value3(seed, pos, normalized, octaves);
+                }
+            }
+        }
+
+        arraySize -= 1;
+        
+        return array;
+    }
+
+    public static float Value3(float[] values, Vector3 position, Vector3i size)
+    {
+        size += Vector3i.One;
+        
+        Vector3i indexPosition = (Vector3i) new Vector3(float.Floor(position.X), float.Floor(position.Y), float.Floor(position.Z));
+        Vector3 interpolant = (Maths.EuclideanRemainder(position.X, 1), Maths.EuclideanRemainder(position.Y, 1), Maths.EuclideanRemainder(position.Z, 1));
+        
+        float topFrontLeft = values[ToIndex(indexPosition + (0, 1, 0), size)];
+        float topFrontRight = values[ToIndex(indexPosition + (1, 1, 0), size)];
+        float topFront = float.Lerp(topFrontLeft, topFrontRight, interpolant.X);
+        float topBackLeft = values[ToIndex(indexPosition + (0, 1, 1), size)];
+        float topBackRight = values[ToIndex(indexPosition + (1, 1, 1), size)];
+        float topBack = float.Lerp(topBackLeft, topBackRight, Smoothstep(interpolant.X));
+
+        float top = float.Lerp(topFront, topBack, Smoothstep(interpolant.Z));
+        
+        float bottomFrontLeft = values[ToIndex(indexPosition + (0, 0, 0), size)];
+        float bottomFrontRight = values[ToIndex(indexPosition + (1, 0, 0), size)];
+        float bottomFront = float.Lerp(bottomFrontLeft, bottomFrontRight, interpolant.X);
+        float bottomBackLeft = values[ToIndex(indexPosition + (0, 0, 1), size)];
+        float bottomBackRight = values[ToIndex(indexPosition + (1, 0, 1), size)];
+        float bottomBack = float.Lerp(bottomBackLeft, bottomBackRight, interpolant.X);
+
+        float bottom = float.Lerp(bottomFront, bottomBack, Smoothstep(interpolant.Z));
+        
+        return float.Lerp(bottom, top, Smoothstep(interpolant.Y));
+    }
+
+    private static int ToIndex(Vector3i position, Vector3i size)
+    {
+        return position.X + (position.Z * size.X) + (position.Y * size.X * size.Z);
+    }
 }

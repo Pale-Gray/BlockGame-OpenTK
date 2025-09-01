@@ -34,6 +34,7 @@ public class Server : Networked
                         .SetTextureFace(0, Direction.Top, "grass_top")
                         .SetTextureSides(0, "grass_side")
                         .SetTextureFace(0, Direction.Bottom, "dirt")));
+            Config.Register.RegisterBlock("stone", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "stone")));
             Config.Register.RegisterBlock("sand",
                 new Block()
                     .SetBlockModel(new BlockModel()
