@@ -17,7 +17,10 @@ public class Chunk
     public ChunkSectionMesh[] ChunkMeshes = new ChunkSectionMesh[Config.ColumnSize];
     public Vector2i Position;
     public ChunkStatus Status = ChunkStatus.Empty;
-    
+    public bool IsMeshIncomplete = false;
+    public Mutex Mutex = new Mutex();
+    public float ElapsedTime = 0.0f;
+    public bool HasPriority = true;
     public Chunk(Vector2i position)
     {
         Position = position;

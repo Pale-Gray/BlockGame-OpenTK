@@ -15,6 +15,8 @@ public class Input
     private static Vector2 _currentMousePosition;
 
     public static Vector2 MouseDelta => _currentMousePosition - _previousMousePosition;
+    public static Vector2 MousePosition => _currentMousePosition;
+    public static bool IsMouseFocused => Toolkit.Window.GetCursorCaptureMode(Config.Window) == CursorCaptureMode.Locked;
     public static void Init()
     {
         foreach (Key key in Enum.GetValues(typeof(Key)))
@@ -65,7 +67,7 @@ public class Input
         {
             _previousMouseButtonsDown[pair.Key] = pair.Value;
         }
-
+        
         _previousMousePosition = _currentMousePosition;
     }
 

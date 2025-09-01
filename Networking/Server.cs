@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using LiteNetLib;
+using OpenTK.Mathematics;
 
 namespace VoxelGame.Networking;
 
@@ -45,9 +46,9 @@ public class Server : Networked
                         .SetTextureFace(0, Direction.Top, "pumpkin_top")
                         .SetTextureFace(0, Direction.Bottom, "pumpkin_bottom")
                         .SetTextureSides(0, "pumpkin_face")));
+            Config.Register.RegisterBlock("water", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "water")));
         }
         
-        Manager.ChannelsCount = 2;
         Manager.Start(HostOrIp, string.Empty, Port);
         Console.WriteLine($"Started server at {HostOrIp}:{Port}");
         World = new World();
@@ -67,8 +68,8 @@ public class Server : Networked
 
         Listener.PeerConnectedEvent += peer =>
         {
-            ConnectedPlayers.Add(peer, new Player(Guid.NewGuid().ToString()));
-            Console.WriteLine($"Player {ConnectedPlayers[peer].Name} has joined");
+            // ConnectedPlayers.Add(peer, new Player(Guid.NewGuid().ToString()));
+            // Console.WriteLine($"Player {ConnectedPlayers[peer].Name} has joined");
         };
 
         Listener.PeerDisconnectedEvent += (peer, info) =>
@@ -82,9 +83,17 @@ public class Server : Networked
             DataReader reader = new DataReader(dataReader.GetRemainingBytes());
             int t = reader.ReadInt32();
             PacketType type = (PacketType)t;
-            Console.WriteLine($"{type} packet received");
             switch (type)
             {
+                case PacketType.PlayerMove:
+                    PlayerMovePacket playerMove = (PlayerMovePacket)new PlayerMovePacket().Deserialize(reader);
+                    if (ConnectedPlayers.ContainsKey(fromPeer)) ConnectedPlayers[fromPeer].Position = playerMove.Position;
+                    break;
+                case PacketType.PlayerJoin:
+                    PlayerJoinPacket playerJoin = (PlayerJoinPacket)new PlayerJoinPacket().Deserialize(reader);
+                    ConnectedPlayers.Add(fromPeer, new Player(playerJoin.Id.ToString(), playerJoin.Id));
+                    Console.WriteLine($"Player {playerJoin.Id} joined");
+                    break;
                 case PacketType.BlockDestroy:
                     BlockDestroyPacket blockDestroy = (BlockDestroyPacket) new BlockDestroyPacket().Deserialize(reader);
                     Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(World, blockDestroy.GlobalBlockPosition);
@@ -103,21 +112,6 @@ public class Server : Networked
         };
     }
 
-    public override void SendPacket(IPacket packet, NetPeer? excludingPeer = null)
-    {
-        Writer.Clear();
-        Writer.Write((int)packet.Type);
-        packet.Serialize(Writer);
-
-        if (excludingPeer != null)
-        {
-            Manager.SendToAll(Writer.Data, DeliveryMethod.ReliableOrdered, excludingPeer);
-        }
-        else
-        {
-            Manager.SendToAll(Writer.Data, DeliveryMethod.ReliableOrdered);
-        }
-    }
     public override void TickUpdate()
     {
         
@@ -137,37 +131,48 @@ public class Server : Networked
     {
         Manager.PollEvents();
         World.Generator.Poll();
-
+        
         foreach (KeyValuePair<NetPeer, Player> playerPair in ConnectedPlayers)
         {
             int rad = 8;
-            for (int x = -rad; x <= rad; x++)
+            
+            Player player = playerPair.Value;
+            if (player.ChunkPosition == null || ChunkMath.ChebyshevDistance(player.ChunkPosition.Value, ChunkMath.GlobalToChunk(ChunkMath.PositionToBlockPosition(player.Position)).Xz) >= 2)
             {
-                for (int z = -rad; z <= rad; z++)
+                player.ChunkPosition = ChunkMath.GlobalToChunk(ChunkMath.PositionToBlockPosition(player.Position)).Xz;
+                HashSet<Vector2i> previousHashSet = new HashSet<Vector2i>(player.ChunksToLoad);
+                player.ChunksToLoad.Clear();
+                for (int x = -rad; x <= rad; x++)
                 {
-                    if (!playerPair.Value.LoadedChunks.Contains((x, z)))
+                    for (int z = -rad; z <= rad; z++)
                     {
-                        if (World.Chunks.ContainsKey((x, z)))
+                        Vector2i pos = (x, z) + player.ChunkPosition.Value;
+                        if (!previousHashSet.Contains(pos))
                         {
-                            if (World.Chunks[(x,z)].Status == ChunkStatus.Mesh)
-                            {
-                                Writer.Clear();
-                                ChunkDataPacket chunkData = new ChunkDataPacket();
-                                chunkData.Position = (x, z);
-                                chunkData.Column = World.Chunks[(x, z)];
-                                SendPacket(chunkData);
-                                
-                                // chunkData.Serialize(_writer);
-                                // _server.SendToAll(_writer.Data, 1, DeliveryMethod.ReliableUnordered);
-                                playerPair.Value.LoadedChunks.Add((x, z));
-                            }
-                        }
-                        else
-                        {
-                            World.AddChunk((x, z), new Chunk((x, z)));
-                            World.Generator.GenerationQueue.Enqueue((x, z));
+                            player.ChunksToLoad.Add(pos);
                         }
                     }
+                }
+            }
+
+            foreach (Vector2i position in player.ChunksToLoad)
+            {
+                if (World.Chunks.TryGetValue(position, out Chunk chunk))
+                {
+                    if (chunk.Status == ChunkStatus.Mesh)
+                    {
+                        ChunkDataPacket chunkData = new ChunkDataPacket();
+                        chunkData.Position = position;
+                        chunkData.Column = World.Chunks[position];
+                        SendPacketTo(chunkData, playerPair.Key);
+                        
+                        player.ChunksToLoad.Remove(position);
+                    }
+                }
+                else
+                {
+                    World.Chunks.TryAdd(position, new Chunk(position));
+                    World.Generator.EnqueueChunk(position, ChunkStatus.Empty, false);
                 }
             }
         }

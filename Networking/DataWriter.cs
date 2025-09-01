@@ -38,6 +38,20 @@ public class DataWriter
         _data.Write(buff.Slice(0, 4));
     }
 
+    public void Write(float value)
+    {
+        Span<byte> buff = _buffer;
+        BinaryPrimitives.WriteSingleLittleEndian(buff, value);
+        
+        _data.Write(buff.Slice(0, 4));
+    }
+
+    public void Write(string value)
+    {
+        Write(value.Length);
+        for (int i = 0; i < value.Length; i++) Write(value[i]);
+    }
+
     public void WriteValues(ushort[] values)
     {
         Write(values.Length);

@@ -35,6 +35,20 @@ public class DataReader
         return BinaryPrimitives.ReadUInt16LittleEndian(_buffer);
     }
 
+    public float ReadFloat()
+    {
+        _data.ReadExactly(_buffer, 0, 4);
+        return BinaryPrimitives.ReadSingleLittleEndian(_buffer);
+    }
+
+    public string ReadString()
+    {
+        string value = string.Empty;
+        int length = ReadInt32();
+        for (int i = 0; i < length; i++) value += (char) ReadUInt16();
+        return value;
+    }
+
     public ushort[] ReadUInt16Values()
     {
         int count = ReadInt32();

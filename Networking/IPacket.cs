@@ -1,3 +1,4 @@
+using System;
 using OpenTK.Mathematics;
 using VoxelGame.Util;
 
@@ -13,9 +14,44 @@ public interface IPacket
 public enum PacketType
 {
     ChunkData,
+    PlayerJoin,
     PlayerMove,
     BlockDestroy,
     BlockPlace
+}
+
+public struct PlayerJoinPacket() : IPacket
+{
+    public PacketType Type { get; set; } = PacketType.PlayerJoin;
+    public Guid Id;
+    public void Serialize(DataWriter writer)
+    {
+        writer.Write(Id.ToString());
+    }
+
+    public IPacket Deserialize(DataReader reader)
+    {
+        Id = Guid.Parse(reader.ReadString());
+        return this;
+    }
+}
+
+public struct PlayerMovePacket() : IPacket
+{
+    public PacketType Type { get; set; } = PacketType.PlayerMove;
+    public Vector3 Position;
+    public void Serialize(DataWriter writer)
+    {
+        writer.Write(Position.X);
+        writer.Write(Position.Y);
+        writer.Write(Position.Z);
+    }
+
+    public IPacket Deserialize(DataReader reader)
+    {
+        Position = (reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
+        return this;
+    }
 }
 
 public struct BlockPlacePacket() : IPacket

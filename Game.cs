@@ -20,6 +20,7 @@ class Game
             {
                 Config.Server = new Server("server_settings.json");
                 Config.Server.Start();
+                Config.Server.World.Generator.ShouldMesh = false;
             }
 
             if (argument == "client")
@@ -70,7 +71,7 @@ class Game
 
             if (t >= 1.0f)
             {
-                Console.WriteLine($"TPS: {Config.LastTicksPerSecond}, expected: {Config.TickSpeed}, tick loss: {Config.TickSpeed - Config.LastTicksPerSecond}");
+                // Console.WriteLine($"TPS: {Config.LastTicksPerSecond}, expected: {Config.TickSpeed}, tick loss: {Config.TickSpeed - Config.LastTicksPerSecond}");
                 Config.LastTicksPerSecond = 0;
 
                 Config.MinimumFps = float.Round(16.6f / Config.FrameTimesOfLastSecond.Max() * 60.0f);
@@ -84,5 +85,6 @@ class Game
         }
             
         Config.Server?.Stop();
+        Config.Client?.Stop();
     }
 }

@@ -48,5 +48,26 @@ public abstract class Networked
     public abstract void TickUpdate();
     public abstract void Join();
     public abstract void Disconnect();
-    public abstract void SendPacket(IPacket packet, NetPeer? excludingPeer = null);
+    public void SendPacket(IPacket packet, NetPeer? excludingPeer = null)
+    {
+        Writer.Clear();
+        Writer.Write((int)packet.Type);
+        packet.Serialize(Writer);
+        if (excludingPeer == null)
+        {
+            Manager.SendToAll(Writer.Data, DeliveryMethod.ReliableOrdered);
+        }
+        else
+        {
+            Manager.SendToAll(Writer.Data, DeliveryMethod.ReliableOrdered, excludingPeer);
+        }
+    }
+
+    public void SendPacketTo(IPacket packet, NetPeer peer)
+    {
+        Writer.Clear();
+        Writer.Write((int)packet.Type);
+        packet.Serialize(Writer);
+        peer.Send(Writer.Data, DeliveryMethod.ReliableOrdered);
+    }
 }

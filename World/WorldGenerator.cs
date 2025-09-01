@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
 using System.Threading;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.Vulkan;
 using OpenTK.Mathematics;
 
 namespace VoxelGame;
@@ -14,17 +12,17 @@ public class WorldGenerator
     private World _world;
     private List<Thread> _generatorThreads = new();
     private AutoResetEvent _generatorResetEvent = new AutoResetEvent(true);
-    private bool _shouldMesh;
+    public bool ShouldMesh;
     private bool _shouldRun = true;
 
-    public ConcurrentQueue<Vector2i> GenerationQueue = new();
-    public ConcurrentQueue<Vector2i> SendChunkDataQueue = new();
+    public ConcurrentQueue<Vector2i> HighPriorityGenerationQueue = new();
+    public ConcurrentQueue<Vector2i> LowPriorityGenerationQueue = new();
     public ConcurrentQueue<Vector2i> UploadQueue = new();
     
     public WorldGenerator(World world, bool shouldMesh = true)
     {
         _world = world;
-        _shouldMesh = shouldMesh;
+        ShouldMesh = shouldMesh;
     }
 
     public WorldGenerator Start()
@@ -51,11 +49,13 @@ public class WorldGenerator
 
     public void Poll()
     {
-        if (GenerationQueue.Count > 0) _generatorResetEvent.Set();
+        if (LowPriorityGenerationQueue.Count > 0) _generatorResetEvent.Set();
         
         while (UploadQueue.TryDequeue(out Vector2i position))
         {
-            UploadMesh(_world.Chunks[position]);
+            _world.Chunks[position].Mutex.WaitOne();
+            if (_world.Chunks[position].Status == ChunkStatus.Upload) UploadMesh(_world.Chunks[position]);
+            _world.Chunks[position].Mutex.ReleaseMutex();
         }
     }
 
@@ -64,33 +64,56 @@ public class WorldGenerator
         while (_shouldRun)
         {
             _generatorResetEvent.WaitOne();
-            while (GenerationQueue.TryDequeue(out Vector2i position))
+            while (HighPriorityGenerationQueue.TryDequeue(out Vector2i position) || LowPriorityGenerationQueue.TryDequeue(out position))
             {
                 Chunk column = _world.Chunks[position];
+                column.Mutex.WaitOne();
                 switch (column.Status)
                 {
                     case ChunkStatus.Empty:
                         GenerateColumn(column);
                         break;
                     case ChunkStatus.Mesh:
-                        if (_shouldMesh)
+                        if (ShouldMesh)
                         {
-                            if (ChunkMath.ChebyshevDistance(position, Vector2i.Zero) < 8)
+                            if (!column.IsMeshIncomplete)
                             {
-                                if (AreNeighborsTheSameStatus(position, ChunkStatus.Mesh))
+                                for (int x = -1; x <= 1; x++)
                                 {
-                                    GenerateMesh(_world, column);
-                                }
-                                else
-                                {
-                                    GenerationQueue.Enqueue(position);
+                                    for (int z = -1; z <= 1; z++)
+                                    {
+                                        if (x == 0 && z == 0) continue;
+                                        if (_world.Chunks.TryGetValue(position + (x, z), out Chunk chunk) && chunk.IsMeshIncomplete)
+                                        {
+                                            for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
+                                            chunk.Status = ChunkStatus.Mesh;
+                                            LowPriorityGenerationQueue.Enqueue(position + (x, z));
+                                        }
+                                    }
                                 }
                             }
+
+                            if (column.IsMeshIncomplete) column.IsMeshIncomplete = false;
+                            if (!HasAllNeighbors(position)) column.IsMeshIncomplete = true;
+                            GenerateMesh(_world, column);
                         }
                         break;
                 }
+                column.Mutex.ReleaseMutex();
             }
         }
+    }
+
+    public bool HasAllNeighbors(Vector2i position)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int z = -1; z <= 1; z++)
+            {
+                if (!_world.Chunks.ContainsKey(position + (x, z))) return false;
+            }
+        }
+        return true;
     }
     
     public bool AreNeighborsTheSameStatus(Vector2i position, ChunkStatus status)
@@ -114,24 +137,48 @@ public class WorldGenerator
     
     public void GenerateColumn(Chunk column)
     {
+        float max = 64.0f;
+        float median = max / 2.0f;
+        
         for (int x = 0; x < Config.ChunkSize; x++)
         {
             for (int z = 0; z < Config.ChunkSize; z++)
             {
-                Vector2i globalPosition = (x + (column.Position.X * Config.ChunkSize), z + (column.Position.Y * Config.ChunkSize));
-                int height = (int) (32.0 * Noise.ValueNoise2(0, (Vector2)globalPosition / 64.0f));
+                Vector3i globalPosition = new Vector3i(x, 0, z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize);
+                float roughness = (float.Clamp(Noise.ValueNoise2(2, (Vector2)globalPosition.Xz / 64.0f, false, 2), -1.0f, 1.0f) + 1.0f) * 0.5f;
+                float heightness = (float.Clamp(Noise.ValueNoise2(1, (Vector2)globalPosition.Xz / 128.0f, false, 2), -1.0f, 1.0f) + 1.0f) * 0.5f;
+
+                float continentality = (float.Clamp(Noise.ValueNoise2(3, (Vector2)globalPosition.Xz / 256.0f, false, 2) + 0.0f, -1.0f, 1.0f) + 1.0f * 0.5f);
+                heightness *= continentality;
+                roughness *= float.Lerp((1.0f - continentality), 0.1f, 1.0f);
+                
+                float heightVal = 64.0f * float.Lerp(-1.0f, 1.0f, heightness);
                 for (int y = Config.ChunkSize * Config.ColumnSize - 1; y >= 0; y--)
                 {
-                    if (y <= 128 + height)
+                    globalPosition.Y = y;
+                    float height = Remap(globalPosition.Y, 256.0f + heightVal, 257.0f + (max * (1.0f - roughness)) + heightVal);
+                    height = (1.0f - height);
+                    
+                    float density = ((Noise.ValueNoise3(0, (Vector3)globalPosition / 32.0f, true, 3) + 1.0f) * 0.5f);
+                    if (density + height >= 0.5f)
                     {
-                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("pumpkin"));
+                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("grass"));
+                    } else if (y <= 256)
+                    {
+                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("water"));
                     }
                 }
             }
         }
 
         column.Status = ChunkStatus.Mesh;
-        GenerationQueue.Enqueue(column.Position);
+        if (column.HasPriority) HighPriorityGenerationQueue.Enqueue(column.Position);
+        else LowPriorityGenerationQueue.Enqueue(column.Position);
+    }
+
+    float Remap(float a, float v1, float v2)
+    {
+        return (a - v1) * (1.0f / (v2 - v1));
     }
     
     public void GenerateMesh(World world, Chunk column)
@@ -154,48 +201,6 @@ public class WorldGenerator
                         if (id != 0)
                         {
                             Config.Register.GetBlockFromId(id).OnBlockMesh(_world, globalBlockPosition);
-                            /*
-                            if (y == Config.ChunkSize - 1 && i == Config.ColumnSize - 1)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Top, (x,y,z));
-                            }
-                            else if (column.ChunkSections[i + ChunkMath.GlobalToChunk((x,y + 1,z)).Y].GetBlockId(ChunkMath.GlobalToLocal((x,y +1,z))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Top, (x,y,z));
-                            }
-                            
-                            if (y == 0 && i == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Bottom, (x,y,z));
-                            } else if (column.ChunkSections[i + ChunkMath.GlobalToChunk((x, y - 1, z)).Y ].GetBlockId(ChunkMath.GlobalToLocal((x, y - 1, z))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Bottom, (x,y,z));
-                            }
-                            
-                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x, y, z - 1)).Xz].ChunkSections[i]
-                                    .GetBlockId(ChunkMath.GlobalToLocal((x, y, z - 1))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Front, (x,y,z));
-                            }
-                            
-                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x, y, z + 1)).Xz].ChunkSections[i]
-                                    .GetBlockId(ChunkMath.GlobalToLocal((x, y, z + 1))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Back, (x,y,z));
-                            }
-                            
-                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x - 1, y, z)).Xz].ChunkSections[i]
-                                    .GetBlockId(ChunkMath.GlobalToLocal((x - 1, y, z))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Left, (x,y,z));
-                            }
-                            
-                            if (world.Chunks[column.Position + ChunkMath.GlobalToChunk((x+1, y, z)).Xz].ChunkSections[i]
-                                    .GetBlockId(ChunkMath.GlobalToLocal((x+1, y, z))) == 0)
-                            {
-                                Config.Register.GetBlockFromId(id).Model.AddFace(mesh.Vertices, Direction.Right, (x,y,z));
-                            }
-                            */
                         }
                     }
                 }
@@ -225,7 +230,11 @@ public class WorldGenerator
 
     public void EnqueueChunk(Vector2i position, ChunkStatus chunkStatus, bool hasPriority)
     {
+        _world.Chunks[position].Mutex.WaitOne();
+        _world.Chunks[position].HasPriority = hasPriority;
         _world.Chunks[position].Status = chunkStatus;
-        GenerationQueue.Enqueue(position);
+        if (hasPriority) HighPriorityGenerationQueue.Enqueue(position);
+        else LowPriorityGenerationQueue.Enqueue(position);
+        _world.Chunks[position].Mutex.ReleaseMutex();
     }
 }

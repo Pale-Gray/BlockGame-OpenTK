@@ -38,8 +38,17 @@ public class World
         
         foreach (Chunk column in Chunks.Values)
         {
+            bool drawable = false;
             for (int i = 0; i < column.ChunkMeshes.Length; i++)
             {
+                if (column.ChunkMeshes[i].VerticesLength > 0) drawable = true;
+            }
+
+            if (drawable) column.ElapsedTime += Config.DeltaTime;
+            
+            for (int i = 0; i < column.ChunkMeshes.Length; i++)
+            {
+                GL.Uniform1f(Config.ChunkShader.GetUniformLocation("uDrawTime"), column.ElapsedTime);
                 GL.Uniform3f(Config.ChunkShader.GetUniformLocation("uChunkPosition"), column.ChunkSections[i].Position.X, column.ChunkSections[i].Position.Y, column.ChunkSections[i].Position.Z);
                 if (column.ChunkMeshes[i].VerticesLength > 0) column.ChunkMeshes[i].Draw(camera);
             }
