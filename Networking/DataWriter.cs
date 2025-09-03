@@ -60,7 +60,7 @@ public class DataWriter
         for (int i = 0; i < value.Length; i++) Write(value[i]);
     }
 
-    public void WriteValues(ushort[] values)
+    public void WriteValues(Span<ushort> values)
     {
         Write(values.Length);
         for (int i = 0; i < values.Length; i++)
@@ -69,12 +69,18 @@ public class DataWriter
         }
     }
 
-    public void WriteValues(uint[] values)
+    public void WriteValues(Span<uint> values)
     {
         Write(values.Length);
         for (int i = 0; i < values.Length; i++)
         {
             Write(values[i]);
         }
+    }
+
+    public void WriteValues(Span<string> values)
+    {
+        Write(values.Length);
+        for (int i = 0; i < values.Length; i++) Write(values[i]);
     }
 }

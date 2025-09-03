@@ -80,13 +80,13 @@ public class Server : Networked
                     break;
                 case PacketType.BlockDestroy:
                     BlockDestroyPacket blockDestroy = (BlockDestroyPacket) new BlockDestroyPacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(Config.World, blockDestroy.GlobalBlockPosition);
+                    Config.Register.GetBlockFromNamespace(blockDestroy.Id).OnBlockDestroy(Config.World, blockDestroy.GlobalBlockPosition);
                     
                     SendPacket(blockDestroy, fromPeer);
                     break;
                 case PacketType.BlockPlace:
                     BlockPlacePacket packet = (BlockPlacePacket)new BlockPlacePacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(packet.Id).OnBlockPlace(Config.World, packet.GlobalBlockPosition);
+                    Config.Register.GetBlockFromNamespace(packet.Id).OnBlockPlace(Config.World, packet.GlobalBlockPosition);
                     
                     SendPacket(packet, fromPeer);
                     break;

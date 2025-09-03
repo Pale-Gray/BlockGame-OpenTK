@@ -58,12 +58,12 @@ public class World
         }
     }
 
-    public ushort GetBlockId(Vector3i globalBlockPosition)
+    public string GetBlockId(Vector3i globalBlockPosition)
     {
         Vector3i chunkPosition = ChunkMath.GlobalToChunk(globalBlockPosition);
-        if (!Chunks.ContainsKey(chunkPosition.Xz) || globalBlockPosition.Y < 0 || globalBlockPosition.Y >= Config.ChunkSize * Config.ColumnSize) return 0;
+        if (!Chunks.ContainsKey(chunkPosition.Xz) || globalBlockPosition.Y < 0 || globalBlockPosition.Y >= Config.ChunkSize * Config.ColumnSize) return "air";
         
-        return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition));
+        return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition)) ?? "air";
     }
 
     public bool GetBlockIsSolid(Vector3i globalBlockPosition)
@@ -74,9 +74,6 @@ public class World
 
         Vector3i l = ChunkMath.GlobalToLocal(globalBlockPosition);
         return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetSolid(l.X, l.Y, l.Z);
-
-        return Config.Register.GetBlockFromId(Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y]
-            .GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition))).IsSolid;
     }
 
     public bool GetBlockIsTransparent(Vector3i globalBlockPosition)
@@ -87,9 +84,6 @@ public class World
 
         Vector3i l = ChunkMath.GlobalToLocal(globalBlockPosition);
         return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetTransparent(l.X, l.Y, l.Z);
-        
-        return Config.Register.GetBlockFromId(Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y]
-            .GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition))).IsTransparent;
     }
 
     public void SetBlock(Vector3i globalBlockPosition, Block? block = null)

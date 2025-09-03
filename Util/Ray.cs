@@ -33,7 +33,7 @@ public struct Ray
         
         while (Vector3.Distance(VectorMath.ComponentFloor(Origin), RayBlockPosition) <= maxDistance)
         {
-            if (world.GetBlockId(RayBlockPosition) != 0)
+            if (world.GetBlockId(RayBlockPosition) != "air")
             {
                 HitBlockPosition = RayBlockPosition;
                 PreviousHitBlockPosition = RayPreviousBlockPosition;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTK.Graphics.Vulkan;
@@ -42,8 +43,8 @@ public class Config
     public static Stopwatch Timer = new Stopwatch();
     public static TimeSpan LastGenTime;
     public static TimeSpan LastMeshTime;
-    public static List<TimeSpan> GenTimes = new();
-    public static List<TimeSpan> MeshTimes = new();
+    public static ConcurrentBag<TimeSpan> GenTimes = new();
+    public static ConcurrentBag<TimeSpan> MeshTimes = new();
 
     public static List<float> FrameTimesOfLastSecond = new();
     public static float MinimumFps;

@@ -9,7 +9,7 @@ public class Block
 {
     public BlockModel Model = new BlockModel();
     public BoundingBox BoundingBox = new BoundingBox();
-    public ushort Id = 0;
+    public string Id = string.Empty;
     public bool IsSolid = true;
     public bool IsTransparent = false;
     

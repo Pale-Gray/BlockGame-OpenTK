@@ -186,11 +186,11 @@ public class Client : Networked
                     break;
                 case PacketType.BlockDestroy:
                     BlockDestroyPacket blockDestroy = (BlockDestroyPacket)new BlockDestroyPacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(Config.World, blockDestroy.GlobalBlockPosition);
+                    Config.Register.GetBlockFromNamespace(blockDestroy.Id).OnBlockDestroy(Config.World, blockDestroy.GlobalBlockPosition);
                     break;
                 case PacketType.BlockPlace:
                     BlockPlacePacket blockPlace = (BlockPlacePacket)new BlockPlacePacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(blockPlace.Id).OnBlockPlace(Config.World, blockPlace.GlobalBlockPosition);
+                    Config.Register.GetBlockFromNamespace(blockPlace.Id).OnBlockPlace(Config.World, blockPlace.GlobalBlockPosition);
                     break;
             }
             
@@ -310,7 +310,7 @@ public class Client : Networked
                 {
                     Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(Config.World, ray.PreviousHitBlockPosition);
                     BlockPlacePacket packet = new BlockPlacePacket();
-                    packet.Id = Config.Register.GetBlockFromNamespace("sand").Id;
+                    packet.Id = "sand";
                     packet.GlobalBlockPosition = ray.PreviousHitBlockPosition;
                 
                     SendPacket(packet);
@@ -318,7 +318,7 @@ public class Client : Networked
             
                 if (Input.IsMouseButtonPressed(MouseButton.Button1))
                 {
-                    Config.Register.GetBlockFromId(Config.World.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(Config.World, ray.HitBlockPosition);
+                    Config.Register.GetBlockFromNamespace(Config.World.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(Config.World, ray.HitBlockPosition);
                     BlockDestroyPacket packet = new BlockDestroyPacket();
                     packet.GlobalBlockPosition = ray.HitBlockPosition;
                     packet.Id = Config.World.GetBlockId(ray.HitBlockPosition);

@@ -80,4 +80,17 @@ public class DataReader
 
         return values;
     }
+
+    public string[] ReadStringValues()
+    {
+        int count = ReadInt32();
+
+        string[] values = new string[count];
+        for (int i = 0; i < count; i++)
+        {
+            values[i] = ReadString();
+        }
+
+        return values;
+    }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace VoxelGame.Util;
 
@@ -8,6 +9,16 @@ public class Palette<T>
     private List<T> _elements = new();
     private BitArray _data;
     public int ByteSize => _data.Data.Length * 4;
+    public bool IsEmpty => _elements.Count == 0;
+    public Span<T> PaletteEntries => CollectionsMarshal.AsSpan(_elements);
+    public BitArray Data => _data;
+
+    public Palette(T[] entries, BitArray data)
+    {
+        _data = data;
+        _elements = new List<T>(entries);
+    }
+    
     public Palette(int capacity, int bitSize = 1)
     {
         _data = new BitArray(capacity, bitSize);
@@ -47,12 +58,12 @@ public class Palette<T>
             if (bitSize > _data.BitSize)
             {
                 // grow array
-                Console.WriteLine($"the palette grew in size");
+                // Console.WriteLine($"the palette grew in size");
                 _data = new BitArray(_data, bitSize);
             } else if (bitSize < _data.BitSize)
             {
                 // shrink array
-                Console.WriteLine("the palette shrunk in size!");
+                // Console.WriteLine("the palette shrunk in size!");
                 _data = new BitArray(_data, bitSize);
             }
             

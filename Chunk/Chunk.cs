@@ -37,7 +37,7 @@ public class Chunk
         // ChunkSections[index].SetBlock(id, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
         if (block == null)
         {
-            ChunkSections[index].SetBlock(0, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+            ChunkSections[index].SetBlock("air", localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
             ChunkSections[index].SetTransparent(false, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
             ChunkSections[index].SetSolid(false, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
         }
@@ -49,10 +49,10 @@ public class Chunk
         }
     }
 
-    public uint GetBlockId(Vector3i localPosition)
+    public string GetBlockId(Vector3i localPosition)
     {
         int index = localPosition.Y / Config.ChunkSize;
-        return ChunkSections[index].GetBlockId(localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+        return ChunkSections[index].GetBlockId((localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z)) ?? "air";
     }
 
     public bool GetTransparent(Vector3i localPosition)

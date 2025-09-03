@@ -57,7 +57,7 @@ public struct PlayerMovePacket() : IPacket
 public struct BlockPlacePacket() : IPacket
 {
     public PacketType Type { get; set; } = PacketType.BlockPlace;
-    public ushort Id;
+    public string Id;
     public Vector3i GlobalBlockPosition;
 
     public void Serialize(DataWriter writer)
@@ -70,7 +70,7 @@ public struct BlockPlacePacket() : IPacket
 
     public IPacket Deserialize(DataReader reader)
     {
-        Id = reader.ReadUInt16();
+        Id = reader.ReadString();
         GlobalBlockPosition = (reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
         
         return this;
@@ -80,7 +80,7 @@ public struct BlockPlacePacket() : IPacket
 public struct BlockDestroyPacket() : IPacket
 {
     public PacketType Type { get; set; } = PacketType.BlockDestroy;
-    public ushort Id;
+    public string Id;
     public Vector3i GlobalBlockPosition;
     
     public void Serialize(DataWriter writer)
@@ -93,7 +93,7 @@ public struct BlockDestroyPacket() : IPacket
 
     public IPacket Deserialize(DataReader reader)
     {
-        Id = reader.ReadUInt16();
+        Id = reader.ReadString();
         GlobalBlockPosition = (reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
         
         return this;
@@ -112,7 +112,11 @@ public struct ChunkDataPacket : IPacket
         writer.Write(Position.Y);
         for (int i = 0; i < Config.ColumnSize; i++)
         {
-            writer.WriteValues(RunLengthEncoder.Encode(Column.ChunkSections[i].Data).ToArray());
+            // writer.WriteValues(RunLengthEncoder.Encode(Column.ChunkSections[i].Data).ToArray());
+            writer.WriteValues(Column.ChunkSections[i].Blocks.PaletteEntries);
+            writer.Write(Column.ChunkSections[i].Blocks.Data.Capacity);
+            writer.Write(Column.ChunkSections[i].Blocks.Data.BitSize);
+            writer.WriteValues(Column.ChunkSections[i].Blocks.Data.Data);
             writer.WriteValues(Column.ChunkSections[i].SolidData);
             writer.WriteValues(Column.ChunkSections[i].TransparentData);
         }
@@ -125,7 +129,8 @@ public struct ChunkDataPacket : IPacket
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             Column.ChunkSections[i].Position = (Position.X, i, Position.Y);
-            Column.ChunkSections[i].Data = RunLengthEncoder.Decode(reader.ReadUInt16Values()).ToArray();
+            Column.ChunkSections[i].Blocks = new Palette<string>(reader.ReadStringValues(), new BitArray(reader.ReadInt32(), reader.ReadInt32(), reader.ReadUInt32Values()));
+            // Column.ChunkSections[i].Data = RunLengthEncoder.Decode(reader.ReadUInt16Values()).ToArray();
             Column.ChunkSections[i].SolidData = reader.ReadUInt32Values();
             Column.ChunkSections[i].TransparentData = reader.ReadUInt32Values();
         }

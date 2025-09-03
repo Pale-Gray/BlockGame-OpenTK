@@ -230,10 +230,10 @@ public class WorldGenerator
                     for (int z = 0; z < Config.ChunkSize; z++)
                     {
                         Vector3i globalBlockPosition = (x, y, z) + new Vector3i(column.Position.X, i, column.Position.Y) * Config.ChunkSize;
-                        ushort id = column.ChunkSections[i].GetBlockId(x, y, z);
-                        if (id != 0)
+                        string? id = column.ChunkSections[i].GetBlockId((x, y, z));
+                        if (id != null)
                         {
-                            Config.Register.GetBlockFromId(id).OnBlockMesh(_world, globalBlockPosition);
+                            Config.Register.GetBlockFromNamespace(id).OnBlockMesh(_world, globalBlockPosition);
                         }
                     }
                 }

@@ -28,6 +28,13 @@ public class BitArray
         }
     }
 
+    public BitArray(int capacity, int bitSize, uint[] data)
+    {
+        _data = data;
+        _capacity = capacity;
+        _bitSize = bitSize;
+    }
+
     public void Set(int index, uint value)
     {
         int dataIndex = (int) float.Floor((index * _bitSize) / 32.0f);
