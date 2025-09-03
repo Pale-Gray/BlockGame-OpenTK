@@ -26,14 +26,44 @@ public class Chunk
         Position = position;
         for (int i = 0; i < Config.ColumnSize; i++)
         {
-            ChunkSections[i] = new ChunkSection();
+            ChunkSections[i] = new ChunkSection() {Position = (position.X, i, position.Y)};
             ChunkMeshes[i] = new ChunkSectionMesh();
         }
     }
 
-    public static void SetBlock(Chunk column, Vector3i localPosition, Block block)
+    public void SetBlock(Vector3i localPosition, Block? block = null)
     {
         int index = localPosition.Y / Config.ChunkSize;
-        column.ChunkSections[index].SetBlockId(block.Id, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+        // ChunkSections[index].SetBlock(id, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+        if (block == null)
+        {
+            ChunkSections[index].SetBlock(0, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+            ChunkSections[index].SetTransparent(false, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+            ChunkSections[index].SetSolid(false, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+        }
+        else
+        {
+            ChunkSections[index].SetBlock(block.Id, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+            ChunkSections[index].SetTransparent(block.IsTransparent, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+            ChunkSections[index].SetSolid(block.IsSolid, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+        }
+    }
+
+    public uint GetBlockId(Vector3i localPosition)
+    {
+        int index = localPosition.Y / Config.ChunkSize;
+        return ChunkSections[index].GetBlockId(localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+    }
+
+    public bool GetTransparent(Vector3i localPosition)
+    {
+        int index = localPosition.Y / Config.ChunkSize;
+        return ChunkSections[index].GetTransparent(localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
+    }
+
+    public bool GetSolid(Vector3i localPosition)
+    {
+        int index = localPosition.Y / Config.ChunkSize;
+        return ChunkSections[index].GetSolid(localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
     }
 }

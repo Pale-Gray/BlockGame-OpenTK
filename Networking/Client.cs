@@ -45,6 +45,11 @@ public class Client : Networked
         
         Config.Window = Toolkit.Window.Create(contextSettings);
         Config.OpenGLContext = Toolkit.OpenGL.CreateFromWindow(Config.Window);
+
+        DisplayHandle display = Toolkit.Display.OpenPrimary();
+        Toolkit.Display.GetResolution(display, out Config.Width, out Config.Height);
+        Config.Width /= 2;
+        Config.Height /= 2;
         
         Toolkit.Window.SetTitle(Config.Window, "Voxel Game");
         Toolkit.Window.SetSize(Config.Window, (Config.Width, Config.Height));
@@ -59,29 +64,7 @@ public class Client : Networked
         GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(Config.OpenGLContext));
         
         Config.Atlas = new DynamicAtlas("resources/textures/blocks").Generate();
-        Config.Register.RegisterBlock("air", new Block() { IsSolid = false });
-        Config.Register.RegisterBlock("grass", 
-            new Block()
-                .SetBlockModel(new BlockModel()
-                    .AddCube(new Cube())
-                    .SetTextureFace(0, Direction.Top, "chicken_systems")
-                    .SetTextureSides(0, "chicken_systems")
-                    .SetTextureFace(0, Direction.Bottom, "chicken_systems")));
-        Config.Register.RegisterBlock("stone", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "stone")));
-        Config.Register.RegisterBlock("sand",
-            new Block() { IsSolid = true }
-                .SetBlockModel(new BlockModel()
-                    .AddCube(new Cube((0, 0, 0), (1, 1, 1)))
-                    .SetAllTextureFaces(0, "sand")));
-        Config.Register.RegisterBlock("pumpkin",
-            new Block()
-                .SetBlockModel(new BlockModel()
-                    .AddCube(new Cube())
-                    .SetTextureFace(0, Direction.Top, "pumpkin_top")
-                    .SetTextureFace(0, Direction.Bottom, "pumpkin_bottom")
-                    .SetTextureSides(0, "pumpkin_face")));
-        Config.Register.RegisterBlock("water",
-            new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "water")));
+        BaseGame.OnLoad();
 
         Config.Framebuffer = new DeferredFramebuffer();
         Config.Framebuffer.Create();
@@ -163,51 +146,28 @@ public class Client : Networked
 
     public override void Stop()
     {
-        World?.Generator.Stop();
+        Config.World?.Generator.Stop();
     }
 
     public override void TickUpdate()
     {
-        _player.TickUpdate(World);
+        _player.TickUpdate(Config.World);
         PlayerMovePacket packet = new PlayerMovePacket();
         packet.Position = _player.Position;
         SendPacket(packet);
-
-        // if (_player.ChunkPosition == null || ChunkMath.ChebyshevDistance(_player.ChunkPosition.Value,
-        //         ChunkMath.GlobalToChunk(ChunkMath.PositionToBlockPosition(_player.Position)).Xz) >= 2)
-        // {
-        //     _player.ChunkPosition = ChunkMath.GlobalToChunk(ChunkMath.PositionToBlockPosition(_player.Position)).Xz;
-        // 
-        //     int rad = 8;
-        //     for (int x = -rad; x <= rad; x++)
-        //     {
-        //         for (int z = -rad; z <= rad; z++)
-        //         {
-        //             Vector2i position = (x, z) + _player.ChunkPosition.Value;
-        //             if (World.Chunks.TryGetValue(position, out Chunk chunk))
-        //             {
-        //                 if (chunk.IsMeshIncomplete)
-        //                 {
-        //                     chunk.IsMeshIncomplete = false;
-        //                     for (int i = 0; i < Config.ColumnSize; i++)
-        //                     {
-        //                         chunk.ChunkMeshes[i].ShouldUpdate = true;
-        //                     }
-        //                     World.Generator.EnqueueChunk(position, ChunkStatus.Mesh, false);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     }
 
-    public override void Join()
+    public override void Join(bool isInternal = false)
     {
         Manager.Start();
         ClientPeer = Manager.Connect(HostOrIp, Port, "hello");
-        
-        World = new World();
-        World.Generator.Start();
+
+        if (!isInternal)
+        {
+            Config.World = new World();
+            Config.World.Generator.ShouldMesh = true;
+            Config.World.Generator.Start();
+        }
 
         Listener.NetworkReceiveEvent += (fromPeer, dataReader, channel, deliveryMethod) =>
         {
@@ -218,17 +178,19 @@ public class Client : Networked
                 case PacketType.ChunkData:
                     ChunkDataPacket chunkData = (ChunkDataPacket) new ChunkDataPacket().Deserialize(reader);
                     chunkData.Column.Status = ChunkStatus.Mesh;
-                    World.Chunks.TryAdd(chunkData.Position, chunkData.Column);
-                    World.Chunks[chunkData.Position].Status = ChunkStatus.Mesh;
-                    World.Generator.LowPriorityGenerationQueue.Enqueue(chunkData.Position);
+                    if (Config.World.Chunks.TryAdd(chunkData.Position, chunkData.Column))
+                    {
+                        Config.World.Chunks[chunkData.Position].Status = ChunkStatus.Mesh;
+                        Config.World.Generator.LowPriorityGenerationQueue.Enqueue(chunkData.Position);
+                    }
                     break;
                 case PacketType.BlockDestroy:
                     BlockDestroyPacket blockDestroy = (BlockDestroyPacket)new BlockDestroyPacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(World, blockDestroy.GlobalBlockPosition);
+                    Config.Register.GetBlockFromId(blockDestroy.Id).OnBlockDestroy(Config.World, blockDestroy.GlobalBlockPosition);
                     break;
                 case PacketType.BlockPlace:
                     BlockPlacePacket blockPlace = (BlockPlacePacket)new BlockPlacePacket().Deserialize(reader);
-                    Config.Register.GetBlockFromId(blockPlace.Id).OnBlockPlace(World, blockPlace.GlobalBlockPosition);
+                    Config.Register.GetBlockFromId(blockPlace.Id).OnBlockPlace(Config.World, blockPlace.GlobalBlockPosition);
                     break;
             }
             
@@ -281,21 +243,21 @@ public class Client : Networked
 
         if (Input.IsKeyPressed(Key.R))
         {
-            foreach (Vector2i position in World.Chunks.Keys)
+            foreach (Vector2i position in Config.World.Chunks.Keys)
             {
-                Chunk chunk = World.Chunks[position];
+                Chunk chunk = Config.World.Chunks[position];
                 chunk.ElapsedTime = 0.0f;
                 for (int i = 0; i < Config.ColumnSize; i++)
                 {
                     ChunkSectionMesh mesh = chunk.ChunkMeshes[i];
-                    mesh.IndicesLength = 0;
-                    mesh.VerticesLength = 0;
-                    mesh.Indices.Clear();
-                    mesh.Vertices.Clear();
+                    mesh.SolidIndicesLength = 0;
+                    mesh.SolidVerticesLength = 0;
+                    mesh.SolidIndices.Clear();
+                    mesh.SolidVertices.Clear();
                     mesh.ShouldUpdate = true;
                 }
                 
-                World.Generator.EnqueueChunk(position, ChunkStatus.Mesh, false);
+                Config.World.Generator.EnqueueChunk(position, ChunkStatus.Mesh, false);
             }
         }
 
@@ -320,14 +282,14 @@ public class Client : Networked
         }
         
         _player.Update();
-        World.Draw(_player.Camera);
-        World.Generator.Poll();
+        Config.World.Draw(_player.Camera);
+        Config.World.Generator.Poll();
 
         Ray ray = new Ray();
         ray.Origin = _player.Camera.Position;
         ray.Direction = (Matrix3.CreateRotationY(float.DegreesToRadians(_player.Camera.Rotation.Y)) * Matrix3.CreateRotationX(float.DegreesToRadians(-_player.Camera.Rotation.X))).Column2 * (-1, 1, 1);
         
-        if (ray.TryHit(World, 10))
+        if (ray.TryHit(Config.World, 10))
         {
             GL.Disable(EnableCap.CullFace);
             shad.Bind();
@@ -346,7 +308,7 @@ public class Client : Networked
             {
                 if (Input.IsMouseButtonPressed(MouseButton.Button2))
                 {
-                    Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(World, ray.PreviousHitBlockPosition);
+                    Config.Register.GetBlockFromNamespace("sand").OnBlockPlace(Config.World, ray.PreviousHitBlockPosition);
                     BlockPlacePacket packet = new BlockPlacePacket();
                     packet.Id = Config.Register.GetBlockFromNamespace("sand").Id;
                     packet.GlobalBlockPosition = ray.PreviousHitBlockPosition;
@@ -356,10 +318,10 @@ public class Client : Networked
             
                 if (Input.IsMouseButtonPressed(MouseButton.Button1))
                 {
-                    Config.Register.GetBlockFromId(World.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(World, ray.HitBlockPosition);
+                    Config.Register.GetBlockFromId(Config.World.GetBlockId(ray.HitBlockPosition)).OnBlockDestroy(Config.World, ray.HitBlockPosition);
                     BlockDestroyPacket packet = new BlockDestroyPacket();
                     packet.GlobalBlockPosition = ray.HitBlockPosition;
-                    packet.Id = World.GetBlockId(ray.HitBlockPosition);
+                    packet.Id = Config.World.GetBlockId(ray.HitBlockPosition);
                 
                     SendPacket(packet);
                 }
@@ -371,8 +333,33 @@ public class Client : Networked
         GL.ClearColor(100.0f / 255.0f, 129.0f / 255.0f, 237.0f / 255.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         Config.Framebuffer.Draw();
-        Gui.Text($"Last mesh time: {Config.LastMeshTime}ms, Last gen time: {Config.LastGenTime}ms\nAverage mesh time: {Config.MeshTimes.Average()}, Average gen time: {Config.GenTimes.Average()}", Gui.AsPixelPerfect((0, 0)), Gui.AsPixelPerfect(8.0f), Color3.White);
-        if (Gui.Button("I am a button", Gui.AsPixelPerfect((100, 100)), Gui.AsPixelPerfect((80 + float.Floor(float.Abs(float.Sin(Config.ElapsedTime) * 10)), 20 + float.Floor(float.Abs(float.Cos(Config.ElapsedTime) * 20)))), Gui.AsPixelPerfect((4, 4)))) Console.WriteLine("I WAS PRESSED");
+        double lastGenTime = double.Round(Config.LastGenTime.TotalMilliseconds, 2);
+        double minGenTime = 0.0;
+        double maxGenTime = 0.0;
+        double avgGenTime = 0.0;
+        if (Config.GenTimes.Count > 0)
+        {
+            minGenTime = double.Round(Config.GenTimes.Min().TotalMilliseconds, 2);
+            maxGenTime = double.Round(Config.GenTimes.Max().TotalMilliseconds, 2);
+            avgGenTime = double.Round(Config.GenTimes.Average(val => val.TotalMilliseconds), 2);
+        }
+        double lastMeshTime = double.Round(Config.LastMeshTime.TotalMilliseconds, 2);
+        double minMeshTime = 0.0;
+        double maxMeshTime = 0.0;
+        double avgMeshTime = 0.0;
+        if (Config.MeshTimes.Count > 0)
+        {
+            minMeshTime = double.Round(Config.MeshTimes.Min().TotalMilliseconds, 2);
+            maxMeshTime = double.Round(Config.MeshTimes.Max().TotalMilliseconds, 2);
+            avgMeshTime = double.Round(Config.MeshTimes.Average(val => val.TotalMilliseconds), 2);
+        }
+        Gui.Text($"""
+                  Memory usage: {GC.GetTotalMemory(true) / 1024 / 1024}MB
+                  Heap size: {GC.GetGCMemoryInfo().HeapSizeBytes / 1024 / 1024}MB
+                  Last gen time: {lastGenTime}ms, Max gen time: {maxGenTime}ms, Min gen time: {minGenTime}ms, Avg gen time: {avgGenTime}ms
+                  Last mesh time: {lastMeshTime}ms, Max mesh time: {maxMeshTime}ms, Min mesh time: {minMeshTime}ms, Avg mesh time: {avgMeshTime}ms
+                  """, Gui.AsPixelPerfect((0, 0)), Gui.AsPixelPerfect(8.0f), Color3.White);
+        if (Gui.Button("I am a button", Gui.AsPixelPerfect((100, 100)), Gui.AsPixelPerfect((80 + float.Floor(float.Abs(float.Sin(Config.ElapsedTime) * 10)), 20 + float.Floor(float.Abs(float.Cos(Config.ElapsedTime) * 20)))), Gui.AsPixelPerfect((4, 4)))) Environment.Exit(0);
         Toolkit.OpenGL.SwapBuffers(Config.OpenGLContext);
         Toolkit.Window.SetTitle(Config.Window, $"position: {ChunkMath.PositionToBlockPosition(_player.Position)} size: ({Config.Width}, {Config.Height}), avg fps: {Config.AverageFps}, min fps: {Config.MinimumFps}, max fps: {Config.MaximumFps}");
     }

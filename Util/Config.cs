@@ -15,8 +15,8 @@ public class Config
     public const int ChunkVolume = ChunkSize * ChunkSize * ChunkSize;
     public const int ColumnSize = 16;
 
-    public static int Width = 900;
-    public static int Height = 500;
+    public static int Width = 960;
+    public static int Height = 540;
 
     public static bool IsRunning = true;
     public static Register Register = new Register();
@@ -25,6 +25,7 @@ public class Config
     public static Shader ChunkShader;
     public static DeferredFramebuffer Framebuffer;
     public static Random Random = new Random();
+    public static Process CurrentProcess = Process.GetCurrentProcess();
 
     public static Server? Server;
     public static Client? Client;
@@ -39,13 +40,15 @@ public class Config
     public static float ElapsedTime = 0;
     public static float TickInterpolant => (ElapsedTime % TickRate) / TickRate;
     public static Stopwatch Timer = new Stopwatch();
-    public static float LastGenTime = 0.0f;
-    public static List<float> GenTimes = [0];
-    public static float LastMeshTime = 0.0f;
-    public static List<float> MeshTimes = [0];
+    public static TimeSpan LastGenTime;
+    public static TimeSpan LastMeshTime;
+    public static List<TimeSpan> GenTimes = new();
+    public static List<TimeSpan> MeshTimes = new();
 
     public static List<float> FrameTimesOfLastSecond = new();
     public static float MinimumFps;
     public static float MaximumFps;
     public static float AverageFps;
+
+    public static World World;
 }

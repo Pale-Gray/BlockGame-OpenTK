@@ -41,7 +41,7 @@ public class World
             bool drawable = false;
             for (int i = 0; i < column.ChunkMeshes.Length; i++)
             {
-                if (column.ChunkMeshes[i].VerticesLength > 0) drawable = true;
+                if (column.ChunkMeshes[i].SolidVerticesLength > 0 || column.ChunkMeshes[i].TransparentVerticesLength > 0) drawable = true;
             }
 
             if (drawable) column.ElapsedTime += Config.DeltaTime;
@@ -50,7 +50,10 @@ public class World
             {
                 GL.Uniform1f(Config.ChunkShader.GetUniformLocation("uDrawTime"), column.ElapsedTime);
                 GL.Uniform3f(Config.ChunkShader.GetUniformLocation("uChunkPosition"), column.ChunkSections[i].Position.X, column.ChunkSections[i].Position.Y, column.ChunkSections[i].Position.Z);
-                if (column.ChunkMeshes[i].VerticesLength > 0) column.ChunkMeshes[i].Draw(camera);
+                if (column.ChunkMeshes[i].SolidVerticesLength > 0) column.ChunkMeshes[i].DrawSolid(camera);
+                GL.Disable(EnableCap.CullFace);
+                if (column.ChunkMeshes[i].TransparentVerticesLength > 0) column.ChunkMeshes[i].DrawTransparent(camera);
+                GL.Enable(EnableCap.CullFace);
             }
         }
     }
@@ -69,18 +72,34 @@ public class World
         if (!Chunks.ContainsKey(chunkPosition.Xz) || chunkPosition.Y < 0 ||
             chunkPosition.Y >= Config.ColumnSize) return false;
 
+        Vector3i l = ChunkMath.GlobalToLocal(globalBlockPosition);
+        return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetSolid(l.X, l.Y, l.Z);
+
         return Config.Register.GetBlockFromId(Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y]
             .GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition))).IsSolid;
     }
 
-    public void SetBlockId(Vector3i globalBlockPosition, ushort value)
+    public bool GetBlockIsTransparent(Vector3i globalBlockPosition)
+    {
+        Vector3i chunkPosition = ChunkMath.GlobalToChunk(globalBlockPosition);
+        if (!Chunks.ContainsKey(chunkPosition.Xz) || chunkPosition.Y < 0 ||
+            chunkPosition.Y >= Config.ColumnSize) return false;
+
+        Vector3i l = ChunkMath.GlobalToLocal(globalBlockPosition);
+        return Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].GetTransparent(l.X, l.Y, l.Z);
+        
+        return Config.Register.GetBlockFromId(Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y]
+            .GetBlockId(ChunkMath.GlobalToLocal(globalBlockPosition))).IsTransparent;
+    }
+
+    public void SetBlock(Vector3i globalBlockPosition, Block? block = null)
     {
         Vector3i chunkPosition = ChunkMath.GlobalToChunk(globalBlockPosition);
         if (Chunks.ContainsKey(chunkPosition.Xz) && chunkPosition.Y >= 0 &&
             chunkPosition.Y < Config.ColumnSize)
         {
             Vector3i pos = ChunkMath.GlobalToLocal(globalBlockPosition);
-            Chunks[chunkPosition.Xz].ChunkSections[chunkPosition.Y].SetBlockId(value, pos.X, pos.Y, pos.Z);
+            Chunks[chunkPosition.Xz].SetBlock((pos.X, globalBlockPosition.Y, pos.Z), block);
         }
     }
 
@@ -130,12 +149,25 @@ public class World
         Vector3i chunkPosition = ChunkMath.GlobalToChunk(globalBlockPosition);
         Vector3i localBlockPosition = ChunkMath.GlobalToLocal(globalBlockPosition);
         
-        List<ChunkVertex> vertexData = Chunks[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].Vertices;
-        if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitY)) model.AddFace(vertexData, Direction.Top, localBlockPosition);
-        if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitY)) model.AddFace(vertexData, Direction.Bottom, localBlockPosition);
-        if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitX)) model.AddFace(vertexData, Direction.Right, localBlockPosition);
-        if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitX)) model.AddFace(vertexData, Direction.Left, localBlockPosition);
-        if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Back, localBlockPosition);
-        if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Front, localBlockPosition);
+        if (GetBlockIsTransparent(globalBlockPosition))
+        {
+            List<ChunkVertex> vertexData = Chunks[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].TransparentVertices;
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitY)) model.AddFace(vertexData, Direction.Top, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitY)) model.AddFace(vertexData, Direction.Bottom, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitX)) model.AddFace(vertexData, Direction.Right, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitX)) model.AddFace(vertexData, Direction.Left, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Back, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Front, localBlockPosition);
+        }
+        else
+        {
+            List<ChunkVertex> vertexData = Chunks[chunkPosition.Xz].ChunkMeshes[chunkPosition.Y].SolidVertices;
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitY) || GetBlockIsTransparent(globalBlockPosition + Vector3i.UnitY)) model.AddFace(vertexData, Direction.Top, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitY) || GetBlockIsTransparent(globalBlockPosition - Vector3i.UnitY)) model.AddFace(vertexData, Direction.Bottom, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitX) || GetBlockIsTransparent(globalBlockPosition + Vector3i.UnitX)) model.AddFace(vertexData, Direction.Right, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitX) || GetBlockIsTransparent(globalBlockPosition - Vector3i.UnitX)) model.AddFace(vertexData, Direction.Left, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition + Vector3i.UnitZ) || GetBlockIsTransparent(globalBlockPosition + Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Back, localBlockPosition);
+            if (!GetBlockIsSolid(globalBlockPosition - Vector3i.UnitZ) || GetBlockIsTransparent(globalBlockPosition - Vector3i.UnitZ)) model.AddFace(vertexData, Direction.Front, localBlockPosition);
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -21,35 +22,46 @@ public struct ChunkVertex
 }
 public class ChunkSectionMesh
 {
-    public List<ChunkVertex> Vertices = new();
-    public List<int> Indices = new();
-    public int VerticesLength = 0;
-    public int IndicesLength = 0;
-    public int Vbo, Vao, Ibo;
+    public List<ChunkVertex> SolidVertices = new();
+    public List<int> SolidIndices = new();
+    public int SolidVerticesLength;
+    public int SolidIndicesLength;
+    public int SolidVbo, SolidVao, SolidIbo;
+    public List<ChunkVertex> TransparentVertices = new();
+    public List<int> TransparentIndices = new();
+    public int TransparentVerticesLength;
+    public int TransparentIndicesLength;
+    public int TransparentVbo, TransparentVao, TransparentIbo;
     public bool ShouldUpdate = true;
 
-    public void Draw(Camera camera)
+    public void DrawSolid(Camera camera)
     {
-        GL.BindVertexArray(Vao);
-        GL.DrawElements(PrimitiveType.Triangles, IndicesLength, DrawElementsType.UnsignedInt, 0);
+        GL.BindVertexArray(SolidVao);
+        GL.DrawElements(PrimitiveType.Triangles, SolidIndicesLength, DrawElementsType.UnsignedInt, 0);
+    }
+
+    public void DrawTransparent(Camera camera)
+    {
+        GL.BindVertexArray(TransparentVao);
+        GL.DrawElements(PrimitiveType.Triangles, TransparentIndicesLength, DrawElementsType.UnsignedInt, 0);
     }
 
     public void Update()
     {
-        GL.DeleteBuffer(Vbo);
-        GL.DeleteBuffer(Ibo);
-        GL.DeleteVertexArray(Vao);
+        GL.DeleteBuffer(SolidVbo);
+        GL.DeleteBuffer(SolidIbo);
+        GL.DeleteVertexArray(SolidVao);
 
-        Vao = GL.GenVertexArray();
-        GL.BindVertexArray(Vao);
+        SolidVao = GL.GenVertexArray();
+        GL.BindVertexArray(SolidVao);
 
-        Vbo = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-        GL.BufferData<ChunkVertex>(BufferTarget.ArrayBuffer, Marshal.SizeOf<ChunkVertex>() * Vertices.Count, CollectionsMarshal.AsSpan(Vertices), BufferUsage.DynamicDraw);
+        SolidVbo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, SolidVbo);
+        GL.BufferData<ChunkVertex>(BufferTarget.ArrayBuffer, Marshal.SizeOf<ChunkVertex>() * SolidVertices.Count, CollectionsMarshal.AsSpan(SolidVertices), BufferUsage.DynamicDraw);
 
-        Ibo = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, Ibo);
-        GL.BufferData<int>(BufferTarget.ElementArrayBuffer, sizeof(int) * Indices.Count, CollectionsMarshal.AsSpan(Indices), BufferUsage.DynamicDraw);
+        SolidIbo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, SolidIbo);
+        GL.BufferData<int>(BufferTarget.ElementArrayBuffer, sizeof(int) * SolidIndices.Count, CollectionsMarshal.AsSpan(SolidIndices), BufferUsage.DynamicDraw);
         
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
         GL.EnableVertexAttribArray(0);
@@ -58,11 +70,39 @@ public class ChunkSectionMesh
         GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinate)));
         GL.EnableVertexAttribArray(2);
 
-        VerticesLength = Vertices.Count;
-        IndicesLength = Indices.Count;
+        SolidVerticesLength = SolidVertices.Count;
+        SolidIndicesLength = SolidIndices.Count;
         
-        Vertices.Clear();
-        Indices.Clear();
+        SolidVertices.Clear();
+        SolidIndices.Clear();
+        
+        GL.DeleteBuffer(TransparentVbo);
+        GL.DeleteBuffer(TransparentIbo);
+        GL.DeleteVertexArray(TransparentVao);
+
+        TransparentVao = GL.GenVertexArray();
+        GL.BindVertexArray(TransparentVao);
+
+        TransparentVbo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, TransparentVbo);
+        GL.BufferData<ChunkVertex>(BufferTarget.ArrayBuffer, Marshal.SizeOf<ChunkVertex>() * TransparentVertices.Count, CollectionsMarshal.AsSpan(TransparentVertices), BufferUsage.DynamicDraw);
+
+        TransparentIbo = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, TransparentIbo);
+        GL.BufferData<int>(BufferTarget.ElementArrayBuffer, sizeof(int) * TransparentIndices.Count, CollectionsMarshal.AsSpan(TransparentIndices), BufferUsage.DynamicDraw);
+        
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Position)));
+        GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.Normal)));
+        GL.EnableVertexAttribArray(1);
+        GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Marshal.SizeOf<ChunkVertex>(), Marshal.OffsetOf<ChunkVertex>(nameof(ChunkVertex.TextureCoordinate)));
+        GL.EnableVertexAttribArray(2);
+
+        TransparentVerticesLength = TransparentVertices.Count;
+        TransparentIndicesLength = TransparentIndices.Count;
+        
+        TransparentVertices.Clear();
+        TransparentIndices.Clear();
         ShouldUpdate = false;
     }
 }

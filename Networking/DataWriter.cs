@@ -30,6 +30,14 @@ public class DataWriter
         _data.Write(buff.Slice(0, 2));
     }
 
+    public void Write(uint value)
+    {
+        Span<byte> buff = _buffer;
+        BinaryPrimitives.WriteUInt32LittleEndian(buff, value);
+        
+        _data.Write(buff.Slice(0, 4));
+    }
+
     public void Write(int value)
     {
         Span<byte> buff = _buffer;
@@ -53,6 +61,15 @@ public class DataWriter
     }
 
     public void WriteValues(ushort[] values)
+    {
+        Write(values.Length);
+        for (int i = 0; i < values.Length; i++)
+        {
+            Write(values[i]);
+        }
+    }
+
+    public void WriteValues(uint[] values)
     {
         Write(values.Length);
         for (int i = 0; i < values.Length; i++)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
 using VoxelGame.Networking;
@@ -10,6 +11,7 @@ public class Block
     public BoundingBox BoundingBox = new BoundingBox();
     public ushort Id = 0;
     public bool IsSolid = true;
+    public bool IsTransparent = false;
     
     public Block SetBlockModel(BlockModel model)
     {
@@ -19,13 +21,13 @@ public class Block
 
     public virtual void OnBlockPlace(World world, Vector3i blockPosition)
     {
-        world.SetBlockId(blockPosition, Id);
+        world.SetBlock(blockPosition, this);
         world.EnqueueChunksFromBlockPosition(blockPosition);
     }
 
     public virtual void OnBlockDestroy(World world, Vector3i blockPosition)
     {
-        world.SetBlockId(blockPosition, 0);
+        world.SetBlock(blockPosition);
         world.EnqueueChunksFromBlockPosition(blockPosition);
     }
 

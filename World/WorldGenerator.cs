@@ -13,7 +13,7 @@ public class WorldGenerator
     private World _world;
     private List<Thread> _generatorThreads = new();
     private AutoResetEvent _generatorResetEvent = new AutoResetEvent(true);
-    public bool ShouldMesh;
+    public bool ShouldMesh = false;
     private bool _shouldRun = true;
 
     public ConcurrentQueue<Vector2i> HighPriorityGenerationQueue = new();
@@ -62,6 +62,8 @@ public class WorldGenerator
 
     private void HandleGenerationQueue()
     {
+        Stopwatch sw = new Stopwatch();
+        
         while (_shouldRun)
         {
             _generatorResetEvent.WaitOne();
@@ -72,7 +74,12 @@ public class WorldGenerator
                 switch (column.Status)
                 {
                     case ChunkStatus.Empty:
+                        sw.Start();
                         GenerateColumn(column);
+                        sw.Stop();
+                        Config.LastGenTime = sw.Elapsed;
+                        Config.GenTimes.Add(Config.LastGenTime);
+                        sw.Reset();
                         break;
                     case ChunkStatus.Mesh:
                         if (ShouldMesh)
@@ -102,7 +109,16 @@ public class WorldGenerator
 
                             if (column.IsMeshIncomplete) column.IsMeshIncomplete = false;
                             if (!HasAllNeighbors(position)) column.IsMeshIncomplete = true;
+                            sw.Start();
                             GenerateMesh(_world, column);
+                            sw.Stop();
+                            Config.LastMeshTime = sw.Elapsed;
+                            Config.MeshTimes.Add(Config.LastMeshTime);
+                            sw.Reset();
+                        }
+                        else
+                        {
+                            column.Status = ChunkStatus.Done;
                         }
                         break;
                 }
@@ -148,9 +164,12 @@ public class WorldGenerator
         float maxAscent = 64.0f;
         float median = maxAscent / 2.0f;
 
-        float[] arr = Noise.Value3(0, new Vector3i(4), (Config.ChunkSize, Config.ChunkSize * Config.ColumnSize, Config.ChunkSize), new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize, 16.0f, true, 4, out Vector3i arraySize);
+        Vector3i step = new Vector3i(8);
         
-        Stopwatch sw = Stopwatch.StartNew();
+        Vector3i arraySize = Noise.NoiseSizeValue3(step, (Config.ChunkSize, Config.ChunkSize * Config.ColumnSize, Config.ChunkSize));
+        Span<float> noiseArray = stackalloc float[arraySize.X * arraySize.Y * arraySize.Z];
+        Noise.PregenerateValue3(noiseArray, 0, step, arraySize, new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize, 16.0f, true, 4);
+        
         for (int x = 0; x < Config.ChunkSize; x++)
         {
             for (int z = 0; z < Config.ChunkSize; z++)
@@ -171,14 +190,13 @@ public class WorldGenerator
                     float height = Remap(globalPosition.Y, (seaLevel + (median * (1.0f - roughness))) + (heightnessValue * roughness) + continentalityValue, (seaLevel + 1.0f + (maxAscent - (median * (1.0f - roughness)))) + (heightnessValue * roughness) + continentalityValue);
                     height = (1.0f - height);
                     
-                    // float density = ((Noise.Value3(0, (Vector3)globalPosition / 16.0f, true, 4) + 1.0f) * 0.5f);
-                    float density = (Noise.Value3(arr, new Vector3(x, y, z) / 4.0f, arraySize) + 1.0f) * 0.5f;
+                    float density = (Noise.Value3(noiseArray, new Vector3(x, y, z) / step, arraySize) + 1.0f) * 0.5f;
                     if (density + height >= 0.0f)
                     {
-                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("stone"));
+                        column.SetBlock((x, y, z), Config.Register.GetBlockFromNamespace("stone"));
                     } else if (y <= seaLevel)
                     {
-                        Chunk.SetBlock(column, (x,y,z), Config.Register.GetBlockFromNamespace("water"));
+                        column.SetBlock((x, y, z), Config.Register.GetBlockFromNamespace("water"));
                     }
                 }
             }
@@ -187,9 +205,6 @@ public class WorldGenerator
         column.Status = ChunkStatus.Mesh;
         if (column.HasPriority) HighPriorityGenerationQueue.Enqueue(column.Position);
         else LowPriorityGenerationQueue.Enqueue(column.Position);
-        sw.Stop();
-        Config.LastGenTime = (float) sw.Elapsed.TotalMilliseconds;
-        Config.GenTimes.Add(Config.LastGenTime);
     }
 
     float Remap(float a, float v1, float v2)
@@ -199,13 +214,14 @@ public class WorldGenerator
     
     public void GenerateMesh(World world, Chunk column)
     {
-        Stopwatch sw = Stopwatch.StartNew();
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             ChunkSectionMesh mesh = column.ChunkMeshes[i];
             if (!mesh.ShouldUpdate || column.ChunkSections[i].IsEmpty) continue;
-            mesh.Vertices.Clear();
-            mesh.Indices.Clear();
+            mesh.SolidVertices.Clear();
+            mesh.SolidIndices.Clear();
+            mesh.TransparentVertices.Clear();
+            mesh.TransparentIndices.Clear();
             
             for (int x = 0; x < Config.ChunkSize; x++)
             {
@@ -223,17 +239,19 @@ public class WorldGenerator
                 }
             }
 
-            for (int m = 0; m < mesh.Vertices.Count; m += 4)
+            for (int m = 0; m < mesh.SolidVertices.Count; m += 4)
             {
-                mesh.Indices.AddRange(0 + m, 1 + m, 2 + m, 2 + m, 3 + m, 0 + m);
+                mesh.SolidIndices.AddRange(0 + m, 1 + m, 2 + m, 2 + m, 3 + m, 0 + m);
+            }
+
+            for (int m = 0; m < mesh.TransparentVertices.Count; m += 4)
+            {
+                mesh.TransparentIndices.AddRange(0 + m, 1 + m, 2 + m, 2 + m, 3 + m, 0 + m);
             }
         }
         
         column.Status = ChunkStatus.Upload;
         UploadQueue.Enqueue(column.Position);
-        sw.Stop();
-        Config.LastMeshTime = (float)sw.Elapsed.TotalMilliseconds;
-        Config.MeshTimes.Add(Config.LastMeshTime);
     }
     
     public void UploadMesh(Chunk column)

@@ -140,12 +140,13 @@ public class Noise
         return normalized ? val / totalAmplitude : val;
     }
 
-    public static float[] Value3(int seed, Vector3i step, Vector3i size, Vector3 offset, float divisor, bool normalized, int octaves, out Vector3i arraySize)
+    public static Vector3i NoiseSizeValue3(Vector3i step, Vector3i size)
     {
-        arraySize = (size / step) + 1;
-        
-        float[] array = new float[arraySize.X * arraySize.Y * arraySize.Z];
+        return (size / step) + Vector3i.One;
+    }
 
+    public static void PregenerateValue3(Span<float> array, int seed, Vector3i step, Vector3i arraySize, Vector3 offset, float divisor, bool normalized, int octaves)
+    {
         for (int x = 0; x < arraySize.X; x++)
         {
             for (int y = 0; y < arraySize.Y; y++)
@@ -157,15 +158,11 @@ public class Noise
                 }
             }
         }
-
-        arraySize -= 1;
-        
-        return array;
     }
 
-    public static float Value3(float[] values, Vector3 position, Vector3i size)
+    public static float Value3(Span<float> values, Vector3 position, Vector3i size)
     {
-        size += Vector3i.One;
+        // size += Vector3i.One;
         
         Vector3i indexPosition = (Vector3i) new Vector3(float.Floor(position.X), float.Floor(position.Y), float.Floor(position.Z));
         Vector3 interpolant = (Maths.EuclideanRemainder(position.X, 1), Maths.EuclideanRemainder(position.Y, 1), Maths.EuclideanRemainder(position.Z, 1));

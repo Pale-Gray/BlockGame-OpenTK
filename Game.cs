@@ -20,7 +20,7 @@ class Game
             {
                 Config.Server = new Server("server_settings.json");
                 Config.Server.Start();
-                Config.Server.World.Generator.ShouldMesh = false;
+                // Config.Server.World.Generator.ShouldMesh = false;
             }
 
             if (argument == "client")
@@ -43,7 +43,7 @@ class Game
             Config.Client.Start();
             Config.Client.HostOrIp = "localhost";
             Config.Client.Port = 8000;
-            Config.Client.Join();
+            Config.Client.Join(true);
         }
         
         Config.Timer.Start();

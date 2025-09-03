@@ -113,6 +113,8 @@ public struct ChunkDataPacket : IPacket
         for (int i = 0; i < Config.ColumnSize; i++)
         {
             writer.WriteValues(RunLengthEncoder.Encode(Column.ChunkSections[i].Data).ToArray());
+            writer.WriteValues(Column.ChunkSections[i].SolidData);
+            writer.WriteValues(Column.ChunkSections[i].TransparentData);
         }
     }
 
@@ -124,6 +126,8 @@ public struct ChunkDataPacket : IPacket
         {
             Column.ChunkSections[i].Position = (Position.X, i, Position.Y);
             Column.ChunkSections[i].Data = RunLengthEncoder.Decode(reader.ReadUInt16Values()).ToArray();
+            Column.ChunkSections[i].SolidData = reader.ReadUInt32Values();
+            Column.ChunkSections[i].TransparentData = reader.ReadUInt32Values();
         }
         
         return this;

@@ -10,8 +10,7 @@ public abstract class Networked
     public EventBasedNetListener Listener = new EventBasedNetListener();
     public NetManager Manager;
     public DataWriter Writer = new DataWriter();
-
-    public World World = new World();
+    
     public Dictionary<NetPeer, Player> ConnectedPlayers = new();
 
     public string HostOrIp;
@@ -46,7 +45,7 @@ public abstract class Networked
     public abstract void Stop();
     public abstract void Update();
     public abstract void TickUpdate();
-    public abstract void Join();
+    public abstract void Join(bool isInternal = false);
     public abstract void Disconnect();
     public void SendPacket(IPacket packet, NetPeer? excludingPeer = null)
     {

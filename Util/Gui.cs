@@ -53,7 +53,7 @@ public static class Gui
     public static void Init()
     {
         _guiShader = new Shader("resources/shaders/gui.vert", "resources/shaders/gui.frag").Compile();
-        _fontTexture = new Texture("resources/fonts/default_new.png").Generate(0);
+        _fontTexture = new Texture("resources/fonts/default.png").Generate(0);
         _buttonTexture = new Texture("resources/textures/ui/button.png").Generate();
     }
 
@@ -250,8 +250,10 @@ public static class Gui
         GuiRectangle buttonRec = new GuiRectangle();
         buttonRec.Position = (position.X, position.Y, 0);
         buttonRec.Size = size;
+        bool intersected = false;
         if (DoesIntersectRectangle(buttonRec))
         {
+            intersected = true;
             if (Input.IsMouseButtonDown(MouseButton.Button1))
             {
                 textureOffset.Y += 0.5f;
@@ -312,9 +314,9 @@ public static class Gui
         Text(text, ToAbsolute((0.5f, 0.5f)), AsPixelPerfect(8.0f), Color3.White, true);
         ResetContainer();
         
-        if (Input.IsMouseButtonPressed(MouseButton.Button1))
+        if (intersected)
         {
-            return DoesIntersectRectangle(buttonRec);
+            return Input.IsMouseButtonPressed(MouseButton.Button1);
         }
         return false;
     }
