@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using OpenTK.Graphics.Egl;
+using OpenTK.Mathematics;
 using VoxelGame.Networking;
 using VoxelGame.Util;
 
@@ -13,6 +16,33 @@ class Game
     
     static void Main(string[] args)
     {
+        Config.StartTime = Stopwatch.StartNew();
+
+        // Dictionary<Vector2i, Chunk> stuff = new();
+        // Stopwatch sw = Stopwatch.StartNew();
+        // for (int i = 0; i < 5; i++)
+        // {
+        //     Vector2i offset = (i * 10000, 0);
+        //     for (int x = -32; x <= 32; x++)
+        //     {
+        //         for (int z = -32; z <= 32; z++)
+        //         {
+        //             stuff.TryAdd(offset + (x, z), new Chunk(offset + (x, z)));
+        //         }
+        //     }
+        // }
+        // sw.Stop();
+        // Logger.Info($"adding {stuff.Count} chunks took {double.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
+        // sw.Restart();
+        // foreach (var pair in stuff)
+        // {
+        //     
+        // }
+        // sw.Stop();
+        // Logger.Info($"looping over {stuff.Count} chunks took {double.Round(sw.Elapsed.TotalMilliseconds, 2)}ms");
+        // 
+        // stuff.Clear();
+
         if (args.Length > 0)
         {
             string argument = args[0];
@@ -71,7 +101,6 @@ class Game
 
             if (t >= 1.0f)
             {
-                // Console.WriteLine($"TPS: {Config.LastTicksPerSecond}, expected: {Config.TickSpeed}, tick loss: {Config.TickSpeed - Config.LastTicksPerSecond}");
                 Config.LastTicksPerSecond = 0;
 
                 Config.MinimumFps = float.Round(16.6f / Config.FrameTimesOfLastSecond.Max() * 60.0f);
@@ -86,5 +115,7 @@ class Game
             
         Config.Server?.Stop();
         Config.Client?.Stop();
+        
+        Logger.WriteToFile();
     }
 }

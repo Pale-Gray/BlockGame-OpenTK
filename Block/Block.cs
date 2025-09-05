@@ -35,4 +35,9 @@ public class Block
     {
         world.AddModel(blockPosition, Model);
     }
+
+    public override bool Equals(object? obj)
+    {
+        return ((Block)obj).Id == Id;
+    }
 }

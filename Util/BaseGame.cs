@@ -9,9 +9,10 @@ public class BaseGame : IMod
             new Block()
                 .SetBlockModel(new BlockModel()
                     .AddCube(new Cube())
-                    .SetTextureFace(0, Direction.Top, "chicken_systems")
-                    .SetTextureSides(0, "chicken_systems")
-                    .SetTextureFace(0, Direction.Bottom, "chicken_systems")));
+                    .SetTextureFace(0, Direction.Top, "grass_top")
+                    .SetTextureSides(0, "grass_side")
+                    .SetTextureFace(0, Direction.Bottom, "dirt")));
+        Config.Register.RegisterBlock("dirt", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "dirt")));
         Config.Register.RegisterBlock("stone", new Block().SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "stone")));
         Config.Register.RegisterBlock("sand",
             new Block() { IsSolid = true }
@@ -27,5 +28,6 @@ public class BaseGame : IMod
                     .SetTextureSides(0, "pumpkin_face")));
         Config.Register.RegisterBlock("water",
             new Block() { IsTransparent = true }.SetBlockModel(new BlockModel().AddCube(new Cube()).SetAllTextureFaces(0, "water")));
+        Config.Register.RegisterBlock("stone", new Block());
     }
 }

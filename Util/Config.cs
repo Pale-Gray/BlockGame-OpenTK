@@ -52,4 +52,5 @@ public class Config
     public static float AverageFps;
 
     public static World World;
+    public static Stopwatch StartTime;
 }

@@ -1,21 +1,29 @@
 using System.Collections.Generic;
+using VoxelGame.Util;
 
 namespace VoxelGame;
 
 public class Register
 {
-    private Dictionary<string, Block> _blockIndices = new();
+    private Dictionary<string, Block> _blocks = new();
 
-    public int BlockCount => _blockIndices.Count;
+    public int BlockCount => _blocks.Count;
     
-    public void RegisterBlock(string name, Block block)
+    public void RegisterBlock(string id, Block block)
     {
-        block.Id = name;
-        _blockIndices.Add(name, block);
+        block.Id = id;
+        if (!_blocks.TryAdd(id, block))
+        {
+            Logger.Warning($"A block with the id \"{id}\" already exists. skipping");
+        }
+        else
+        {
+            Logger.Info($"Added block {id}");
+        }
     }
 
-    public Block GetBlockFromNamespace(string name)
+    public Block GetBlockFromId(string name)
     {
-        return _blockIndices[name];
+        return _blocks[name];
     }
 }

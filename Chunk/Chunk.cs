@@ -34,7 +34,6 @@ public class Chunk
     public void SetBlock(Vector3i localPosition, Block? block = null)
     {
         int index = localPosition.Y / Config.ChunkSize;
-        // ChunkSections[index].SetBlock(id, localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);
         if (block == null)
         {
             ChunkSections[index].SetBlock("air", localPosition.X, localPosition.Y % Config.ChunkSize, localPosition.Z);

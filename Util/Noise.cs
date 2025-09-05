@@ -145,7 +145,7 @@ public class Noise
         return (size / step) + Vector3i.One;
     }
 
-    public static void PregenerateValue3(Span<float> array, int seed, Vector3i step, Vector3i arraySize, Vector3 offset, float divisor, bool normalized, int octaves)
+    public static void PregenerateValue3(Span<float> array, int seed, Vector3i step, Vector3i arraySize, Vector3 offset, Vector3 divisor, bool normalized, int octaves)
     {
         for (int x = 0; x < arraySize.X; x++)
         {

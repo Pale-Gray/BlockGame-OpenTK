@@ -9,23 +9,12 @@ namespace VoxelGame;
 
 public class ChunkSection
 {
-    // public ushort[] Data = new ushort[Config.ChunkVolume];
     public uint[] SolidData = new uint[Config.ChunkSize * Config.ChunkSize];
     public uint[] TransparentData = new uint[Config.ChunkSize * Config.ChunkSize];
     public Palette<string> Blocks = new Palette<string>(Config.ChunkVolume);
     public Vector3i Position;
 
     public bool IsEmpty => Blocks.IsEmpty;
-
-    // public ushort GetBlockId(int x, int y, int z)
-    // {
-    //     return Data[x + (y * Config.ChunkSize) + (z * Config.ChunkSize * Config.ChunkSize)];
-    // }
-
-    // public ushort GetBlockId(Vector3i position)
-    // {
-    //     return Data[position.X + (position.Y * Config.ChunkSize) + (position.Z * Config.ChunkSize * Config.ChunkSize)];
-    // }
 
     public string? GetBlockId(Vector3i position)
     {

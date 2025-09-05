@@ -30,7 +30,7 @@ public class WorldGenerator
     {
         for (int i = 0; i < 4; i++)
         {
-            _generatorThreads.Add(new Thread(HandleGenerationQueue));
+            _generatorThreads.Add(new Thread(HandleGenerationQueue) { IsBackground = true });
             _generatorThreads[i].Start();
         }
         
@@ -40,10 +40,10 @@ public class WorldGenerator
     public WorldGenerator Stop()
     {
         _shouldRun = false;
-        foreach (Thread thr in _generatorThreads)
-        {
-            while (thr.IsAlive) _generatorResetEvent.Set();
-        }
+        // foreach (Thread thr in _generatorThreads)
+        // {
+        //     while (thr.IsAlive) _generatorResetEvent.Set();
+        // }
 
         return this;
     }
@@ -54,9 +54,11 @@ public class WorldGenerator
         
         while (UploadQueue.TryDequeue(out Vector2i position))
         {
-            _world.Chunks[position].Mutex.WaitOne();
+            Monitor.Enter(_world.Chunks[position]);
+            // _world.Chunks[position].Mutex.WaitOne();
             if (_world.Chunks[position].Status == ChunkStatus.Upload) UploadMesh(_world.Chunks[position]);
-            _world.Chunks[position].Mutex.ReleaseMutex();
+            // _world.Chunks[position].Mutex.ReleaseMutex();
+            Monitor.Exit(_world.Chunks[position]);
         }
     }
 
@@ -70,7 +72,8 @@ public class WorldGenerator
             while (HighPriorityGenerationQueue.TryDequeue(out Vector2i position) || LowPriorityGenerationQueue.TryDequeue(out position))
             {
                 Chunk column = _world.Chunks[position];
-                column.Mutex.WaitOne();
+                // column.Mutex.WaitOne();
+                Monitor.Enter(column);
                 switch (column.Status)
                 {
                     case ChunkStatus.Empty:
@@ -84,28 +87,30 @@ public class WorldGenerator
                     case ChunkStatus.Mesh:
                         if (ShouldMesh)
                         {
-                            if (!column.IsMeshIncomplete)
-                            {
-                                for (int x = -1; x <= 1; x++)
-                                {
-                                    for (int z = -1; z <= 1; z++)
-                                    {
-                                        if (x == 0 && z == 0) continue;
-                                        if (_world.Chunks.TryGetValue(position + (x, z), out Chunk chunk) && chunk.IsMeshIncomplete)
-                                        {
-                                            chunk.Mutex.WaitOne();
-                                            for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
-                                            chunk.Status = ChunkStatus.Mesh;
-                                            LowPriorityGenerationQueue.Enqueue(position + (x, z));
-                                            // GenerateMesh(_world, chunk);
-                                            chunk.Mutex.ReleaseMutex();
-                                            // for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
-                                            // chunk.Status = ChunkStatus.Mesh;
-                                            // LowPriorityGenerationQueue.Enqueue(position + (x, z));
-                                        }
-                                    }
-                                }
-                            }
+                            // if (!column.IsMeshIncomplete)
+                            // {
+                            //     for (int x = -1; x <= 1; x++)
+                            //     {
+                            //         for (int z = -1; z <= 1; z++)
+                            //         {
+                            //             if (x == 0 && z == 0) continue;
+                            //             if (_world.Chunks.TryGetValue(position + (x, z), out Chunk chunk) && chunk.IsMeshIncomplete)
+                            //             {
+                            //                 // chunk.Mutex.WaitOne();
+                            //                 Monitor.Enter(chunk);
+                            //                 for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
+                            //                 chunk.Status = ChunkStatus.Mesh;
+                            //                 LowPriorityGenerationQueue.Enqueue(position + (x, z));
+                            //                 // GenerateMesh(_world, chunk);
+                            //                 // chunk.Mutex.ReleaseMutex();
+                            //                 Monitor.Exit(chunk);
+                            //                 // for (int i = 0; i < Config.ColumnSize; i++) chunk.ChunkMeshes[i].ShouldUpdate = true;
+                            //                 // chunk.Status = ChunkStatus.Mesh;
+                            //                 // LowPriorityGenerationQueue.Enqueue(position + (x, z));
+                            //             }
+                            //         }
+                            //     }
+                            // }
 
                             if (column.IsMeshIncomplete) column.IsMeshIncomplete = false;
                             if (!HasAllNeighbors(position)) column.IsMeshIncomplete = true;
@@ -122,7 +127,8 @@ public class WorldGenerator
                         }
                         break;
                 }
-                column.Mutex.ReleaseMutex();
+                // column.Mutex.ReleaseMutex();
+                Monitor.Exit(column);
             }
         }
     }
@@ -162,13 +168,12 @@ public class WorldGenerator
     {
         float seaLevel = 256.0f;
         float maxAscent = 64.0f;
-        float median = maxAscent / 2.0f;
 
-        Vector3i step = new Vector3i(8);
+        Vector3i step = new Vector3i(32, 16, 32);
         
         Vector3i arraySize = Noise.NoiseSizeValue3(step, (Config.ChunkSize, Config.ChunkSize * Config.ColumnSize, Config.ChunkSize));
-        Span<float> noiseArray = stackalloc float[arraySize.X * arraySize.Y * arraySize.Z];
-        Noise.PregenerateValue3(noiseArray, 0, step, arraySize, new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize, 16.0f, true, 4);
+        Span<float> noiseOneArray = stackalloc float[arraySize.X * arraySize.Y * arraySize.Z];
+        Noise.PregenerateValue3(noiseOneArray, 0, step, arraySize, new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize, new Vector3(64), true, 4);
         
         for (int x = 0; x < Config.ChunkSize; x++)
         {
@@ -176,27 +181,55 @@ public class WorldGenerator
             {
                 Vector3i globalPosition = new Vector3i(x, 0, z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize);
 
-                float roughness = (Noise.Value2(1, (Vector2)globalPosition.Xz / 64.0f, true, 2) + 1.0f) * 0.5f;
-                float heightness = (Noise.Value2(2, (Vector2)globalPosition.Xz / 64.0f, true, 2) + 1.0f) * 0.5f;
-                float continentality = Noise.Value2(3, (Vector2)globalPosition.Xz / 128.0f, true, 4);
-                continentality = (continentality + 1.0f) * 0.5f;
+                float selector = Noise.Value2(1, (Vector2)globalPosition.Xz / 64.0f, true, 4);
+                selector *= 10.0f;
+                selector = (float.Clamp(selector, -1.0f, 1.0f) + 1.0f) * 0.5f;
 
-                float heightnessValue = float.Lerp(-32, 32, heightness * continentality);
-                float continentalityValue = float.Lerp(-seaLevel / 2.0f, 64, continentality);
-                roughness *= continentality;
+                float continentality = Noise.Value2(5, (Vector2)globalPosition.Xz / 512.0f, true, 4);
+                continentality *= 10.0f;
+                continentality = (float.Clamp(continentality, -1.0f, 1.0f) + 1.0f) * 0.5f;
+                
+                float erosionOne = Noise.Value2(2, (Vector2)globalPosition.Xz / 128.0f, true, 2);
+                float erosionTwo = Noise.Value2(3, (Vector2)globalPosition.Xz / 128.0f, true, 2);
+                float erosion = (float.Lerp(erosionOne, erosionTwo, selector) + 1.0f) * 0.5f;
+
+                erosion *= continentality;
+                
                 for (int y = Config.ChunkSize * Config.ColumnSize - 1; y >= 0; y--)
                 {
                     globalPosition.Y = y;
-                    float height = Remap(globalPosition.Y, (seaLevel + (median * (1.0f - roughness))) + (heightnessValue * roughness) + continentalityValue, (seaLevel + 1.0f + (maxAscent - (median * (1.0f - roughness)))) + (heightnessValue * roughness) + continentalityValue);
+                    float min = seaLevel - 128 * (1.0f - erosion);
+                    float max = seaLevel + 256 - ((256 - 64) * (1.0f - erosion));
+                    float height = Remap(globalPosition.Y, min, max);
                     height = (1.0f - height);
+
+                    float density = Noise.Value3(noiseOneArray, new Vector3(x, y, z) / step, arraySize) * 0.5f;
                     
-                    float density = (Noise.Value3(noiseArray, new Vector3(x, y, z) / step, arraySize) + 1.0f) * 0.5f;
-                    if (density + height >= 0.0f)
+                    if (density + height >= 0.5f)
                     {
-                        column.SetBlock((x, y, z), Config.Register.GetBlockFromNamespace("stone"));
+                        column.SetBlock((x, y, z), Config.Register.GetBlockFromId("stone"));
                     } else if (y <= seaLevel)
                     {
-                        column.SetBlock((x, y, z), Config.Register.GetBlockFromNamespace("water"));
+                        column.SetBlock((x, y, z), Config.Register.GetBlockFromId("water"));
+                    }
+                }
+            }
+        }
+        
+        for (int x = 0; x < Config.ChunkSize; x++)
+        {
+            for (int z = 0; z < Config.ChunkSize; z++)
+            {
+                Vector3i globalPosition = new Vector3i(x, 0, z) + (new Vector3i(column.Position.X, 0, column.Position.Y) * Config.ChunkSize);
+                
+                for (int y = Config.ChunkSize * Config.ColumnSize - 1; y >= 0; y--)
+                {
+                    globalPosition.Y = y;
+
+                    if (column.GetBlockId((x, y, z)) == "stone" && !column.GetSolid((x, y + 1, z)))
+                    {
+                        for (int i = 0; i < 5; i++) if (column.GetSolid((x, y - i, z))) column.SetBlock((x, y - i, z), Config.Register.GetBlockFromId("dirt"));
+                        column.SetBlock((x, y, z), Config.Register.GetBlockFromId("grass"));
                     }
                 }
             }
@@ -233,7 +266,7 @@ public class WorldGenerator
                         string? id = column.ChunkSections[i].GetBlockId((x, y, z));
                         if (id != null)
                         {
-                            Config.Register.GetBlockFromNamespace(id).OnBlockMesh(_world, globalBlockPosition);
+                            Config.Register.GetBlockFromId(id).OnBlockMesh(_world, globalBlockPosition);
                         }
                     }
                 }
